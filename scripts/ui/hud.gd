@@ -12,12 +12,35 @@ var kills_label: Label
 var territories_label: Label
 var collect_button: Button
 var unclaimed_label: Label
+var header_margin: MarginContainer
+var footer_margin: MarginContainer
+var safe_bottom := 0.0
+
+func fit_safe_area() -> void:
+	if not OS.has_feature("mobile"):
+		return
+	var screen_size := Vector2(DisplayServer.window_get_size())
+	var safe := Rect2(DisplayServer.get_display_safe_area())
+	if screen_size.x <= 0 or screen_size.y <= 0 or not safe.has_area():
+		return
+	# Safe-area pixels must be converted to the expanded canvas coordinates.
+	var scale := get_viewport_rect().size / screen_size
+	var left := maxf(0.0, safe.position.x) * scale.x
+	var right := maxf(0.0, screen_size.x - safe.end.x) * scale.x
+	var top := maxf(0.0, safe.position.y) * scale.y
+	safe_bottom = maxf(0.0, screen_size.y - safe.end.y) * scale.y
+	for margin in [header_margin, footer_margin]:
+		margin.add_theme_constant_override("margin_left", 12 + ceili(left))
+		margin.add_theme_constant_override("margin_right", 12 + ceili(right))
+	header_margin.add_theme_constant_override("margin_top", 12 + ceili(top))
+	footer_margin.add_theme_constant_override("margin_bottom", 12 + ceili(safe_bottom))
 
 func build_header() -> void:
 	var top := PanelContainer.new()
 	top.add_theme_stylebox_override("panel", UI.box(UI.PANEL, UI.BORDER, 0))
 	add_child(top)
 	var header := UI.margin(top, 12)
+	header_margin = header.get_parent() as MarginContainer
 	header.add_theme_constant_override("separation", 6)
 	var toolbar := HBoxContainer.new()
 	toolbar.name = "HeaderToolbar"
@@ -67,6 +90,7 @@ func build_footer() -> void:
 	bottom.add_theme_stylebox_override("panel", UI.box(UI.PANEL, UI.BORDER, 0))
 	add_child(bottom)
 	var footer := UI.margin(bottom, 12)
+	footer_margin = footer.get_parent() as MarginContainer
 	footer.add_theme_constant_override("separation", 9)
 	var earning_row := HBoxContainer.new()
 	earning_row.name = "FooterActions"

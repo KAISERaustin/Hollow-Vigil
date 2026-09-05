@@ -97,7 +97,14 @@ func build_interface() -> void:
 	tower_dialog.app = self
 	add_child(tower_dialog)
 	build_return_popup()
+	get_viewport().size_changed.connect(fit_display)
+	fit_display()
 	update_hud()
+
+func fit_display() -> void:
+	hud.fit_safe_area()
+	panels.offset_bottom = -184 - hud.safe_bottom
+	panels.offset_top = -484 - hud.safe_bottom
 
 func build_return_popup() -> void:
 	return_overlay = ColorRect.new()

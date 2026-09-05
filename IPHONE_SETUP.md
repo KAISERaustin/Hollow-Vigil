@@ -1,35 +1,65 @@
-# Native iPhone setup
+# Hollow Vigil on iPhone
 
-## Current status
+## Installed build — September 4, 2026
 
-- Windows detects the connected Apple iPhone and its USB device successfully.
-- The project uses Godot **4.7.2**, GDScript, portrait orientation and the Compatibility renderer.
-- `export_presets.cfg` now includes an **iOS** preset for an ARM64 device and an Xcode project export.
-- The Apple Team ID is deliberately empty until the signing account is selected. No Apple credentials are stored in this project.
-- **An iOS app has not been built, signed, installed or tested on the iPhone.** An export preset is not an installable app.
+Hollow Vigil 0.1.0 (build 1.0.0), bundle identifier `com.kaiser.hollowvigil`, was built in Release mode and installed on Austin's iPhone 16 Pro running iOS 27.0 beta. The build uses Godot 4.7.2, its matching official iOS templates, and Xcode 26.6.
 
-## Build and install using a Mac
+Open **Hollow Vigil** on the phone to play. The engine and game are bundled in the app. No connection to this Mac, server, Wi-Fi or cellular service is needed for gameplay. Progress is saved in the app's own Documents directory. Offline earnings use the existing game rules: 80% of demonstrated production, capped at seven days.
 
-1. Copy the project to a Mac. Keep `project.godot`, `export_presets.cfg`, `icon.svg`, `scenes` and `scripts` (artwork is drawn in code; the old `assets` and `shaders` folders were removed). Desktop saves in `.runtime` are separate from iPhone saves and are not needed to build the app.
-2. Install Xcode, open it to complete its setup, and sign in to your Apple Account in Xcode Settings > Accounts.
-3. Install Godot **4.7.2** and the matching **4.7.2** export templates. Earlier templates installed on the Windows computer do not match this engine.
-4. Open `project.godot` in Godot. In Project > Export, select **iOS** and enter the Apple Team ID for the account that will sign the app. Use your actual team identifier, not your name. Change `org.prototype.hollowvigil` if Xcode reports that this bundle identifier is unavailable.
-5. Leave **Export Project Only** enabled. Export to a new folder using the name `HollowVigil`, without spaces. Open the generated `HollowVigil.xcodeproj` in Xcode. This export step produces the Xcode project; it does not produce a signed app by itself.
-6. Connect the iPhone to the Mac, unlock it and accept **Trust This Computer** if prompted. Enable Developer Mode on the iPhone if Xcode requests it.
-7. In the app target's Signing & Capabilities settings, select your team and enable **Automatically manage signing**. Select the connected iPhone as the run destination and press **Run**.
-8. Verify that the game launches, the controls avoid the notch and Home indicator, touch/pinch gestures work, and progress survives closing and reopening the app.
+Start by buying a territory with a large **+** button for 100 gold, then buying an Ashneedle in an empty tower socket for 60 gold.
 
-A free Apple Account supports personal device testing through Xcode. Its provisioning expires after seven days, requiring the app to be rebuilt and reinstalled. A paid membership is not required just to test your own app through Xcode.
+## Signing expiration
 
-## If only Windows is available
+The installed build uses the existing paid developer team's development signing identity. Its certificate expires **December 17, 2026 at 16:14 UTC**, earlier than the embedded provisioning profile's June 20, 2027 expiration. Arrange a renewed certificate and rebuild/reinstall before December 17. This is a development installation, not a permanent App Store installation; signing can also stop working if the account or certificate is revoked.
 
-The native Godot iOS build still needs a Mac with Xcode, which can be a remote build machine. A cloud build also requires a place to upload the game source and a chosen signing/install workflow. Creating or uploading a repository, starting a cloud build, and configuring an installer have not been performed.
+Reinstall over the existing app using the same bundle identifier and Apple team to retain its data. Do not delete the app to renew it: deleting it removes local progress. Back up the app container through Xcode's Devices window before future signing changes.
 
-Sideloadly offers Windows installation and signing of an existing IPA using an Apple Account; it does not replace the Mac/Xcode step that builds this Godot game. A cloud-built unsigned IPA would still need signing before installation. Account sign-in and any two-factor authentication should be performed by the account owner in the chosen tool.
+## Verification
+
+- Official export-template SHA-256 matched the Godot release metadata.
+- Headless gameplay and persistence suite: **2,351 checks, zero failures**.
+- Rendered UI suite: **zero failures**, including simulated touch, pinch/pan, tower controls, transactions, field guide and camera-independent combat.
+- Xcode Release build succeeded; the finished signature passed strict verification.
+- Apple device tools confirmed installation and launch without an attached debugger.
+- A screenshot from the physical phone confirmed the game renders with visible header/footer controls and space around the Dynamic Island and Home indicator.
+- Local `Documents/vigil.save` and backup files were created; the downloaded save's checksum was valid.
+- After a fresh process launch, the same world, both purchased territories and the tower were retained. Saving continued with a higher sequence number, and another phone screenshot showed live combat and earnings.
+
+Desktop-generated gestures are not physical multitouch testing. Airplane Mode, prolonged battery use and large worlds have not been exercised on this phone.
+
+Build logs, install receipts and the phone screenshot are in `artifacts/` (ignored by Git). A signed installable backup is in `exports/ios/HollowVigil.ipa` (also ignored).
+
+## Rebuild on this Mac
+
+The iOS preset now enables mobile texture imports, sets the Apple team and bundle identifier, disables push notifications correctly, and exports a release engine with development signing. Export templates are installed at `~/Library/Application Support/Godot/export_templates/4.7.2.stable/`.
+
+From the repository directory:
+
+```bash
+GODOT_BIN="$HOME/Downloads/Godot.app/Contents/MacOS/Godot"
+"$GODOT_BIN" --headless --path . --export-release iOS exports/ios/HollowVigil.ipa
+
+xcodebuild \
+  -project exports/ios/HollowVigil.xcodeproj \
+  -scheme HollowVigil -configuration Release \
+  -destination 'generic/platform=iOS' \
+  -derivedDataPath /private/tmp/hollow-vigil-ios-build \
+  -allowProvisioningUpdates \
+  DEVELOPMENT_TEAM=WQDR97B55W CODE_SIGN_STYLE=Automatic \
+  'CODE_SIGN_IDENTITY=Apple Development' build
+
+xcrun devicectl device install app --device 'Austin’s iPhone (2)' \
+  /private/tmp/hollow-vigil-ios-build/Build/Products/Release-iphoneos/HollowVigil.app
+xcrun devicectl device process launch --device 'Austin’s iPhone (2)' \
+  com.kaiser.hollowvigil
+```
+
+If the phone is renamed, use its current name from `xcrun devicectl list devices`. Xcode must have a valid signing account and certificate. The generated project uses automatic signing because the existing profile is managed by Xcode.
+
+Keep DerivedData outside the synced Documents folder: its file-provider metadata caused code signing to fail. `/private/tmp` avoids that issue and can be regenerated if macOS clears it. The Godot export creates an Xcode project and PCK; it does not itself regenerate the signed backup IPA when **Export Project Only** is enabled.
 
 ## References
 
 - [Godot: Exporting for iOS](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_ios.html)
-- [Godot: iOS export options](https://docs.godotengine.org/en/stable/classes/class_editorexportplatformios.html)
 - [Apple: Developer account and Personal Team limits](https://developer.apple.com/help/account/basics/about-your-developer-account)
-- [Sideloadly: Supported platforms and installation workflow](https://sideloadly.io/)
+- [Apple: Distribution to registered devices](https://developer.apple.com/documentation/xcode/distributing-your-app-to-registered-devices)

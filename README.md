@@ -4,6 +4,8 @@ A portrait idle tower-defense game built with Godot 4.7.2 and GDScript.
 
 ## Run
 
+On macOS, double-click `launch.command` to play. Run `./launch.command --editor` to open the project in Godot. It uses Godot from Applications or Downloads, or the executable supplied in `GODOT_PATH`.
+
 Open `project.godot` in Godot and press **F5**, or use PowerShell:
 
 ```powershell
@@ -63,6 +65,6 @@ See [test coverage](tests/README.md), [architecture and extension guidance](docs
 
 ## Release status
 
-This is a working local prototype with automated desktop coverage. Windows, Android and iOS export presets are included. The separate [iPhone setup guide](IPHONE_SETUP.md) covers the native iOS handoff. A distributable build still requires matching Godot export templates; Android also requires its build tools and signing configuration. Physical-phone touch, safe areas, suspend/resume, battery use and large-world performance need device testing before release.
+This is a working local prototype with automated desktop coverage. On September 4, 2026, a native release build was signed, installed and launched on an iPhone 16 Pro. Windows, Android and iOS export presets are included. The [iPhone setup guide](IPHONE_SETUP.md) records the installed build, signing expiration, verification and rebuild steps. Broader physical-phone gesture, suspend/resume, battery and large-world performance testing remains appropriate before a public release.
 
 Git was initialized during concurrent setup work, with an initial commit and the `Hollow-Vigil` GitHub remote. Ignore rules, line-ending rules and editor settings are included. No CI configuration was found during this review.

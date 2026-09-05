@@ -2,7 +2,8 @@
 .runtime/
 artifacts/*
 !artifacts/.gdignore
-exports/
+exports/*
+!exports/.gdignore
 *.tmp
 .DS_Store
 Thumbs.db
