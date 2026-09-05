@@ -38,6 +38,8 @@ static func test_storage(suite: SceneTree) -> void:
 	g.save_path = path
 	g.data.last_accounted = 1000
 	g.data.balance = 500
+	g.data.settings.text_scale = 1.5
+	g.data.settings.reduced_motion = true
 	g.expand("0,-1")
 	g.economy.build("heavy", "0,-1", 2)
 	g.economy.credit("1", 25)
@@ -47,6 +49,7 @@ static func test_storage(suite: SceneTree) -> void:
 	var loaded := VigilState.new()
 	loaded.save_path = path
 	suite.check(loaded.load_save(1060), "Snapshot loads")
+	suite.check(loaded.data.settings.text_scale == 1.5 and loaded.data.settings.reduced_motion, "UI preferences survive save and reload")
 	suite.check(loaded.data.seed == 7654 and loaded.data.regions.size() == 2 and loaded.data.towers.size() == 2, "Seed, region, and towers survive loading")
 	suite.check(loaded.paths == g.paths, "Discovered roads remain identical after loading")
 	suite.check(loaded.paths["0,0"].back() == Vector2.ZERO and loaded.paths["0,-1"].back() == Vector2.ZERO, "Existing save topology reconstructs routes to the central core")
@@ -124,6 +127,13 @@ static func test_invalid_snapshots(suite: SceneTree) -> void:
 	d = g.data.duplicate(true)
 	d.settings.low_power = "yes"
 	suite.check(not store.valid_data(d), "Malformed settings rejected")
+	for invalid_scale in [0.0, 1.2, 5.0, NAN, "large"]:
+		d = g.data.duplicate(true)
+		d.settings.text_scale = invalid_scale
+		suite.check(not store.valid_data(d), "Invalid UI text scale rejected")
+	d = g.data.duplicate(true)
+	d.settings.reduced_motion = "yes"
+	suite.check(not store.valid_data(d), "Invalid reduced-motion setting rejected")
 	d = g.data.duplicate(true)
 	d.balance = NAN
 	suite.check(not store.valid_data(d), "Nonfinite currency rejected")

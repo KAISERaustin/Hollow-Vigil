@@ -23,7 +23,7 @@ Player saves launched this way remain in `.runtime/Roaming/Godot/app_userdata/Ho
 - Buy towers in stone sockets, collect their earnings, upgrade them, and expand. The three tower types trade attack speed, damage, range, and splash radius.
 - Every purchased territory continuously spawns enemies. All enemies follow connected roads to the core; escapes cause no damage or gold loss.
 - Select a tower to collect its stored gold and reveal Info, Upgrade, and Sell. Sale refunds half its build and upgrade costs plus stored gold. Confirmations guard against duplicate purchases.
-- Drag to pan and use the mouse wheel or pinch to zoom. Tower action buttons and gold badges scale with their tower. The Info button opens the field guide; settings include power saving, reset, and return to the core.
+- Drag to pan and use the mouse wheel or pinch to zoom. Tower action buttons retain 48-unit touch targets at every zoom and stay inside the battlefield; gold badges remain attached to their towers. The Info button opens the field guide. Settings include power saving, 100/125/150% text size, reduced motion, reset, and return to the core.
 - Offline rewards use 80% of demonstrated production, capped at seven days. Rewards never purchase anything or inflate lifetime kill counts.
 
 ## Project layout
@@ -53,6 +53,7 @@ Keep GDScript `.uid` files with their scripts when moving or committing them. Co
 ```powershell
 ./launch.ps1 -Tests           # Headless gameplay and persistence
 ./launch.ps1 -Smoke           # Native UI, mouse/touch, camera and lifecycle
+./launch.ps1 -StyleTests      # Every screen at three sizes and three text scales
 ./launch.ps1 -TerrainTests    # GPU palette, roads, boundaries and world grid
 ./launch.ps1 -ArtSmoke        # Artwork interactions at two screen sizes
 ./launch.ps1 -TerrainPreview  # Disposable terrain screenshots

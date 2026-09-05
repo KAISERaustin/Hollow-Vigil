@@ -3,6 +3,7 @@ param(
     [switch]$Editor,
     [switch]$Tests,
     [switch]$Smoke,
+    [switch]$StyleTests,
     [switch]$TerrainTests,
     [switch]$TerrainPreview,
     [switch]$ArtSmoke,
@@ -13,7 +14,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $projectPath = $PSScriptRoot
-$modes = @($Editor, $Tests, $Smoke, $TerrainTests, $TerrainPreview, $ArtSmoke, $Check, $Import) | Where-Object { $_ }
+$modes = @($Editor, $Tests, $Smoke, $StyleTests, $TerrainTests, $TerrainPreview, $ArtSmoke, $Check, $Import) | Where-Object { $_ }
 if (@($modes).Count -gt 1) { throw 'Choose one launch mode at a time.' }
 
 if (-not $GodotPath) {
@@ -55,7 +56,7 @@ $savedAppData = $env:APPDATA
 $savedLocalAppData = $env:LOCALAPPDATA
 try {
     $runtimePath = Join-Path $projectPath '.runtime'
-    if ($Tests -or $Smoke -or $TerrainTests -or $TerrainPreview -or $ArtSmoke -or $Check -or $Import) {
+    if ($Tests -or $Smoke -or $StyleTests -or $TerrainTests -or $TerrainPreview -or $ArtSmoke -or $Check -or $Import) {
         $runtimePath = Join-Path $runtimePath 'tests'
     }
     $env:APPDATA = Join-Path $runtimePath 'Roaming'
@@ -72,6 +73,9 @@ try {
         }
         if ($Smoke -or $Check) {
             Invoke-Godot -Name 'visual' -EngineArguments @('--script', 'res://tests/rendered/visual_runner.gd')
+        }
+        if ($StyleTests -or $Check) {
+            Invoke-Godot -Name 'ui-style' -EngineArguments @('--script', 'res://tests/rendered/ui_style_checks.gd')
         }
         if ($TerrainTests -or $Check) {
             Invoke-Godot -Name 'terrain' -EngineArguments @('--script', 'res://tests/rendered/terrain_palette_checks.gd')

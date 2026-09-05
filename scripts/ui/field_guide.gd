@@ -14,19 +14,20 @@ var cards: VBoxContainer
 
 func _ready() -> void:
 	for side in ["left", "top", "right", "bottom"]:
-		add_theme_constant_override("margin_" + side, 14)
+		add_theme_constant_override("margin_" + side, 16)
 	var layout := VBoxContainer.new()
 	layout.add_theme_constant_override("separation", 12)
 	add_child(layout)
 	var header := HBoxContainer.new()
 	layout.add_child(header)
-	var title := UI.heading("Field guide", 23)
+	var title := UI.heading("Field guide", 30)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
-	var close := UI.button("×", func(): close_requested.emit(), 44)
+	var close := UI.button("×", func(): close_requested.emit(), 48)
 	close.name = "CloseGuide"
 	close.tooltip_text = "Close field guide"
-	close.custom_minimum_size.x = 44
+	close.accessibility_name = "Close field guide"
+	close.custom_minimum_size.x = 48
 	close.size_flags_horizontal = Control.SIZE_SHRINK_END
 	header.add_child(close)
 	var tab_row := HBoxContainer.new()
@@ -51,7 +52,7 @@ func _ready() -> void:
 	layout.add_child(scroll)
 	cards = VBoxContainer.new()
 	cards.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	cards.add_theme_constant_override("separation", 10)
+	cards.add_theme_constant_override("separation", 12)
 	scroll.add_child(cards)
 	hint = UI.paragraph("", 12)
 	layout.add_child(hint)
@@ -78,7 +79,7 @@ static func make_card(entry: Dictionary, section: String = "towers") -> PanelCon
 	card.mouse_filter = Control.MOUSE_FILTER_PASS
 	card.name = entry.id
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.add_theme_stylebox_override("panel", UI.box(UI.SURFACE))
+	card.add_theme_stylebox_override("panel", UI.content_box())
 	var body := VBoxContainer.new()
 	body.add_theme_constant_override("separation", 8)
 	card.add_child(body)
@@ -86,7 +87,7 @@ static func make_card(entry: Dictionary, section: String = "towers") -> PanelCon
 	header.add_theme_constant_override("separation", 12)
 	body.add_child(header)
 	var portrait := Control.new()
-	portrait.custom_minimum_size = Vector2(44, 56)
+	portrait.custom_minimum_size = Vector2(48, 64)
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.add_child(portrait)
 	portrait.draw.connect(func():
@@ -101,26 +102,27 @@ static func make_card(entry: Dictionary, section: String = "towers") -> PanelCon
 	identity.alignment = BoxContainer.ALIGNMENT_CENTER
 	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(identity)
-	var title := UI.heading(entry.name, 21)
+	var title := UI.heading(entry.name, 24)
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title.add_theme_color_override("font_color", UI.TEXT)
 	identity.add_child(title)
 	if not entry.role.is_empty():
-		identity.add_child(UI.paragraph(entry.role, 11))
+		identity.add_child(UI.paragraph(entry.role, 12))
 	if not entry.description.is_empty():
-		body.add_child(UI.paragraph(entry.description, 13))
+		body.add_child(UI.paragraph(entry.description, 16))
 	var grid := GridContainer.new()
 	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 14)
+	card.resized.connect(func(): grid.columns = 1 if card.size.x < 350 * UI.text_scale else 2)
+	grid.add_theme_constant_override("h_separation", 16)
 	grid.add_theme_constant_override("v_separation", 8)
 	body.add_child(grid)
 	for stat in entry.stats:
 		var cell := VBoxContainer.new()
 		cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		cell.add_theme_constant_override("separation", 1)
+		cell.add_theme_constant_override("separation", 4)
 		grid.add_child(cell)
-		cell.add_child(UI.paragraph(stat.label, 11))
-		var value := UI.heading(stat.value, 16)
+		cell.add_child(UI.paragraph(stat.label, 14))
+		var value := UI.value(stat.value, 18)
 		value.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		cell.add_child(value)
 	return card

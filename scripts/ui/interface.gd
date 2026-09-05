@@ -11,33 +11,102 @@ const MUTED := VigilTerrainArt.BACKDROP
 const DANGER := VigilTerrainArt.CORAL
 const OUTLINE := 4
 const RADIUS := 4
+const BODY := 16
+const CAPTION := 14
+const META := 12
+const TITLE := 30
+const OBJECT_TITLE := 24
+const GAP := 12
+const PADDING := 16
+const TARGET := 48
+const SANS = preload("res://assets/fonts/NotoSans.ttf")
+const SERIF = preload("res://assets/fonts/NotoSerif.ttf")
+static var text_scale := 1.0
+static var reduced_motion := false
+static var fonts: Dictionary = {}
 
-static func font(weight: int = 400) -> SystemFont:
-	var f := SystemFont.new()
-	f.font_names = PackedStringArray(["Segoe UI", "Noto Sans", "sans-serif"])
-	f.font_weight = weight
-	return f
+static func font(weight: int = 400, serif: bool = false) -> Font:
+	var key := str(weight) + str(serif)
+	if not fonts.has(key):
+		var f := FontVariation.new()
+		f.base_font = SERIF if serif else SANS
+		var ts := TextServerManager.get_primary_interface()
+		f.variation_opentype = {ts.name_to_tag("wght"): float(weight)}
+		f.opentype_features = {ts.name_to_tag("tnum"): 1}
+		fonts[key] = f
+	return fonts[key]
+
+static func type_size(pixels: int) -> int:
+	return ceili(maxi(META, pixels) * text_scale)
+
+static func exact_money(value: float) -> String:
+	return String.num(value, 0 if is_equal_approx(value, roundf(value)) else 2)
+
+static func surface(bg: Color = PANEL, outline: int = OUTLINE, padding: int = PADDING) -> StyleBoxFlat:
+	var style := box(bg)
+	style.set_border_width_all(outline)
+	style.set_content_margin_all(padding)
+	return style
+
+static func plain() -> StyleBoxFlat:
+	return surface(Color.TRANSPARENT, 0, 0)
+
+static func content_box() -> StyleBoxFlat:
+	return surface(SURFACE, 2, 12)
+
+static func chrome() -> StyleBoxFlat:
+	var style := surface(PANEL, OUTLINE, 0)
+	style.set_corner_radius_all(0)
+	return style
+
+static func badge(bg: Color = GOLD) -> StyleBoxFlat:
+	return surface(bg, 2, 8)
+
+static func safe_rect(control: Control) -> Rect2:
+	var available := Rect2(Vector2.ZERO, control.size)
+	if OS.has_feature("mobile"):
+		var safe := Rect2(DisplayServer.get_display_safe_area())
+		var window_size := Vector2(DisplayServer.window_get_size())
+		if safe.has_area() and window_size.x > 0 and window_size.y > 0:
+			var factor := control.get_viewport_rect().size / window_size
+			available = Rect2(safe.position * factor, safe.size * factor).intersection(available)
+	return available
+
+static func trap_focus(root: Control) -> void:
+	var controls: Array[Control] = []
+	for node in root.find_children("*", "Control", true, false):
+		if node.is_visible_in_tree() and node.focus_mode == Control.FOCUS_ALL and not (node is BaseButton and node.disabled):
+			controls.append(node)
+	for i in range(controls.size()):
+		var before := controls[posmod(i - 1, controls.size())].get_path()
+		var after := controls[(i + 1) % controls.size()].get_path()
+		controls[i].focus_previous = before
+		controls[i].focus_next = after
+		controls[i].focus_neighbor_top = before
+		controls[i].focus_neighbor_bottom = after
+		controls[i].focus_neighbor_left = before
+		controls[i].focus_neighbor_right = after
 
 static func theme() -> Theme:
 	var t := Theme.new()
 	t.default_font = font()
-	t.default_font_size = 16
+	t.default_font_size = type_size(BODY)
 	t.set_color("font_color", "Label", TEXT)
 	t.set_font("font", "Button", font(600))
 	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
 		t.set_color(state, "Button", TEXT)
 	t.set_color("font_disabled_color", "Button", MUTED)
 	t.set_stylebox("normal", "Button", box(SURFACE))
-	t.set_stylebox("hover", "Button", box(PANEL))
-	t.set_stylebox("pressed", "Button", box(GOLD))
-	t.set_stylebox("hover_pressed", "Button", box(GOLD))
+	t.set_stylebox("hover", "Button", box(SURFACE))
+	t.set_stylebox("pressed", "Button", box(SURFACE))
+	t.set_stylebox("hover_pressed", "Button", box(SURFACE))
 	t.set_stylebox("disabled", "Button", box(SURFACE))
 	t.set_stylebox("focus", "Button", focus_box())
-	t.set_stylebox("panel", "PanelContainer", box(PANEL))
-	t.set_stylebox("panel", "TooltipPanel", box(PANEL))
+	t.set_stylebox("panel", "PanelContainer", surface(PANEL, OUTLINE, 0))
+	t.set_stylebox("panel", "TooltipPanel", surface(PANEL, 2, 12))
 	t.set_color("font_color", "TooltipLabel", TEXT)
 	t.set_color("font_shadow_color", "TooltipLabel", Color.TRANSPARENT)
-	t.set_font_size("font_size", "TooltipLabel", 13)
+	t.set_font_size("font_size", "TooltipLabel", type_size(CAPTION))
 	for type in ["VScrollBar", "HScrollBar"]:
 		var track := box(SURFACE)
 		track.set_content_margin_all(3)
@@ -82,12 +151,20 @@ static func focus_box() -> StyleBoxFlat:
 static func label(text: String, pixels: int = 16, color: Color = TEXT) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.add_theme_font_size_override("font_size", pixels)
+	l.add_theme_font_size_override("font_size", type_size(pixels))
+	l.add_theme_constant_override("line_spacing", 4)
+	l.set_meta("ui_font_size", maxi(META, pixels))
 	l.add_theme_color_override("font_color", color)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return l
 
 static func heading(text: String, pixels: int = 30) -> Label:
+	var l := label(text, pixels)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.add_theme_font_override("font", font(600 if pixels >= OBJECT_TITLE else 700, pixels >= OBJECT_TITLE))
+	return l
+
+static func value(text: String, pixels: int = 24) -> Label:
 	var l := label(text, pixels)
 	l.add_theme_font_override("font", font(700))
 	return l
@@ -95,10 +172,22 @@ static func heading(text: String, pixels: int = 30) -> Label:
 static func button(text: String, action: Callable, height: float = 48) -> Button:
 	var b := Button.new()
 	b.text = text
-	b.custom_minimum_size.y = height
+	b.custom_minimum_size.y = maxf(TARGET, height)
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b.accessibility_name = text
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	b.pressed.connect(action)
+	var pressed := box(SURFACE)
+	pressed.content_margin_top += 1
+	pressed.content_margin_bottom -= 1
+	b.add_theme_stylebox_override("pressed", pressed)
+	b.draw.connect(func():
+		if not b.disabled and (b.is_hovered() or b.button_pressed):
+			b.draw_rect(Rect2(Vector2(6, 6), b.size - Vector2(12, 12)), BORDER, false, 2)
+		if b.toggle_mode and b.button_pressed:
+			b.draw_line(Vector2(12, b.size.y - 8), Vector2(b.size.x - 12, b.size.y - 8), BORDER, 2)
+	)
 	return b
 
 static func gold_button(text: String, action: Callable, height: float = 50) -> Button:
@@ -107,12 +196,16 @@ static func gold_button(text: String, action: Callable, height: float = 50) -> B
 static func accent_button(text: String, action: Callable, accent: Color, height: float = 48) -> Button:
 	var b := button(text, action, height)
 	b.add_theme_stylebox_override("normal", box(accent))
-	b.add_theme_stylebox_override("hover", box(PANEL))
-	b.add_theme_stylebox_override("pressed", box(accent))
+	b.add_theme_stylebox_override("hover", box(accent))
+	var pressed := box(accent)
+	pressed.content_margin_top += 1
+	pressed.content_margin_bottom -= 1
+	b.add_theme_stylebox_override("pressed", pressed)
+	b.add_theme_stylebox_override("hover_pressed", pressed)
 	return b
 
 static func paragraph(text: String, pixels: int = 14) -> Label:
-	var l := label(text, pixels, MUTED)
+	var l := label(text, maxi(CAPTION, pixels), MUTED)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return l
@@ -121,9 +214,9 @@ static func rule() -> HSeparator:
 	var r := HSeparator.new()
 	var style := StyleBoxLine.new()
 	style.color = BORDER
-	style.thickness = 3
+	style.thickness = 2
 	r.add_theme_stylebox_override("separator", style)
-	r.custom_minimum_size.y = 3
+	r.custom_minimum_size.y = 2
 	return r
 
 static func margin(parent: Node, padding: int = 16) -> VBoxContainer:
@@ -133,6 +226,6 @@ static func margin(parent: Node, padding: int = 16) -> VBoxContainer:
 		m.add_theme_constant_override("margin_" + side, padding)
 	parent.add_child(m)
 	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 10)
+	v.add_theme_constant_override("separation", GAP)
 	m.add_child(v)
 	return v

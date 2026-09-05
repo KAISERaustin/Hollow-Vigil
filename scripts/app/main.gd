@@ -17,16 +17,25 @@ var return_card: PanelContainer
 var return_amount: Label
 var return_close: Button
 var pending_return_gold := 0.0
+var reset_scrim: ColorRect
+var return_opener: Control
 var accumulator := 0.0
 var save_timer := 0.0
 var hud_timer := 0.0
 @export var load_saved_progress := true
 
 func _ready() -> void:
+	if OS.has_feature("mobile"):
+		# Use physical density to keep UI units near device-independent pixels.
+		get_window().content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		get_window().content_scale_size = Vector2i.ZERO
+		get_window().content_scale_factor = clampf(DisplayServer.screen_get_dpi() / 160.0, 1.0, 4.0)
 	if load_saved_progress:
 		game.load_save()
 	Engine.max_fps = 30 if game.data.settings.low_power else 60
 	get_tree().auto_accept_quit = false
+	UI.text_scale = float(game.data.settings.get("text_scale", 1.0))
+	UI.reduced_motion = bool(game.data.settings.get("reduced_motion", false))
 	theme = UI.theme()
 	build_interface()
 	if game.offline_award >= 1.0:
@@ -55,12 +64,12 @@ func build_interface() -> void:
 	add_child(hud)
 	hud.build_header()
 	# Notifications float near the footer instead of reserving empty header space.
-	toast_label = UI.label("", 13, UI.TEXT)
+	toast_label = UI.label("", 14, UI.TEXT)
 	toast_label.custom_minimum_size.y = 36
 	toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	toast_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	toast_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	toast_label.add_theme_stylebox_override("normal", UI.box(UI.PANEL))
+	toast_label.add_theme_stylebox_override("normal", UI.surface(UI.PANEL, 2, 12))
 	toast_label.modulate.a = 0.0
 	field = Battlefield.new()
 	field.state = game
@@ -91,8 +100,15 @@ func build_interface() -> void:
 	panels.offset_right = -12
 	panels.offset_bottom = -184
 	panels.offset_top = -484
-	panels.add_theme_stylebox_override("panel", UI.box(UI.PANEL, UI.BORDER, 12))
+	panels.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 4, 0))
+	reset_scrim = ColorRect.new()
+	reset_scrim.color = Color(UI.BORDER, 0.65)
+	reset_scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	reset_scrim.mouse_filter = Control.MOUSE_FILTER_STOP
+	reset_scrim.hide()
+	add_child(reset_scrim)
 	add_child(panels)
+	panels.visibility_changed.connect(func(): reset_scrim.visible = panels.visible and panels.mode == "reset")
 	tower_dialog = TowerDialog.new()
 	tower_dialog.app = self
 	add_child(tower_dialog)
@@ -105,6 +121,20 @@ func fit_display() -> void:
 	hud.fit_safe_area()
 	panels.offset_bottom = -184 - hud.safe_bottom
 	panels.offset_top = -484 - hud.safe_bottom
+	panels.call_deferred("fit_sheet")
+
+func apply_ui_preferences() -> void:
+	UI.text_scale = float(game.data.settings.get("text_scale", 1.0))
+	UI.reduced_motion = bool(game.data.settings.get("reduced_motion", false))
+	theme = UI.theme()
+	for node in find_children("*", "Control", true, false):
+		if node.has_meta("ui_font_size"):
+			node.add_theme_font_size_override("font_size", UI.type_size(node.get_meta("ui_font_size")))
+		elif node is Button:
+			node.remove_theme_font_size_override("font_size")
+	hud.queue_sort()
+	tower_dialog.call_deferred("fit_dialog")
+	call_deferred("fit_return_popup")
 
 func build_return_popup() -> void:
 	return_overlay = ColorRect.new()
@@ -114,11 +144,11 @@ func build_return_popup() -> void:
 	return_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(return_overlay)
 	return_card = PanelContainer.new()
-	return_card.add_theme_stylebox_override("panel", UI.box(UI.PANEL, UI.BORDER, 12))
+	return_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 4, 0))
 	return_overlay.add_child(return_card)
 	var content := UI.margin(return_card, 16)
 	content.add_theme_constant_override("separation", 12)
-	var title := UI.heading("Welcome back", 26)
+	var title := UI.heading("Welcome back", 30)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	content.add_child(title)
 	var message := UI.label("Your vigil stood watch while you were away.", 14, UI.MUTED)
@@ -126,14 +156,14 @@ func build_return_popup() -> void:
 	message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	content.add_child(message)
 	content.add_child(UI.rule())
-	return_amount = UI.heading("", 30)
+	return_amount = UI.value("", 24)
 	return_amount.add_theme_color_override("font_color", UI.TEXT)
 	return_amount.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	content.add_child(return_amount)
 	var hint := UI.paragraph("Added to your unclaimed earnings.", 13)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	content.add_child(hint)
-	return_close = UI.gold_button("Close", close_return_popup, 44)
+	return_close = UI.gold_button("Close", close_return_popup, 48)
 	return_close.name = "CloseReturnPopup"
 	content.add_child(return_close)
 	return_close.focus_neighbor_top = return_close.get_path()
@@ -147,10 +177,13 @@ func build_return_popup() -> void:
 	return_overlay.hide()
 
 func fit_return_popup() -> void:
-	return_card.size = Vector2(minf(380.0, size.x - 32.0), return_card.get_combined_minimum_size().y)
-	return_card.position = (size - return_card.size) * 0.5
+	var safe := UI.safe_rect(self).grow(-16)
+	return_card.size = Vector2(minf(460.0, safe.size.x), return_card.get_combined_minimum_size().y)
+	return_card.position = safe.position + (safe.size - return_card.size) * 0.5
 
 func show_return_earnings(amount: float) -> void:
+	if not return_overlay.visible:
+		return_opener = get_viewport().gui_get_focus_owner()
 	pending_return_gold += amount
 	return_amount.text = Balance.money(pending_return_gold) + " gold"
 	toast_timer = 0.0
@@ -166,6 +199,8 @@ func close_return_popup() -> void:
 	return_overlay.hide()
 	pending_return_gold = 0.0
 	return_close.release_focus()
+	if is_instance_valid(return_opener) and return_opener.is_visible_in_tree():
+		return_opener.grab_focus()
 
 func collect_one(id: String, quiet_if_empty: bool = false) -> void:
 	var amount := game.economy.collect(id)
@@ -186,10 +221,12 @@ func collect_all() -> void:
 func collection_effect(amount: float) -> void:
 	# The transaction is complete before this purely visual effect is created.
 	update_hud()
-	var mote := UI.heading("+" + Balance.money(amount) + " gold", 20)
+	var mote := UI.value("+" + Balance.money(amount) + " gold", 18)
 	mote.name = "CollectionPopup"
-	mote.add_theme_stylebox_override("normal", UI.box(UI.GOLD))
+	mote.add_theme_stylebox_override("normal", UI.badge(UI.GOLD))
 	add_child(mote)
+	# Collection feedback belongs below all overlays, even when simulation is paused.
+	move_child(mote, reset_scrim.get_index())
 	mote.size = mote.get_combined_minimum_size()
 	mote.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var earnings := hud.unclaimed_label.get_parent().get_parent() as Control
@@ -205,7 +242,8 @@ func collection_effect(amount: float) -> void:
 	)
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(mote, "position:y", mote.position.y - 36.0, 0.95).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if not UI.reduced_motion:
+		tween.tween_property(mote, "position:y", mote.position.y - 36.0, 0.95).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(mote, "modulate:a", 0.0, 0.5).set_delay(0.45)
 	tween.chain().tween_callback(mote.queue_free)
 
@@ -242,6 +280,7 @@ func reset_progress() -> void:
 	save_timer = 0.0
 	hud_timer = 0.0
 	Engine.max_fps = 30 if game.data.settings.low_power else 60
+	apply_ui_preferences()
 	update_hud()
 	toast("Progress reset. Your new vigil begins." if game.save_error.is_empty() else game.save_error, 6.0)
 
@@ -297,3 +336,25 @@ func _notification(what: int) -> void:
 				show_return_earnings(amount)
 	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		persist()
+	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		if return_overlay.visible:
+			close_return_popup()
+		elif tower_dialog.visible:
+			tower_dialog.dismiss()
+		elif panels.visible:
+			panels.close_sheet()
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		if return_overlay.visible:
+			close_return_popup()
+		elif tower_dialog.visible:
+			tower_dialog.dismiss()
+		elif panels.visible:
+			if panels.mode == "reset":
+				panels.show_settings()
+			else:
+				panels.close_sheet()
+		else:
+			return
+		get_viewport().set_input_as_handled()

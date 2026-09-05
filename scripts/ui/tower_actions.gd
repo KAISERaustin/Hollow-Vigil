@@ -17,17 +17,18 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for action in ["info", "upgrade", "sell"]:
-		var button := Button.new()
+		var button := UI.accent_button("", func(): action_requested.emit(action), UI.GOLD if action == "upgrade" else UI.SURFACE)
 		button.size = BUTTON_SIZE
+		button.tooltip_text = action.capitalize()
+		button.accessibility_name = action.capitalize() + " tower"
 		button.name = "Tower" + action.capitalize()
 		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		button.focus_mode = Control.FOCUS_ALL
 		for state in ["normal", "hover", "pressed", "focus"]:
-			var color := UI.PANEL if state == "hover" else (UI.DANGER if action == "sell" else UI.GOLD)
+			var color := UI.GOLD if action == "upgrade" else UI.SURFACE
 			var style := UI.focus_box() if state == "focus" else UI.box(color)
 			style.set_content_margin_all(0)
 			button.add_theme_stylebox_override(state, style)
-		button.pressed.connect(func(): action_requested.emit(action))
 		button.draw.connect(draw_icon.bind(button, action))
 		add_child(button)
 		buttons[action] = button
@@ -45,11 +46,12 @@ func refresh() -> void:
 	if not Rect2(Vector2.ZERO, field.size).has_point(center):
 		hide()
 		return
-	# Fixed map dimensions keep the controls proportional to their tower.
+	# Keep touch targets independent of world zoom and inside the battlefield.
+	var origin := Vector2(clampf(center.x, 110, field.size.x - 110), clampf(center.y, 32, field.size.y - 110))
 	for action in ACTION_OFFSETS:
 		var button: Button = buttons[action]
-		button.scale = Vector2.ONE * field.zoom
-		button.position = center + (ACTION_OFFSETS[action] - BUTTON_SIZE * 0.5) * field.zoom
+		button.scale = Vector2.ONE
+		button.position = origin + ACTION_OFFSETS[action] - BUTTON_SIZE * 0.5
 
 func draw_icon(button: Button, action: String) -> void:
 	var center := button.size * 0.5

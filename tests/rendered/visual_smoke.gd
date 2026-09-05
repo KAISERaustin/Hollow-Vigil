@@ -188,11 +188,15 @@ static func run(app: Control) -> void:
 	var escape_release := escape.duplicate()
 	escape_release.pressed = false
 	Input.parse_input_event(escape_release)
+	await app.get_tree().process_frame
+	if app.return_overlay.visible:
+		failures.append("Escape did not close return earnings")
+	app.show_return_earnings(376)
 	for i in range(40):
 		app._process(0.25)
 	app.toast_timer = 0.0
 	if not app.return_overlay.visible:
-		failures.append("Return popup dismissed without Close")
+		failures.append("Return popup dismissed without user action")
 	if game.data.balance != balance_before_popup:
 		failures.append("Return popup allowed collection through the backdrop")
 	if app.return_card.get_global_rect().get_center().distance_to(app.size * 0.5) > 1.0:
@@ -220,13 +224,19 @@ static func run(app: Control) -> void:
 	if reset_button.text != "Reset progress" or children[-1].text != "Return to the core":
 		failures.append("Reset button is not directly above Return to the core")
 	var before_reset: Dictionary = app.game.data.duplicate(true)
+	app.panels.content_scroll.ensure_control_visible(reset_button)
+	await app.get_tree().process_frame
+	await app.get_tree().process_frame
 	await tap(app, reset_button.get_global_rect().get_center())
 	await capture(app, "reset-confirmation")
-	await tap(app, app.panels.sheet_content.get_children()[-1].get_global_rect().get_center())
+	await tap(app, app.panels.action_footer.get_children()[0].get_global_rect().get_center())
 	if app.game.data != before_reset:
 		failures.append("Cancel reset changed progress")
+	app.panels.content_scroll.ensure_control_visible(app.panels.sheet_content.get_children()[-2])
+	await app.get_tree().process_frame
+	await app.get_tree().process_frame
 	await tap(app, app.panels.sheet_content.get_children()[-2].get_global_rect().get_center())
-	await tap(app, app.panels.sheet_content.get_children()[-2].get_global_rect().get_center(), true)
+	await tap(app, app.panels.action_footer.get_children()[-1].get_global_rect().get_center(), true)
 	if app.game.data.regions.size() != 1 or not app.game.data.towers.is_empty() or app.game.data.balance != Balance.STARTING_GOLD or app.panels.visible:
 		failures.append("Confirmed reset did not restore starting progress and dismiss settings")
 	if app.field.camera != Vector2.ZERO or app.field.zoom != 1.0 or app.field.state != app.game:

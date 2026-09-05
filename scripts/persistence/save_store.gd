@@ -60,6 +60,10 @@ func valid_data(d: Dictionary) -> bool:
 		return false
 	if not d.settings.get("low_power") is bool:
 		return false
+	if d.settings.has("text_scale") and (not number(d.settings.text_scale, 1.0, 1.5) or not d.settings.text_scale in [1.0, 1.25, 1.5]):
+		return false
+	if d.settings.has("reduced_motion") and not d.settings.reduced_motion is bool:
+		return false
 	if not number(d.camera[0], -1.0e12, 1.0e12) or not number(d.camera[1], -1.0e12, 1.0e12) or not number(d.camera[2], 0.42, 1.65):
 		return false
 	# Validate every region's shape before walking any parent chain.

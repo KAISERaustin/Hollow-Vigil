@@ -59,7 +59,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 			await harness.tap(app, app.hud.collect_button.get_global_rect().get_center(), touch)
 			await harness.tap(app, Vector2(4, 150), touch)
 			check(dialog.visible and g.data == before, "Modal backdrop allowed a collection or transaction", failures)
-			await harness.tap(app, dialog.cancel.get_global_rect().get_center(), touch)
+			await harness.tap(app, (dialog.confirm if action == "info" else dialog.cancel).get_global_rect().get_center(), touch)
 			stale.call()
 			check(not dialog.visible and app.tower_actions.visible and g.data == before, "Cancel or its stale confirmation changed state", failures)
 			check(not app.field.earnings_badge_visible(g.data.towers[splash]), "Returning to tower controls restored gold badges too early", failures)
@@ -117,7 +117,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 				check(dialog.visible, "Tower icon inaccessible at %s" % viewport, failures)
 				check(dialog.card.get_global_rect().get_center().distance_to(app.size * 0.5) < 1.0, "Dialog is off-center at %s" % viewport, failures)
 				check(Rect2(Vector2.ZERO, app.size).encloses(dialog.card.get_global_rect()), "Dialog overflows the screen at %s" % viewport, failures)
-				check(dialog.card.get_global_rect().encloses(dialog.confirm.get_global_rect()) and dialog.card.get_global_rect().encloses(dialog.cancel.get_global_rect()), "Dialog confirmation buttons are clipped", failures)
+				check(dialog.card.get_global_rect().encloses(dialog.confirm.get_global_rect()) and (not dialog.cancel.visible or dialog.card.get_global_rect().encloses(dialog.cancel.get_global_rect())), "Dialog confirmation buttons are clipped", failures)
 				check(dialog.body.size.x <= dialog.scroll.size.x, "Dialog text overflows horizontally", failures)
 				for control in dialog.find_children("*", "Control", true, false):
 					check(control.tooltip_text.is_empty(), "Tower dialog contains unwanted hover text", failures)
@@ -126,7 +126,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 					check(stats.get_child(0).get_child(1).text == "19.5 → 22.2", "Damage preview is wrong", failures)
 					check(stats.get_child(1).get_child(1).text == "3.33 → 3.58", "Fire rate is not shots per second", failures)
 					check(stats.get_child(2).get_child(1).text == "65.0 → 79.6", "DPS preview is wrong", failures)
-				await harness.tap(app, dialog.cancel.get_global_rect().get_center(), true)
+				await harness.tap(app, (dialog.confirm if action == "info" else dialog.cancel).get_global_rect().get_center(), true)
 		# Controls retain their proportions relative to the tower at every zoom and edge.
 		for zoom in [0.42, 0.65, 1.0, 1.65]:
 			app.field.zoom = zoom
@@ -158,7 +158,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 						for action in ["info", "upgrade", "sell"]:
 							await harness.tap(app, app.tower_actions.buttons[action].get_global_rect().get_center(), touch)
 							check(dialog.visible and dialog.mode == action, "Tower-relative action failed at zoom %.2f" % zoom, failures)
-							await harness.tap(app, dialog.cancel.get_global_rect().get_center(), touch)
+							await harness.tap(app, (dialog.confirm if action == "info" else dialog.cancel).get_global_rect().get_center(), touch)
 		app.field.zoom = 1.0
 	# Real zoom changes tower controls proportionally while the HUD stays put.
 	app.field.camera = VigilWorld.pad_position("0,0", 0)
@@ -208,5 +208,5 @@ static func check_layout(app: Control, reference_layout: Dictionary, failures: A
 	var center: Vector2 = app.field.global_position + app.field.screen(VigilWorld.pad_position(tower.region, tower.pad))
 	for action in reference_layout:
 		var rect: Rect2 = app.tower_actions.buttons[action].get_global_rect()
-		var relative_rect := Rect2((rect.position - center) / app.field.zoom, rect.size / app.field.zoom)
-		check(relative_rect.is_equal_approx(reference_layout[action]), "Camera or tower range changed the tower-relative proportions of " + action, failures)
+		check(rect.size.x >= 48 and rect.size.y >= 48, "World zoom shrank the " + action + " touch target", failures)
+		check(app.field.get_global_rect().encloses(rect), "Tower action escaped the battlefield at the screen edge", failures)
