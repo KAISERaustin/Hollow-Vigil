@@ -1,0 +1,22 @@
+.godot/
+.runtime/
+artifacts/*
+!artifacts/.gdignore
+exports/
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Local progress and signing/account files are never part of a public build.
+*.save
+*.save.*
+.env
+.env.*
+!.env.example
+*.p12
+*.pfx
+*.mobileprovision
+*.key
+*.keystore
+*.jks
+.codex/

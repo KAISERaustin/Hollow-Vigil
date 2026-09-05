@@ -1,0 +1,411 @@
+extends RefCounted
+
+static func tap(app: Control, position: Vector2, touch: bool = false) -> void:
+	if touch:
+		var press := InputEventScreenTouch.new()
+		press.index = 0
+		press.position = position
+		press.pressed = true
+		Input.parse_input_event(press)
+		await app.get_tree().process_frame
+		var release := press.duplicate()
+		release.pressed = false
+		Input.parse_input_event(release)
+	else:
+		var motion := InputEventMouseMotion.new()
+		motion.position = position
+		Input.parse_input_event(motion)
+		await app.get_tree().process_frame
+		var press := InputEventMouseButton.new()
+		press.button_index = MOUSE_BUTTON_LEFT
+		press.position = position
+		press.pressed = true
+		Input.parse_input_event(press)
+		await app.get_tree().process_frame
+		var release := press.duplicate()
+		release.pressed = false
+		Input.parse_input_event(release)
+	await app.get_tree().process_frame
+	await app.get_tree().process_frame
+
+static func capture(app: Control, filename: String) -> void:
+	# Some fixtures pause the game loop before changing the camera directly.
+	app.field.queue_redraw()
+	await app.get_tree().process_frame
+	await app.get_tree().process_frame
+	await RenderingServer.frame_post_draw
+	app.get_viewport().get_texture().get_image().save_png("res://artifacts/" + filename + ".png")
+
+static func run(app: Control) -> void:
+	var game: VigilState = app.game
+	var failures: Array[String] = []
+	await app.get_tree().create_timer(0.25).timeout
+	await capture(app, "new-game-core-only")
+	if not game.data.towers.is_empty():
+		failures.append("New game already has a tower")
+	if not game.combat.enemies.is_empty():
+		failures.append("New game spawned enemies before territory purchase")
+	app.field.camera = Vector2(-150, 0)
+	await tap(app, app.field.global_position + app.field.screen(app.field.expansion_marker("-1,0")))
+	await tap(app, app.panels.action_button.global_position + app.panels.action_button.size * 0.5)
+	if not game.data.regions.has("-1,0") or game.data.balance != Balance.STARTING_GOLD - Balance.expansion_cost(1):
+		failures.append("Starting gold did not fund the first territory through the purchase UI")
+	app.field.camera = Vector2.ZERO
+	app.panels.select_pad("0,0", 0)
+	await capture(app, "first-tower-purchase")
+	await tap(app, app.panels.action_button.get_global_rect().get_center())
+	if game.data.towers.size() != 1 or game.data.balance != Balance.STARTING_GOLD - Balance.expansion_cost(1) - Balance.TOWERS.rapid.cost:
+		failures.append("First tower purchase did not charge its price")
+	app.panels.close_sheet()
+	game.data.balance = 900.0
+	game.economy.build("splash", "0,0", 2)
+	game.economy.build("heavy", "0,0", 1)
+	game.economy.unlock("-1,0", "fast")
+	game.economy.unlock("-1,0", "heavy")
+	game.economy.buy_traffic("-1,0")
+	for i in range(500):
+		game.combat.tick(Balance.STEP)
+	app.update_hud()
+	app.toast_timer = 0
+	await capture(app, "battlefield")
+	await test_info_guide(app, failures)
+	await preload("res://tests/rendered/tower_panel_checks.gd").run(app, load("res://tests/rendered/visual_smoke.gd"), failures)
+	# Exercise the neighboring map controls through real mouse and touch events.
+	for scale in [1.0, 0.65, 0.42, 1.65]:
+		app.field.zoom = scale
+		var portal: Vector2 = game.paths["-1,0"][0]
+		var frontier: Vector2 = app.field.expansion_marker("-2,0")
+		app.field.camera = (portal + frontier) * 0.5
+		for touch in [false, true]:
+			await tap(app, app.field.global_position + app.field.screen(portal), touch)
+			if app.panels.mode != "rift" or not app.panels.visible:
+				failures.append("Rift did not open its upgrades at zoom %.2f (touch=%s)" % [scale, touch])
+			app.panels.close_sheet()
+			await tap(app, app.field.global_position + app.field.screen(frontier), touch)
+			if app.panels.mode != "expand" or not app.panels.visible:
+				failures.append("Expansion opened the wrong panel at zoom %.2f (touch=%s)" % [scale, touch])
+			app.panels.close_sheet()
+		var gate_screen: Vector2 = app.field.screen(portal)
+		var expand_screen: Vector2 = app.field.screen(frontier)
+		var outward := gate_screen.direction_to(expand_screen)
+		var gap: Vector2 = (gate_screen + outward * app.field.entrance_hit_radius() + expand_screen - outward * Battlefield.EXPANSION_HIT_RADIUS) * 0.5
+		await tap(app, app.field.global_position + gap)
+		if app.panels.visible:
+			failures.append("Space between rift and expansion opened a panel at zoom %.2f" % scale)
+		await capture(app, "portal-spacing-%.2f" % scale)
+	app.field.camera = Vector2.ZERO
+	app.field.zoom = 1.0
+	await tap(app, app.field.global_position + app.field.screen(VigilWorld.CORE_POSITION), true)
+	if app.panels.mode != "core":
+		failures.append("Physical touch on the central portal did not show core details")
+	await capture(app, "core-info")
+	app.panels.close_sheet()
+	await tap(app, app.field.global_position + app.field.screen(VigilWorld.CORE_POSITION))
+	if app.panels.mode != "core":
+		failures.append("Mouse click on the core artwork did not show core details")
+	app.panels.close_sheet()
+	app.panels.select_pad("0,0", 0)
+	await tap(app, app.tower_actions.buttons.upgrade.get_global_rect().get_center(), true)
+	await capture(app, "upgrade")
+	var earned := game.economy.unclaimed()
+	var before: float = game.data.balance
+	# Confirmation dialogs block the footer; collect before opening the upgrade.
+	app.tower_dialog.dismiss()
+	await tap(app, app.hud.collect_button.global_position + app.hud.collect_button.size * 0.5, true)
+	if game.data.balance < before + earned:
+		failures.append("Physical touch did not collect through the live HUD")
+	var level: int = game.data.towers["1"].level
+	await tap(app, app.tower_actions.buttons.upgrade.get_global_rect().get_center(), true)
+	await tap(app, app.tower_dialog.confirm.get_global_rect().get_center(), true)
+	if game.data.towers["1"].level != level + 1:
+		failures.append("Physical touch did not buy upgrade while collection animated")
+	app.panels.select_pad("0,0", 3)
+	await capture(app, "build")
+	await tap(app, app.panels.action_button.global_position + app.panels.action_button.size * 0.5)
+	if game.economy.tower_at("0,0", 3) == "":
+		failures.append("Live build confirmation did not place a tower")
+	app.panels.show_entrance("-1,0")
+	await capture(app, "rift")
+	game.data.balance = 500.0
+	app.panels.show_expansion("0,-1")
+	await capture(app, "expansion")
+	await tap(app, app.panels.action_button.global_position + app.panels.action_button.size * 0.5)
+	if not game.data.regions.has("0,-1"):
+		failures.append("Live expansion confirmation failed")
+	app.panels.show_settings()
+	await capture(app, "settings")
+	if app.panels.position.y < 140:
+		failures.append("Settings panel overflows the header")
+	app.panels.close_sheet()
+	game.economy.build("rapid", "0,-1", 2)
+	game.economy.build("heavy", "0,-1", 3)
+	app.field.camera = Vector2(0, -150)
+	app.field.zoom = 0.83
+	for i in range(260):
+		game.combat.tick(Balance.STEP)
+	app.update_hud()
+	app.toast_timer = 0
+	await capture(app, "expanded-battlefield")
+	game.data.balance = 100000.0
+	for id in ["-1,0", "1,0", "0,1"]:
+		game.expand(id)
+		game.economy.build("rapid", id, 0)
+	app.field.camera = VigilWorld.CORE_POSITION
+	app.field.zoom = 0.5
+	for i in range(240):
+		game.combat.tick(Balance.STEP)
+	app.update_hud()
+	await capture(app, "core-surrounded")
+	for path in game.paths.values():
+		if path.back() != Vector2.ZERO:
+			failures.append("An expanded territory does not lead to the central core")
+	app.field.camera = Vector2(300, 300)
+	app.panels.return_to_core()
+	if app.field.camera != Vector2.ZERO or app.field.zoom != 1.0 or app.panels.visible:
+		failures.append("Return to core did not restore the central view")
+	app._notification(Node.NOTIFICATION_APPLICATION_PAUSED)
+	if not game.suspended:
+		failures.append("Lifecycle pause did not suspend live simulation")
+	game.data.last_accounted -= 60.0
+	var offline_before := game.economy.unclaimed()
+	app._notification(Node.NOTIFICATION_APPLICATION_RESUMED)
+	if game.suspended or game.economy.unclaimed() <= offline_before:
+		failures.append("Lifecycle resume did not apply demonstrated offline earnings")
+	var accounted := game.economy.unclaimed()
+	app._notification(Node.NOTIFICATION_APPLICATION_RESUMED)
+	if game.economy.unclaimed() != accounted:
+		failures.append("Duplicate resume applied the same offline interval twice")
+	await capture(app, "return-earnings")
+	if not app.return_overlay.visible:
+		failures.append("Resume earnings did not open the return popup")
+	var balance_before_popup: float = game.data.balance
+	await tap(app, app.hud.collect_button.get_global_rect().get_center())
+	await tap(app, Vector2(8, 300), true)
+	var escape := InputEventKey.new()
+	escape.keycode = KEY_ESCAPE
+	escape.pressed = true
+	Input.parse_input_event(escape)
+	var escape_release := escape.duplicate()
+	escape_release.pressed = false
+	Input.parse_input_event(escape_release)
+	for i in range(40):
+		app._process(0.25)
+	app.toast_timer = 0.0
+	if not app.return_overlay.visible:
+		failures.append("Return popup dismissed without Close")
+	if game.data.balance != balance_before_popup:
+		failures.append("Return popup allowed collection through the backdrop")
+	if app.return_card.get_global_rect().get_center().distance_to(app.size * 0.5) > 1.0:
+		failures.append("Return popup is not centered")
+	await tap(app, app.return_close.get_global_rect().get_center(), true)
+	if app.return_overlay.visible:
+		failures.append("Touch Close did not dismiss the return popup")
+	app.show_return_earnings(376)
+	var original_size := app.get_window().size
+	var original_scale := app.get_window().content_scale_size
+	app.get_window().content_scale_size = Vector2i(420, 800)
+	app.get_window().size = Vector2i(420, 800)
+	await capture(app, "return-earnings-compact")
+	await tap(app, app.return_close.get_global_rect().get_center())
+	if app.return_overlay.visible:
+		failures.append("Mouse Close did not dismiss the compact return popup")
+	app.get_window().content_scale_size = original_scale
+	app.get_window().size = original_size
+	await test_camera_independent_combat(app, failures)
+	app.set_process(false)
+	app.panels.show_settings()
+	await capture(app, "reset-settings")
+	var children: Array = app.panels.sheet_content.get_children()
+	var reset_button: Button = children[-2]
+	if reset_button.text != "Reset progress" or children[-1].text != "Return to the core":
+		failures.append("Reset button is not directly above Return to the core")
+	var before_reset: Dictionary = app.game.data.duplicate(true)
+	await tap(app, reset_button.get_global_rect().get_center())
+	await capture(app, "reset-confirmation")
+	await tap(app, app.panels.sheet_content.get_children()[-1].get_global_rect().get_center())
+	if app.game.data != before_reset:
+		failures.append("Cancel reset changed progress")
+	await tap(app, app.panels.sheet_content.get_children()[-2].get_global_rect().get_center())
+	await tap(app, app.panels.sheet_content.get_children()[-2].get_global_rect().get_center(), true)
+	if app.game.data.regions.size() != 1 or not app.game.data.towers.is_empty() or app.game.data.balance != Balance.STARTING_GOLD or app.panels.visible:
+		failures.append("Confirmed reset did not restore starting progress and dismiss settings")
+	if app.field.camera != Vector2.ZERO or app.field.zoom != 1.0 or app.field.state != app.game:
+		failures.append("Reset did not restore the live battlefield")
+	await capture(app, "reset-complete")
+	var f := FileAccess.open("res://artifacts/visual-results.txt", FileAccess.WRITE)
+	f.store_string("Rendered Godot smoke test\nMouse and touch rift/expansion selection at four zoom levels, neutral gap between controls, touch and mouse core details, central routes from all four directions, return to core, touch collection, touch upgrades, purchases during animations, build confirmation, expansion confirmation, panel bounds, lifecycle pause/resume, duplicate resume protection.\nFailures: %d\n" % failures.size())
+	for failure in failures:
+		f.store_line(failure)
+		push_error(failure)
+	f.store_line("Info guide: all catalog entries, mouse/touch tabs and scrolling, 540x960 and 420x800 layouts, read-only state, stale purchase protection, close and map socket access.")
+	f.store_line("Tower controls: Info/Upgrade/Sell icons and earnings badges retain fixed proportions relative to their tower at every zoom and screen edge, no selection camera movement, stable HUD, centered confirmations, mouse/touch actions at four zooms and three viewport sizes, collection, cancel, upgrade, sale and persistence.")
+	f.store_line("Map cleanup: no core/rift labels or tower level dots; all gold badges and their click targets hide during tower management and restore on click-away or another panel.")
+	f.store_line("World simulation: 33 territories, repeated camera moves and zooms, return to core, distant upgrades/unlocks, identical enemies and per-tower income against a stationary reference.")
+	f.close()
+	print("INFO_GUIDE: mouse and touch tabs, scroll, compact layout, read-only browsing, stale purchases and socket access checked")
+	print("VISUAL_SMOKE: %d failures" % failures.size())
+	app.get_tree().quit(0 if failures.is_empty() else 1)
+
+static func camera_test_world() -> VigilState:
+	var g := VigilState.new(569)
+	g.data.towers.clear()
+	g.save_path = "user://smoke.save"
+	g.combat.rng.seed = 569
+	g.data.balance = 1.0e12
+	for side in [-1, 1]:
+		for i in range(1, 17):
+			var id := "%d,0" % (side * i)
+			g.expand(id)
+			g.economy.build("rapid", id, 1 if side < 0 else 0)
+	return g
+
+static func test_camera_independent_combat(app: Control, failures: Array[String]) -> void:
+	app.set_process(false)
+	var original: VigilState = app.game
+	var moving := camera_test_world()
+	var stationary := camera_test_world()
+	app.game = moving
+	app.field.state = moving
+	app.panels.close_sheet()
+	app.accumulator = 0.0
+	# Keep this controlled comparison out of the automatic save interval.
+	app.save_timer = -1000.0
+	for i in range(240):
+		if i % 20 == 0:
+			app.field.camera = Vector2(-4800 if i % 40 == 0 else 4800, 0)
+			app.field.camera_changed.emit()
+			app.field.set_zoom(0.42 if i % 40 == 0 else 1.65, app.field.size * 0.5)
+		if i % 60 == 30:
+			app.panels.return_to_core()
+		if i == 120:
+			for g in [moving, stationary]:
+				g.economy.buy_traffic("-16,0")
+				g.economy.unlock("-16,0", "fast")
+				g.economy.unlock("-16,0", "heavy")
+				g.economy.upgrade(g.economy.tower_at("-16,0", 1))
+		var ticks_before: int = moving.combat.tick_count
+		app._process(0.25)
+		for tick in range(moving.combat.tick_count - ticks_before):
+			stationary.combat.tick(Balance.STEP)
+		if i % 20 == 0:
+			await app.get_tree().process_frame
+	if moving.combat.enemy_serial != stationary.combat.enemy_serial or moving.combat.enemies != stationary.combat.enemies:
+		failures.append("Moving the camera changed spawning or live enemy state")
+	if moving.data.towers != stationary.data.towers or moving.data.regions != stationary.data.regions:
+		failures.append("Moving the camera changed tower income, cooldowns, or rift production")
+	if moving.data.kills != stationary.data.kills or moving.data.escapes != stationary.data.escapes or moving.combat.income_rate() != stationary.combat.income_rate():
+		failures.append("Moving the camera changed actual kills, escapes, or gold per second")
+	for tower in moving.data.towers.values():
+		if tower.earnings <= 0.0:
+			failures.append("Tower %s earned nothing while panning between distant territories" % tower.id)
+	for side in [-1, 1]:
+		app.field.camera = Vector2(side * 4800, 0)
+		app.field.zoom = 0.83
+		app.field.queue_redraw()
+		app.update_hud()
+		await capture(app, "all-territories-west" if side < 0 else "all-territories-east")
+	print("CAMERA_SIMULATION: %d territories, %d spawns, %d kills; per-tower income and live enemies compared with stationary reference" % [moving.data.regions.size(), moving.combat.enemy_serial, moving.data.kills])
+	app.game = original
+	app.field.state = original
+	app.panels.return_to_core()
+	app.save_timer = 0.0
+	app.accumulator = 0.0
+	app.set_process(true)
+
+static func test_info_guide(app: Control, failures: Array[String]) -> void:
+	app.set_process(false)
+	# A pending build must become inert when navigation opens the guide.
+	app.panels.select_pad("0,0", 3)
+	var old_build: Button = app.panels.action_button
+	var before: Dictionary = app.game.data.duplicate(true)
+	var camera: Vector2 = app.field.camera
+	var info: Button = app.find_child("InfoButton", true, false)
+	await tap(app, info.get_global_rect().get_center(), true)
+	var guide = app.panels.guide
+	if app.panels.mode != "info" or not guide.visible or guide.category != "towers":
+		failures.append("Footer Info did not open the tower guide by touch")
+	if app.panels.action_button != null or app.field.selected_pad != -1:
+		failures.append("Guide kept a build action or map preview active")
+	old_build.pressed.emit()
+	if guide.cards.get_child_count() != Balance.TOWERS.size():
+		failures.append("Guide omitted a tower")
+	await capture(app, "info-towers")
+	await scroll_guide(app, guide)
+	if guide.scroll.scroll_vertical <= 0:
+		failures.append("Mouse wheel did not scroll the tower catalog")
+	await capture(app, "info-towers-scrolled")
+	await tap(app, guide.tabs.enemies.get_global_rect().get_center())
+	if guide.category != "enemies" or guide.cards.get_child_count() != Balance.ENEMIES.size() or guide.scroll.scroll_vertical != 0:
+		failures.append("Enemies tab failed: category=%s, cards=%d, scroll=%d" % [guide.category, guide.cards.get_child_count(), guide.scroll.scroll_vertical])
+	await capture(app, "info-enemies")
+	await scroll_guide(app, guide)
+	await capture(app, "info-enemies-scrolled")
+	var window := app.get_window()
+	var original_size := window.size
+	var original_scale := window.content_scale_size
+	window.content_scale_size = Vector2i(420, 800)
+	window.size = Vector2i(420, 800)
+	await capture(app, "info-enemies-compact")
+	if app.panels.position.y < 140 or app.panels.size.x > app.size.x or guide.cards.size.x > guide.scroll.size.x:
+		failures.append("Compact guide overflows its panel or header")
+	await tap(app, guide.tabs.towers.get_global_rect().get_center(), true)
+	if guide.category != "towers" or guide.scroll.scroll_vertical != 0:
+		failures.append("Touch could not return to towers after scrolling")
+	await capture(app, "info-towers-compact")
+	await drag_guide(app, guide)
+	if guide.scroll.scroll_vertical <= 0:
+		failures.append("Touch drag did not scroll the guide cards")
+	var close: Button = guide.find_child("CloseGuide", true, false)
+	await tap(app, close.get_global_rect().get_center(), true)
+	if app.panels.visible or app.panels.mode != "":
+		failures.append("Touch could not close the guide")
+	if app.game.data != before or app.field.camera != camera:
+		failures.append("Guide browsing or a stale build changed gameplay state")
+	window.content_scale_size = original_scale
+	window.size = original_size
+	await app.get_tree().process_frame
+	await app.get_tree().process_frame
+	var socket: Vector2 = app.field.global_position + app.field.screen(VigilWorld.pad_position("0,0", 3))
+	await tap(app, socket)
+	if app.panels.mode != "build":
+		failures.append("Map socket no longer opens build after closing Info")
+	app.panels.close_sheet()
+	app.set_process(true)
+
+static func scroll_guide(app: Control, guide: Control) -> void:
+	for i in range(16):
+		var wheel := InputEventMouseButton.new()
+		wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN
+		wheel.position = guide.scroll.get_global_rect().get_center()
+		wheel.pressed = true
+		Input.parse_input_event(wheel)
+		var release := wheel.duplicate()
+		release.pressed = false
+		Input.parse_input_event(release)
+		await app.get_tree().process_frame
+
+static func drag_guide(app: Control, guide: Control) -> void:
+	# Desktop needs touch emulation enabled to exercise Godot's mobile scrolling.
+	var previous_emulation := Input.emulate_touch_from_mouse
+	Input.emulate_touch_from_mouse = true
+	var rect: Rect2 = guide.scroll.get_global_rect()
+	var start := Vector2(rect.get_center().x, rect.end.y - 20)
+	var press := InputEventScreenTouch.new()
+	press.index = 0
+	press.position = start
+	press.pressed = true
+	Input.parse_input_event(press)
+	await app.get_tree().process_frame
+	for step in range(1, 9):
+		var drag := InputEventScreenDrag.new()
+		drag.index = 0
+		drag.position = start - Vector2(0, step * 16)
+		drag.relative = Vector2(0, -16)
+		Input.parse_input_event(drag)
+		await app.get_tree().process_frame
+	var release := press.duplicate()
+	release.pressed = false
+	release.position = start - Vector2(0, 128)
+	Input.parse_input_event(release)
+	await app.get_tree().process_frame
+	Input.emulate_touch_from_mouse = previous_emulation

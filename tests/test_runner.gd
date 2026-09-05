@@ -1,0 +1,54 @@
+extends SceneTree
+
+var checks := 0
+var failures: Array[String] = []
+
+func _initialize() -> void:
+	preload("res://tests/support/timeout.gd").arm(self)
+	call_deferred("run")
+
+func check(condition: bool, message: String) -> void:
+	checks += 1
+	if not condition:
+		failures.append(message)
+		push_error("FAIL: " + message)
+
+func advance(g: VigilState, seconds: float) -> void:
+	for i in range(int(seconds / Balance.STEP)):
+		g.combat.tick(Balance.STEP)
+
+func fixture_enemy(g: VigilState, kind: String = "basic") -> Dictionary:
+	if not g.data.regions.has("-1,0"):
+		var balance: float = g.data.balance
+		g.data.balance += Balance.expansion_cost(g.data.regions.size())
+		g.expand("-1,0")
+		g.data.balance = balance
+	return g.combat.spawn("-1,0", kind)
+
+func clean_test_save(path: String) -> void:
+	for suffix in ["", ".tmp", ".bak"]:
+		if FileAccess.file_exists(path + suffix):
+			DirAccess.remove_absolute(path + suffix)
+
+func run() -> void:
+	preload("res://tests/unit/economy_checks.gd").run(self)
+	preload("res://tests/unit/tower_economy_checks.gd").run(self)
+	preload("res://tests/unit/combat_checks.gd").run(self)
+	preload("res://tests/unit/attack_effect_checks.gd").run(self)
+	preload("res://tests/unit/catalog_checks.gd").run(self)
+	preload("res://tests/unit/world_checks.gd").run(self)
+	preload("res://tests/unit/routing_checks.gd").run(self)
+	preload("res://tests/unit/terrain_checks.gd").run(self)
+	preload("res://tests/unit/persistence_checks.gd").run(self)
+	preload("res://tests/unit/review_regressions.gd").run(self)
+	preload("res://tests/unit/input_checks.gd").run(self)
+	preload("res://tests/unit/simulation_checks.gd").run(self)
+	check(checks >= 312, "All test groups reached their assertions")
+	print("RESULT: %d checks, %d failures" % [checks, failures.size()])
+	var report: String = "Hollow Vigil — automated verification\nGodot " + Engine.get_version_info().string + "\n\n%d checks, %d failures\n" % [checks, failures.size()]
+	for failure in failures:
+		report += "FAIL: " + failure + "\n"
+	var f := FileAccess.open("res://artifacts/test-results.txt", FileAccess.WRITE)
+	f.store_string(report)
+	f.close()
+	quit(0 if failures.is_empty() else 1)

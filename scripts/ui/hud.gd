@@ -1,0 +1,133 @@
+class_name VigilHUD
+extends VBoxContainer
+
+signal settings_requested
+signal info_requested
+signal collect_requested
+
+const UI = preload("res://scripts/ui/interface.gd")
+var gold_label: Label
+var rate_label: Label
+var kills_label: Label
+var territories_label: Label
+var collect_button: Button
+var unclaimed_label: Label
+
+func build_header() -> void:
+	var top := PanelContainer.new()
+	top.add_theme_stylebox_override("panel", UI.box(UI.PANEL, UI.BORDER, 0))
+	add_child(top)
+	var header := UI.margin(top, 12)
+	header.add_theme_constant_override("separation", 6)
+	var toolbar := HBoxContainer.new()
+	toolbar.name = "HeaderToolbar"
+	toolbar.add_theme_constant_override("separation", 10)
+	header.add_child(toolbar)
+	var settings := UI.button("···", func(): settings_requested.emit(), 50)
+	settings.name = "SettingsButton"
+	settings.tooltip_text = "Settings"
+	settings.text = ""
+	settings.draw.connect(func():
+		for x in [-8, 0, 8]:
+			settings.draw_circle(settings.size * 0.5 + Vector2(x, 0), 2.5, UI.TEXT)
+	)
+	settings.custom_minimum_size.x = 50
+	settings.size_flags_horizontal = Control.SIZE_FILL
+	toolbar.add_child(settings)
+	var territory := PanelContainer.new()
+	territory.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	territory.add_theme_stylebox_override("panel", UI.box(UI.SURFACE))
+	toolbar.add_child(territory)
+	var territory_stack := VBoxContainer.new()
+	territory_stack.add_theme_constant_override("separation", 1)
+	territory_stack.alignment = BoxContainer.ALIGNMENT_CENTER
+	territory.add_child(territory_stack)
+	var territory_name := UI.heading("THE ASHEN MARCH", 12)
+	territory_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	territory_stack.add_child(territory_name)
+	territories_label = UI.label("", 10, UI.MUTED)
+	territories_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	territory_stack.add_child(territories_label)
+	var info := UI.button("", func(): info_requested.emit(), 50)
+	info.name = "InfoButton"
+	info.tooltip_text = "Info — Towers and Enemies"
+	info.custom_minimum_size.x = 50
+	info.size_flags_horizontal = Control.SIZE_FILL
+	toolbar.add_child(info)
+	# Draw the icon geometrically so its circle stays centered on every font/platform.
+	info.draw.connect(func():
+		var center := info.size * 0.5
+		info.draw_arc(center, 14.0, 0, TAU, 48, UI.TEXT, 3.0, true)
+		info.draw_circle(center + Vector2(0, -6), 2.0, UI.TEXT)
+		info.draw_line(center + Vector2(0, -1), center + Vector2(0, 8), UI.TEXT, 3.0, true)
+	)
+
+func build_footer() -> void:
+	var bottom := PanelContainer.new()
+	bottom.add_theme_stylebox_override("panel", UI.box(UI.PANEL, UI.BORDER, 0))
+	add_child(bottom)
+	var footer := UI.margin(bottom, 12)
+	footer.add_theme_constant_override("separation", 9)
+	var earning_row := HBoxContainer.new()
+	earning_row.name = "FooterActions"
+	earning_row.add_theme_constant_override("separation", 20)
+	footer.add_child(earning_row)
+	var stats := HBoxContainer.new()
+	stats.name = "FooterStats"
+	stats.add_theme_constant_override("separation", 10)
+	footer.add_child(stats)
+	gold_label = stat_block(stats, "SPENDABLE GOLD", "180", UI.TEXT)
+	rate_label = stat_block(stats, "GOLD PER SECOND", "0.00", UI.TEXT)
+	kills_label = stat_block(stats, "LIFETIME KILLS", "0", UI.TEXT)
+	var reserve_card := PanelContainer.new()
+	reserve_card.name = "UnclaimedEarningsCard"
+	reserve_card.custom_minimum_size.y = 48
+	reserve_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var reserve_style := UI.box(Color.TRANSPARENT, Color.TRANSPARENT, 0)
+	reserve_style.content_margin_top = 4
+	reserve_style.content_margin_bottom = 4
+	reserve_card.add_theme_stylebox_override("panel", reserve_style)
+	earning_row.add_child(reserve_card)
+	var reserve_box := VBoxContainer.new()
+	reserve_box.add_theme_constant_override("separation", 0)
+	reserve_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	reserve_card.add_child(reserve_box)
+	var reserve_title := UI.label("UNCLAIMED EARNINGS", 9, UI.MUTED)
+	reserve_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	reserve_box.add_child(reserve_title)
+	unclaimed_label = UI.heading("0 gold", 18)
+	unclaimed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	unclaimed_label.add_theme_color_override("font_color", UI.TEXT)
+	reserve_box.add_child(unclaimed_label)
+	collect_button = UI.gold_button("Collect all   ↗", func(): collect_requested.emit(), 52)
+	collect_button.size_flags_horizontal = Control.SIZE_FILL
+	collect_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	collect_button.custom_minimum_size.x = 166
+	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
+		var pill := collect_button.get_theme_stylebox(state).duplicate() as StyleBoxFlat
+		pill.set_corner_radius_all(4)
+		collect_button.add_theme_stylebox_override(state, pill)
+	earning_row.add_child(collect_button)
+
+func update_values(game: VigilState) -> void:
+	territories_label.text = "%02d  /  TERRITORIES" % game.data.regions.size()
+	gold_label.text = Balance.money(game.data.balance)
+	var gold_per_second := game.combat.income_rate()
+	rate_label.text = "%.2f" % gold_per_second if gold_per_second < 1000.0 else Balance.money(gold_per_second)
+	kills_label.text = Balance.money(game.data.kills)
+	unclaimed_label.text = Balance.money(game.economy.unclaimed()) + " gold"
+	collect_button.text = "Collect all   ↗" if not game.data.automation else "Steward active"
+
+func stat_block(parent: Node, title: String, value: String, color: Color) -> Label:
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.add_theme_stylebox_override("panel", UI.box(UI.SURFACE))
+	parent.add_child(panel)
+	var stack := VBoxContainer.new()
+	stack.add_theme_constant_override("separation", 1)
+	panel.add_child(stack)
+	stack.add_child(UI.label(title, 9, UI.MUTED))
+	var value_label := UI.heading(value, 23)
+	value_label.add_theme_color_override("font_color", color)
+	stack.add_child(value_label)
+	return value_label

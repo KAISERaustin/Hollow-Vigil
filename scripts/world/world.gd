@@ -1,0 +1,149 @@
+class_name VigilWorld
+extends RefCounted
+
+const DIRS := [Vector2i(-1, 0), Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1)]
+const PADS := [Vector2(-76, -76), Vector2(85, -78), Vector2(-79, 83), Vector2(83, 85)]
+const CORE_POSITION := Vector2.ZERO
+const STYLES := ["forest", "ashen_forge", "drowned_crypt", "bloodmoon_sanctuary"]
+const NEW_STYLES := ["ashen_forge", "drowned_crypt", "bloodmoon_sanctuary"]
+
+static func region_style(id: String, seed_value: int) -> String:
+	# Separate seeded stream keeps appearance independent of roads and combat.
+	var scenery := RandomNumberGenerator.new()
+	scenery.seed = absi(("territory-style:" + id + ":" + str(seed_value)).hash())
+	return NEW_STYLES[scenery.randi_range(0, NEW_STYLES.size() - 1)]
+
+static func key(p: Vector2i) -> String:
+	return "%d,%d" % [p.x, p.y]
+
+static func coord(id: String) -> Vector2i:
+	var parts := id.split(",")
+	return Vector2i(int(parts[0]), int(parts[1]))
+
+static func center(id: String) -> Vector2:
+	return Vector2(coord(id)) * Balance.TILE
+
+static func has_rift(id: String) -> bool:
+	return id != "0,0"
+
+static func make_region(id: String, parent: String, seed_value: int) -> Dictionary:
+	var h := absi((id + str(seed_value)).hash())
+	var side := h % 4
+	if parent != "":
+		var outward := coord(id) - coord(parent)
+		side = DIRS.find(outward)
+	else:
+		side = 0
+	return {"id": id, "parent": parent, "style": "forest" if parent == "" else region_style(id, seed_value), "road_version": 2, "side": side, "bend": -24.0 if h % 2 == 0 else 24.0, "traffic": 0, "timer": 0.25, "unlocks": [], "history": {}, "history_time": 0.0}
+
+# Every tile owns immutable roads with shared edge centers and edge tangents.
+# Routing uses every owned neighbor, independently of the expansion parent.
+static func spoke(region: Dictionary, side: int) -> Array[Vector2]:
+	if int(region.get("road_version", 2)) >= 2:
+		return curved_spoke(region, side)
+	return legacy_spoke(region, side)
+
+static func curved_spoke(region: Dictionary, side: int) -> Array[Vector2]:
+	var c := center(region.id)
+	var outward := Vector2(DIRS[side])
+	var tangent := Vector2(-outward.y, outward.x)
+	var pattern := absi((region.id + ":" + str(int(region.bend)) + ":" + str(side)).hash())
+	var amplitude := (25.0 + float(pattern % 9)) * (-1.0 if pattern % 2 == 0 else 1.0)
+	var result: Array[Vector2] = []
+	for i in range(25):
+		var t := i / 24.0
+		var bend := sin(PI * t) * sin(PI * t)
+		if pattern % 3 != 0:
+			bend = sin(TAU * t) * sin(PI * t)
+		result.append(c + outward * (150.0 * (1.0 - t)) + tangent * amplitude * bend)
+	# Exact endpoints keep seams and the final core escape numerically identical.
+	result[0] = c + outward * Balance.TILE * 0.5
+	result[-1] = c
+	return result
+
+static func legacy_spoke(region: Dictionary, side: int) -> Array[Vector2]:
+	var c := center(region.id)
+	var gate: Vector2 = c + Vector2(DIRS[side]) * Balance.TILE * 0.5
+	if side == 0 or side == 2:
+		return [gate, c]
+	return [gate, c + Vector2(0, region.bend + (-55.0 if side == 1 else 55.0)), c + Vector2(region.bend, region.bend + (-55.0 if side == 1 else 55.0)), c + Vector2(region.bend, 0), c]
+
+static func shortest_exits(regions: Dictionary) -> Dictionary:
+	# Count tile crossings, so decorative road bends cannot break a logical tie.
+	# Breadth-first order also puts each exit before the tiles that lead to it.
+	if not regions.has("0,0"):
+		return {}
+	var distances := {"0,0": 0}
+	var queue: Array[String] = ["0,0"]
+	var head := 0
+	while head < queue.size():
+		var id := queue[head]
+		head += 1
+		for direction in DIRS:
+			var neighbor := key(coord(id) + direction)
+			if regions.has(neighbor) and not distances.has(neighbor):
+				distances[neighbor] = distances[id] + 1
+				queue.append(neighbor)
+	var exits := {}
+	for id in queue:
+		var choices: Array[String] = []
+		for direction in DIRS:
+			var neighbor := key(coord(id) + direction)
+			if distances.has(neighbor) and distances[neighbor] == distances[id] - 1:
+				choices.append(neighbor)
+		exits[id] = choices
+	return exits
+
+static func route(regions: Dictionary, id: String, exits: Dictionary = {}, rng: RandomNumberGenerator = null) -> Array[Vector2]:
+	if exits.is_empty():
+		exits = shortest_exits(regions)
+	if not exits.has(id):
+		return []
+	var result: Array[Vector2] = [center(id)]
+	var cursor := id
+	var visited := {}
+	while cursor != "0,0":
+		if visited.has(cursor):
+			return []
+		visited[cursor] = true
+		var r: Dictionary = regions[cursor]
+		var choices: Array = exits.get(cursor, [])
+		if choices.is_empty():
+			return []
+		# Choose independently for each enemy at every fork along its route.
+		var next: String = choices[rng.randi_range(0, choices.size() - 1) if rng != null and choices.size() > 1 else 0]
+		var direction := DIRS.find(coord(next) - coord(cursor))
+		var leave := spoke(r, direction)
+		leave.reverse()
+		result.append_array(leave.slice(1))
+		var enter := spoke(regions[next], (direction + 2) % 4)
+		result.append_array(enter.slice(1))
+		cursor = next
+	return without_backtracking(result)
+
+static func without_backtracking(path: Array[Vector2]) -> Array[Vector2]:
+	var result: Array[Vector2] = []
+	for point in path:
+		# Spokes can share a stretch of road before reaching the tile center.
+		# Turn at that junction instead of visiting the center and retracing it.
+		while result.size() >= 2:
+			var incoming := result[-1] - result[-2]
+			var outgoing := point - result[-1]
+			if not is_zero_approx(incoming.cross(outgoing)) or incoming.dot(outgoing) >= 0.0:
+				break
+			result.pop_back()
+		if result.is_empty() or not result[-1].is_equal_approx(point):
+			result.append(point)
+	return result
+
+static func frontier(regions: Dictionary) -> Dictionary:
+	var result := {}
+	for id in regions:
+		for d in DIRS:
+			var candidate := key(coord(id) + d)
+			if not regions.has(candidate) and not result.has(candidate):
+				result[candidate] = id
+	return result
+
+static func pad_position(region: String, pad: int) -> Vector2:
+	return center(region) + PADS[pad]

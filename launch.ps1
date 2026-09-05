@@ -1,0 +1,90 @@
+[CmdletBinding()]
+param(
+    [switch]$Editor,
+    [switch]$Tests,
+    [switch]$Smoke,
+    [switch]$TerrainTests,
+    [switch]$TerrainPreview,
+    [switch]$ArtSmoke,
+    [switch]$Check,
+    [switch]$Import,
+    [string]$GodotPath = $env:GODOT_PATH
+)
+
+$ErrorActionPreference = 'Stop'
+$projectPath = $PSScriptRoot
+$modes = @($Editor, $Tests, $Smoke, $TerrainTests, $TerrainPreview, $ArtSmoke, $Check, $Import) | Where-Object { $_ }
+if (@($modes).Count -gt 1) { throw 'Choose one launch mode at a time.' }
+
+if (-not $GodotPath) {
+    foreach ($name in @('godot', 'godot4', 'godot-mono')) {
+        $command = Get-Command $name -CommandType Application -ErrorAction SilentlyContinue
+        if ($command) { $GodotPath = $command.Source; break }
+    }
+}
+if (-not $GodotPath) {
+    # Preserve the original local setup while allowing any explicit installation.
+    $GodotPath = Join-Path $env:USERPROFILE 'Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe'
+}
+if (-not (Test-Path -LiteralPath $GodotPath -PathType Leaf)) {
+    throw 'Godot was not found. Pass -GodotPath C:\path\to\godot.exe or set GODOT_PATH.'
+}
+$enginePath = (Resolve-Path -LiteralPath $GodotPath).Path
+$artifactPath = Join-Path $projectPath 'artifacts'
+New-Item -ItemType Directory -Force -Path $artifactPath | Out-Null
+
+function Invoke-Godot {
+    param([string]$Name, [string[]]$EngineArguments)
+    $logPath = Join-Path $artifactPath ($Name + '.log')
+    if (Test-Path -LiteralPath $logPath) { Remove-Item -LiteralPath $logPath }
+    $scriptIndex = [Array]::IndexOf($EngineArguments, '--script')
+    if ($scriptIndex -ge 0) {
+        & $enginePath --headless --path $projectPath --script $EngineArguments[$scriptIndex + 1] --check-only
+        if ($LASTEXITCODE -ne 0) { throw "$Name failed script validation." }
+    }
+    & $enginePath --path $projectPath --log-file $logPath @EngineArguments
+    if ($LASTEXITCODE -ne 0) { throw "$Name failed (exit $LASTEXITCODE). See $logPath." }
+    if (Test-Path -LiteralPath $logPath) {
+        # Godot can return zero after GDScript errors. Do not report a false pass.
+        $errors = Select-String -LiteralPath $logPath -Pattern 'SCRIPT ERROR:|Parse Error:|^ERROR:(?! Failed to read the root certificate store\.)'
+        if ($errors) { throw "$Name reported engine or script errors. See $logPath." }
+    }
+}
+
+$savedAppData = $env:APPDATA
+$savedLocalAppData = $env:LOCALAPPDATA
+try {
+    $runtimePath = Join-Path $projectPath '.runtime'
+    if ($Tests -or $Smoke -or $TerrainTests -or $TerrainPreview -or $ArtSmoke -or $Check -or $Import) {
+        $runtimePath = Join-Path $runtimePath 'tests'
+    }
+    $env:APPDATA = Join-Path $runtimePath 'Roaming'
+    $env:LOCALAPPDATA = Join-Path $runtimePath 'Local'
+    New-Item -ItemType Directory -Force -Path $env:APPDATA, $env:LOCALAPPDATA | Out-Null
+
+    if ($Editor) {
+        Invoke-Godot -Name 'editor-session' -EngineArguments @('--editor')
+    } else {
+        # Registers script classes and imports assets on a completely clean checkout.
+        Invoke-Godot -Name 'import' -EngineArguments @('--headless', '--editor', '--import')
+        if ($Tests -or $Check) {
+            Invoke-Godot -Name 'unit' -EngineArguments @('--headless', '--script', 'res://tests/test_runner.gd')
+        }
+        if ($Smoke -or $Check) {
+            Invoke-Godot -Name 'visual' -EngineArguments @('--script', 'res://tests/rendered/visual_runner.gd')
+        }
+        if ($TerrainTests -or $Check) {
+            Invoke-Godot -Name 'terrain' -EngineArguments @('--script', 'res://tests/rendered/terrain_palette_checks.gd')
+        }
+        if ($ArtSmoke -or $Check) {
+            Invoke-Godot -Name 'artwork' -EngineArguments @('--script', 'res://tests/rendered/artwork_smoke.gd')
+        }
+        if ($TerrainPreview) {
+            Invoke-Godot -Name 'preview' -EngineArguments @('--script', 'res://tests/previews/terrain_preview.gd')
+        }
+        if (@($modes).Count -eq 0) { Invoke-Godot -Name 'game' -EngineArguments @() }
+    }
+} finally {
+    $env:APPDATA = $savedAppData
+    $env:LOCALAPPDATA = $savedLocalAppData
+}

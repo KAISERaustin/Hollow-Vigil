@@ -1,0 +1,333 @@
+class_name Battlefield
+extends Control
+
+const AttackEffects = preload("res://scripts/rendering/attack_effects.gd")
+
+signal picked(region: String, pad: int)
+signal expansion_picked(region: String)
+signal entrance_picked(region: String)
+signal earnings_picked(tower_id: String)
+signal core_picked
+signal empty_picked
+signal camera_changed
+
+var state: VigilState
+var camera := Vector2.ZERO
+var zoom := 1.0
+var selected_tower := "":
+	set(value):
+		selected_tower = value
+		queue_redraw()
+var selected_pad := -1
+var selected_region := "0,0"
+var preview_kind := "rapid"
+var show_expansion := false
+var effect_offset := 0.0
+var mouse_down := false
+var dragged := false
+var start := Vector2.ZERO
+var previous := Vector2.ZERO
+var touches := {}
+var gesture_consumed := false
+var font := ThemeDB.fallback_font
+var terrain_layer: VigilTerrainLayer
+const GOLD := VigilTerrainArt.GOLD
+const TEXT := VigilTerrainArt.PAPER
+const EXPANSION_HIT_RADIUS := 38.0
+
+func _ready() -> void:
+	clip_contents = true
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	font = VigilInterface.font(600)
+	gui_input.connect(_on_gui_input)
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	var backdrop := ColorRect.new()
+	backdrop.color = VigilTerrainArt.BACKDROP
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	backdrop.show_behind_parent = true
+	add_child(backdrop)
+	terrain_layer = VigilTerrainLayer.new()
+	terrain_layer.show_behind_parent = true
+	add_child(terrain_layer)
+
+func screen(pos: Vector2) -> Vector2:
+	return (pos - camera) * zoom + size * 0.5
+
+func world(pos: Vector2) -> Vector2:
+	return (pos - size * 0.5) / zoom + camera
+
+func set_zoom(value: float, pivot: Vector2) -> void:
+	var before := world(pivot)
+	zoom = clampf(value, 0.42, 1.65)
+	camera += before - world(pivot)
+	camera_changed.emit()
+	queue_redraw()
+
+func _on_gui_input(event: InputEvent) -> void:
+	# Buttons use Godot's emulated mouse; the map handles physical touches itself.
+	if event is InputEventMouse and event.device == -1:
+		return
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
+			set_zoom(zoom * 1.1, event.position)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
+			set_zoom(zoom / 1.1, event.position)
+		elif event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				mouse_down = true
+				dragged = false
+				start = event.position
+				previous = start
+			elif mouse_down:
+				mouse_down = false
+				if not dragged:
+					tap(event.position)
+	elif event is InputEventMouseMotion and mouse_down:
+		if event.position.distance_to(start) > 10.0:
+			dragged = true
+		if dragged:
+			camera -= (event.position - previous) / zoom
+			camera_changed.emit()
+		previous = event.position
+	elif event is InputEventScreenTouch:
+		if event.pressed:
+			touches[event.index] = event.position
+			if touches.size() == 1:
+				start = event.position
+				dragged = false
+				gesture_consumed = false
+			else:
+				gesture_consumed = true
+		elif touches.has(event.index):
+			if touches.size() == 1 and not dragged and not gesture_consumed and not event.canceled:
+				tap(event.position)
+			touches.erase(event.index)
+	elif event is InputEventScreenDrag and touches.has(event.index):
+		var old: Vector2 = touches[event.index]
+		if touches.size() >= 2:
+			var other: Vector2 = old
+			for id in touches:
+				if id != event.index:
+					other = touches[id]
+					break
+			var distance := old.distance_to(other)
+			if distance > 5.0:
+				set_zoom(zoom * event.position.distance_to(other) / distance, (event.position + other) * 0.5)
+			gesture_consumed = true
+		else:
+			if event.position.distance_to(start) > 10.0:
+				dragged = true
+			if dragged:
+				camera -= (event.position - old) / zoom
+				camera_changed.emit()
+		touches[event.index] = event.position
+	elif event is InputEventMagnifyGesture:
+		set_zoom(zoom * event.factor, event.position)
+	queue_redraw()
+
+# Releases outside the map still end gestures, without placing anything under HUD controls.
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+		if not Rect2(Vector2.ZERO, size).has_point(event.position - global_position):
+			mouse_down = false
+	if event is InputEventScreenTouch and not event.pressed:
+		var local: Vector2 = event.position - global_position
+		if not Rect2(Vector2.ZERO, size).has_point(local):
+			touches.erase(event.index)
+			gesture_consumed = true
+
+func tap(pos: Vector2) -> void:
+	for t in state.data.towers.values():
+		if earnings_badge_visible(t) and earnings_rect(t).has_point(pos):
+			earnings_picked.emit(t.id)
+			return
+	var point := world(pos)
+	for id in state.data.regions:
+		for pad in range(4):
+			if point.distance_to(VigilWorld.pad_position(id, pad)) < maxf(26.0, 25.0 / zoom):
+				picked.emit(id, pad)
+				return
+	if core_is_visible() and pos.distance_to(screen(VigilWorld.CORE_POSITION)) <= maxf(36.0 * zoom, 22.0):
+		core_picked.emit()
+		return
+	# Prefer the closest visible control if a densely surrounded frontier crowds
+	# the touch padding at minimum zoom. A button's center always belongs to it.
+	var nearest := ""
+	var is_entrance := false
+	var distance := INF
+	for id in state.data.regions:
+		if not VigilWorld.has_rift(id):
+			continue
+		var gate: Vector2 = screen(state.paths[id][0])
+		var candidate := pos.distance_to(gate) / entrance_hit_radius()
+		if candidate < 1.0 and candidate < distance:
+			nearest = id
+			is_entrance = true
+			distance = candidate
+	for id in VigilWorld.frontier(state.data.regions):
+		var c := screen(expansion_marker(id))
+		var candidate := pos.distance_to(c) / EXPANSION_HIT_RADIUS
+		if candidate < 1.0 and candidate < distance:
+			nearest = id
+			is_entrance = false
+			distance = candidate
+	if nearest != "":
+		if is_entrance:
+			entrance_picked.emit(nearest)
+		else:
+			expansion_picked.emit(nearest)
+		return
+	# Invisible collection padding must not steal taps from map controls.
+	for t in state.data.towers.values():
+		if earnings_badge_visible(t) and earnings_rect(t).grow(9.0 * zoom).has_point(pos):
+			earnings_picked.emit(t.id)
+			return
+	empty_picked.emit()
+
+func entrance_scale() -> float:
+	# Keep the artwork the same size relative to its tile at every zoom.
+	return zoom
+
+func entrance_hit_radius() -> float:
+	return 32.0 * entrance_scale()
+
+func expansion_marker(id: String) -> Vector2:
+	# Anchor both drawing and hit testing to the future territory's center.
+	return VigilWorld.center(id)
+
+func earnings_badge_visible(t: Dictionary) -> bool:
+	return t.earnings >= 1.0 and not state.data.towers.has(selected_tower)
+
+func earnings_local_rect(t: Dictionary) -> Rect2:
+	var text := "+" + Balance.money(t.earnings)
+	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 18.0
+	return Rect2(Vector2(-width / 2.0, -68), Vector2(width, 23))
+
+func earnings_rect(t: Dictionary) -> Rect2:
+	var rect := earnings_local_rect(t)
+	var anchor := screen(VigilWorld.pad_position(t.region, t.pad))
+	return Rect2(anchor + rect.position * zoom, rect.size * zoom)
+
+func core_is_visible() -> bool:
+	return Rect2(Vector2.ZERO, size).has_point(screen(VigilWorld.CORE_POSITION))
+
+func update_view(delta: float, tick_remainder: float = 0.0) -> void:
+	effect_offset = tick_remainder
+	queue_redraw()
+
+func text_at(text: String, at: Vector2, pixels: int, color: Color) -> void:
+	draw_string(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, pixels, color)
+
+func centered(text: String, at: Vector2, pixels: int, color: Color) -> void:
+	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, pixels).x
+	text_at(text, at - Vector2(width * 0.5, 0), pixels, color)
+
+func _draw() -> void:
+	if state == null:
+		return
+	if terrain_layer != null:
+		terrain_layer.synchronize(state, camera, zoom, size)
+	var visible := Rect2(Vector2(-100, -100), size + Vector2(200, 200))
+	for id in state.data.regions:
+		var c := screen(VigilWorld.center(id))
+		if not visible.intersects(Rect2(c - Vector2.ONE * 150.0 * zoom, Vector2.ONE * 300.0 * zoom)):
+			continue
+		draw_region(state.data.regions[id])
+	# Draw portals after every tile, so newly purchased terrain cannot cover them.
+	for id in state.data.regions:
+		if VigilWorld.has_rift(id) and visible.has_point(screen(state.paths[id][0])):
+			draw_entrance(id)
+	for id in VigilWorld.frontier(state.data.regions):
+		var c := screen(expansion_marker(id))
+		if not visible.has_point(c):
+			continue
+		VigilTerrainArt.disk(self, c, 24.0, GOLD if show_expansion else VigilTerrainArt.PAPER, 4.0)
+		draw_line(c - Vector2(7, 0), c + Vector2(7, 0), Color.BLACK, 3.0, true)
+		draw_line(c - Vector2(0, 7), c + Vector2(0, 7), Color.BLACK, 3.0, true)
+		centered(Balance.money(Balance.expansion_cost(state.data.regions.size())) + " g", c + Vector2(0, 43), 13, GOLD)
+	draw_core()
+	var range_pos := Vector2.ZERO
+	var range_radius := 0.0
+	if state.data.towers.has(selected_tower):
+		var t: Dictionary = state.data.towers[selected_tower]
+		range_pos = VigilWorld.pad_position(t.region, t.pad)
+		range_radius = Balance.stats(t.kind, t.level).range
+	elif selected_pad >= 0:
+		range_pos = VigilWorld.pad_position(selected_region, selected_pad)
+		range_radius = Balance.TOWERS[preview_kind].range
+	if range_radius > 0.0:
+		# A single outline keeps the range preview uncluttered.
+		draw_arc(screen(range_pos), range_radius * zoom, 0, TAU, 72, GOLD, 1.5, true)
+	for e in state.combat.enemies:
+		if visible.has_point(screen(e.pos)):
+			draw_enemy(e)
+	for t in state.data.towers.values():
+		if visible.has_point(screen(VigilWorld.pad_position(t.region, t.pad))):
+			draw_tower(t)
+	for fx in state.combat.effects:
+		var fade: float = fx.life / fx.max_life
+		var color := Color(fx.color)
+		var p := screen(fx.pos)
+		if fx.kind == "shot":
+			var origin := screen(fx.from)
+			if visible.intersects(Rect2(origin, Vector2.ZERO).expand(p).grow((fx.radius + 30.0) * zoom)):
+				AttackEffects.draw(self, fx, origin, p, zoom, effect_offset)
+		elif fx.kind == "escape":
+			draw_arc(p, (7.0 + fade * 18.0) * zoom, 0, TAU, 32, VigilTerrainArt.MINT, 2.0 * zoom, true)
+		else:
+			draw_arc(p, (1.0 - fade) * 12.0 * zoom, 0, TAU, 20, color, 2.0 * zoom, true)
+
+func draw_region(region: Dictionary) -> void:
+	# Terrain is cached behind this interactive layer; only + glyphs redraw.
+	for pad in range(4):
+		if state.economy.tower_at(region.id, pad) != "":
+			continue
+		var p := screen(VigilWorld.pad_position(region.id, pad))
+		var radius := 5.0
+		var width := 2.5
+		draw_line(p - Vector2(radius, 0), p + Vector2(radius, 0), Color.BLACK, width, true)
+		draw_line(p - Vector2(0, radius), p + Vector2(0, radius), Color.BLACK, width, true)
+
+func draw_entrance(id: String) -> void:
+	var gate := screen(VigilWorld.center(id))
+	var z := entrance_scale()
+	VigilTerrainArt.portal(self, gate, z, false)
+
+func draw_core() -> void:
+	var gate := screen(VigilWorld.CORE_POSITION)
+	if not Rect2(Vector2.ZERO, size).grow(60.0 * zoom).has_point(gate):
+		return
+	VigilTerrainArt.portal(self, gate, zoom, true)
+
+func draw_tower(t: Dictionary) -> void:
+	var p := screen(VigilWorld.pad_position(t.region, t.pad))
+	var z := zoom
+	VigilTerrainArt.sentinel(self, t.kind, p, z)
+	if t.id == selected_tower:
+		draw_arc(p, 28, 0, TAU, 40, GOLD, 1.5, true)
+	if earnings_badge_visible(t):
+		var label := "+" + Balance.money(t.earnings)
+		var rect := earnings_local_rect(t)
+		# Scale the entire badge, including text and border, with the tower artwork.
+		draw_set_transform(p, 0, Vector2.ONE * zoom)
+		draw_style_box(pill(GOLD, Color.BLACK, 3), rect)
+		centered(label, Vector2(rect.get_center().x, rect.position.y + 16), 12, Color.BLACK)
+		draw_set_transform(Vector2.ZERO)
+
+static func pill(bg: Color, border: Color, radius: int) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = bg
+	s.border_color = border
+	s.set_border_width_all(3)
+	s.set_corner_radius_all(radius)
+	return s
+
+func draw_enemy(e: Dictionary) -> void:
+	var p := screen(e.pos)
+	var z := zoom
+	VigilTerrainArt.enemy(self, e.kind, p, z)
+	if e.hp < e.max_hp:
+		var from := p + Vector2(-9, -17)
+		draw_line(from, from + Vector2(18, 0), Color.BLACK, 4)
+		draw_line(from, from + Vector2(18 * e.hp / e.max_hp, 0), VigilTerrainArt.MINT, 2)
