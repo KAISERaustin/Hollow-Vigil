@@ -10,7 +10,7 @@
 
 ## Build and install using a Mac
 
-1. Copy the project to a Mac. Keep `project.godot`, `export_presets.cfg`, `icon.svg`, `scenes`, `scripts`, `assets` and `shaders`. Desktop saves in `.runtime` are separate from iPhone saves and are not needed to build the app.
+1. Copy the project to a Mac. Keep `project.godot`, `export_presets.cfg`, `icon.svg`, `scenes` and `scripts` (artwork is drawn in code; the old `assets` and `shaders` folders were removed). Desktop saves in `.runtime` are separate from iPhone saves and are not needed to build the app.
 2. Install Xcode, open it to complete its setup, and sign in to your Apple Account in Xcode Settings > Accounts.
 3. Install Godot **4.7.2** and the matching **4.7.2** export templates. Earlier templates installed on the Windows computer do not match this engine.
 4. Open `project.godot` in Godot. In Project > Export, select **iOS** and enter the Apple Team ID for the account that will sign the app. Use your actual team identifier, not your name. Change `org.prototype.hollowvigil` if Xcode reports that this bundle identifier is unavailable.
