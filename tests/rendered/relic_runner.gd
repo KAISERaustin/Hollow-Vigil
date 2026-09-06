@@ -66,7 +66,7 @@ func run() -> void:
 		await frame()
 		await Harness.tap(app, app.tower_actions.buttons.equipment.get_global_rect().get_center(), touch)
 		choice = dialog.find_child("Relic_90,90", true, false)
-		check(choice.text.begins_with("Transfer from"), "Owned piece identifies its transfer source")
+		check(choice.get_parent().get_child(0).text.begins_with("Transfer from"), "Owned piece identifies its transfer source")
 		dialog.scroll.ensure_control_visible(choice)
 		await frame()
 		await Harness.tap(app, choice.get_global_rect().get_center(), touch)

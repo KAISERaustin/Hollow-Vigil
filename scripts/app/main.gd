@@ -5,6 +5,9 @@ const UI = preload("res://scripts/ui/shared/interface.gd")
 const TowerActions = preload("res://scripts/ui/towers/tower_actions.gd")
 const TowerDialog = preload("res://scripts/ui/towers/tower_dialog.gd")
 const TowerMove = preload("res://scripts/ui/towers/tower_move.gd")
+var slot_menu: Control
+var slot_active := true
+var active_slot := 0
 var audio: Node
 var cloud: Node
 var hud: VigilHUD
@@ -35,7 +38,9 @@ func _ready() -> void:
 		get_window().content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
 		get_window().content_scale_size = Vector2i.ZERO
 		get_window().content_scale_factor = clampf(DisplayServer.screen_get_dpi() / 160.0, 1.0, 4.0)
-	if load_saved_progress:
+	var use_slots := load_saved_progress and game.save_path == "user://vigil.save"
+	slot_active = not use_slots
+	if load_saved_progress and not use_slots:
 		game.load_save()
 	Engine.max_fps = 60
 	get_tree().auto_accept_quit = false
@@ -49,7 +54,12 @@ func _ready() -> void:
 	cloud.enabled = load_saved_progress
 	cloud.restore_requested.connect(restore_cloud_progress)
 	add_child(cloud)
-	if game.offline_award >= 1.0:
+	if use_slots:
+		slot_menu = preload("res://scripts/ui/save_slots_panel.gd").new()
+		slot_menu.app = self
+		add_child(slot_menu)
+		game.suspended = true
+	elif game.offline_award >= 1.0:
 		show_return_earnings(game.offline_award)
 	if not game.save_error.is_empty():
 		toast(game.save_error, 12.0)
@@ -300,6 +310,8 @@ func reset_progress() -> void:
 	toast("Progress reset. Your new vigil begins." if game.save_error.is_empty() else game.save_error, 6.0)
 
 func persist() -> void:
+	if not slot_active:
+		return
 	balance_save_timer = -1.0
 	game.data.camera = [field.camera.x, field.camera.y, field.zoom]
 	if not game.save():
@@ -364,6 +376,8 @@ func _notification(what: int) -> void:
 		game.suspended = true
 		accumulator = 0.0
 	elif what == NOTIFICATION_APPLICATION_RESUMED:
+		if not slot_active or (is_instance_valid(slot_menu) and slot_menu.visible):
+			return
 		audio.set_suspended(false)
 		if game.suspended:
 			var amount := game.apply_offline(Time.get_unix_time_from_system())
@@ -390,6 +404,8 @@ func _notification(what: int) -> void:
 				panels.close_sheet()
 
 func _input(event: InputEvent) -> void:
+	if is_instance_valid(slot_menu) and slot_menu.visible:
+		return
 	if event.is_action_pressed("ui_cancel"):
 		if return_overlay.visible:
 			close_return_popup()
@@ -412,6 +428,11 @@ func restore_cloud_progress(snapshot: Dictionary, _world_id: String, _revision: 
 	if not game.storage.write(archive, game.snapshot()):
 		cloud.restore_completed(false)
 		return
+	# Cloud progress cannot change the chosen local mode or imported rules.
+	snapshot.mode = game.data.get("mode", "creative")
+	snapshot.settings.developer_balance = game.tuning.duplicate(true)
+	if game.data.has("setup"):
+		snapshot.setup = game.data.setup.duplicate(true)
 	snapshot.sequence = game.data.sequence + 1
 	for suffix in ["", ".tmp", ".bak"]:
 		var candidate := game.storage.read_candidate(game.save_path + suffix)
@@ -438,5 +459,66 @@ func restore_cloud_progress(snapshot: Dictionary, _world_id: String, _revision: 
 	field.queue_redraw()
 	update_hud()
 	cloud.restore_completed(true)
+	if game.offline_award >= 1.0:
+		show_return_earnings(game.offline_award)
+
+func show_save_slots(exporting: bool = false) -> void:
+	if cloud.busy or not cloud.pending.is_empty() or not cloud.conflict.is_empty():
+		toast("Finish the current cloud operation before changing saves.")
+		return
+	persist()
+	if not game.save_error.is_empty():
+		return
+	panels.close_sheet()
+	return_overlay.hide()
+	pending_return_gold = 0.0
+	game.suspended = true
+	if not is_instance_valid(slot_menu):
+		slot_menu = preload("res://scripts/ui/save_slots_panel.gd").new()
+		slot_menu.app = self
+		add_child(slot_menu)
+	slot_menu.show()
+	slot_menu.move_to_front()
+	if exporting and game.is_creative():
+		slot_menu.show_export()
+	else:
+		slot_menu.show_slots()
+
+func open_slot(slot: int) -> void:
+	var next := VigilState.new()
+	next.save_path = slot_menu.slots.path_for(slot)
+	if not next.load_save():
+		slot_menu.message.text = next.save_error
+		return
+	activate_slot(next, slot)
+
+func activate_slot(next: VigilState, slot: int) -> void:
+	panels.close_sheet()
+	game = next
+	slot_active = true
+	active_slot = slot
+	field.state = game
+	field.set_unrestricted_camera(false)
+	field.selected_region = "0,0"
+	field.selected_tower = ""
+	field.selected_pad = -1
+	field.camera = Vector2(game.data.camera[0], game.data.camera[1])
+	field.zoom = game.data.camera[2]
+	field.touches.clear()
+	field.mouse_down = false
+	field.dragged = false
+	cloud.game = game
+	cloud.include_audio = game.data.get("cloud", {}).get("include_audio", false)
+	cloud.sync_timer = 0.0
+	audio.bind_game()
+	accumulator = 0.0
+	save_timer = 0.0
+	balance_save_timer = -1.0
+	pending_return_gold = 0.0
+	return_overlay.hide()
+	slot_menu.hide()
+	apply_ui_preferences()
+	update_hud()
+	field.queue_redraw()
 	if game.offline_award >= 1.0:
 		show_return_earnings(game.offline_award)

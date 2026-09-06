@@ -5,7 +5,7 @@ set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated"}',true);
 do $test$
 declare
- p jsonb := '{"format":1,"world":{"id":"20000000-0000-4000-8000-000000000001","seed":42,"save_version":2},"progress":[{"id":"30000000-0000-4000-8000-000000000001","gold":280,"reserve":0,"lifetime_earnings":0,"kills":0,"escapes":0,"next_tower":1,"automation":false,"first_property_required":true}],"checkpoints":[{"id":"40000000-0000-4000-8000-000000000001","last_accounted":1000,"active_seconds":0}],"regions":[{"id":"50000000-0000-4000-8000-000000000001","local_key":"0,0","parent_id":null,"side":0,"bend":24,"traffic":0,"style":"forest","road_version":2,"history_time":0}],"relics":[],"towers":[],"unlocks":[],"encounters":[],"production":[],"preferences":[]}';
+ p jsonb := '{"format":1.0,"world":{"id":"20000000-0000-4000-8000-000000000001","seed":42.0,"save_version":2.0},"progress":[{"id":"30000000-0000-4000-8000-000000000001","gold":280,"reserve":0,"lifetime_earnings":0,"kills":0,"escapes":0,"next_tower":1.0,"automation":false,"first_property_required":true}],"checkpoints":[{"id":"40000000-0000-4000-8000-000000000001","last_accounted":1000,"active_seconds":0}],"regions":[{"id":"50000000-0000-4000-8000-000000000001","local_key":"0,0","parent_id":null,"side":0.0,"bend":24.0,"traffic":0.0,"style":"forest","road_version":2.0,"history_time":0}],"relics":[],"towers":[],"unlocks":[],"encounters":[],"production":[],"preferences":[]}';
  r jsonb;
  rejected boolean;
 begin
@@ -24,6 +24,13 @@ begin
  begin perform public.publish_save(jsonb_set(p,'{progress,0,gold}','-1'),1,gen_random_uuid()); exception when check_violation then rejected:=true; end;
  if not rejected then raise exception 'Negative gold accepted'; end if;
  if (select revision from public.save_revisions where world_id='20000000-0000-4000-8000-000000000001')<>1 then raise exception 'Failed upload mutated revision'; end if;
+ -- Never silently round malformed counts or accept numeric strings.
+ rejected:=false;
+ begin perform public.publish_save(jsonb_set(p,'{regions,0,bend}','24.5'),1,gen_random_uuid()); exception when sqlstate '22023' then rejected:=true; end;
+ if not rejected then raise exception 'Fractional integer rounded'; end if;
+ rejected:=false;
+ begin perform public.publish_save(jsonb_set(p,'{world,seed}','"42"'),1,gen_random_uuid()); exception when sqlstate '22023' then rejected:=true; end;
+ if not rejected then raise exception 'String integer accepted'; end if;
  rejected:=false;
  begin update public.progress set gold=999; exception when insufficient_privilege then rejected:=true; end;
  if not rejected then raise exception 'Direct writes bypass revision guard'; end if;

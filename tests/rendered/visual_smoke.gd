@@ -241,8 +241,8 @@ static func run(app: Control) -> void:
 	app.panels.show_settings()
 	await capture(app, "reset-settings")
 	var children: Array = app.panels.sheet_content.get_children()
-	var reset_button: Button = children[-2]
-	if reset_button.text != "Reset progress" or children[-1].text != "Return to the core":
+	var reset_button: Button = children[-2].get_child(1)
+	if children[-2].get_child(0).text != "Reset progress" or children[-1].get_child(0).text != "Return to the core":
 		failures.append("Reset button is not directly above Return to the core")
 	var before_reset: Dictionary = app.game.data.duplicate(true)
 	app.panels.content_scroll.ensure_control_visible(reset_button)

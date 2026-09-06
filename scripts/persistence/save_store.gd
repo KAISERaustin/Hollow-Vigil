@@ -78,6 +78,13 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 	for field in ["version", "sequence", "seed", "balance", "reserve", "lifetime_earnings", "kills", "escapes", "regions", "towers", "next_tower", "automation", "last_accounted", "active_seconds", "settings", "camera"]:
 		if not d.has(field):
 			return false
+	if d.has("setup"):
+		if not d.setup is Dictionary or not d.setup.get("name") is String or not d.setup.get("description") is String:
+			return false
+		if d.setup.name.strip_edges().is_empty() or d.setup.name.length() > 80 or d.setup.description.length() > 4000:
+			return false
+	if d.has("mode") and d.mode not in ["creative", "survival"]:
+		return false
 	if d.version != version or not d.regions is Dictionary or not d.towers is Dictionary or not d.regions.has("0,0"):
 		return false
 	for field in ["balance", "reserve", "lifetime_earnings", "kills", "escapes", "last_accounted", "active_seconds"]:

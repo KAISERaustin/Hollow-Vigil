@@ -46,6 +46,12 @@ func run() -> void:
 		check(restored.settings.low_power and restored.camera == [1.0,2.0,0.8], "Device preferences preserved")
 		check(restored.settings.audio.master == 0.3 and restored.settings.audio.muted, "Opted-in audio restores")
 		check(restored.regions["-1,0"].history[id] == 80.0 and restored.regions["-1,0"].history_time == 100.0, "Production checkpoint restores")
+	# Save files and REST responses decode JSON numbers as floats in Godot.
+	var reloaded: Dictionary = JSON.parse_string(JSON.stringify(g.snapshot(1000), "", true, true))
+	var wire := c.encode(reloaded, wid, true)
+	check(wire.world.seed is int and wire.world.save_version is int and wire.progress[0].next_tower is int, "Reloaded world integer fields serialize for Postgres")
+	check(wire.towers[0].pad is int and wire.towers[0].level is int and wire.regions[0].bend is int, "Reloaded entity integer fields serialize for Postgres")
+	check(not c.decode(wire).is_empty() and wire.progress == p.progress and wire.checkpoints == p.checkpoints, "Integer normalization preserves progress and decodes successfully")
 	var p2 := c.encode(g.snapshot(1000),wid,false)
 	check(p2.preferences.is_empty(), "No preferences uploaded by default")
 	p2.towers[0].region_id = Codec.uuid()
@@ -63,6 +69,11 @@ func run() -> void:
 		var encounter := preload("res://tests/unit/boss_checks.gd").fixture(kind)
 		var before := encounter.snapshot()
 		var encoded := c.encode(before, Codec.uuid())
+		var loaded_encounter: Dictionary = JSON.parse_string(JSON.stringify(before, "", true, true))
+		var loaded_payload := c.encode(loaded_encounter, encoded.world.id)
+		for row in loaded_payload.encounters:
+			if row.status == "active":
+				check(row.steps is int and row.wards is int and row.segment is int, "Reloaded boss counters serialize as integers")
 		var decoded := c.decode(encoded)
 		check(not decoded.is_empty(), "Active " + kind + " encounter restores: " + c.error)
 		if not decoded.is_empty():

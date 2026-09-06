@@ -119,7 +119,7 @@ func open_action(action: String) -> void:
 			choice.add_theme_stylebox_override("pressed", UI.box(UI.GOLD))
 			choice.add_theme_stylebox_override("hover_pressed", UI.box(UI.GOLD))
 			choice.button_pressed = key == target_choice
-			body.add_child(choice)
+			body.add_child(UI.action_row(Balance.TARGET_MODES[key] + "\n" + descriptions[key], choice, "Select"))
 	if action == "move":
 		var quote := UI.value("%s gold · Rebuild %s" % [UI.exact_money(cost), Balance.rebuild_time_text(rebuild_seconds)], 18)
 		quote.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

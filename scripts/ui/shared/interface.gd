@@ -218,6 +218,90 @@ static func button(text: String, action: Callable, height: float = 48) -> Button
 static func gold_button(text: String, action: Callable, height: float = 50) -> Button:
 	return accent_button(text, action, GOLD, height)
 
+static func action_row(title: String, action: BaseButton, action_text: String = "") -> HBoxContainer:
+	# Only the trailing control handles taps. Text and row gaps pass drags to
+	# the surrounding ScrollContainer, including when the action is disabled.
+	var row := HBoxContainer.new()
+	row.set_meta("scroll_action_row", true)
+	row.mouse_filter = Control.MOUSE_FILTER_PASS
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.custom_minimum_size.y = 64
+	row.add_theme_constant_override("separation", GAP)
+	row.draw.connect(func():
+		row.draw_line(Vector2(0, row.size.y - 1), Vector2(row.size.x, row.size.y - 1), BORDER, 2)
+	)
+	var description := paragraph(title, BODY)
+	description.add_theme_color_override("font_color", TEXT)
+	description.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(description)
+	action.accessibility_name = title
+	action.custom_minimum_size = Vector2(88, TARGET)
+	action.size_flags_horizontal = Control.SIZE_SHRINK_END
+	action.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if action is Button:
+		action.text = action_text
+		if action.toggle_mode and action_text == "Select":
+			action.text = "Selected" if action.button_pressed else "Select"
+			action.toggled.connect(func(selected: bool): action.text = "Selected" if selected else "Select")
+	row.add_child(action)
+	return row
+
+static func number_row(title: String, number: SpinBox, preview: Button = null) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.set_meta("scroll_number_row", true)
+	row.mouse_filter = Control.MOUSE_FILTER_PASS
+	row.add_theme_constant_override("separation", GAP)
+	row.custom_minimum_size.y = 120
+	row.draw.connect(func(): row.draw_line(Vector2(0, row.size.y - 1), Vector2(row.size.x, row.size.y - 1), BORDER, 2))
+	var copy := VBoxContainer.new()
+	copy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	copy.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	copy.add_theme_constant_override("separation", GAP)
+	copy.add_child(paragraph(title, BODY))
+	row.add_child(copy)
+	if preview != null:
+		preview.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		copy.add_child(preview)
+	var controls := VBoxContainer.new()
+	controls.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	controls.custom_minimum_size.x = 112
+	controls.add_theme_constant_override("separation", 8)
+	row.add_child(controls)
+	number.custom_minimum_size = Vector2(112, TARGET)
+	number.select_all_on_focus = true
+	# Use large explicit +/- controls instead of the built-in tiny arrows.
+	number.add_theme_constant_override("buttons_width", 0)
+	number.add_theme_constant_override("set_min_buttons_width_from_icons", 0)
+	number.add_theme_constant_override("field_and_buttons_separation", 0)
+	var entry := number.get_line_edit()
+	entry.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER_DECIMAL
+	entry.accessibility_name = number.accessibility_name
+	entry.add_theme_stylebox_override("normal", box(SURFACE))
+	entry.add_theme_stylebox_override("focus", focus_box())
+	entry.add_theme_color_override("font_color", TEXT)
+	entry.add_theme_color_override("caret_color", TEXT)
+	entry.add_theme_font_size_override("font_size", type_size(CAPTION))
+	controls.add_child(number)
+	var buttons := HBoxContainer.new()
+	buttons.add_theme_constant_override("separation", 8)
+	controls.add_child(buttons)
+	var minus := button("−", func(): number.apply(); number.value -= number.step)
+	var plus := button("+", func(): number.apply(); number.value += number.step)
+	minus.name = str(number.name) + "Decrease"
+	plus.name = str(number.name) + "Increase"
+	minus.accessibility_name = "Decrease " + number.accessibility_name
+	plus.accessibility_name = "Increase " + number.accessibility_name
+	minus.custom_minimum_size.x = TARGET
+	plus.custom_minimum_size.x = TARGET
+	buttons.add_child(minus)
+	buttons.add_child(plus)
+	var refresh := func(_value: float):
+		minus.disabled = number.value <= number.min_value
+		plus.disabled = number.value >= number.max_value
+	number.value_changed.connect(refresh)
+	refresh.call(number.value)
+	return row
+
 static func accent_button(text: String, action: Callable, accent: Color, height: float = 48) -> Button:
 	var b := button(text, action, height)
 	b.add_theme_stylebox_override("normal", box(accent))

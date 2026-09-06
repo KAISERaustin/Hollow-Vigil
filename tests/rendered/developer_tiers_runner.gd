@@ -30,9 +30,9 @@ func run() -> void:
 			controls.tier_selector.select(tier)
 			controls.tier_selector.item_selected.emit(tier)
 			var key: String = controls.editing_kind()
-			if controls.sliders.size() != Balance.fields_for("towers", key).size():
+			if controls.inputs.size() != Balance.fields_for("towers", key).size():
 				failures.append("Missing attributes for " + key)
-			for stat in controls.sliders:
+			for stat in controls.inputs:
 				var numeric := controls.fields.find_child(stat + "Value", true, false) as SpinBox
 				numeric.value = numeric.min_value + numeric.step * 2
 				if not is_equal_approx(app.game.tuning.towers[key][stat], numeric.value):
@@ -42,7 +42,7 @@ func run() -> void:
 	controls.tier_selector.item_selected.emit(3)
 	await checks.settle(app)
 	await harness.capture(app, "developer-tier-frostneedle")
-	app.panels.content_scroll.ensure_control_visible(controls.sliders.slow_duration)
+	app.panels.content_scroll.ensure_control_visible(controls.inputs.slow_duration)
 	await checks.settle(app)
 	await harness.capture(app, "developer-tier-frostneedle-abilities")
 	for size in [Vector2i(360, 640), Vector2i(540, 960)]:

@@ -98,3 +98,48 @@ Backups contain database records, not Storage file contents. The game currently 
 Use [Logs](https://supabase.com/dashboard/project/sjjohzftzshgceamffhx/logs) for the included seven-day history and [Security Advisor](https://supabase.com/dashboard/project/sjjohzftzshgceamffhx/advisors/security) after schema/auth changes. SQL contract tests intentionally cause rejected operations; distinguish these from player-facing failures. Check [organization usage](https://supabase.com/dashboard/org/gehcbpsnzylmdwlkmwud/usage) before increasing resource limits.
 
 References: [Pro plan](https://supabase.com/pricing), [session controls](https://supabase.com/docs/guides/auth/sessions), [password protection](https://supabase.com/docs/guides/auth/password-security), [email codes](https://supabase.com/docs/guides/auth/auth-email-passwordless), [database backups](https://supabase.com/docs/guides/platform/backups).
+
+
+## Save/reload sync fix (2026-09-06)
+
+Godot loads JSON numbers as floats. The original RPC cast JSON text directly to
+Postgres integer types, rejecting values such as `42.0`, `2.0`, and `24.0` with
+`22P02`. This affected normal road bends as well as reloaded worlds and durable
+outboxes. The `accept_integral_json_numbers` migration normalizes only declared
+integer fields, rejects fractions and numeric strings, and keeps ownership,
+revision guards, transaction boundaries, and row constraints intact. The codec
+now emits explicit integers and restores road bends as floats for local validation.
+
+The deployed migration version is `20260906143446`. Earlier migrations were applied
+manually; their pre-existing history discrepancy still needs reconciliation before
+using `db push` on this project.
+
+Regression commands:
+
+```sh
+Godot --headless --path . --script tools/cloud_payload_fixtures.gd
+Godot --headless --path . --script tests/cloud_codec_runner.gd
+Godot --headless --path . --script tests/cloud_service_runner.gd
+```
+
+The fixture generator writes seven real save/reload projections covering a new
+world, all four active bosses, a castle encounter, equipped relics, an electric
+tower, production history, and sound preferences. Live SQL verification runs them
+inside a rolled-back transaction under an authenticated test identity and forces
+deferred foreign-key checks before comparing normalized records.
+
+For an opt-in live client test, set `HOLLOW_CLOUD_EMAIL`, run
+`Godot --headless --path . --script tools/cloud_live_runner.gd -- --send-code`, then
+set `HOLLOW_CLOUD_CODE` to the fresh code and run the same command without
+`-- --send-code`. Each successful run creates one separate test world (seed
+424242), never modifies existing worlds, and clears its disposable local files.
+Credentials remain in memory. The test covers real HTTP authentication, upload,
+restore, legacy float-valued outboxes, retries, conflicts, token refresh, network
+failure/recovery, minute sync, and sign-out.
+
+Email delivery is separately constrained by the built-in Supabase mail quota.
+`over_email_send_rate_limit` now has a specific user-facing message; repeated sync
+failures are no longer confused with this email-provider error. A server-generated
+OTP can exercise the actual client/Auth/RPC flow without sending email, but is not
+evidence that email delivery is working. Public email sign-in still requires a
+custom SMTP provider; no sender credentials or subscription were configured here.

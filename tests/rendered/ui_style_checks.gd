@@ -107,13 +107,13 @@ func run() -> void:
 					for section in ["enemies", "towers"]:
 						controls.show_category(section)
 						await settle()
-						for slider in controls.sliders.values():
-							app.panels.content_scroll.ensure_control_visible(slider)
+						for number in controls.inputs.values():
+							app.panels.content_scroll.ensure_control_visible(number)
 							await settle()
-							if not app.panels.content_scroll.get_global_rect().grow(1).encloses(slider.get_global_rect()):
-								failures.append(label + ": slider cannot scroll fully into view")
-							if slider.size.x < 100.0:
-								failures.append(label + ": slider too narrow to drag")
+							if not app.panels.content_scroll.get_global_rect().grow(1).encloses(number.get_global_rect()):
+								failures.append(label + ": number cannot scroll fully into view")
+							if number.size.x < 100.0:
+								failures.append(label + ": number too narrow to edit")
 					controls.show_category("enemies")
 					app.panels.content_scroll.scroll_vertical = 0
 					await settle()

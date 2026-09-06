@@ -4,7 +4,6 @@ signal changed
 signal layout_changed
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
-const HANDLE = preload("res://assets/ui/slider_handle.svg")
 const SELECTOR_ARROW = preload("res://assets/ui/selector_arrow.svg")
 var game: VigilState
 var field: Battlefield
@@ -16,19 +15,21 @@ var tier_selector: OptionButton
 var selected_level := 1
 var selected_branch := ""
 var fields: VBoxContainer
-var sliders: Dictionary = {}
+var inputs: Dictionary = {}
 var hint: Label
 var detail: Label
 
 func _ready() -> void:
 	name = "DeveloperControls"
+	if not game.is_creative():
+		return
 	add_theme_constant_override("separation", 12)
 	var add_gold := UI.button("Add 1,000,000 gold", func():
-		game.data.balance = minf(Balance.MAX_MONEY, game.data.balance + 1_000_000.0)
+		game.add_developer_gold()
 		changed.emit()
 	)
 	add_gold.name = "AddMillionGold"
-	add_child(add_gold)
+	add_child(UI.action_row(add_gold.text, add_gold, "Add"))
 	if field != null:
 		var free_camera := UI.button("Unrestricted zoom and pan", func(): pass)
 		free_camera.name = "UnrestrictedCamera"
@@ -36,7 +37,7 @@ func _ready() -> void:
 		free_camera.set_pressed_no_signal(field.unrestricted_camera)
 		free_camera.toggled.connect(field.set_unrestricted_camera)
 		free_camera.tooltip_text = "Bypass camera limits for this session. Turn off to restore the two-tile limits."
-		add_child(free_camera)
+		add_child(UI.action_row(free_camera.text, free_camera, "Toggle"))
 	var tab_row := HFlowContainer.new()
 	tab_row.add_theme_constant_override("separation", 8)
 	add_child(tab_row)
@@ -91,14 +92,14 @@ func _ready() -> void:
 		changed.emit()
 	)
 	reset_selected.name = "ResetSelectedBalance"
-	add_child(reset_selected)
+	add_child(UI.action_row(reset_selected.text, reset_selected, "Reset"))
 	var reset_all := UI.button("Reset all balance values", func():
 		game.reset_developer_balance()
 		show_fields()
 		changed.emit()
 	)
 	reset_all.name = "ResetAllBalance"
-	add_child(reset_all)
+	add_child(UI.action_row(reset_all.text, reset_all, "Reset"))
 	show_category(category)
 
 func show_category(section: String) -> void:
@@ -148,91 +149,39 @@ func show_fields() -> void:
 		hint.text = "Tier %d · Live changes · Auto-saved" % selected_level
 		detail.text = "Edit this tier independently. Costs are for building tier 1 or purchasing the selected upgrade. Specialization effects appear below combat stats."
 	if category == "bosses":
-		detail.text = "Counter: " + Balance.BOSSES[selected_kind].weakness + ". Sliders override these defaults. Health, shields, wards and timers preserve their remaining proportion. Rewards apply on defeat."
+		detail.text = "Counter: " + Balance.BOSSES[selected_kind].weakness + ". Values override these defaults. Health, shields, wards and timers preserve their remaining proportion. Rewards apply on defeat."
 	if category == "rifts":
 		detail.text = Balance.rift_description(selected_kind, game.tuning) + " Set to 0 to disable. Health adjustments preserve remaining health percentage."
-	sliders.clear()
+	inputs.clear()
 	for child in fields.get_children():
 		fields.remove_child(child)
 		child.queue_free()
 	for stat in Balance.fields_for(category, editing_kind()):
-		add_slider(stat)
-	# Scrolling follows keyboard focus; left/right remain available to sliders.
+		add_number(stat)
+	# Scrolling follows focus as players move between exact-value fields.
 	call_deferred("refresh_focus")
 
-func add_slider(stat: String) -> void:
+func add_number(stat: String) -> void:
 	var descriptor: Dictionary = Balance.field_limits(category, editing_kind(), stat)
-	var row := VBoxContainer.new()
-	row.add_theme_constant_override("separation", 4)
-	fields.add_child(row)
-	var label := UI.label("", 14)
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	row.add_child(label)
-	var adjustment := HBoxContainer.new()
-	adjustment.add_theme_constant_override("separation", 8)
-	row.add_child(adjustment)
-	var slider := HSlider.new()
-	slider.name = stat + "Slider"
-	slider.min_value = descriptor.min
-	slider.max_value = descriptor.max
-	slider.step = descriptor.step
-	slider.value = current_value(stat)
-	slider.custom_minimum_size = Vector2(0, UI.TARGET)
-	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	slider.focus_mode = Control.FOCUS_ALL
-	slider.scrollable = false
-	slider.accessibility_name = Balance.definitions(category)[editing_kind()].name + " " + descriptor.label
-	for state in ["grabber", "grabber_highlight", "grabber_disabled"]:
-		slider.add_theme_icon_override(state, HANDLE)
-	var track := UI.surface(UI.SURFACE, 2, 0)
-	track.content_margin_top = 4
-	track.content_margin_bottom = 4
-	slider.add_theme_stylebox_override("slider", track)
-	slider.add_theme_stylebox_override("grabber_area", UI.surface(UI.GOLD, 2, 0))
-	slider.add_theme_stylebox_override("grabber_area_highlight", UI.surface(UI.GOLD, 2, 0))
-	slider.add_theme_stylebox_override("focus", UI.focus_box())
-	var decrease := UI.button("−", func(): slider.value -= slider.step)
-	decrease.custom_minimum_size.x = UI.TARGET
-	decrease.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	decrease.accessibility_name = "Decrease " + slider.accessibility_name
-	adjustment.add_child(decrease)
-	adjustment.add_child(slider)
-	var increase := UI.button("+", func(): slider.value += slider.step)
-	increase.custom_minimum_size.x = UI.TARGET
-	increase.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	increase.accessibility_name = "Increase " + slider.accessibility_name
-	adjustment.add_child(increase)
-	sliders[stat] = slider
-	var baseline: float = Balance.definitions(category)[editing_kind()][stat]
-	var baseline_label := UI.paragraph("Default: " + format_value(baseline, descriptor), 12)
-	row.add_child(baseline_label)
 	var number := SpinBox.new()
 	number.name = stat + "Value"
-	number.min_value = slider.min_value
-	number.max_value = slider.max_value
-	number.step = slider.step
-	number.value = slider.value
-	number.custom_minimum_size.y = UI.TARGET
-	number.accessibility_name = slider.accessibility_name + " exact value"
-	var entry := number.get_line_edit()
-	entry.add_theme_stylebox_override("normal", UI.box(UI.SURFACE))
-	entry.add_theme_stylebox_override("focus", UI.focus_box())
-	entry.add_theme_color_override("font_color", UI.TEXT)
-	entry.add_theme_color_override("caret_color", UI.TEXT)
-	entry.add_theme_font_size_override("font_size", UI.type_size(14))
-	row.add_child(number)
-	number.value_changed.connect(func(value: float): slider.value = value)
-	slider.value_changed.connect(func(value: float): number.set_value_no_signal(value))
-	label.text = descriptor.label + " · " + format_value(slider.value, descriptor)
+	number.min_value = descriptor.min
+	number.max_value = descriptor.max
+	number.step = descriptor.step
+	number.value = current_value(stat)
+	number.accessibility_name = Balance.definitions(category)[editing_kind()].name + " " + descriptor.label
+	inputs[stat] = number
+	var baseline: float = Balance.definitions(category)[editing_kind()][stat]
+	var title: String = descriptor.label + "\nDefault: " + format_value(baseline, descriptor)
+	fields.add_child(UI.number_row(title, number))
 	# Capture this row's identity so a removed control cannot edit a different type.
 	var section := category
 	var kind := editing_kind()
-	slider.value_changed.connect(func(value: float):
-		if not slider.is_inside_tree():
+	number.value_changed.connect(func(value: float):
+		if not number.is_inside_tree():
 			return
 		var accepted := game.set_tower_tier_stat(kind, stat, value) if section == "towers" else game.set_balance_stat(section, kind, stat, value)
 		if accepted:
-			label.text = descriptor.label + " · " + format_value(value, descriptor)
 			if section == "rifts":
 				detail.text = Balance.rift_description(kind, game.tuning) + " Set to 0 to disable. Health adjustments preserve remaining health percentage."
 			changed.emit()

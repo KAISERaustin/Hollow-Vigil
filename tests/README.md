@@ -15,7 +15,7 @@ Use the root `launch.ps1` commands documented in the README. `-Check` runs headl
 - `unit/tower_balance_checks.gd`: 264 two-minute enemy cohorts across three seeds and four approaches, affordable openings, increasing upgrade income, mixed traffic at base/max density, and combined level-three defenses. Writes `artifacts/tower-balance.csv`.
 - `unit/combat_checks.gd`, `attack_effect_checks.gd`: enemy roles, splash, core escapes, route junctions, per-tower First/Last/Most HP selection, deterministic ties, saved targeting and legacy defaults, cosmetic effects and pooled targets.
 - `unit/developer_balance_checks.gd`: every editable stat, finite bounds, save round trips, defaults, independent games, live health/speed/rewards, tower attacks, prices and resets.
-- `rendered/developer_controls_checks.gd`: mouse/touch/keyboard sliders, every selectable type, immediate model updates, save-on-exit and reopening saved values.
+- `rendered/developer_controls_checks.gd`: mouse/touch/keyboard numeric fields and step buttons, every selectable type, immediate model updates, save-on-exit and reopening saved values.
 - `unit/world_checks.gd`, `routing_checks.gd`, `terrain_checks.gd`: seeded expansion, shortest/equal routes, legacy saves, road clearance and terrain persistence.
 - `unit/persistence_checks.gd`, `review_regressions.gd`: clocks, offline rewards, schema validation, reset, corrupt/interrupted saves, preservation of recovery files and invalid service inputs.
 - `unit/input_checks.gd`: headless mouse/touch gesture and map hit-target checks.
@@ -41,8 +41,17 @@ Rendered checks use the native Godot engine, not a browser. Desktop-generated to
 
 ## Developer tier controls
 
-Run `Godot --headless --path . --script tests/developer_tiers_runner.gd` for schema limits, independent tier edits, branch prices/refunds, cooldowns, ability behavior and persistence. These tests are also included in the main headless runner. Run `Godot --path . --script tests/rendered/developer_tiers_runner.gd` for mouse/touch/keyboard controls, every tower tier and specialization, numeric input, responsive layout and save/reload. The rendered run captures `artifacts/developer-tier-frostneedle.png` and `artifacts/developer-tier-frostneedle-abilities.png`. Test saves have disposable developer-specific names.
+Run `Godot --headless --path . --script tests/developer_tiers_runner.gd` for schema limits, independent tier edits, branch prices/refunds, cooldowns, ability behavior and persistence. These tests are also included in the main headless runner. Run `Godot --path . --script tests/rendered/developer_tiers_runner.gd` for mouse/touch/keyboard step buttons and type-in fields, every tower tier and specialization, numeric input, responsive layout and save/reload. The rendered run captures `artifacts/developer-tier-frostneedle.png` and `artifacts/developer-tier-frostneedle-abilities.png`. Test saves have disposable developer-specific names.
 
 ## Relic equipment
 
 The main headless suite includes `unit/relic_checks.gd` for guaranteed drops, transfers, ownership validation, legacy rewards, save roundtrips, and combat across every tower and specialization. Run Godot with `--path . --script tests/rendered/relic_runner.gd` for equipment mouse/touch interactions and responsive screenshots at three sizes.
+
+## Mobile action rows
+
+Run Godot with `--path . --audio-driver Dummy --script tests/rendered/mobile_scroll_runner.gd` to exercise the real cloud panel with an offline service fixture at 360×640, 390×844, and 540×960. The test enables desktop touch emulation and checks that dragging row text scrolls, tapping text never syncs, the trailing Sync button activates once, busy actions are disabled, and action targets leave at least 60% of each row for scrolling. It also checks sound and developer number rows: label drags preserve values, typed values update the model, plus/minus buttons apply one step, and bounds disable the corresponding button. Screenshots are saved as `artifacts/mobile-cloud-rows-*.png`. This does not replace physical-device testing.
+
+
+## Save modes and setups
+
+Run Godot with `--headless --path . --script tests/save_slots_runner.gd` for three-slot isolation, legacy saves, named setup round trips into both modes, developer mutation guards, reset behavior, corrupt exports and slot archival. Run `--path . --audio-driver Dummy --script tests/rendered/save_slots_runner.gd` for the picker at three mobile sizes, mode creation, export fields, Survival editor/camera restrictions and switching saves. Disposable test filenames keep player saves untouched.

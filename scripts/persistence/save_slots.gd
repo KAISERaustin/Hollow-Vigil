@@ -1,0 +1,101 @@
+class_name VigilSaveSlots
+extends RefCounted
+
+const COUNT := 3
+const BUILD_FORMAT := "hollow-vigil-creative-build-v1"
+var base_path := "user://vigil"
+var error := ""
+var storage := VigilSaveStore.new()
+
+func path_for(slot: int) -> String:
+	return base_path + ".save" if slot == 0 else base_path + "-slot-" + str(slot + 1) + ".save"
+
+func occupied(slot: int) -> bool:
+	for suffix in ["", ".tmp", ".bak"]:
+		if FileAccess.file_exists(path_for(slot) + suffix):
+			return true
+	return false
+
+func summary(slot: int) -> Dictionary:
+	var best := {}
+	for suffix in ["", ".tmp", ".bak"]:
+		var candidate := storage.read_candidate(path_for(slot) + suffix)
+		if not candidate.is_empty() and (best.is_empty() or candidate.sequence > best.sequence):
+			best = candidate
+	return best
+
+func create(slot: int, mode: String, build_code: String = "") -> VigilState:
+	error = ""
+	if slot < 0 or slot >= COUNT or occupied(slot) or mode not in ["creative", "survival"]:
+		error = "Choose an empty save slot and a game mode."
+		return null
+	var game := VigilState.new(0, mode)
+	game.save_path = path_for(slot)
+	if not build_code.is_empty():
+		var snapshot := decode_build(build_code)
+		if snapshot.is_empty():
+			error = "This is not a valid Creative build. Copy the complete export code."
+			return null
+		snapshot.mode = mode
+		snapshot.sequence = 0
+		snapshot.last_accounted = Time.get_unix_time_from_system()
+		# Builds carry the layout, resources and rules, never cloud identity or offline income.
+		snapshot.erase("cloud")
+		for region in snapshot.regions.values():
+			region.history.clear()
+			region.history_time = 0.0
+		if not storage.write(game.save_path, snapshot) or not game.load_save(snapshot.last_accounted):
+			error = storage.last_error if not storage.last_error.is_empty() else game.save_error
+			return null
+	elif not game.save():
+		error = game.save_error
+		return null
+	return game
+
+func export_build(game: VigilState, setup_name: String = "Untitled setup", description: String = "") -> String:
+	if not game.is_creative():
+		return ""
+	var snapshot := game.snapshot()
+	snapshot.mode = "creative"
+	snapshot.setup = {"name": setup_name.strip_edges().left(80), "description": description.left(4000)}
+	if snapshot.setup.name.is_empty():
+		return ""
+	snapshot.erase("cloud")
+	# Personal preferences are not part of a shared build.
+	snapshot.settings = {"low_power": false, "developer_balance": game.tuning.duplicate(true)}
+	if not storage.valid_data(snapshot):
+		return ""
+	var payload := JSON.stringify(snapshot, "", true, true)
+	return JSON.stringify({"format": BUILD_FORMAT, "payload": payload, "checksum": payload.sha256_text()})
+
+func decode_build(code: String) -> Dictionary:
+	if code.length() > 16 * 1024 * 1024:
+		return {}
+	var envelope: Variant = JSON.parse_string(code)
+	if not envelope is Dictionary or envelope.get("format") != BUILD_FORMAT or not envelope.get("payload") is String:
+		return {}
+	if envelope.get("checksum") != envelope.payload.sha256_text():
+		return {}
+	var snapshot: Variant = JSON.parse_string(envelope.payload)
+	if not snapshot is Dictionary or snapshot.get("mode") != "creative" or not storage.valid_data(snapshot):
+		return {}
+	return snapshot
+
+func archive(slot: int) -> bool:
+	if slot < 0 or slot >= COUNT:
+		return false
+	var prefix := path_for(slot)
+	var destination := prefix + ".archived-" + str(Time.get_unix_time_from_system()) + "-" + str(Time.get_ticks_usec())
+	var moved: Array[String] = []
+	for suffix in ["", ".tmp", ".bak", ".cloud-outbox"]:
+		if not FileAccess.file_exists(prefix + suffix):
+			continue
+		if DirAccess.rename_absolute(prefix + suffix, destination + suffix) != OK:
+			error = "Couldn't archive this save. Existing files are preserved."
+			for previous in moved:
+				if DirAccess.rename_absolute(destination + previous, prefix + previous) != OK:
+					error += " A recovery file remains at " + destination + previous
+			return false
+		moved.append(suffix)
+	error = ""
+	return true

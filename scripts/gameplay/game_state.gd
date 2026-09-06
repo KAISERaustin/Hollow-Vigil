@@ -16,11 +16,21 @@ var save_path := "user://vigil.save"
 var tuning: Dictionary:
 	get: return data.settings.get("developer_balance", {})
 
-func _init(seed_value: int = 0) -> void:
+func is_creative() -> bool:
+	# Saves from before modes existed retain their editor access.
+	return data.get("mode", "creative") == "creative"
+
+func add_developer_gold() -> bool:
+	if not is_creative():
+		return false
+	data.balance = minf(Balance.MAX_MONEY, data.balance + 1_000_000.0)
+	return true
+
+func _init(seed_value: int = 0, play_mode: String = "creative") -> void:
 	rng.randomize()
 	var world_seed := seed_value if seed_value != 0 else int(rng.randi())
 	data = {
-		"version": Balance.VERSION, "sequence": 0, "seed": world_seed,
+		"version": Balance.VERSION, "sequence": 0, "seed": world_seed, "mode": play_mode,
 		"balance": Balance.STARTING_GOLD, "reserve": 0.0, "lifetime_earnings": 0.0, "kills": 0.0, "escapes": 0.0,
 		"regions": {"0,0": VigilWorld.make_region("0,0", "", world_seed)}, "towers": {}, "castles": {}, "relics": {},
 		"next_tower": 1, "automation": false, "first_property_required": true, "last_accounted": Time.get_unix_time_from_system(),
@@ -42,7 +52,7 @@ func set_balance_stat(category: String, kind: String, stat: String, value: float
 	if not candidate[category].has(kind):
 		candidate[category][kind] = {}
 	candidate[category][kind][stat] = value
-	if not Balance.valid_tuning(candidate):
+	if not is_creative() or not Balance.valid_tuning(candidate):
 		return false
 	# Store only differences so future defaults remain the source of truth.
 	if is_equal_approx(value, Balance.definitions(category)[kind][stat]):
@@ -84,7 +94,7 @@ func reset_developer_balance(category: String = "", kind: String = "") -> bool:
 	return apply_balance(candidate)
 
 func apply_balance(candidate: Dictionary) -> bool:
-	if not Balance.valid_tuning(candidate):
+	if not is_creative() or not Balance.valid_tuning(candidate):
 		return false
 	if candidate == tuning:
 		return true
@@ -173,7 +183,12 @@ func save(now: float = -1.0) -> bool:
 	return ok
 
 func reset_progress() -> bool:
-	var fresh := VigilState.new()
+	var fresh := VigilState.new(0, data.get("mode", "creative"))
+	# Imported Survival rules stay fixed even when restarting progress.
+	if not is_creative():
+		fresh.data.settings.developer_balance = tuning.duplicate(true)
+		if data.has("setup"):
+			fresh.data.setup = data.setup.duplicate(true)
 	fresh.save_path = save_path
 	# Sound is a player preference, independent of progression.
 	if data.settings.has("audio"):

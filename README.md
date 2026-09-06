@@ -54,7 +54,7 @@ Bosses also drop **relic equipment**. Select a tower and use the diamond button 
 
 Open **Settings → Developer Controls**, choose **Bosses**, **Enemies**, or **Towers**, then select a type. Enemy controls include all six types, including Abyss Shades and Crypt Sentinels, with health, speed, gold reward and knockback resistance. Bosses also expose their defenses, counter strengths, timers, and summon settings.
 
-For towers, choose **Tier 1**, **Tier 2**, **Tier 3**, or either **Tier 4 specialization**. Each tier has independent damage, attack interval, reach, cost, blast radius and target count. Specializations also expose slow strength/duration, volley count/spread, burn damage/duration, knockback, fragment count/reach/damage, curse limits/strength, chain reach/damage, or seal and stun settings. Use sliders, plus/minus buttons, or type an exact number. Costs apply to the selected build or upgrade and flow through refunds and relocation prices. Multiple projectiles can each apply their configured blast.
+For towers, choose **Tier 1**, **Tier 2**, **Tier 3**, or either **Tier 4 specialization**. Each tier has independent damage, attack interval, reach, cost, blast radius and target count. Specializations also expose slow strength/duration, volley count/spread, burn damage/duration, knockback, fragment count/reach/damage, curse limits/strength, chain reach/damage, or seal and stun settings. Type an exact number or use the plus/minus buttons on the right. Labels and row dividers leave room to scroll without changing values. Costs apply to the selected build or upgrade and flow through refunds and relocation prices. Multiple projectiles can each apply their configured blast.
 
 Changes apply live and save with progress. Health and cooldown adjustments preserve remaining proportions; newly applied ability effects use the edited settings. **Reset selected type / tier** clears only that selection; **Reset all balance values** restores the defaults without resetting progress. Legacy base overrides still load with their original scaling; editing tier 1 preserves sibling tiers. Rift effects are unchanged.
 
@@ -113,3 +113,10 @@ Git was initialized during concurrent setup work, with an initial commit and the
 ## Optional cloud saves
 
 Settings → Cloud saves connects to the Hollow Vigil Supabase project. Gameplay and local saves work offline. Cloud backup stores only allowlisted progress and reconstruction data; game assets, source code, transient enemies, camera state and developer settings stay local. New content uses stable type keys without a database redesign. See [cloud save design and setup](docs/CLOUD_SAVES.md) for the data boundary, sign-in limitations and verification commands.
+
+
+### Save slots and custom setups
+
+The game opens with three local save slots. Choose Creative or Survival when creating each save. Existing progress appears in slot 1 as Creative. Creative exposes Developer Controls; Survival blocks gold grants, rule edits and unrestricted camera controls. Settings → Your saves switches slots after saving. Archive and free slot keeps the old files locally while making room for a new save.
+
+In Creative, Settings → Export setup lets you name the setup, describe your changes, and save a `.hvbuild` file or copy an export code. The export includes the world, towers, resources and tuned values. When creating an empty save, load the file or paste the code and choose **either Creative or Survival**. Creative imports remain editable; Survival imports keep the custom rules locked. Imported setups receive no offline earnings for time since export. Cloud identities and personal preferences are excluded. Resetting Survival progress retains its custom rules. Saves and setups are local to the device; the existing cloud service still requires default balance values.

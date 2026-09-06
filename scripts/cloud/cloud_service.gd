@@ -275,14 +275,28 @@ func _request(path: String, body: Dictionary, authenticated: bool) -> Dictionary
 	request.queue_free()
 	if epoch != generation:
 		return {"ok": false, "code": 0, "data": null}
-	var parsed: Variant = JSON.parse_string(response[3].get_string_from_utf8())
-	return {"ok": response[0] == HTTPRequest.RESULT_SUCCESS and response[1] >= 200 and response[1] < 300, "code": response[1], "data": parsed}
+	return _decode_response(response)
+
+func _decode_response(response: Array) -> Dictionary:
+	if response[0] != HTTPRequest.RESULT_SUCCESS:
+		return {"ok": false, "code": 0, "data": null}
+	var body: String = response[3].get_string_from_utf8()
+	var parser := JSON.new()
+	var valid_json := body.is_empty() or parser.parse(body) == OK
+	return {"ok": valid_json and response[1] >= 200 and response[1] < 300, "code": response[1], "data": parser.data if not body.is_empty() and valid_json else null}
 
 func _error(result: Dictionary) -> String:
+	var data: Variant = result.get("data")
+	if data is Dictionary:
+		match str(data.get("error_code", "")):
+			"over_email_send_rate_limit":
+				return "Cloud sign-in email quota reached. Try again later; your local progress is safe."
+			"otp_expired":
+				return "That email code has expired or was already used. Request a new code."
 	match int(result.get("code", 0)):
 		0: return "Offline or unable to reach cloud saves. Keep playing; queued progress will retry later."
 		401, 403: return "Sign in again to use cloud saves. Offline play is available."
-		429: return "Too many sign-in attempts. Wait a little before trying again."
+		429: return "Cloud service is temporarily rate-limited. Wait a little before trying again."
 		_: return "Cloud request failed. Your local progress is safe; please try again."
 
 func _pending_path() -> String:

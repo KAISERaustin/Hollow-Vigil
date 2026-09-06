@@ -29,6 +29,10 @@ func run() -> void:
 	s.game = g
 	s.enabled = false
 	root.add_child(s)
+	var failed := s._decode_response([HTTPRequest.RESULT_CANT_CONNECT, 0, [], PackedByteArray()])
+	check(not failed.ok and failed.code == 0, "Network failures skip JSON parsing and remain retryable")
+	check(not s._decode_response([HTTPRequest.RESULT_SUCCESS, 200, [], "<html>gateway error</html>".to_utf8_buffer()]).ok, "Malformed successful response is rejected without engine errors")
+	check(s._decode_response([HTTPRequest.RESULT_SUCCESS, 200, [], "[]".to_utf8_buffer()]).data == [], "Valid response is decoded")
 	var test_link := s.url + "/auth/v1/verify?token=" + "a".repeat(56) + "&type=signup&redirect_to=http://localhost:3000"
 	check(s.parse_sign_in_link(test_link).get("type") == "signup", "Default signup link can be exchanged in game")
 	check(s.parse_sign_in_link(test_link.replace(s.url,"https://unrelated.example")).is_empty(), "Foreign sign-in link rejected")
@@ -36,6 +40,8 @@ func run() -> void:
 	check(g.save(), "Local save works without account")
 	await s.sync_now()
 	check(s.requests.is_empty(), "Signed-out game makes no upload")
+	check("email quota" in s._error({"code":429,"data":{"error_code":"over_email_send_rate_limit"}}), "Provider email quota is distinguished from player attempts")
+	check("expired" in s._error({"code":403,"data":{"error_code":"otp_expired"}}), "Expired OTP has an actionable message")
 	s.email = "player@example.invalid"
 	for invalid_code in ["1234567", "123456789", "1234abcd", "+1234567", "１２３４５６７８"]:
 		await s.verify_link(invalid_code)

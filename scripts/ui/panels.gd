@@ -202,7 +202,7 @@ func show_build() -> void:
 			b.add_theme_stylebox_override("hover", selected)
 			b.add_theme_stylebox_override("pressed", selected)
 			b.add_theme_stylebox_override("hover_pressed", selected)
-		row.add_child(b)
+		row.add_child(UI.action_row(definition.name + " · " + UI.exact_money(definition.cost) + " gold", b, "Select"))
 	var s := Balance.definition("towers", selection_kind, game.tuning)
 	action_cost = s.cost
 	var revision := sheet_revision
@@ -278,7 +278,7 @@ func show_entrance(id: String) -> void:
 			show_entrance(id)
 	)
 	price_button(traffic, game.economy.traffic_cost(id), r.traffic >= Balance.MAX_TRAFFIC_LEVEL)
-	sheet_content.add_child(traffic)
+	sheet_content.add_child(UI.action_row(traffic.text, traffic, "Increase"))
 	if style == "castle_ruin":
 		return
 	for kind in Balance.UNLOCK_COSTS:
@@ -292,7 +292,7 @@ func show_entrance(id: String) -> void:
 		, 58)
 		b.add_theme_font_size_override("font_size", UI.type_size(14))
 		price_button(b, price, unlocked)
-		sheet_content.add_child(b)
+		sheet_content.add_child(UI.action_row(b.text, b, "Attuned" if unlocked else "Attune"))
 
 func show_core() -> void:
 	close_sheet()
@@ -315,13 +315,18 @@ func show_settings() -> void:
 	var sound := preload("res://scripts/audio/audio_settings.gd").new()
 	sound.app = app
 	sheet_content.add_child(sound)
-	sheet_content.add_child(UI.rule())
 	var cloud_button := UI.button("Cloud saves", show_cloud_saves)
 	cloud_button.name = "OpenCloudSaves"
-	sheet_content.add_child(cloud_button)
-	var developer := UI.button("Developer Controls", show_developer_controls)
-	developer.name = "OpenDeveloperControls"
-	sheet_content.add_child(developer)
+	sheet_content.add_child(UI.action_row(cloud_button.text, cloud_button, "Open"))
+	sheet_content.add_child(UI.paragraph("Save %d · %s" % [app.active_slot + 1, str(game.data.get("mode", "creative")).capitalize()], 14))
+	sheet_content.add_child(UI.action_row("Your saves", UI.button("Your saves", app.show_save_slots), "Open"))
+	if game.data.has("setup"):
+		sheet_content.add_child(UI.paragraph(game.data.setup.name + "\n" + game.data.setup.description, 14))
+	if game.is_creative():
+		var developer := UI.button("Developer Controls", show_developer_controls)
+		developer.name = "OpenDeveloperControls"
+		sheet_content.add_child(UI.action_row(developer.text, developer, "Open"))
+		sheet_content.add_child(UI.action_row("Export setup", UI.button("Export setup", app.show_save_slots.bind(true)), "Export"))
 	var stats := HBoxContainer.new()
 	stats.add_theme_constant_override("separation", 12)
 	sheet_content.add_child(stats)
@@ -337,10 +342,12 @@ func show_settings() -> void:
 		contents.add_child(UI.heading(Balance.money(stat[1]), 18))
 	sheet_content.add_child(UI.rule())
 	sheet_content.add_child(UI.heading("Progress", 18))
-	sheet_content.add_child(UI.accent_button("Reset progress", show_reset_confirmation, UI.DANGER))
-	sheet_content.add_child(UI.button("Return to the core", return_to_core))
+	sheet_content.add_child(UI.action_row("Reset progress", UI.accent_button("Reset progress", show_reset_confirmation, UI.DANGER), "Reset"))
+	sheet_content.add_child(UI.action_row("Return to the core", UI.button("Return to the core", return_to_core), "Return"))
 
 func show_developer_controls() -> void:
+	if not game.is_creative():
+		return
 	mode = "developer"
 	clear_sheet("Developer Controls")
 	var controls := DeveloperControls.new()

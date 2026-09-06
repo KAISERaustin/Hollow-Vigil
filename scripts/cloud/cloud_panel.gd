@@ -61,7 +61,7 @@ func rebuild() -> void:
 		if service.linked():
 			app.game.data.cloud.include_audio = value
 			app.persist())
-	add_child(audio_toggle)
+	add_child(UI.action_row("Sync sound preferences", audio_toggle))
 	if not service.conflict.is_empty():
 		add_child(_button("Keep this device's progress…", func(): confirm_local = true; rebuild()))
 		add_child(_button("Use cloud progress…", func(): confirmation_world = service.conflict.world_id; rebuild()))
@@ -75,7 +75,15 @@ func rebuild() -> void:
 	add_child(_button("Sign out", service.sign_out))
 	add_child(UI.paragraph("Only progress, world reconstruction, save revisions and reward checkpoints are uploaded. Sound preferences are optional. Art, code, camera and developer settings stay on this device.", 12))
 
-func _button(title: String, action: Callable) -> Button:
+func _button(title: String, action: Callable) -> HBoxContainer:
 	var button := UI.button(title, action)
 	button.disabled = service.busy
-	return button
+	var caption := "Restore" if title.begins_with("Restore") else "Use save"
+	if title.begins_with("Email"): caption = "Send code"
+	elif title == "Sign in": caption = "Sign in"
+	elif title == "Sign out": caption = "Sign out"
+	elif title == "Cancel": caption = "Cancel"
+	elif title == "Sync now": caption = "Sync"
+	elif title.begins_with("Back up"): caption = "Back up"
+	elif title.begins_with("Refresh"): caption = "Refresh"
+	return UI.action_row(title, button, caption)

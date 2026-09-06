@@ -140,7 +140,7 @@ func enforce_camera_limits() -> void:
 		queue_redraw()
 
 func set_unrestricted_camera(enabled: bool) -> void:
-	unrestricted_camera = enabled
+	unrestricted_camera = enabled and state != null and state.is_creative()
 	enforce_camera_limits()
 
 func set_zoom(value: float, pivot: Vector2) -> void:

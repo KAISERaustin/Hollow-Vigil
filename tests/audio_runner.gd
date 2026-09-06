@@ -55,7 +55,7 @@ func run() -> void:
 	accepted = a.accepted_events
 	a.set_volume("towers", 0.0)
 	for voice in a.voices.towers:
-		check(voice.volume_linear == 0.0, "Zero slider silences active tower voices")
+		check(voice.volume_linear == 0.0, "Zero number silences active tower voices")
 	check(a.music.volume_linear > 0.0, "Tower mute leaves music audible")
 	a.set_volume("towers", 1.0)
 	a.elapsed += 2
@@ -156,25 +156,30 @@ func run() -> void:
 		app.panels.show_settings()
 		await settle()
 		for category in Director.DEFAULTS:
-			var slider := app.panels.find_child("Audio_" + category, true, false) as HSlider
-			check(slider != null, "Accessible slider: " + category)
-			check(slider.global_position.x >= 0 and slider.get_global_rect().end.x <= viewport.x, "Slider fits narrow viewport")
-			slider.value = 23
-			check(is_equal_approx(a.volume(category), .23), "Slider changes live volume: " + category)
+			var number := app.panels.find_child("Audio_" + category, true, false) as SpinBox
+			check(number != null, "Accessible number: " + category)
+			check(number.global_position.x >= 0 and number.get_global_rect().end.x <= viewport.x, "Input fits narrow viewport")
+			number.value = 23
+			check(is_equal_approx(a.volume(category), .23), "Input changes live volume: " + category)
 		if DisplayServer.get_name() != "headless":
 			root.get_texture().get_image().save_png("res://artifacts/audio-settings-%d.png" % viewport.x)
-	var music_slider := app.panels.find_child("Audio_music", true, false) as HSlider
-	music_slider.grab_focus()
+	var music_number := app.panels.find_child("Audio_music", true, false) as SpinBox
+	music_number.get_line_edit().grab_focus()
 	await settle()
-	check(app.panels.content_scroll.get_global_rect().encloses(music_slider.get_global_rect()), "Keyboard focus scrolls music slider into view")
+	check(app.panels.content_scroll.get_global_rect().encloses(music_number.get_global_rect()), "Keyboard focus scrolls music number into view")
 	var key := InputEventKey.new()
-	key.keycode = KEY_RIGHT
+	var music_plus := music_number.get_parent().get_child(1).get_child(1)
+	app.panels.content_scroll.ensure_control_visible(music_plus)
+	await settle()
+	music_plus.grab_focus()
+	key.keycode = KEY_SPACE
 	key.pressed = true
 	Input.parse_input_event(key)
 	await settle()
-	check(a.volume("music") > .23, "Keyboard arrow adjusts audio slider")
 	key.pressed = false
 	Input.parse_input_event(key)
+	await settle()
+	check(a.volume("music") > .23, "Keyboard activates audio plus button")
 	app.reset_progress()
 	check(is_equal_approx(a.volume("enemies"), .23), "Progress reset preserves sound preferences")
 	check(a.combat == g.combat and a.economy == g.economy, "Reset reconnects audio to the new simulation")

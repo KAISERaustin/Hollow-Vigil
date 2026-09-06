@@ -12,6 +12,7 @@ static func build(dialog) -> void:
 	for kind in Relics.DEFINITIONS:
 		var definition: Dictionary = Relics.DEFINITIONS[kind]
 		var card := PanelContainer.new()
+		card.mouse_filter = Control.MOUSE_FILTER_PASS
 		card.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, 2, 10))
 		dialog.body.add_child(card)
 		var stack := UI.margin(card, 12)
@@ -55,4 +56,4 @@ static func add_choice(dialog, group: ButtonGroup, relic_id: String, text: Strin
 	button.add_theme_stylebox_override("pressed", UI.box(UI.GOLD))
 	button.add_theme_stylebox_override("hover_pressed", UI.box(UI.GOLD))
 	button.button_pressed = dialog.relic_choice == relic_id
-	(parent if parent != null else dialog.body).add_child(button)
+	(parent if parent != null else dialog.body).add_child(UI.action_row(text, button, "Select"))

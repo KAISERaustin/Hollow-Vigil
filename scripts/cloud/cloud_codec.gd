@@ -36,19 +36,19 @@ func encode(data: Dictionary, world_id: String, include_audio: bool = false) -> 
 		return _fail("The local save is invalid; cloud upload was skipped.")
 	if not data.settings.get("developer_balance", {}).is_empty():
 		return _fail("Restore default developer balance values before using cloud saves.")
-	var out := {"format": FORMAT, "world": {"id": world_id, "seed": data.seed, "save_version": data.version}}
+	var out := {"format": FORMAT, "world": {"id": world_id, "seed": int(data.seed), "save_version": int(data.version)}}
 	for group in GROUPS:
 		out[group] = []
 	out.progress.append({"id": entity_id(world_id, "progress"), "gold": data.balance, "reserve": data.reserve,
 		"lifetime_earnings": data.lifetime_earnings, "kills": data.kills, "escapes": data.escapes,
-		"next_tower": data.next_tower, "automation": data.automation,
+		"next_tower": int(data.next_tower), "automation": data.automation,
 		"first_property_required": data.get("first_property_required", false)})
 	out.checkpoints.append({"id": entity_id(world_id, "checkpoint"), "last_accounted": data.last_accounted, "active_seconds": data.active_seconds})
 	for key in data.regions:
 		var r: Dictionary = data.regions[key]
 		var rid := entity_id(world_id, "region", key)
 		out.regions.append({"id": rid, "local_key": key, "parent_id": null if r.parent == "" else entity_id(world_id, "region", r.parent),
-			"side": r.side, "bend": r.bend, "traffic": r.traffic, "style": r.get("style", "forest"), "road_version": r.get("road_version", 2), "history_time": r.history_time})
+			"side": int(r.side), "bend": int(r.bend), "traffic": int(r.traffic), "style": r.get("style", "forest"), "road_version": int(r.get("road_version", 2)), "history_time": r.history_time})
 		for kind in r.unlocks:
 			out.unlocks.append({"id": entity_id(world_id, "unlock", key + "/" + kind), "region_id": rid, "kind": kind})
 		for tower_id in r.history:
@@ -57,8 +57,8 @@ func encode(data: Dictionary, world_id: String, include_audio: bool = false) -> 
 	for key in data.towers:
 		var t: Dictionary = data.towers[key]
 		out.towers.append({"id": entity_id(world_id, "tower", key), "local_key": key,
-			"region_id": entity_id(world_id, "region", t.region), "kind": t.kind, "pad": t.pad,
-			"level": t.level, "branch": t.get("branch", ""), "earnings": t.earnings,
+			"region_id": entity_id(world_id, "region", t.region), "kind": t.kind, "pad": int(t.pad),
+			"level": int(t.level), "branch": t.get("branch", ""), "earnings": t.earnings,
 			"target_mode": t.get("target_mode", "first"), "rebuild_remaining": t.get("rebuild_remaining", 0.0),
 			"relic_id": null if t.get("relic", "") == "" else entity_id(world_id, "relic", t.relic)})
 	for key in data.get("relics", {}):
@@ -72,6 +72,9 @@ func encode(data: Dictionary, world_id: String, include_audio: bool = false) -> 
 			var row := {"id": entity_id(world_id, "encounter", key), "source_key": key, "is_castle": is_castle, "kind": b.kind, "status": b.status}
 			for field in ["hp", "tile", "previous", "steps", "shield", "wards", "regen", "toll", "toll_delayed", "segment"]:
 				row[field] = b.get(field) if b.status == "active" else null
+			for field in ["steps", "wards", "segment"]:
+				if row[field] != null:
+					row[field] = int(row[field])
 			row.pos_x = b.pos[0] if b.status == "active" else null
 			row.pos_y = b.pos[1] if b.status == "active" else null
 			row.emergence = b.status == "active" and is_castle and b.steps == 1 and b.path.size() == 27
@@ -109,7 +112,7 @@ func decode(payload: Variant, local_settings: Dictionary = {}, local_camera: Arr
 		if d.regions.has(r.local_key):
 			return _fail("Duplicate cloud territory.")
 		region_keys[r.id] = r.local_key
-		d.regions[r.local_key] = {"id": r.local_key, "parent": "", "side": r.side, "bend": r.bend,
+		d.regions[r.local_key] = {"id": r.local_key, "parent": "", "side": r.side, "bend": float(r.bend),
 			"traffic": r.traffic, "style": r.style, "road_version": r.road_version, "timer": 0.0,
 			"unlocks": [], "history": {}, "history_time": r.history_time}
 	for r in payload.regions:
