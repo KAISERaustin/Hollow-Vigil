@@ -80,11 +80,24 @@ func run() -> void:
 		check(Rect2(Vector2.ZERO,Vector2(viewport)).encloses(campaign.dialog_card.get_global_rect()), "Tower dialog fits " + str(viewport))
 		campaign.dialog.hide()
 		start.pressed.emit()
+		campaign.show_socket(socket.index)
+		var wave_time_before: float = campaign.run.wave_time
+		campaign._process(0.1)
+		check(campaign.run.wave_time > wave_time_before, "Managing a tower keeps the battle running")
+		campaign.show_socket(campaign.run.mission.sockets[0].index)
+		wave_time_before = campaign.run.wave_time
+		campaign._process(0.1)
+		check(campaign.run.wave_time > wave_time_before, "Choosing a tower to build keeps the battle running")
 		campaign.find_child("CampaignPause",true,false).pressed.emit()
 		var time_before: float = campaign.run.game.data.active_seconds
 		campaign._process(0.1)
 		check(campaign.run.game.data.active_seconds == time_before, "Pause stops the campaign clock")
 		campaign.find_child("CampaignPause",true,false).pressed.emit()
+		campaign.show_waves()
+		wave_time_before = campaign.run.wave_time
+		campaign._process(0.1)
+		check(campaign.run.wave_time == wave_time_before, "Full-screen wave details still pause the battle")
+		campaign.dialog.hide()
 		for tick in range(100): campaign.run.tick(Balance.STEP)
 		campaign.refresh()
 		await frame()

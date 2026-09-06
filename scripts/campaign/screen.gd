@@ -6,6 +6,7 @@ const Run = preload("res://scripts/campaign/run.gd")
 const Progress = preload("res://scripts/campaign/progress.gd")
 const Board = preload("res://scripts/campaign/board.gd")
 const WorldMap = preload("res://scripts/campaign/world_map.gd")
+const TowerChoice = preload("res://scripts/ui/towers/tower_choice.gd")
 signal closed
 var app: VigilApp
 var progress := Progress.new()
@@ -113,7 +114,8 @@ func show_map() -> void:
 	var backups := UI.button("Account & backups", func(): app.show_backups())
 	backups.name = "CampaignBackups"
 	layout.add_child(backups)
-	save_notice = UI.paragraph(progress.last_error if not progress.last_error.is_empty() else "Completed levels save on this device. Unfinished levels restart. Cloud backups are uploaded only when you choose Upload.", 12)
+	save_notice = UI.paragraph(progress.last_error, 12)
+	save_notice.visible = not progress.last_error.is_empty()
 	layout.add_child(save_notice)
 	if cleared == 20:
 		layout.add_child(UI.paragraph("Dawn reaches the capital. Every sanctuary burns again. Replay any level to perfect your vigil.", 15))
@@ -128,7 +130,7 @@ func show_briefing(index: int) -> void:
 	add_board(false)
 	layout.add_child(UI.paragraph(run.mission.brief, 15))
 	layout.add_child(UI.paragraph("%d waves  ·  %d starting gold  ·  20 flame" % [run.mission.waves.size(), run.mission.gold], 13))
-	var details := UI.button("Preview waves & rules", show_waves, 48)
+	var details := UI.button("Preview waves", show_waves, 48)
 	layout.add_child(details)
 	var start := UI.gold_button("Begin mission", start_mission.bind(index), 50)
 	start.name = "BeginCampaignMission"
@@ -196,7 +198,8 @@ func show_battle() -> void:
 	wave_button = UI.gold_button("", begin_wave, 48)
 	wave_button.name = "StartCampaignWave"
 	controls.add_child(wave_button)
-	save_notice = UI.paragraph("Drag to explore · Pinch to zoom · Tap a socket", 12)
+	save_notice = UI.paragraph("", 12)
+	save_notice.hide()
 	layout.add_child(save_notice)
 	refresh()
 
@@ -258,12 +261,10 @@ func save_progress() -> void:
 	var ok: bool = progress.save_run(run)
 	if is_instance_valid(save_notice) and not ok:
 		save_notice.text = progress.last_error
+		save_notice.show()
 
 func show_waves() -> void:
-	open_dialog("Waves & rules")
-	dialog_body.add_child(UI.paragraph("Fresh gold and towers every level. Bounties go straight to your gold. Start each wave when ready; building and upgrading also work during battle.", 14))
-	dialog_body.add_child(UI.paragraph("Protect 20 flame. A Hollow, Wraith or Keeper costs 1; a Revenant or Shade costs 2; a Sentinel costs 3. A boss reaching the sanctuary ends the mission.", 14))
-	dialog_body.add_child(UI.paragraph("Each cleared wave grants %d gold. Only completed levels are saved. Leaving an unfinished level means restarting that level." % run.mission.reward, 14))
+	open_dialog("Waves")
 	for index in range(run.mission.waves.size()):
 		dialog_body.add_child(UI.heading("Wave %d%s" % [index+1, " · Cleared" if index < run.wave else ""], 18))
 		dialog_body.add_child(UI.paragraph(Catalog.wave_text(run.mission, index), 14))
@@ -281,11 +282,10 @@ func show_socket(socket: int) -> void:
 	if id.is_empty():
 		for kind in Balance.TOWERS:
 			var stats := Balance.definition("towers", kind, run.game.tuning)
-			dialog_body.add_child(UI.paragraph(stats.description, 13))
-			var button := UI.button("%s · %d gold" % [stats.name,stats.cost], func():
+			var button := TowerChoice.create(kind, stats.name, stats.cost, func():
 				if run.build(socket, kind):
 					dialog.hide()
-			, 48)
+			)
 			button.name = "CampaignBuild_" + kind
 			button.disabled = run.game.data.balance < stats.cost
 			dialog_body.add_child(button)
@@ -299,8 +299,6 @@ func show_socket(socket: int) -> void:
 		var branches: Array = Balance.BRANCHES[tower.kind].keys() if tower.level == 3 else [""]
 		for branch in branches:
 			var cost := Balance.upgrade_cost(tower, run.game.tuning, branch)
-			if branch != "":
-				dialog_body.add_child(UI.paragraph(Balance.tower_description(Balance.stats(tower.kind, 4, run.game.tuning, branch)),13))
 			var caption: String = Balance.BRANCHES[tower.kind][branch].name if branch != "" else "Upgrade to level %d" % (tower.level + 1)
 			var button := UI.button("%s · %d gold" % [caption,cost], func():
 				if run.upgrade(socket,branch):
@@ -393,7 +391,7 @@ func open_dialog(title: String, for_socket: bool = false) -> void:
 	fit()
 
 func _process(delta: float) -> void:
-	if page != "battle" or run == null or paused or dialog.visible:
+	if page != "battle" or run == null or paused or (dialog.visible and not socket_dialog):
 		return
 	accumulator += minf(delta,0.1) * speed
 	while accumulator >= Balance.STEP:

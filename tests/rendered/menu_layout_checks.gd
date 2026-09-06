@@ -76,6 +76,21 @@ func run() -> void:
 			app.panels.find_child("OpenSoundSettings", true, false).pressed.emit()
 			await settle()
 			check(app.panels.get_global_rect().is_equal_approx(settings_rect), game_mode + " sound moved from settings at " + str(viewport))
+			var mute := app.panels.find_child("MuteAudio", true, false) as Button
+			mute.button_pressed = true
+			check(app.audio.preferences().muted and mute.text == "On", "mute toggle did not enable")
+			mute.button_pressed = false
+			check(not app.audio.preferences().muted and mute.text == "Off", "mute toggle did not disable")
+			for category in app.audio.DEFAULTS:
+				var number := app.panels.find_child("Audio_" + category, true, false) as SpinBox
+				var audio_row := number.get_parent().get_parent().get_parent() as Control
+				app.panels.content_scroll.ensure_control_visible(audio_row)
+				await settle()
+				check(app.panels.content_scroll.get_global_rect().grow(1).encloses(audio_row.get_global_rect()), "audio row unreachable: " + category + " at " + str(viewport))
+				check(audio_row.mouse_filter == Control.MOUSE_FILTER_PASS, "audio row blocks scrolling")
+				if category == "bosses" and game_mode == "creative":
+					await RenderingServer.frame_post_draw
+					root.get_texture().get_image().save_png("res://artifacts/sound-" + str(viewport.x) + ".png")
 			app.panels.find_child("RestoreAudioDefaults", true, false).pressed.emit()
 			await settle()
 			check(app.panels.get_global_rect().is_equal_approx(settings_rect), "restoring sound defaults moved panel")
