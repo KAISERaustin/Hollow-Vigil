@@ -108,6 +108,13 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 		return false
 	if not number(d.camera[0], -1.0e12, 1.0e12) or not number(d.camera[1], -1.0e12, 1.0e12) or not number(d.camera[2], 0.42, 1.65):
 		return false
+	if d.has("cloud"):
+		if not d.cloud is Dictionary or not number(d.cloud.get("revision"), 0, 1.0e15, true) or not d.cloud.get("include_audio") is bool:
+			return false
+		for field in ["world_id", "player_id"]:
+			var identifier: Variant = d.cloud.get(field)
+			if not identifier is String or identifier.length() != 36 or identifier.replace("-", "").length() != 32 or not identifier.replace("-", "").is_valid_hex_number():
+				return false
 	# Validate every region's shape before walking any parent chain.
 	for id in d.regions:
 		var r = d.regions[id]

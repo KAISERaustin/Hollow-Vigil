@@ -6,6 +6,7 @@ const TowerActions = preload("res://scripts/ui/towers/tower_actions.gd")
 const TowerDialog = preload("res://scripts/ui/towers/tower_dialog.gd")
 const TowerMove = preload("res://scripts/ui/towers/tower_move.gd")
 var audio: Node
+var cloud: Node
 var hud: VigilHUD
 var game := VigilState.new()
 var field: Battlefield
@@ -43,6 +44,11 @@ func _ready() -> void:
 	audio = preload("res://scripts/audio/audio_director.gd").new()
 	audio.app = self
 	add_child(audio)
+	cloud = preload("res://scripts/cloud/cloud_service.gd").new()
+	cloud.game = game
+	cloud.enabled = load_saved_progress
+	cloud.restore_requested.connect(restore_cloud_progress)
+	add_child(cloud)
 	if game.offline_award >= 1.0:
 		show_return_earnings(game.offline_award)
 	if not game.save_error.is_empty():
@@ -399,3 +405,38 @@ func _input(event: InputEvent) -> void:
 		else:
 			return
 		get_viewport().set_input_as_handled()
+
+func restore_cloud_progress(snapshot: Dictionary, _world_id: String, _revision: int) -> void:
+	# Archive first, then use the same validated, atomic local save machinery.
+	var archive := game.save_path + ".before-cloud-" + preload("res://scripts/cloud/cloud_codec.gd").uuid() + ".save"
+	if not game.storage.write(archive, game.snapshot()):
+		cloud.restore_completed(false)
+		return
+	snapshot.sequence = game.data.sequence + 1
+	for suffix in ["", ".tmp", ".bak"]:
+		var candidate := game.storage.read_candidate(game.save_path + suffix)
+		if not candidate.is_empty():
+			snapshot.sequence = maxf(snapshot.sequence, candidate.sequence + 1)
+	if not game.storage.write(game.save_path, snapshot):
+		cloud.restore_completed(false)
+		return
+	if not game.load_save():
+		cloud.restore_completed(false)
+		return
+	audio.bind_game()
+	panels.close_sheet()
+	field.selected_tower = ""
+	field.selected_region = "0,0"
+	field.selected_pad = -1
+	field.camera = Vector2(game.data.camera[0], game.data.camera[1])
+	field.zoom = game.data.camera[2]
+	field.touches.clear()
+	field.mouse_down = false
+	accumulator = 0.0
+	pending_return_gold = 0.0
+	return_overlay.hide()
+	field.queue_redraw()
+	update_hud()
+	cloud.restore_completed(true)
+	if game.offline_award >= 1.0:
+		show_return_earnings(game.offline_award)

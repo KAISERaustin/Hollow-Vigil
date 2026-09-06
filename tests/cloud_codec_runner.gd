@@ -24,6 +24,7 @@ func run() -> void:
 	g.data.towers[id].earnings = 27.0
 	g.data.regions["-1,0"].history[id] = 80.0
 	g.data.regions["-1,0"].history_time = 100.0
+	g.data.regions["0,0"].history_time = 90.0
 	g.data.settings.audio = {"master": 0.3, "muted": true}
 	g.data.settings.secret_extra = "MUST_NOT_UPLOAD"
 	g.data.secret_extra = "MUST_NOT_UPLOAD"
@@ -39,6 +40,7 @@ func run() -> void:
 	var restored := c.decode(JSON.parse_string(text), {"low_power": true}, [1.0,2.0,0.8], true)
 	check(not restored.is_empty(), "Decode round trip: " + c.error)
 	if not restored.is_empty():
+		check(restored.regions["0,0"].history_time == 90.0, "Empty production windows retain their duration")
 		check(restored.seed == g.data.seed and restored.balance == g.data.balance, "Seed and money restore")
 		check(restored.towers[id].target_mode == "most_hp" and restored.towers[id].earnings == 27.0, "Tower targeting and earnings restore")
 		check(restored.settings.low_power and restored.camera == [1.0,2.0,0.8], "Device preferences preserved")
@@ -57,6 +59,33 @@ func run() -> void:
 	p2 = p.duplicate(true)
 	p2.regions.append(p2.regions[0].duplicate())
 	check(c.decode(p2).is_empty(), "Duplicate UUIDs rejected")
+	for kind in ["warden", "cindermaw", "bell", "prior"]:
+		var encounter := preload("res://tests/unit/boss_checks.gd").fixture(kind)
+		var before := encounter.snapshot()
+		var encoded := c.encode(before, Codec.uuid())
+		var decoded := c.decode(encoded)
+		check(not decoded.is_empty(), "Active " + kind + " encounter restores: " + c.error)
+		if not decoded.is_empty():
+			for region in before.regions:
+				if before.regions[region].has("boss"):
+					check(decoded.regions[region].boss == before.regions[region].boss, "Boss path reconstructed exactly from compact checkpoint")
+	var castle := preload("res://tests/unit/castle_checks.gd").fixture()
+	var castle_data := castle.snapshot()
+	var castle_restored := c.decode(c.encode(castle_data,Codec.uuid()))
+	check(not castle_restored.is_empty(), "Castle emergence restores: " + c.error)
+	if not castle_restored.is_empty():
+		check(castle_restored.castles == castle_data.castles, "Castle gate routes reconstruct exactly")
+	var relic_game := preload("res://tests/unit/boss_checks.gd").fixture("warden")
+	var source: String = relic_game.combat.enemies[0].source
+	relic_game.combat.enemies.clear()
+	relic_game.data.regions[source].boss = {"kind":"warden","status":"defeated"}
+	relic_game.data.relics[source] = "warden"
+	var relic_tower := relic_game.economy.build("electric","0,0",0)
+	relic_game.data.towers[relic_tower].relic = source
+	var relic_restored := c.decode(c.encode(relic_game.snapshot(),Codec.uuid()))
+	check(not relic_restored.is_empty(), "Relic and fourth tower type restore: " + c.error)
+	if not relic_restored.is_empty():
+		check(relic_restored.relics == relic_game.data.relics and relic_restored.towers[relic_tower].relic == source, "Equipped relic identity preserved")
 	g.data.settings.developer_balance = {"towers":{"rapid":{"damage":20.0}}}
 	check(c.encode(g.snapshot(),wid).is_empty(), "Developer balance saves excluded")
 	print("Cloud codec: %d checks, %d failures" % [checks, failures])

@@ -48,12 +48,12 @@ func encode(data: Dictionary, world_id: String, include_audio: bool = false) -> 
 		var r: Dictionary = data.regions[key]
 		var rid := entity_id(world_id, "region", key)
 		out.regions.append({"id": rid, "local_key": key, "parent_id": null if r.parent == "" else entity_id(world_id, "region", r.parent),
-			"side": r.side, "bend": r.bend, "traffic": r.traffic, "style": r.get("style", "forest"), "road_version": r.get("road_version", 2)})
+			"side": r.side, "bend": r.bend, "traffic": r.traffic, "style": r.get("style", "forest"), "road_version": r.get("road_version", 2), "history_time": r.history_time})
 		for kind in r.unlocks:
 			out.unlocks.append({"id": entity_id(world_id, "unlock", key + "/" + kind), "region_id": rid, "kind": kind})
 		for tower_id in r.history:
 			out.production.append({"id": entity_id(world_id, "production", key + "/" + tower_id), "region_id": rid,
-				"tower_id": entity_id(world_id, "tower", tower_id), "earned": r.history[tower_id], "sample_seconds": r.history_time})
+				"tower_id": entity_id(world_id, "tower", tower_id), "earned": r.history[tower_id]})
 	for key in data.towers:
 		var t: Dictionary = data.towers[key]
 		out.towers.append({"id": entity_id(world_id, "tower", key), "local_key": key,
@@ -79,7 +79,7 @@ func encode(data: Dictionary, world_id: String, include_audio: bool = false) -> 
 	if include_audio and data.settings.has("audio"):
 		var row := {"id": entity_id(world_id, "preferences")}
 		for field in AUDIO:
-			row[field] = data.settings.audio.get(field, false if field == "muted" else 1.0)
+			row[field] = data.settings.audio.get(field, false if field == "muted" else preload("res://scripts/audio/audio_director.gd").DEFAULTS[field])
 		out.preferences.append(row)
 	return out
 
@@ -111,7 +111,7 @@ func decode(payload: Variant, local_settings: Dictionary = {}, local_camera: Arr
 		region_keys[r.id] = r.local_key
 		d.regions[r.local_key] = {"id": r.local_key, "parent": "", "side": r.side, "bend": r.bend,
 			"traffic": r.traffic, "style": r.style, "road_version": r.road_version, "timer": 0.0,
-			"unlocks": [], "history": {}, "history_time": 0.0}
+			"unlocks": [], "history": {}, "history_time": r.history_time}
 	for r in payload.regions:
 		if r.parent_id != null and not region_keys.has(r.parent_id):
 			return _fail("Cloud territory references a missing parent.")
@@ -137,10 +137,9 @@ func decode(payload: Variant, local_settings: Dictionary = {}, local_camera: Arr
 		if not region_keys.has(row.region_id) or not tower_keys.has(row.tower_id):
 			return _fail("Cloud production references a missing tower or territory.")
 		var r: Dictionary = d.regions[region_keys[row.region_id]]
-		if r.history.has(tower_keys[row.tower_id]) or (not r.history.is_empty() and r.history_time != row.sample_seconds):
+		if r.history.has(tower_keys[row.tower_id]):
 			return _fail("Cloud production samples are inconsistent.")
 		r.history[tower_keys[row.tower_id]] = row.earned
-		r.history_time = row.sample_seconds
 	# Validate the territory graph BEFORE using it to reconstruct any boss path.
 	if not VigilSaveStore.new().valid_data(d):
 		return _fail("Cloud progress failed save validation. Local progress is safe.")
@@ -200,12 +199,12 @@ func _shape(p: Variant) -> bool:
 	var shapes := {
 		"progress": {"id": "uuid", "gold": "number", "reserve": "number", "lifetime_earnings": "number", "kills": "number", "escapes": "number", "next_tower": "number", "automation": "bool", "first_property_required": "bool"},
 		"checkpoints": {"id": "uuid", "last_accounted": "number", "active_seconds": "number"},
-		"regions": {"id": "uuid", "local_key": "string", "parent_id": "uuid?", "side": "number", "bend": "number", "traffic": "number", "style": "string", "road_version": "number"},
+		"regions": {"id": "uuid", "local_key": "string", "parent_id": "uuid?", "side": "number", "bend": "number", "traffic": "number", "style": "string", "road_version": "number", "history_time": "number"},
 		"unlocks": {"id": "uuid", "region_id": "uuid", "kind": "string"},
 		"towers": {"id": "uuid", "local_key": "string", "region_id": "uuid", "kind": "string", "pad": "number", "level": "number", "branch": "string", "earnings": "number", "target_mode": "string", "rebuild_remaining": "number", "relic_id": "uuid?"},
 		"relics": {"id": "uuid", "source_key": "string", "kind": "string"},
 		"encounters": {"id": "uuid", "source_key": "string", "is_castle": "bool", "kind": "string", "status": "string", "hp": "number?", "tile": "string?", "previous": "string?", "steps": "number?", "shield": "number?", "wards": "number?", "regen": "number?", "toll": "number?", "toll_delayed": "bool?", "segment": "number?", "pos_x": "number?", "pos_y": "number?", "emergence": "bool"},
-		"production": {"id": "uuid", "region_id": "uuid", "tower_id": "uuid", "earned": "number", "sample_seconds": "number"},
+		"production": {"id": "uuid", "region_id": "uuid", "tower_id": "uuid", "earned": "number"},
 		"preferences": {"id": "uuid", "master": "number", "menu": "number", "towers": "number", "enemies": "number", "bosses": "number", "music": "number", "muted": "bool"}}
 	var ids := {p.world.id: true}
 	for group in GROUPS:

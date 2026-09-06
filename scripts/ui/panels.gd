@@ -316,6 +316,9 @@ func show_settings() -> void:
 	sound.app = app
 	sheet_content.add_child(sound)
 	sheet_content.add_child(UI.rule())
+	var cloud_button := UI.button("Cloud saves", show_cloud_saves)
+	cloud_button.name = "OpenCloudSaves"
+	sheet_content.add_child(cloud_button)
 	var developer := UI.button("Developer Controls", show_developer_controls)
 	developer.name = "OpenDeveloperControls"
 	sheet_content.add_child(developer)
@@ -378,3 +381,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		else:
 			close_sheet()
 		get_viewport().set_input_as_handled()
+
+func show_cloud_saves() -> void:
+	mode = "cloud"
+	clear_sheet("Cloud saves")
+	var controls := preload("res://scripts/cloud/cloud_panel.gd").new()
+	controls.app = app
+	sheet_content.add_child(controls)
+	action_footer.add_child(UI.button("Back to settings", show_settings))
+	action_footer.get_parent().show()

@@ -100,7 +100,7 @@ Run `python3 tools/check_structure.py` after moving source files. It checks reso
 ./launch.ps1 -Check           # All automated suites above (except previews)
 ```
 
-Choose one mode per invocation. `-Import` only imports and validates project resources. The launcher checks script compilation and engine logs as well as exit status, so script errors cannot silently appear successful. The known sandbox certificate-store error is exempted; the game uses no network services.
+Choose one mode per invocation. `-Import` only imports and validates project resources. The launcher checks script compilation and engine logs as well as exit status, so script errors cannot silently appear successful. The known sandbox certificate-store error is exempted from offline smoke checks; cloud sign-in and sync still require working HTTPS certificates.
 
 See [test coverage](tests/README.md), [architecture and extension guidance](docs/ARCHITECTURE.md), [art direction](docs/ART_DIRECTION.md), and [review results](docs/REVIEW.md).
 
@@ -109,3 +109,7 @@ See [test coverage](tests/README.md), [architecture and extension guidance](docs
 This is a working local prototype with automated desktop coverage. On September 4, 2026, a native release build was signed, installed and launched on an iPhone 16 Pro. Windows, Android and iOS export presets are included. The [iPhone setup guide](IPHONE_SETUP.md) records the installed build, signing expiration, verification and rebuild steps. Broader physical-phone gesture, suspend/resume, battery and large-world performance testing remains appropriate before a public release.
 
 Git was initialized during concurrent setup work, with an initial commit and the `Hollow-Vigil` GitHub remote. Ignore rules, line-ending rules and editor settings are included. No CI configuration was found during this review.
+
+## Optional cloud saves
+
+Settings → Cloud saves connects to the Hollow Vigil Supabase project. Gameplay and local saves work offline. Cloud backup stores only allowlisted progress and reconstruction data; game assets, source code, transient enemies, camera state and developer settings stay local. New content uses stable type keys without a database redesign. See [cloud save design and setup](docs/CLOUD_SAVES.md) for the data boundary, sign-in limitations and verification commands.
