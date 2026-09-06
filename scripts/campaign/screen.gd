@@ -31,6 +31,65 @@ var save_notice: Label
 var socket_dialog := false
 var waves_dialog := false
 
+# Host the same tower components against the mission state.
+var game: VigilState:
+	get: return run.game
+var field: Battlefield:
+	get: return board
+var panels: Control:
+	get: return self
+var tower_actions: VigilTowerActions
+var tower_dialog: VigilTowerDialog
+var tower_move: PanelContainer
+var selection_region := ""
+var selection_pad := -1
+var selection_tower := ""
+
+func persist() -> void:
+	save_progress()
+	refresh()
+
+func toast(message: String) -> void:
+	app.toast(message)
+
+func collection_effect(amount: float) -> void:
+	toast("Collected %s gold" % UI.exact_money(amount))
+
+func close_sheet() -> void:
+	selected = -1
+	board.selected_tower = ""
+	tower_actions.blocked = false
+	tower_actions.refresh()
+
+func show_tower() -> void:
+	for socket in run.mission.sockets:
+		if socket.region == selection_region and socket.pad == selection_pad:
+			show_socket(socket.index)
+			return
+
+func clear_tower_ui() -> void:
+	for control in [tower_dialog, tower_move, tower_actions]:
+		if is_instance_valid(control):
+			control.get_parent().remove_child(control)
+			control.queue_free()
+	tower_dialog = null
+	tower_move = null
+	tower_actions = null
+
+func build_tower_ui() -> void:
+	tower_actions = VigilTowerActions.new()
+	tower_actions.field = board
+	board.add_child(tower_actions)
+	tower_actions.upgraded.connect(persist)
+	tower_dialog = VigilTowerDialog.new()
+	tower_dialog.app = self
+	tower_dialog.z_index = 102
+	add_child(tower_dialog)
+	tower_actions.action_requested.connect(tower_dialog.open_action)
+	tower_move = preload("res://scripts/ui/towers/tower_move.gd").new()
+	tower_move.app = self
+	board.add_child(tower_move)
+
 func _ready() -> void:
 	name = "Campaign"
 	color = UI.PANEL
@@ -71,6 +130,7 @@ func fit() -> void:
 			dialog_card.position = safe.position + (safe.size - dialog_card.size) * 0.5
 
 func clear_page(next: String) -> void:
+	clear_tower_ui()
 	page = next
 	board = null
 	for child in layout.get_children():
@@ -194,6 +254,7 @@ func show_battle() -> void:
 	status.name = "CampaignStatus"
 	layout.add_child(status)
 	add_board(true)
+	build_tower_ui()
 	var controls := HBoxContainer.new()
 	controls.add_theme_constant_override("separation", 8)
 	layout.add_child(controls)

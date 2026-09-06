@@ -223,23 +223,21 @@ func show_build() -> void:
 	sheet_content.add_child(row)
 	for kind in Balance.TOWERS:
 		var definition := Balance.definition("towers", kind, game.tuning)
-		var b := UI.button(definition.name + " · " + UI.exact_money(definition.cost) + " gold", func(): selection_kind = kind; show_build(), 48)
+		var b := UI.button(definition.name + " · " + UI.exact_money(definition.cost) + " gold", func(): select_build_kind(kind, row), 48)
 		b.add_theme_font_size_override("font_size", UI.type_size(14))
 		for state in ["normal", "hover", "pressed", "disabled"]:
 			var style := UI.box(UI.SURFACE)
 			style.content_margin_left = 12
 			style.content_margin_right = 12
 			b.add_theme_stylebox_override(state, style)
+		b.set_meta("tower_kind", kind)
 		b.toggle_mode = true
 		b.set_pressed_no_signal(selection_kind == kind)
-		if selection_kind == kind:
-			var selected := UI.box(UI.GOLD)
-			selected.content_margin_left = 12
-			selected.content_margin_right = 12
-			b.add_theme_stylebox_override("normal", selected)
-			b.add_theme_stylebox_override("hover", selected)
-			b.add_theme_stylebox_override("pressed", selected)
-			b.add_theme_stylebox_override("hover_pressed", selected)
+		var selected := UI.box(UI.GOLD)
+		selected.content_margin_left = 12
+		selected.content_margin_right = 12
+		b.add_theme_stylebox_override("pressed", selected)
+		b.add_theme_stylebox_override("hover_pressed", selected)
 		row.add_child(UI.action_row(definition.name + " · " + UI.exact_money(definition.cost) + " gold", b, "Select"))
 	var s := Balance.definition("towers", selection_kind, game.tuning)
 	action_cost = s.cost
@@ -261,6 +259,19 @@ func show_build() -> void:
 	)
 	action_footer.add_child(action_button)
 	action_footer.get_parent().show()
+	app.update_hud()
+
+func select_build_kind(kind: String, choices: VBoxContainer) -> void:
+	# Keep the header, focus and scroll position intact when changing a choice.
+	selection_kind = kind
+	field.preview_kind = kind
+	for row in choices.get_children():
+		var choice := row.get_child(-1) as Button
+		choice.set_pressed_no_signal(choice.get_meta("tower_kind") == kind)
+		choice.text = "Selected" if choice.button_pressed else "Select"
+	var definition := Balance.definition("towers", kind, game.tuning)
+	action_cost = definition.cost
+	action_button.text = "Build " + definition.name + "  ·  " + UI.exact_money(definition.cost) + " gold"
 	app.update_hud()
 
 func show_tower() -> void:

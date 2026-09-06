@@ -1,7 +1,8 @@
 extends PanelContainer
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
-var app: VigilApp
+## Active mode host: game, field, controls, persistence and feedback.
+var app: Control
 var prompt: Label
 var cancel_button: Button
 var source: Dictionary = {}

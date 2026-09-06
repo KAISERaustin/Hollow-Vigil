@@ -2,7 +2,8 @@ class_name VigilTowerDialog
 extends ColorRect
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
-var app: VigilApp
+## Active mode host: game, field, controls, persistence and feedback.
+var app: Control
 var card: PanelContainer
 var layout: VBoxContainer
 var body: VBoxContainer
