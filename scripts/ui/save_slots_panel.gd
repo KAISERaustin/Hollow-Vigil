@@ -191,16 +191,24 @@ func show_configurations(slot: int) -> void:
 	if saved.is_empty():
 		content.add_child(UI.paragraph("No builds saved yet. In a Creative game, open Settings → Upload build, then choose Save to My builds.", 16))
 	for configuration in saved:
-		content.add_child(UI.heading(configuration.name, 18))
-		if not configuration.description.is_empty():
-			content.add_child(UI.paragraph(configuration.description, 14))
-		var select := UI.button("Use this build", func():
+		var select := UI.button("Use", func():
 			selected_configuration = configuration
 			show_creation(slot, false)
 		)
 		select.name = "SelectConfiguration" + str(saved.find(configuration))
-		add_action(select)
-		content.add_child(UI.rule())
+		var build := VBoxContainer.new()
+		build.add_theme_constant_override("separation", 10)
+		content.add_child(build)
+		var title_row := UI.action_row(configuration.name, select, "Use")
+		var title := title_row.get_child(0) as Label
+		title.add_theme_font_override("font", UI.font(700))
+		title.add_theme_font_size_override("font_size", UI.type_size(18))
+		build.add_child(title_row)
+		if not configuration.description.is_empty():
+			var description_box := PanelContainer.new()
+			description_box.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 2, 10))
+			build.add_child(description_box)
+			description_box.add_child(UI.paragraph(configuration.description, 14))
 
 func show_export() -> void:
 	clear("Save or share a build")

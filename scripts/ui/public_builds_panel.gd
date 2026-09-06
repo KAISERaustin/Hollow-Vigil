@@ -6,7 +6,6 @@ var menu: Control
 func show_page(slot: int = -1, page: int = 0) -> void:
 	var refresh := UI.button("", show_page.bind(slot, 0))
 	refresh.name = "RefreshPublicBuilds"
-	refresh.tooltip_text = "Refresh public builds"
 	refresh.accessibility_name = "Refresh public builds"
 	refresh.custom_minimum_size = Vector2(UI.TARGET, UI.TARGET)
 	refresh.size_flags_horizontal = Control.SIZE_SHRINK_END
@@ -21,6 +20,8 @@ func show_page(slot: int = -1, page: int = 0) -> void:
 	menu.clear("Community builds", refresh)
 	var revision: int = menu.view_revision
 	menu.content.add_child(UI.paragraph("Worlds and rules shared by other players. Choose a build for a new Creative or Survival playthrough.", 14))
+	menu.content.add_child(UI.rule())
+	menu.content.move_child(menu.message, -1)
 	menu.add_back(UI.button("Back to new game" if slot >= 0 else "Back to saved games", func():
 		if slot >= 0: menu.show_creation(slot, false)
 		else: menu.show_slots()
