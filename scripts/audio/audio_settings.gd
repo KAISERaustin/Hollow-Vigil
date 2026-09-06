@@ -4,7 +4,7 @@ var app: Control
 
 func _ready() -> void:
 	add_theme_constant_override("separation", 10)
-	add_child(UI.paragraph("Type a percentage or use − / +. Set a category to 0% to silence it.", 13))
+	add_child(UI.paragraph("Master scales every sound: 10% master × 65% towers = 6.5%. Music is the continuous background track; set Music to 0% for a quiet background.", 13))
 	var mute := UI.toggle_button(app.audio.preferences().get("muted", false), func(value):
 		app.audio.set_muted(value)
 		app.balance_changed()
@@ -17,6 +17,7 @@ func _ready() -> void:
 		number.min_value = 0
 		number.max_value = 100
 		number.step = 1
+		number.update_on_text_changed = true
 		number.suffix = "%"
 		number.value = app.audio.volume(category) * 100
 		number.accessibility_name = category.capitalize() + " volume"

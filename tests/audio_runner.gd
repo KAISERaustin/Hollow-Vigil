@@ -42,6 +42,23 @@ func run() -> void:
 	for category in Director.DEFAULTS:
 		a.set_volume(category, 1.0)
 	a.set_muted(false)
+	var master_bus := AudioServer.get_bus_index(a.master_bus_name)
+	check(AudioServer.get_bus_send(AudioServer.get_bus_index(a.bus_name)) == a.master_bus_name, "All effects pass through the final master bus")
+	check(AudioServer.get_bus_send(master_bus) == &"Master", "Private master feeds device Master")
+	check(a.music.bus == a.bus_name, "Music uses the same master route")
+	a.set_volume("towers", .65)
+	var full_tower_gain: float = a.gain("towers")
+	var full_music_gain: float = a.music.volume_linear
+	a.set_volume("master", .1)
+	check(is_equal_approx(db_to_linear(AudioServer.get_bus_volume_db(master_bus)) * a.volume("towers"), .065), "10% master times 65% towers is 6.5%")
+	check(is_equal_approx(a.gain("towers"), full_tower_gain) and is_equal_approx(a.music.volume_linear, full_music_gain), "Master attenuation happens once downstream of category gains")
+	for pool in a.voices.values():
+		for voice in pool:
+			check(voice.bus == a.bus_name, "Every pooled voice uses the master route")
+	a.set_volume("master", 0.0)
+	check(AudioServer.is_bus_mute(master_bus), "Zero master mutes the output bus")
+	a.set_volume("master", 1.0)
+	a.set_volume("towers", 1.0)
 	for category in Director.LIMITS:
 		check(a.voices[category].size() == Director.LIMITS[category], "Bounded voices: " + category)
 	a.elapsed += 2
@@ -73,6 +90,23 @@ func run() -> void:
 	a.set_suspended(false)
 	check(not a.music.stream_paused, "Resume continues music")
 	# Actual combat events, not cosmetic effect inspection.
+	a.stop_effects()
+	a.elapsed += 2
+	var visible_position: Vector2 = app.field.world(app.field.size * .5)
+	a.play("shot_heavy", visible_position)
+	accepted = a.accepted_events
+	check(a.voices.towers.any(func(voice): return voice.playing), "Visible combat starts a voice")
+	app.hud.hide()
+	a._process(0.0)
+	check(not a.voices.towers.any(func(voice): return voice.playing), "Hiding the world stops existing combat tails")
+	a.elapsed += 2
+	a.play("shot_heavy", visible_position)
+	check(a.accepted_events == accepted, "Hidden world rejects new combat")
+	app.hud.show()
+	app.slot_active = false
+	a.play("shot_heavy", visible_position)
+	check(a.accepted_events == accepted, "No loaded slot produces no world effects")
+	app.slot_active = true
 	var g := app.game
 	g.data.balance = 1000000.0
 	g.expand("-1,0")
@@ -138,6 +172,13 @@ func run() -> void:
 		check(events.has("boss_" + kind + "_death"), "Boss death: " + kind)
 	# Save validation, old saves, reset persistence and live settings widgets.
 	app.reset_progress()
+	a.stop_effects() # The explicit reset confirmation is allowed; idle effects are not.
+	a.set_volume("music", 0.0)
+	accepted = a.accepted_events
+	for i in range(600):
+		g.combat.tick(Balance.STEP)
+	check(a.accepted_events == accepted, "Fresh empty reset produces no spontaneous sound effects")
+	check(a.music.volume_linear == 0.0, "Music zero silences the continuous background track")
 	var snapshot := g.snapshot()
 	snapshot.settings.erase("audio")
 	check(g.storage.valid_data(snapshot), "Old saves need no audio fields")
@@ -165,6 +206,11 @@ func run() -> void:
 		if DisplayServer.get_name() != "headless":
 			root.get_texture().get_image().save_png("res://artifacts/audio-settings-%d.png" % viewport.x)
 	var music_number := app.panels.find_child("Audio_music", true, false) as SpinBox
+	var master_number := app.panels.find_child("Audio_master", true, false) as SpinBox
+	master_number.get_line_edit().text = "10"
+	master_number.get_line_edit().text_changed.emit("10")
+	await settle()
+	check(is_equal_approx(a.volume("master"), .1), "Typing 10 updates master without Enter or focus loss")
 	music_number.get_line_edit().grab_focus()
 	await settle()
 	check(app.panels.content_scroll.get_global_rect().encloses(music_number.get_global_rect()), "Keyboard focus scrolls music number into view")

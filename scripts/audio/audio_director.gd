@@ -14,15 +14,21 @@ var elapsed := 0.0
 var suspended := false
 var accepted_events := 0
 var bus_name: StringName
+var master_bus_name: StringName
 var combat: VigilCombat
 var economy: VigilEconomy
 
 func _ready() -> void:
 	# A private mix bus prevents independent app instances from sharing settings.
 	bus_name = StringName("VigilAudio_" + str(get_instance_id()))
+	master_bus_name = StringName(str(bus_name) + "_Master")
+	AudioServer.add_bus()
+	AudioServer.set_bus_name(AudioServer.bus_count - 1, master_bus_name)
+	AudioServer.set_bus_send(AudioServer.bus_count - 1, &"Master")
 	AudioServer.add_bus()
 	var bus := AudioServer.bus_count - 1
 	AudioServer.set_bus_name(bus, bus_name)
+	AudioServer.set_bus_send(bus, master_bus_name)
 	var limiter := AudioEffectHardLimiter.new()
 	limiter.ceiling_db = -1.0
 	AudioServer.add_bus_effect(bus, limiter)
@@ -95,9 +101,13 @@ func gain(category: String) -> float:
 		return 0.0
 	# Quiet deaths and underscoring leave space for weapon identities and UI.
 	var trim: float = {"music": 0.35, "enemies": 0.6, "menu": 0.8}.get(category, 1.0)
-	return 0.55 * trim * volume("master") * volume(category)
+	return 0.55 * trim * volume(category)
 
 func apply_mix() -> void:
+	var master := AudioServer.get_bus_index(master_bus_name)
+	if master > 0:
+		AudioServer.set_bus_volume_db(master, linear_to_db(volume("master")))
+		AudioServer.set_bus_mute(master, suspended or preferences().get("muted", false) or volume("master") <= 0.0)
 	for category in voices:
 		for player in voices[category]:
 			player.volume_linear = gain(category) * float(player.get_meta("distance_gain", 1.0))
@@ -118,23 +128,33 @@ func set_suspended(value: bool) -> void:
 
 func _process(delta: float) -> void:
 	elapsed += delta
+	# Re-evaluate visibility when the camera moves or a world is covered/closed.
+	for pool in voices.values():
+		for player in pool:
+			if player.playing and player.has_meta("source_field"):
+				var source = player.get_meta("source_field").get_ref()
+				if not audible_at(source, player.get_meta("source_position")):
+					player.stop()
 
-func play(cue: String, position: Vector2 = Vector2.INF) -> void:
+func audible_at(source: Control, position: Vector2) -> bool:
+	if not is_instance_valid(source) or not source.is_visible_in_tree():
+		return false
+	if source == app.field and (not app.slot_active or (is_instance_valid(app.slot_menu) and app.slot_menu.visible)):
+		return false
+	return Rect2(Vector2.ZERO, source.size).has_point(source.screen(position))
+
+func play(cue: String, position: Vector2 = Vector2.INF, source_field: Control = null) -> void:
 	if not CATALOG.has(cue) or suspended:
 		return
 	var spec: Dictionary = CATALOG[cue]
 	var category: String = spec.category
-	if not voices.has(category) or gain(category) <= 0.0:
+	if not voices.has(category) or gain(category) <= 0.0 or volume("master") <= 0.0:
 		return
 	var distance_gain := 1.0
 	if position.is_finite():
-		if not is_instance_valid(app.field) or not app.field.is_visible_in_tree():
-			return
-		var point: Vector2 = app.field.screen(position)
-		var view := Rect2(Vector2.ZERO, app.field.size)
-		var distance := point.distance_to(point.clamp(view.position, view.end))
-		distance_gain = clampf(1.0 - distance / 180.0, 0.0, 1.0)
-		if distance_gain <= 0.0:
+		if source_field == null:
+			source_field = app.field
+		if not audible_at(source_field, position):
 			return
 	if elapsed - float(last_cue.get(cue, -100.0)) < float(spec.cooldown):
 		return
@@ -145,6 +165,12 @@ func play(cue: String, position: Vector2 = Vector2.INF) -> void:
 		if player.playing:
 			continue
 		player.stream = streams[cue]
+		if player.has_meta("source_field"):
+			player.remove_meta("source_field")
+			player.remove_meta("source_position")
+		if position.is_finite():
+			player.set_meta("source_field", weakref(source_field))
+			player.set_meta("source_position", position)
 		player.set_meta("distance_gain", distance_gain)
 		player.volume_linear = gain(category) * distance_gain
 		player.play()
@@ -176,5 +202,8 @@ func _exit_tree() -> void:
 	if is_instance_valid(music):
 		music.stop()
 	var index := AudioServer.get_bus_index(bus_name)
+	if index > 0:
+		AudioServer.remove_bus(index)
+	index = AudioServer.get_bus_index(master_bus_name)
 	if index > 0:
 		AudioServer.remove_bus(index)

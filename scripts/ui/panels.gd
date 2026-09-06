@@ -403,32 +403,6 @@ func show_settings() -> void:
 		app.persist()
 	mode = "settings"
 	clear_sheet("Settings")
-	sheet_content.add_child(UI.heading("Gameplay", 18))
-	var campaign_button := UI.button("Campaign", app.show_campaign)
-	campaign_button.name = "OpenCampaign"
-	sheet_content.add_child(UI.action_row("The Last Procession", campaign_button, "Play"))
-	sheet_content.add_child(UI.heading("Current game · Slot %d" % (app.active_slot + 1), 18))
-	sheet_content.add_child(UI.paragraph(str(game.data.get("mode", "creative")).capitalize(), 14))
-	if game.data.has("setup"):
-		sheet_content.add_child(UI.paragraph(game.data.setup.name, 16))
-	sheet_content.add_child(UI.action_row("Saved games", UI.button("Saved games", app.show_save_slots), "Open"))
-	if game.is_creative():
-		sheet_content.add_child(UI.heading("Creative mode", 18))
-		var developer := UI.button("Developer Controls", show_developer_controls)
-		developer.name = "OpenDeveloperControls"
-		sheet_content.add_child(UI.action_row("Creative rules", developer, "Edit"))
-	sheet_content.add_child(UI.heading("Preferences", 18))
-	var sound_button := UI.button("Sound", show_sound_settings)
-	sound_button.name = "OpenSoundSettings"
-	sheet_content.add_child(UI.action_row("Sound", sound_button, "Open"))
-	sheet_content.add_child(UI.heading("Community", 18))
-	var public_button := UI.button("Community builds", app.show_public_builds)
-	public_button.name = "OpenPublicBuilds"
-	sheet_content.add_child(UI.action_row("Community builds", public_button, "Browse"))
-	var upload := UI.button("Upload build", app.show_save_slots.bind(true))
-	upload.name = "UploadBuild"
-	upload.disabled = not game.is_creative()
-	sheet_content.add_child(UI.action_row("Upload build", upload, "Open"))
 	sheet_content.add_child(UI.heading("Account", 18))
 	sheet_content.add_child(_player_card())
 	var cloud_button := UI.button("Account & cloud backups", show_cloud_saves)
@@ -448,6 +422,27 @@ func show_settings() -> void:
 		stat_panel.add_child(contents)
 		contents.add_child(UI.label(stat[0], 12, UI.MUTED))
 		contents.add_child(UI.heading(Balance.money(stat[1]), 18))
+	var campaign_button := UI.button("Campaign", app.show_campaign)
+	campaign_button.name = "OpenCampaign"
+	sheet_content.add_child(UI.action_row("The Last Procession", campaign_button, "Play"))
+	sheet_content.add_child(UI.paragraph("Current game · Slot %d" % (app.active_slot + 1), 14))
+	sheet_content.add_child(UI.paragraph(str(game.data.get("mode", "creative")).capitalize(), 14))
+	if game.data.has("setup"):
+		sheet_content.add_child(UI.paragraph(game.data.setup.name, 16))
+	sheet_content.add_child(UI.action_row("Saved games", UI.button("Saved games", app.show_save_slots), "Open"))
+	if game.is_creative():
+		sheet_content.add_child(UI.heading("Creative mode", 18))
+		var developer := UI.button("Developer Controls", show_developer_controls)
+		developer.name = "OpenDeveloperControls"
+		sheet_content.add_child(UI.action_row("Creative rules", developer, "Edit"))
+	sheet_content.add_child(UI.heading("Preferences", 18))
+	var sound_button := UI.button("Sound", show_sound_settings)
+	sound_button.name = "OpenSoundSettings"
+	sheet_content.add_child(UI.action_row("Sound", sound_button, "Open"))
+	var upload := UI.button("Upload build", app.show_save_slots.bind(true))
+	upload.name = "UploadBuild"
+	upload.disabled = not game.is_creative()
+	sheet_content.add_child(UI.action_row("Upload build", upload, "Open"))
 	sheet_content.add_child(UI.rule())
 	sheet_content.add_child(UI.heading("Reset this game", 18))
 	sheet_content.add_child(UI.action_row("Reset progress", UI.accent_button("Reset progress", show_reset_confirmation, UI.DANGER), "Reset"))

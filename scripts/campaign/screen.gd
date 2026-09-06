@@ -220,8 +220,12 @@ func connect_run() -> void:
 	)
 	run.finished.connect(show_result)
 	if is_instance_valid(app) and is_instance_valid(app.audio):
-		run.game.combat.sound_requested.connect(func(cue, _position): app.audio.play(cue))
-		run.game.economy.sound_requested.connect(func(cue, _position): app.audio.play(cue))
+		run.game.combat.sound_requested.connect(play_run_sound)
+		run.game.economy.sound_requested.connect(play_run_sound)
+
+func play_run_sound(cue: String, position: Vector2) -> void:
+	if page == "battle" and is_visible_in_tree() and is_instance_valid(board):
+		app.audio.play(cue, position, board)
 
 func show_battle() -> void:
 	clear_page("battle")
