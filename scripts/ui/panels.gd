@@ -277,7 +277,6 @@ func show_core() -> void:
 	close_sheet()
 	mode = "core"
 	clear_sheet("Core")
-	sheet_content.add_child(UI.button("Info", show_info))
 
 func return_to_core() -> void:
 	field.camera = VigilWorld.CORE_POSITION
