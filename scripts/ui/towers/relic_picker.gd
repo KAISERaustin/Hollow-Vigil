@@ -3,7 +3,6 @@ extends RefCounted
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Relics = preload("res://scripts/gameplay/progression/relics.gd")
 const Art = preload("res://scripts/rendering/actors/relic_art.gd")
-const SLOT_SIZE := 64
 
 static func build(dialog) -> void:
 	var data: Dictionary = dialog.app.game.data
@@ -35,27 +34,28 @@ static func build(dialog) -> void:
 		remove.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		summary_row.add_child(remove)
 	dialog.body.add_child(UI.heading("Inventory", 18))
-	var grid := GridContainer.new()
-	grid.name = "EquipmentGrid"
-	grid.columns = 4
-	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 8)
-	dialog.body.add_child(grid)
+	var list := VBoxContainer.new()
+	list.name = "EquipmentList"
+	list.add_theme_constant_override("separation", 12)
+	dialog.body.add_child(list)
 	var inventory: Dictionary = data.get("relics", {})
+	if inventory.is_empty():
+		dialog.body.add_child(UI.paragraph("No equipment collected yet.", 14))
 	for relic_id in inventory:
 		var kind: String = inventory[relic_id]
-		var button := UI.button("", func(): dialog.show_equipment_details(relic_id), SLOT_SIZE)
-		button.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 12)
+		list.add_child(row)
+		var item_name := UI.heading(Relics.DEFINITIONS[kind].name, 16)
+		item_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		item_name.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(item_name)
+		var button := UI.button("", func(): dialog.show_equipment_details(relic_id), UI.TARGET)
+		button.custom_minimum_size = Vector2(UI.TARGET, UI.TARGET)
 		button.name = "Relic_" + relic_id
 		button.accessibility_description = Relics.DEFINITIONS[kind].name
 		button.accessibility_name = Relics.DEFINITIONS[kind].name
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.size_flags_horizontal = Control.SIZE_SHRINK_END
+		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		button.draw.connect(func(): Art.draw(button, kind, button.size * 0.5))
-		grid.add_child(button)
-	for index in range(maxi(16, ceili(inventory.size() / 4.0) * 4) - inventory.size()):
-		var slot := PanelContainer.new()
-		slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
-		slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		slot.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, UI.OUTLINE, 0))
-		grid.add_child(slot)
+		row.add_child(button)

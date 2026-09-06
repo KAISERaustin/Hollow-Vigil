@@ -45,7 +45,7 @@ func run() -> void:
 	check(app.tower_dialog.visible and app.tower_dialog.mode == "equipment", "Equipment action opens collection with no drops")
 	check(app.tower_dialog.find_child("Relic_empty", true, false) == null and app.tower_dialog.find_child("RemoveEquipment", true, false) == null, "Empty slot offers no removal action")
 	check(not app.tower_dialog.confirm.visible, "Inventory has no redundant apply button")
-	check(app.tower_dialog.find_child("EquipmentGrid", true, false).get_child_count() == 16, "Empty inventory displays sixteen blank slots")
+	check(app.tower_dialog.find_child("EquipmentList", true, false).get_child_count() == 0, "Empty inventory has no placeholder rows")
 	check(app.tower_dialog.find_child("EquippedRelicName", true, false).text == "No equipment equipped", "Empty slot is explicit at the top of the menu")
 	await Harness.capture(app, "relic-empty-collection")
 	app.tower_dialog.dismiss()
@@ -115,9 +115,11 @@ func run() -> void:
 		var equipped_name := app.tower_dialog.find_child("EquippedRelicName", true, false) as Label
 		check(equipped_name.text == "Eclipse Shard", "Header identifies the equipped Eclipse Shard")
 		check(equipped_name.get_global_rect().end.y <= app.tower_dialog.scroll.get_global_rect().position.y, "Equipped summary stays above the scrolling collection")
-		await Harness.capture(app, "relic-grid-" + str(dimensions.x))
-		for slot in app.tower_dialog.find_child("EquipmentGrid", true, false).get_children():
-			check(absf(slot.size.x - slot.size.y) <= 1.0, "Inventory slots are square at " + str(dimensions))
+		await Harness.capture(app, "relic-list-" + str(dimensions.x))
+		var list := app.tower_dialog.find_child("EquipmentList", true, false)
+		check(list.get_child_count() == app.game.data.relics.size(), "Inventory shows one row per owned piece")
+		for row in list.get_children():
+			check(row.get_child(0).get_global_rect().end.x <= row.get_child(1).get_global_rect().position.x, "Equipment name stays left of its icon at " + str(dimensions))
 		var replacement := app.tower_dialog.find_child("Relic_90,90", true, false) as Button
 		app.tower_dialog.scroll.ensure_control_visible(replacement)
 		await frame()
