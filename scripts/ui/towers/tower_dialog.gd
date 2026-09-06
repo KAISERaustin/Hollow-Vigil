@@ -12,6 +12,8 @@ var heading: Label
 var identity: HBoxContainer
 var equipment_summary: VBoxContainer
 var portrait: Control
+var header_close: Button
+var header_divider: ColorRect
 var tower_kind := "rapid"
 var tower_branch := ""
 var confirm: Button
@@ -46,12 +48,32 @@ func _ready() -> void:
 	portrait = Control.new()
 	portrait.custom_minimum_size = Vector2(48, 64)
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	portrait.draw.connect(func(): VigilTerrainArt.sentinel(portrait, tower_kind, Vector2(24, 51), 0.85, tower_level, tower_branch))
+	portrait.draw.connect(func():
+		if mode == "equipment_detail":
+			preload("res://scripts/rendering/actors/relic_art.gd").draw(portrait, app.game.data.relics[relic_choice], portrait.size * 0.5)
+		else:
+			VigilTerrainArt.sentinel(portrait, tower_kind, Vector2(24, 51), 0.85, tower_level, tower_branch)
+	)
 	identity.add_child(portrait)
 	heading = UI.heading("", 24)
 	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	identity.add_child(heading)
+	header_close = UI.button("×", func():
+		if mode == "equipment_detail": open_action("equipment")
+		else: dismiss()
+	, 44)
+	header_close.name = "CloseEquipment"
+	header_close.tooltip_text = "Close"
+	header_close.custom_minimum_size.x = 44
+	header_close.size_flags_horizontal = Control.SIZE_SHRINK_END
+	header_close.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	identity.add_child(header_close)
+	header_divider = ColorRect.new()
+	header_divider.color = UI.BORDER
+	header_divider.custom_minimum_size.y = UI.OUTLINE
+	header_divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layout.add_child(header_divider)
 	equipment_summary = VBoxContainer.new()
 	equipment_summary.hide()
 	layout.add_child(equipment_summary)
@@ -83,6 +105,9 @@ func open_action(action: String) -> void:
 	opener = get_viewport().gui_get_focus_owner()
 	revision += 1
 	mode = action
+	header_close.visible = action == "equipment"
+	header_divider.visible = action == "equipment"
+	footer.show()
 	tower_id = id
 	var tower: Dictionary = app.game.data.towers[id]
 	tower_kind = tower.kind
@@ -178,13 +203,14 @@ func open_action(action: String) -> void:
 	if action == "equipment":
 		confirm.hide()
 		cancel.text = "Close"
+		footer.hide()
 	app.tower_actions.blocked = true
 	app.tower_actions.refresh()
 	show()
 	refresh()
 	call_deferred("fit_dialog")
 	cancel.visible = action != "info"
-	(confirm if action == "info" else cancel).grab_focus()
+	(header_close if action == "equipment" else (confirm if action == "info" else cancel)).grab_focus()
 	UI.trap_focus(card)
 
 func show_equipment_details(relic_id: String) -> void:
@@ -200,12 +226,15 @@ func show_equipment_details(relic_id: String) -> void:
 	rebuild_status = UI.label("", 14)
 	body.add_child(rebuild_status)
 	var kind: String = app.game.data.relics[relic_id]
-	body.add_child(UI.heading(Relics.DEFINITIONS[kind].name, 20))
+	heading.text = Relics.DEFINITIONS[kind].name
+	portrait.queue_redraw()
+	equipment_summary.hide()
 	body.add_child(UI.paragraph(Relics.description(kind, app.game.tuning), 16))
 	if relic_owner != "" and relic_owner != tower_id:
 		body.add_child(UI.paragraph("Equipped on " + Balance.tower_stats(app.game.data.towers[relic_owner], app.game.tuning).name, 14))
 	confirm.text = "Equipped" if relic_choice == relic_original else ("Transfer equipment" if relic_owner != "" else "Equip")
 	confirm.show()
+	footer.show()
 	cancel.text = "Back"
 	cancel.pressed.disconnect(dismiss)
 	cancel.pressed.connect(func(): open_action("equipment"))
@@ -227,6 +256,7 @@ func request_equipment_removal() -> void:
 	body.add_child(UI.paragraph("Are you sure you want to remove this equipment? It will return to your inventory.", 16))
 	equipment_summary.find_child("RemoveEquipment", true, false).hide()
 	confirm.text = "Remove equipment"
+	footer.show()
 	confirm.show()
 	cancel.text = "Cancel"
 	for connection in cancel.pressed.get_connections():
@@ -257,7 +287,9 @@ func fit_dialog() -> void:
 	var safe := UI.safe_rect(app).grow(-16)
 	card.size.x = minf(460.0, safe.size.x)
 	footer.vertical = card.size.x < 400 * UI.text_scale
-	var chrome: float = identity.get_combined_minimum_size().y + footer.get_combined_minimum_size().y + 64.0
+	var chrome: float = identity.get_combined_minimum_size().y + (footer.get_combined_minimum_size().y if footer.visible else 0.0) + 64.0
+	if header_divider.visible:
+		chrome += header_divider.get_combined_minimum_size().y + layout.get_theme_constant("separation")
 	if equipment_summary.visible:
 		chrome += equipment_summary.get_combined_minimum_size().y + layout.get_theme_constant("separation")
 	scroll.custom_minimum_size.y = minf(body.get_combined_minimum_size().y, maxf(40.0, safe.size.y - chrome))
@@ -293,9 +325,9 @@ func commit(opened_revision: int) -> void:
 	elif mode in ["equipment", "equipment_detail", "equipment_remove"]:
 		var removing := mode == "equipment_remove"
 		if app.game.economy.equip_relic(tower_id, "" if removing else relic_choice, relic_original, "" if removing else relic_owner):
-			dismiss()
 			app.field.queue_redraw()
 			app.persist()
+			open_action("equipment")
 		else:
 			dismiss()
 			app.toast("Equipment changed. Open the equipment slot again.")

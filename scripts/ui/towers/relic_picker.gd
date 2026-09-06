@@ -44,6 +44,11 @@ static func build(dialog) -> void:
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
 	dialog.body.add_child(grid)
+	grid.resized.connect(func():
+		var side := maxf(48, (grid.size.x - 24) / 4)
+		for slot in grid.get_children():
+			slot.custom_minimum_size.y = side
+	)
 	var inventory: Dictionary = data.get("relics", {})
 	for relic_id in inventory:
 		var kind: String = inventory[relic_id]

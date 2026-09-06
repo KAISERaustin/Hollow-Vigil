@@ -63,8 +63,11 @@ func run() -> void:
 		await frame()
 		await Harness.tap(app, choice.get_global_rect().get_center(), touch)
 		check(app.game.data == before and dialog.relic_choice == "90,90", "Selecting relic waits for Apply")
+		check(not dialog.equipment_summary.visible, "Item details omit tower equipment summary")
 		await Harness.tap(app, dialog.confirm.get_global_rect().get_center(), touch)
 		check(app.game.data.towers[towers[0]].get("relic", "") == "90,90", "Mouse/touch equips selected piece")
+		check(dialog.visible and dialog.mode == "equipment" and dialog.find_child("EquippedRelicName", true, false).text == "Warden’s Rootheart", "Equip returns to inventory with updated equipped item")
+		dialog.dismiss()
 		check(app.game.storage.read_candidate(app.game.save_path).get("towers", {}).get(towers[0], {}).get("relic") == "90,90", "Equipment UI persists the transaction: " + app.game.save_error)
 		app.field.selected_tower = towers[1]
 		await frame()
@@ -87,6 +90,7 @@ func run() -> void:
 		await Harness.tap(app, dialog.confirm.get_global_rect().get_center(), touch)
 		check(not app.game.data.towers[towers[1]].has("relic") and app.game.data.relics.has("90,90"), "Confirmed removal returns equipment to inventory")
 		check(not app.game.storage.read_candidate(app.game.save_path).towers[towers[1]].has("relic"), "Removal persists")
+		dialog.dismiss()
 	for index in range(4):
 		app.game.economy.equip_relic(towers[index], str(90 + index) + ",90", "")
 	app.field.selected_tower = ""
@@ -112,6 +116,8 @@ func run() -> void:
 		check(equipped_name.text == "Eclipse Shard", "Header identifies the equipped Eclipse Shard")
 		check(equipped_name.get_global_rect().end.y <= app.tower_dialog.scroll.get_global_rect().position.y, "Equipped summary stays above the scrolling collection")
 		await Harness.capture(app, "relic-grid-" + str(dimensions.x))
+		for slot in app.tower_dialog.find_child("EquipmentGrid", true, false).get_children():
+			check(absf(slot.size.x - slot.size.y) <= 1.0, "Inventory slots are square at " + str(dimensions))
 		var replacement := app.tower_dialog.find_child("Relic_90,90", true, false) as Button
 		app.tower_dialog.scroll.ensure_control_visible(replacement)
 		await frame()
