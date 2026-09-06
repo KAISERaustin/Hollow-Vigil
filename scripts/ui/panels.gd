@@ -434,7 +434,6 @@ func show_settings() -> void:
 	sheet_content.add_child(UI.rule())
 	sheet_content.add_child(UI.heading("Reset this game", 18))
 	sheet_content.add_child(UI.action_row("Reset progress", UI.accent_button("Reset progress", show_reset_confirmation, UI.DANGER), "Reset"))
-	sheet_content.add_child(UI.rule())
 	var upload := UI.button("Upload build", app.show_save_slots.bind(true))
 	upload.name = "UploadBuild"
 	upload.disabled = not game.is_creative()
