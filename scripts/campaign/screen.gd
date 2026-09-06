@@ -59,7 +59,7 @@ func fit() -> void:
 	if is_instance_valid(dialog_card):
 		dialog_card.size = Vector2(minf(470, safe.size.x), minf(490, safe.size.y))
 		if waves_dialog:
-			dialog_card.size.y = safe.size.y
+			dialog_card.size.y = minf(safe.size.y, dialog_card.get_combined_minimum_size().y + dialog_body.get_combined_minimum_size().y)
 		if socket_dialog:
 			dialog_card.size.y = minf(340, safe.size.y)
 			dialog_card.position = Vector2(safe.get_center().x - dialog_card.size.x * 0.5, safe.end.y - dialog_card.size.y)
@@ -271,17 +271,19 @@ func show_waves() -> void:
 	var preview := VBoxContainer.new()
 	preview.add_theme_constant_override("separation", 4)
 	dialog_body.add_child(preview)
-	preview.add_child(UI.paragraph("A, B and C mark entrances. Enemies follow their road to your flame.", 14))
 	for index in range(run.mission.waves.size()):
 		var section := VBoxContainer.new()
 		section.add_theme_constant_override("separation", 2)
 		preview.add_child(section)
 		section.add_child(UI.heading("Wave %d%s" % [index+1, " · Cleared" if index < run.wave else ""], 16))
+		var counts := {}
 		for group in run.mission.waves[index]:
-			var definitions: Dictionary = Balance.BOSSES if Balance.BOSSES.has(group[0]) else Balance.ENEMIES
-			var enemy: Dictionary = definitions[group[0]]
+			counts[group[0]] = int(counts.get(group[0], 0)) + int(group[1])
+		for kind in counts:
+			var definitions: Dictionary = Balance.BOSSES if Balance.BOSSES.has(kind) else Balance.ENEMIES
+			var enemy: Dictionary = definitions[kind]
 			var role: String = str(enemy.get("role", "Boss")).split(" · ")[-1].capitalize()
-			section.add_child(UI.paragraph("%d %s · %s · via %s" % [group[1], enemy.name, role, String.chr(65 + int(group[2]))], 14))
+			section.add_child(UI.paragraph("%d %s · %s" % [counts[kind], enemy.name, role], 14))
 	if run.mission.waves.size() <= 3:
 		preview.add_child(UI.rule())
 		var described: Array[String] = []
@@ -401,6 +403,10 @@ func _build_dialog() -> void:
 	dialog_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	dialog_body.add_theme_constant_override("separation",12)
 	scroll.add_child(dialog_body)
+	dialog_body.minimum_size_changed.connect(func():
+		if waves_dialog:
+			fit.call_deferred()
+	)
 	dialog.hide()
 
 func open_dialog(title: String, for_socket: bool = false) -> void:
