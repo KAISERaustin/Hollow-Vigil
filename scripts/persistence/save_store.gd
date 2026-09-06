@@ -95,6 +95,15 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 		return false
 	if d.settings.has("reduced_motion") and not d.settings.reduced_motion is bool:
 		return false
+	if d.settings.has("audio"):
+		if not d.settings.audio is Dictionary:
+			return false
+		for category in d.settings.audio:
+			if category == "muted":
+				if not d.settings.audio[category] is bool:
+					return false
+			elif category not in ["master", "menu", "towers", "enemies", "bosses", "music"] or not number(d.settings.audio[category], 0.0, 1.0):
+				return false
 	if d.settings.has("developer_balance") and not Balance.valid_tuning(d.settings.developer_balance):
 		return false
 	if not number(d.camera[0], -1.0e12, 1.0e12) or not number(d.camera[1], -1.0e12, 1.0e12) or not number(d.camera[2], 0.42, 1.65):

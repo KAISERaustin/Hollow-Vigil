@@ -60,6 +60,7 @@ static func create(combat: VigilCombat, id: String, kind: String) -> Dictionary:
 	else:
 		next_leg(combat, e)
 	combat.enemies.append(e)
+	combat.sound_requested.emit("boss_" + kind + "_awaken", e.pos)
 	return e
 
 static func next_leg(combat: VigilCombat, e: Dictionary) -> void:
@@ -152,7 +153,16 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 		if e.dead or not e.get("boss", false):
 			continue
 		avoid_core(combat, e)
+		# Footfalls use transient simulation timestamps, and stop when stunned.
+		if e.get("stun_until", 0.0) <= combat.simulation_time and combat.simulation_time >= e.get("next_footfall", 0.0):
+			e.next_footfall = combat.simulation_time + 1.5
+			combat.sound_requested.emit("boss_" + e.kind + "_step", e.pos)
 		var stats := Balance.definition("bosses", e.kind, combat.tuning)
+		if e.kind == "cindermaw":
+			var raging: bool = e.hp <= e.max_hp * stats.rage_threshold / 100.0
+			if raging and not e.get("audio_raging", false):
+				combat.sound_requested.emit("boss_cindermaw_ability", e.pos)
+			e.audio_raging = raging
 		var blocked := false
 		if e.kind == "warden":
 			for patch in combat.burning_ground:
@@ -172,12 +182,14 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 				e.shield = stats.get("shield", 0.0)
 				e.wards = int(stats.get("wards", 0))
 				e.regen = stats.regen_period
+				combat.sound_requested.emit("boss_" + e.kind + "_ability", e.pos)
 		if e.kind == "bell":
 			e.toll -= delta
 			if e.toll <= 0.0:
 				e.toll = stats.toll_period
 				e.toll_delayed = false
 				bells.append(e)
+				combat.sound_requested.emit("boss_bell_ability", e.pos)
 	for bell in bells:
 		var count := 0
 		for e in combat.enemies:

@@ -1,0 +1,402 @@
+{
+  "menu_click": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "wood; 720 Hz; 0.055s; pitch sweep -0.25"
+  },
+  "menu_open": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "chime; 420 Hz; 0.13s; pitch sweep 0.5"
+  },
+  "menu_close": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "wood; 480 Hz; 0.11s; pitch sweep -0.45"
+  },
+  "menu_select": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "chime; 640 Hz; 0.09s; pitch sweep 0.15"
+  },
+  "menu_slider": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "wood; 860 Hz; 0.04s; pitch sweep 0"
+  },
+  "menu_collect": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "chime; 880 Hz; 0.32s; pitch sweep 0.7"
+  },
+  "menu_build": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "wood; 220 Hz; 0.3s; pitch sweep 0.6"
+  },
+  "menu_upgrade": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "chime; 520 Hz; 0.4s; pitch sweep 0.8"
+  },
+  "menu_sell": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "chime; 690 Hz; 0.24s; pitch sweep -0.5"
+  },
+  "menu_move": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "wood; 190 Hz; 0.27s; pitch sweep 0.3"
+  },
+  "menu_ready": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "chime; 610 Hz; 0.3s; pitch sweep 0.5"
+  },
+  "menu_expand": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "orb; 260 Hz; 0.65s; pitch sweep 0.8"
+  },
+  "menu_traffic": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "orb; 330 Hz; 0.3s; pitch sweep 0.4"
+  },
+  "menu_unlock": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "chime; 740 Hz; 0.4s; pitch sweep 0.35"
+  },
+  "menu_automation": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "arc; 960 Hz; 0.25s; pitch sweep 0.2"
+  },
+  "menu_reset": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "chime; 310 Hz; 0.55s; pitch sweep 0.6"
+  },
+  "menu_return": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "chime; 550 Hz; 0.6s; pitch sweep 0.3"
+  },
+  "menu_notice": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "wood; 390 Hz; 0.12s; pitch sweep -0.15"
+  },
+  "shot_rapid": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "wood; 1250 Hz; 0.09s; pitch sweep -0.65"
+  },
+  "impact_rapid": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "wood; 787.5 Hz; 0.11699999999999999s; pitch sweep 0.65"
+  },
+  "shot_splash": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "fire; 140 Hz; 0.32s; pitch sweep -0.5"
+  },
+  "impact_splash": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "fire; 88.2 Hz; 0.35s; pitch sweep 0.5"
+  },
+  "shot_heavy": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "orb; 180 Hz; 0.38s; pitch sweep -0.35"
+  },
+  "impact_heavy": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "orb; 113.4 Hz; 0.35s; pitch sweep 0.35"
+  },
+  "shot_electric": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "arc; 760 Hz; 0.12s; pitch sweep -0.6"
+  },
+  "shot_frostneedle": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "chime; 1800 Hz; 0.15s; pitch sweep -0.2"
+  },
+  "impact_frostneedle": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "chime; 1134.0 Hz; 0.195s; pitch sweep 0.2"
+  },
+  "upgrade_frostneedle": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "chime; 2160.0 Hz; 0.55s; pitch sweep 0.8"
+  },
+  "shot_thorn_volley": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "wood; 920 Hz; 0.19s; pitch sweep -0.6"
+  },
+  "impact_thorn_volley": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "wood; 579.6 Hz; 0.24700000000000003s; pitch sweep 0.6"
+  },
+  "upgrade_thorn_volley": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "wood; 1104.0 Hz; 0.55s; pitch sweep 0.8"
+  },
+  "shot_cinderfield": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "fire; 110 Hz; 0.44s; pitch sweep -0.4"
+  },
+  "impact_cinderfield": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "fire; 69.3 Hz; 0.35s; pitch sweep 0.4"
+  },
+  "upgrade_cinderfield": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "fire; 132.0 Hz; 0.55s; pitch sweep 0.8"
+  },
+  "shot_rupture_pyre": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "fire; 78 Hz; 0.42s; pitch sweep -0.7"
+  },
+  "impact_rupture_pyre": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "fire; 49.14 Hz; 0.35s; pitch sweep 0.7"
+  },
+  "upgrade_rupture_pyre": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "fire; 93.6 Hz; 0.55s; pitch sweep 0.8"
+  },
+  "shot_grave_echo": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "orb; 290 Hz; 0.44s; pitch sweep 0.4"
+  },
+  "impact_grave_echo": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "orb; 182.7 Hz; 0.35s; pitch sweep -0.4"
+  },
+  "upgrade_grave_echo": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "orb; 348.0 Hz; 0.55s; pitch sweep 0.8"
+  },
+  "shot_doomstone": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "orb; 85 Hz; 0.48s; pitch sweep -0.3"
+  },
+  "impact_doomstone": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "orb; 53.55 Hz; 0.35s; pitch sweep 0.3"
+  },
+  "upgrade_doomstone": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "orb; 102.0 Hz; 0.55s; pitch sweep 0.8"
+  },
+  "shot_tempest_web": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "arc; 1100 Hz; 0.22s; pitch sweep -0.4"
+  },
+  "upgrade_tempest_web": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "arc; 1320.0 Hz; 0.55s; pitch sweep 0.8"
+  },
+  "shot_thunderseal": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "arc; 530 Hz; 0.18s; pitch sweep 0.7"
+  },
+  "upgrade_thunderseal": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "arc; 636.0 Hz; 0.55s; pitch sweep 0.8"
+  },
+  "power_seal": {
+    "category": "towers",
+    "cooldown": 0.3,
+    "description": "arc; 120 Hz; 0.45s; pitch sweep -0.3"
+  },
+  "power_fragments": {
+    "category": "towers",
+    "cooldown": 0.3,
+    "description": "chime; 980 Hz; 0.25s; pitch sweep -0.3"
+  },
+  "power_ignite": {
+    "category": "towers",
+    "cooldown": 0.3,
+    "description": "fire; 95 Hz; 0.5s; pitch sweep -0.3"
+  },
+  "death_basic": {
+    "category": "enemies",
+    "cooldown": 0.28,
+    "description": "wood; 240 Hz; 0.13s; pitch sweep -0.5"
+  },
+  "death_fast": {
+    "category": "enemies",
+    "cooldown": 0.28,
+    "description": "air; 620 Hz; 0.13s; pitch sweep -0.5"
+  },
+  "death_heavy": {
+    "category": "enemies",
+    "cooldown": 0.28,
+    "description": "wood; 100 Hz; 0.13s; pitch sweep -0.5"
+  },
+  "death_lantern": {
+    "category": "enemies",
+    "cooldown": 0.28,
+    "description": "chime; 960 Hz; 0.13s; pitch sweep -0.5"
+  },
+  "death_shade": {
+    "category": "enemies",
+    "cooldown": 0.28,
+    "description": "air; 380 Hz; 0.13s; pitch sweep -0.5"
+  },
+  "death_sentinel": {
+    "category": "enemies",
+    "cooldown": 0.28,
+    "description": "orb; 150 Hz; 0.13s; pitch sweep -0.5"
+  },
+  "escape": {
+    "category": "enemies",
+    "cooldown": 0.45,
+    "description": "orb; 170 Hz; 0.19s; pitch sweep -0.5"
+  },
+  "boss_warden_step": {
+    "category": "bosses",
+    "cooldown": 0.9,
+    "description": "wood; 85 Hz; 0.3s; pitch sweep -0.2"
+  },
+  "boss_warden_awaken": {
+    "category": "bosses",
+    "cooldown": 1.5,
+    "description": "wood; 127.5 Hz; 1.2s; pitch sweep 0.5"
+  },
+  "boss_warden_death": {
+    "category": "bosses",
+    "cooldown": 0.8,
+    "description": "wood; 68.0 Hz; 1.5s; pitch sweep -0.7"
+  },
+  "boss_warden_ability": {
+    "category": "bosses",
+    "cooldown": 0.7,
+    "description": "wood; 170 Hz; 0.8s; pitch sweep 0.3"
+  },
+  "boss_warden_break": {
+    "category": "bosses",
+    "cooldown": 0.4,
+    "description": "wood; 237.99999999999997 Hz; 0.4s; pitch sweep -0.6"
+  },
+  "boss_warden_escape": {
+    "category": "bosses",
+    "cooldown": 0.7,
+    "description": "wood; 59.49999999999999 Hz; 0.65s; pitch sweep -0.4"
+  },
+  "boss_cindermaw_step": {
+    "category": "bosses",
+    "cooldown": 0.9,
+    "description": "fire; 65 Hz; 0.3s; pitch sweep -0.2"
+  },
+  "boss_cindermaw_awaken": {
+    "category": "bosses",
+    "cooldown": 1.5,
+    "description": "fire; 97.5 Hz; 1.2s; pitch sweep 0.5"
+  },
+  "boss_cindermaw_death": {
+    "category": "bosses",
+    "cooldown": 0.8,
+    "description": "fire; 52.0 Hz; 1.5s; pitch sweep -0.7"
+  },
+  "boss_cindermaw_ability": {
+    "category": "bosses",
+    "cooldown": 0.7,
+    "description": "fire; 130 Hz; 0.8s; pitch sweep 0.3"
+  },
+  "boss_cindermaw_escape": {
+    "category": "bosses",
+    "cooldown": 0.7,
+    "description": "fire; 45.5 Hz; 0.65s; pitch sweep -0.4"
+  },
+  "boss_bell_step": {
+    "category": "bosses",
+    "cooldown": 0.9,
+    "description": "chime; 210 Hz; 0.3s; pitch sweep -0.2"
+  },
+  "boss_bell_awaken": {
+    "category": "bosses",
+    "cooldown": 1.5,
+    "description": "chime; 315.0 Hz; 1.2s; pitch sweep 0.5"
+  },
+  "boss_bell_death": {
+    "category": "bosses",
+    "cooldown": 0.8,
+    "description": "chime; 168.0 Hz; 1.5s; pitch sweep -0.7"
+  },
+  "boss_bell_ability": {
+    "category": "bosses",
+    "cooldown": 0.7,
+    "description": "chime; 420 Hz; 0.8s; pitch sweep 0.3"
+  },
+  "boss_bell_escape": {
+    "category": "bosses",
+    "cooldown": 0.7,
+    "description": "chime; 147.0 Hz; 0.65s; pitch sweep -0.4"
+  },
+  "boss_prior_step": {
+    "category": "bosses",
+    "cooldown": 0.9,
+    "description": "orb; 145 Hz; 0.3s; pitch sweep -0.2"
+  },
+  "boss_prior_awaken": {
+    "category": "bosses",
+    "cooldown": 1.5,
+    "description": "orb; 217.5 Hz; 1.2s; pitch sweep 0.5"
+  },
+  "boss_prior_death": {
+    "category": "bosses",
+    "cooldown": 0.8,
+    "description": "orb; 116.0 Hz; 1.5s; pitch sweep -0.7"
+  },
+  "boss_prior_ability": {
+    "category": "bosses",
+    "cooldown": 0.7,
+    "description": "orb; 290 Hz; 0.8s; pitch sweep 0.3"
+  },
+  "boss_prior_break": {
+    "category": "bosses",
+    "cooldown": 0.4,
+    "description": "orb; 406.0 Hz; 0.4s; pitch sweep -0.6"
+  },
+  "boss_prior_escape": {
+    "category": "bosses",
+    "cooldown": 0.7,
+    "description": "orb; 101.5 Hz; 0.65s; pitch sweep -0.4"
+  },
+  "lantern_watch": {
+    "category": "music",
+    "cooldown": 0,
+    "description": "The Lantern Watch \u2014 original 64-second circular ambient score"
+  }
+}

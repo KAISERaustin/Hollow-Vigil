@@ -25,13 +25,15 @@ var opener: Control
 
 func _ready() -> void:
 	var layout := VBoxContainer.new()
+	layout.add_theme_constant_override("separation", 8)
 	add_child(layout)
 	header_content = UI.margin(layout, 16)
 	action_footer = UI.margin(layout, 16)
+	header_content.get_parent().add_theme_constant_override("margin_top", 12)
+	header_content.get_parent().add_theme_constant_override("margin_bottom", 0)
+	action_footer.get_parent().add_theme_constant_override("margin_top", 0)
+	action_footer.get_parent().add_theme_constant_override("margin_bottom", 12)
 	content_scroll = ScrollContainer.new()
-	var scroll_inset := StyleBoxEmpty.new()
-	scroll_inset.content_margin_right = 8
-	content_scroll.add_theme_stylebox_override("panel", scroll_inset)
 	content_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	content_scroll.follow_focus = true
 	UI.keyboard_scroll(content_scroll, "Menu contents")
@@ -40,6 +42,8 @@ func _ready() -> void:
 	layout.add_child(content_scroll)
 	layout.move_child(action_footer.get_parent(), -1)
 	sheet_content = UI.margin(content_scroll, 16)
+	sheet_content.get_parent().add_theme_constant_override("margin_top", 0)
+	sheet_content.get_parent().add_theme_constant_override("margin_bottom", 0)
 	sheet_content.get_parent().size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sheet_content.minimum_size_changed.connect(func():
 		if visible:
@@ -96,6 +100,9 @@ func clear_sheet(title: String, subtitle: String = "") -> void:
 func fit_sheet() -> void:
 	if not self.visible:
 		return
+	# Empty scroll containers still reserve margins and spacing in the sheet.
+	content_scroll.visible = sheet_content.get_child_count() > 0
+	sheet_content.get_parent().add_theme_constant_override("margin_bottom", 0 if action_footer.get_parent().visible else 12)
 	if mode == "reset":
 		self.size.x = minf(460.0, UI.safe_rect(app).size.x - 32.0)
 		var content_height := sheet_height()
@@ -107,7 +114,7 @@ func fit_sheet() -> void:
 	self.position.x = UI.safe_rect(app).position.x + (UI.safe_rect(app).size.x - self.size.x) * 0.5
 	var heights := {"build": 500.0, "expand": 290.0, "rift": 470.0, "core": 310.0, "settings": 520.0, "developer": 660.0}
 	var desired_height: float = heights.get(mode, 340.0)
-	if mode in ["build", "expand", "rift"]:
+	if mode in ["build", "expand", "rift", "settings"]:
 		# Keep gameplay panels as small as their controls allow.
 		desired_height = sheet_height()
 		# sheet_height already includes the visible layout gaps and panel border.
@@ -288,6 +295,7 @@ func show_core() -> void:
 	close_sheet()
 	mode = "core"
 	clear_sheet("Core")
+	sheet_content.add_child(UI.paragraph("Enemies that reach the core escape. Build and upgrade towers along the roads to stop them.", 14))
 
 func return_to_core() -> void:
 	field.camera = VigilWorld.CORE_POSITION
@@ -300,7 +308,11 @@ func show_settings() -> void:
 	if mode == "developer":
 		app.persist()
 	mode = "settings"
-	clear_sheet("Settings", "Raise sentinels, gather gold, and expand your vigil beyond the mist.")
+	clear_sheet("Settings")
+	var sound := preload("res://scripts/audio/audio_settings.gd").new()
+	sound.app = app
+	sheet_content.add_child(sound)
+	sheet_content.add_child(UI.rule())
 	var developer := UI.button("Developer Controls", show_developer_controls)
 	developer.name = "OpenDeveloperControls"
 	sheet_content.add_child(developer)

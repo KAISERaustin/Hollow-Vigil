@@ -1,6 +1,8 @@
 class_name VigilCombat
 extends RefCounted
 
+signal sound_requested(cue: String, position: Vector2)
+
 const Bosses = preload("res://scripts/model/bosses.gd")
 const AttackEffects = preload("res://scripts/rendering/attack_effects.gd")
 
@@ -64,12 +66,16 @@ func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = ""
 	if enemy.dead or not is_finite(damage) or damage <= 0.0 or not data.towers.has(tower_id):
 		return false
 	if enemy.get("boss", false):
+		var protection: float = enemy.get("shield", 0.0) + enemy.get("wards", 0)
 		damage = Bosses.damage(enemy, damage, branch, fire, tuning)
+		if protection > 0.0 and enemy.get("shield", 0.0) + enemy.get("wards", 0) <= 0.0:
+			sound_requested.emit("boss_" + enemy.kind + "_break", enemy.pos)
 	enemy.hp -= damage
 	if enemy.hp > 0.0:
 		return false
 	# Mark dead synchronously before any credit, so splash and simultaneous shots are safe.
 	enemy.dead = true
+	sound_requested.emit("boss_" + enemy.kind + "_death" if enemy.get("boss", false) else "death_" + enemy.kind, enemy.pos)
 	var is_boss: bool = enemy.get("boss", false)
 	var reward: float = Balance.tuned_value("bosses", enemy.kind, "payout", tuning) if is_boss else Balance.tuned_value("enemies", enemy.kind, "payout", tuning)
 	if enemy.has("summoner"):
@@ -177,6 +183,7 @@ func tick(delta: float) -> void:
 						p = e.path
 						continue
 					e.dead = true
+					sound_requested.emit("boss_" + e.kind + "_escape" if e.get("boss", false) else "escape", e.pos)
 					if e.get("boss", false):
 						Bosses.record(self, e.source).boss = {"status": "escaped", "kind": e.kind}
 					data.escapes += 1.0
@@ -212,6 +219,8 @@ func tick(delta: float) -> void:
 	for t in data.towers.values():
 		if t.get("rebuild_remaining", 0.0) > 0.0:
 			t.rebuild_remaining = maxf(0.0, t.rebuild_remaining - delta)
+			if t.rebuild_remaining <= 0.0:
+				sound_requested.emit("menu_ready", VigilWorld.pad_position(t.region, t.pad))
 			continue
 		t.cooldown = maxf(0.0, t.cooldown - delta)
 		# Decimal tier intervals can leave tiny positive floating-point residue.
@@ -227,6 +236,10 @@ func tick(delta: float) -> void:
 			target = select_target(candidates, pos, stats.range, t.get("target_mode", "first"))
 		if target.is_empty():
 			continue
+		var voice: String = t.get("branch", "")
+		if voice.is_empty():
+			voice = t.kind
+		sound_requested.emit("shot_" + voice, pos)
 		if t.get("target_mode", "first") == "most_hp":
 			target_locks[t.id] = target.id
 		t.cooldown = stats.period
@@ -304,6 +317,15 @@ func advance_shots(delta: float) -> void:
 	pending_shots.append_array(flying)
 
 func resolve_shot(shot: Dictionary, target: Dictionary) -> void:
+	if data.towers.has(shot.tower_id) and not shot.fx.get("fragment", false):
+		var kind: String = shot.fx.get("tower_kind", data.towers[shot.tower_id].kind)
+		var voice: String = shot.get("branch", "")
+		if voice.is_empty():
+			voice = kind
+		# Use the launched projectile's voice even if its tower upgrades in flight.
+		# Lightning's attack already is its impact. Avoid five simultaneous cues.
+		if kind != "electric":
+			sound_requested.emit("impact_" + voice, shot.fx.pos)
 	if shot.radius > 0.0:
 		for enemy in nearby_enemies(shot.fx.pos, shot.radius):
 			if not enemy.dead and shot.fx.pos.distance_squared_to(enemy.pos) <= shot.radius * shot.radius:
@@ -408,6 +430,7 @@ func branch_hit(shot: Dictionary, enemy: Dictionary) -> void:
 			var charges: Dictionary = enemy.get("charges", {})
 			charges[shot.tower_id] = int(charges.get(shot.tower_id, 0)) + 1
 			if charges[shot.tower_id] >= ability.seal_hits:
+				sound_requested.emit("power_seal", enemy.pos)
 				charges[shot.tower_id] = 0
 				var bell: bool = enemy.get("boss", false) and enemy.kind == "bell"
 				hit(enemy, damage * (Balance.tuned_value("bosses", "bell", "seal_multiplier", tuning) if bell else ability.seal_damage), shot.tower_id, branch)
@@ -437,6 +460,7 @@ func push_back(enemy: Dictionary, distance: float) -> void:
 		enemy_index.moved(enemy)
 
 func ignite(shot: Dictionary) -> void:
+	sound_requested.emit("power_ignite", shot.fx.pos)
 	var ability := Balance.tower_stats(data.towers[shot.tower_id], tuning)
 	var patch := {"tower_id": shot.tower_id, "pos": shot.fx.pos, "radius": shot.radius, "until": simulation_time + ability.get("burn_duration", 3.0), "damage": shot.damage * ability.get("burn_multiplier", 1.0 / 2.25)}
 	for existing in burning_ground:
@@ -474,6 +498,7 @@ func advance_fire(delta: float) -> void:
 				hit(enemy, patch.damage * delta, patch.tower_id, "cinderfield", true)
 
 func launch_fragments(shot: Dictionary) -> void:
+	sound_requested.emit("power_fragments", shot.fx.pos)
 	var ability := Balance.tower_stats(data.towers[shot.tower_id], tuning)
 	var limit := int(ability.get("fragment_count", 5))
 	if limit == 0:

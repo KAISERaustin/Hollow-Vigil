@@ -1,6 +1,8 @@
 class_name VigilEconomy
 extends RefCounted
 
+signal sound_requested(cue: String, position: Vector2)
+
 signal tower_upgraded(region: String, pad: int, kind: String)
 
 var data: Dictionary
@@ -67,7 +69,9 @@ func build(kind: String, region: String, pad: int) -> String:
 		return ""
 	if not spend(Balance.tuned_value("towers", kind, "cost", tuning)):
 		return ""
-	return _add_tower(kind, region, pad)
+	var id := _add_tower(kind, region, pad)
+	sound_requested.emit("menu_build", Vector2.INF)
+	return id
 
 func upgrade(id: String, expected_level: int = -1, branch: String = "") -> bool:
 	if not data.towers.has(id):
@@ -82,6 +86,7 @@ func upgrade(id: String, expected_level: int = -1, branch: String = "") -> bool:
 	t.level += 1
 	if t.level == 4:
 		t.branch = branch
+	sound_requested.emit("menu_upgrade" if branch == "" else "upgrade_" + branch, Vector2.INF)
 	tower_upgraded.emit(t.region, int(t.pad), t.kind)
 	return true
 
@@ -97,6 +102,7 @@ func relocate(id: String, region: String, pad: int, expected_level: int = -1) ->
 	tower.region = region
 	tower.pad = pad
 	tower.rebuild_remaining = Balance.rebuild_seconds(tower, tuning)
+	sound_requested.emit("menu_move", Vector2.INF)
 	tower.cooldown = 0.0
 	# Old firing positions cannot demonstrate production at the new socket.
 	for source in data.regions.values():
@@ -120,6 +126,7 @@ func sell(id: String, expected_level: int = -1) -> Dictionary:
 	for region in data.regions.values():
 		region.history.erase(id)
 	data.balance = minf(Balance.MAX_MONEY, data.balance + refund + earnings)
+	sound_requested.emit("menu_sell", Vector2.INF)
 	return {"refund": refund, "earnings": earnings, "total": refund + earnings}
 
 func spawn_period(id: String) -> float:
@@ -132,6 +139,7 @@ func buy_traffic(id: String, expected_level: int = -1) -> bool:
 	if (expected_level != -1 and r.traffic != expected_level) or r.traffic >= Balance.MAX_TRAFFIC_LEVEL or not spend(traffic_cost(id)):
 		return false
 	r.traffic += 1
+	sound_requested.emit("menu_traffic", Vector2.INF)
 	return true
 
 func unlock(id: String, kind: String) -> bool:
@@ -142,12 +150,14 @@ func unlock(id: String, kind: String) -> bool:
 	if not spend(Balance.UNLOCK_COSTS[kind]):
 		return false
 	data.regions[id].unlocks.append(kind)
+	sound_requested.emit("menu_unlock", Vector2.INF)
 	return true
 
 func buy_automation() -> bool:
 	if data.automation or not spend(Balance.AUTOMATION_COST):
 		return false
 	data.automation = true
+	sound_requested.emit("menu_automation", Vector2.INF)
 	return true
 
 func collect(id: String = "") -> float:

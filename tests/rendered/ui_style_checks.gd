@@ -82,7 +82,7 @@ func run() -> void:
 					for action in app.panels.action_footer.get_children():
 						if action is Button and not bounds.encloses(action.get_global_rect()): failures.append(label + ": action inaccessible")
 				if app.tower_dialog.visible and not bounds.encloses(app.tower_dialog.confirm.get_global_rect()): failures.append(label + ": confirm inaccessible")
-				if screen == "tower-info" and app.tower_dialog.scroll.get_v_scroll_bar().visible:
+				if screen == "tower-info" and app.tower_dialog.body.size.y > app.tower_dialog.scroll.size.y:
 					var scroll := app.tower_dialog.scroll
 					scroll.grab_focus()
 					var key := InputEventKey.new()

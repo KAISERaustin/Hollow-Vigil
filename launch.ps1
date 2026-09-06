@@ -71,6 +71,7 @@ try {
         if ($Tests -or $Check) {
             Invoke-Godot -Name 'branches' -EngineArguments @('--headless', '--script', 'res://tests/branch_runner.gd')
             Invoke-Godot -Name 'first-property' -EngineArguments @('--headless', '--script', 'res://tests/first_property_runner.gd')
+            Invoke-Godot -Name 'audio' -EngineArguments @('--headless', '--script', 'res://tests/audio_runner.gd')
             Invoke-Godot -Name 'unit' -EngineArguments @('--headless', '--script', 'res://tests/test_runner.gd')
         }
         if ($Smoke -or $Check) {
@@ -78,6 +79,7 @@ try {
         }
         if ($StyleTests -or $Check) {
             Invoke-Godot -Name 'ui-style' -EngineArguments @('--script', 'res://tests/rendered/ui_style_checks.gd')
+            Invoke-Godot -Name 'menu-layout' -EngineArguments @('--script', 'res://tests/rendered/menu_layout_checks.gd')
         }
         if ($TerrainTests -or $Check) {
             Invoke-Godot -Name 'terrain' -EngineArguments @('--script', 'res://tests/rendered/terrain_palette_checks.gd')
