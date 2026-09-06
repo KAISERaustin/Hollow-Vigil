@@ -27,7 +27,8 @@ func run() -> void:
 	s.game.save_path = "user://cloud-live-" + Codec.uuid() + ".save"
 	s.enabled = false
 	root.add_child(s)
-	var address := OS.get_environment("HOLLOW_CLOUD_EMAIL")
+	var address := OS.get_environment("HOLLOW_QA_EMAIL")
+	if address.is_empty(): address = OS.get_environment("HOLLOW_CLOUD_EMAIL")
 	if address.is_empty():
 		push_error("Set HOLLOW_CLOUD_EMAIL and HOLLOW_CLOUD_CODE, or pass --send-code")
 		quit(1)
@@ -38,7 +39,14 @@ func run() -> void:
 		finish()
 		return
 	s.email = address
-	await s.verify_link(OS.get_environment("HOLLOW_CLOUD_CODE"))
+	var password := OS.get_environment("HOLLOW_QA_PASSWORD")
+	if not password.is_empty():
+		OS.set_environment("HOLLOW_QA_PASSWORD", "")
+		var session: Dictionary = await s._request("/auth/v1/token?grant_type=password", {"email": address, "password": password}, false)
+		password = ""
+		if session.ok and s._accept_session(session.data): await s.refresh_worlds()
+	else:
+		await s.verify_link(OS.get_environment("HOLLOW_CLOUD_CODE"))
 	if not check(s.signed_in() and s.status.begins_with("Signed in"), "Email verification and authenticated listing"):
 		finish()
 		return
@@ -113,6 +121,13 @@ func run() -> void:
 	while s.busy: await process_frame
 	check(s.game.data.cloud.revision == 5, "Automatic minute sync")
 	s.enabled = false
+	s.game.set_balance_stat("enemies", "basic", "hp", 200.0)
+	s.game.data.mode = "survival"
+	s.game.data.setup = {"name": "Live custom rules", "description": "QA cloud round trip"}
+	await s.sync_now()
+	read = await s._rpc("read_save", {"world": wid})
+	decoded = Codec.new().decode(read.data.payload)
+	check(s.game.data.cloud.revision == 6 and not decoded.is_empty() and decoded.mode == "survival" and decoded.settings.developer_balance == s.game.tuning and decoded.setup == s.game.data.setup, "Custom Survival rules and configuration round trip through live API")
 	s.sign_out()
 	await s.sync_now()
 	check(not s.signed_in() and s.game.save(), "Sign-out stops sync and local saving continues")
