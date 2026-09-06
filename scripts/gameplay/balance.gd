@@ -1,6 +1,8 @@
 class_name Balance
 extends RefCounted
 
+const Content = preload("res://scripts/content/registry.gd")
+
 const VERSION := 2
 const TARGET_MODES := {"first": "First", "last": "Last", "most_hp": "Most HP"}
 const TILE := 300.0
@@ -22,135 +24,63 @@ const MOVE_COST_RATIO := 0.2
 const MAX_REBUILD_SECONDS := 180.0
 const REBUILD_SECONDS_PER_LEVEL := 15.0
 const MIN_PRODUCTION_SAMPLE := 60.0
-const UNLOCK_COSTS := {"fast": 90.0, "heavy": 180.0, "lantern": 140.0}
-const ENEMY_SHARES := {"fast": 0.30, "heavy": 0.18, "lantern": 0.16}
-const NORMAL_KINDS := ["basic", "fast", "heavy", "lantern"]
-const DUNGEON_KINDS := ["shade", "sentinel"]
-const ORCHARD_KINDS := ["briarling", "veil_widow", "coffinbound"]
-# Stable numeric escort choices intentionally exclude portal-exclusive orchard foes.
-const ESCORT_KINDS := NORMAL_KINDS + DUNGEON_KINDS
-const ENEMIES := {
-	"basic": {"name": "Hollow", "role": "COMMON", "description": "A steady traveler from every rift. Its sturdy body rewards upgrading your sentinels.", "push_resistance": 0.0, "hp": 45.0, "speed": 39.0, "payout": 5.0, "color": "e8ddbd"},
-	"fast": {"name": "Wraith", "role": "FAST", "description": "A swift spirit with less health than other foes. Its speed gives your towers less time to strike before it reaches the core.", "push_resistance": 0.0, "hp": 36.0, "speed": 74.0, "payout": 8.0, "color": "93c9bc"},
-	"heavy": {"name": "Revenant", "role": "DURABLE", "description": "A slow, resilient foe with a rich bounty. High-damage towers help cut through its large health pool.", "push_resistance": 75.0, "hp": 340.0, "speed": 25.0, "payout": 24.0, "color": "db8d73"},
-	"lantern": {"name": "Lantern Keeper", "role": "STEADFAST", "description": "A hooded pilgrim carrying a stolen ember through the rifts. Tougher than a Hollow and quicker than a Revenant, it rewards sustained fire with a generous bounty.", "push_resistance": 0.0, "hp": 120.0, "speed": 46.0, "payout": 14.0, "color": "b49dcc"},
-	"shade": {"name": "Abyss Shade", "role": "DUNGEON · SWIFT", "description": "A swift shadow born only in castle ruin portals. Its dense shroud withstands sustained fire.", "push_resistance": 0.0, "hp": 240.0, "speed": 56.0, "payout": 30.0, "color": "9182ad"},
-	"sentinel": {"name": "Crypt Sentinel", "role": "DUNGEON · ARMORED", "description": "A dark iron guardian summoned only by castle ruin portals. A deep health pool guards a rich bounty.", "push_resistance": 0.0, "hp": 680.0, "speed": 28.0, "payout": 55.0, "color": "74798c"},
-	"briarling": {"name": "Briarling", "role": "ORCHARD · SWIFT", "description": "A bone-faced thornling that darts from the Mourning Orchard’s only portal. Fast attacks and slowing needles catch its fragile wooden frame.", "push_resistance": 0.0, "hp": 85.0, "speed": 86.0, "payout": 13.0, "color": "b9bd8a"},
-	"veil_widow": {"name": "Veil Widow", "role": "ORCHARD · ENDURING", "description": "A mourning spirit in a split burial veil, born only through the Orchard portal. Its steady pace and dense shroud reward sustained fire.", "push_resistance": 25.0, "hp": 260.0, "speed": 43.0, "payout": 28.0, "color": "c4b6b1"},
-	"coffinbound": {"name": "Coffinbound", "role": "ORCHARD · ROOTED", "description": "A walking coffin lashed shut with pale roots. Only the Orchard portal releases it. Slow, durable, and resistant to knockback; heavy damage breaks its shell.", "push_resistance": 90.0, "hp": 820.0, "speed": 22.0, "payout": 64.0, "color": "a5aa73"}
-}
-const BOSSES := {
-	"warden": {"name": "Briarbound Warden", "push_resistance": 0.0, "hp": 3200.0, "speed": 27.0, "payout": 450.0, "color": "95aa83", "weakness": "Cinderfield: burns roots; blocks regrowth", "shield": 600.0, "regen_period": 10.0, "fire_multiplier": 2.0, "regrowth_suppression": 100.0},
-	"cindermaw": {"name": "The Cinder Reliquary", "push_resistance": 0.0, "hp": 3600.0, "speed": 25.0, "payout": 500.0, "color": "db8d73", "weakness": "Frostneedle: +50% damage; quenches haste", "rage_threshold": 50.0, "haste_multiplier": 1.7, "armor_reduction": 30.0, "frost_multiplier": 1.5, "quench": 100.0},
-	"bell": {"escort_kind": 0, "name": "The Drowned Bell", "push_resistance": 0.0, "hp": 2800.0, "speed": 32.0, "payout": 450.0, "color": "93c9bc", "weakness": "Thunderseal: stronger seals; delays tolls", "toll_period": 8.0, "escort_count": 3, "escort_limit": 6, "seal_multiplier": 4.5, "toll_delay": 2.0},
-	"prior": {"name": "The Eclipse Prior", "push_resistance": 0.0, "hp": 3000.0, "speed": 30.0, "payout": 500.0, "color": "b49dcc", "weakness": "Doomstone: bypasses wards; curses regrowth", "wards": 3, "regen_period": 10.0, "doom_bypass": 1, "curse_threshold": 5, "regrowth_suppression": 100.0}
-}
+const UNLOCK_COSTS = preload("res://scripts/content/catalogs/actors.gd").UNLOCK_COSTS
 
-const TOWERS := {
-	"rapid": {"name": "Ashneedle", "role": "RAPID", "cost": 60.0, "damage": 6.0, "period": 0.48, "range": 132.0, "splash": 0.0, "color": "e0b568", "description": "Swift pointed darts cut through hollows and wraiths."},
-	"splash": {"name": "Pyre", "role": "SPLASH", "cost": 120.0, "damage": 15.0, "period": 1.5, "range": 126.0, "splash": 46.0, "color": "db8d73", "description": "Flame waves burst on impact, striking every enemy within the blast radius."},
-	"heavy": {"name": "Obelisk", "role": "HEAVY", "cost": 160.0, "damage": 40.0, "period": 1.8, "range": 157.0, "splash": 0.0, "color": "b49dcc", "description": "Large magic orbs reach distant foes and deal heavy damage to resilient enemies."},
-	"electric": {"name": "Stormspire", "role": "MULTI-TARGET", "cost": 140.0, "damage": 3.0, "period": 0.4, "range": 145.0, "splash": 0.0, "targets": 5, "color": "91bbff", "description": "Forked lightning zaps up to {targets} enemies at a time within reach, of any troop type."}
-}
+const ENEMY_SHARES = preload("res://scripts/content/catalogs/actors.gd").ENEMY_SHARES
+
+const NORMAL_KINDS = preload("res://scripts/content/catalogs/actors.gd").NORMAL_KINDS
+
+const DUNGEON_KINDS = preload("res://scripts/content/catalogs/actors.gd").DUNGEON_KINDS
+
+const ORCHARD_KINDS = preload("res://scripts/content/catalogs/actors.gd").ORCHARD_KINDS
+
+# Stable numeric escort choices intentionally exclude portal-exclusive orchard foes.
+const ESCORT_KINDS = preload("res://scripts/content/catalogs/actors.gd").ESCORT_KINDS
+
+const ENEMIES = preload("res://scripts/content/catalogs/actors.gd").ENEMIES
+
+const BOSSES = preload("res://scripts/content/catalogs/actors.gd").BOSSES
+
+const TOWERS = preload("res://scripts/content/catalogs/towers.gd").TOWERS
 
 # Shared by ordinary projectiles, branch volleys and cosmetic shot records.
-const PROJECTILES := {
-	"rapid": {"muzzle": Vector2(0, -25), "speed": 760.0, "min_flight": 0.10, "max_flight": 0.22, "impact_time": 0.09},
-	"splash": {"muzzle": Vector2(0, -29), "speed": 520.0, "min_flight": 0.17, "max_flight": 0.30, "impact_time": 0.24},
-	"heavy": {"muzzle": Vector2(0, -22), "speed": 470.0, "min_flight": 0.18, "max_flight": 0.36, "impact_time": 0.18},
-	"electric": {"muzzle": Vector2(0, -29), "speed": 760.0, "min_flight": 0.0, "max_flight": 0.0, "impact_time": 0.30}
-}
+const PROJECTILES = preload("res://scripts/content/catalogs/towers.gd").PROJECTILES
 
 # Linear upgrades lead to level 3; level 4 requires a specialization.
-const TOWER_UPGRADES := {
-	"rapid": [
-		{"cost": 60.0, "damage": 10.0, "period": 0.4, "range": 146.0, "splash": 0.0},
-		{"cost": 100.0, "damage": 15.0, "period": 0.3, "range": 160.0, "splash": 0.0}
-	],
-	"splash": [
-		{"cost": 120.0, "damage": 24.0, "period": 1.3, "range": 140.0, "splash": 56.0},
-		{"cost": 200.0, "damage": 36.0, "period": 1.1, "range": 154.0, "splash": 66.0}
-	],
-	"heavy": [
-		{"cost": 140.0, "damage": 60.0, "period": 1.35, "range": 173.0, "splash": 0.0},
-		{"cost": 220.0, "damage": 90.0, "period": 0.9, "range": 189.0, "splash": 0.0}
-	],
-	"electric": [
-		{"cost": 120.0, "damage": 5.0, "period": 0.35, "range": 159.0, "splash": 0.0, "targets": 5},
-		{"cost": 200.0, "damage": 7.0, "period": 0.3, "range": 173.0, "splash": 0.0, "targets": 5}
-	]
-}
+const TOWER_UPGRADES = preload("res://scripts/content/catalogs/towers.gd").TOWER_UPGRADES
 
 # Ordered left/right specializations. Costs are equal within each tower family.
-const BRANCHES := {
-	"rapid": {
-		"frostneedle": {"name": "Frostneedle", "color": "96d6e6", "cost": 180.0, "description": "Ice needles slow enemies by {slow_percent}% for {slow_duration} seconds. Repeated hits refresh the slow; they never stack."},
-		"thorn_volley": {"name": "Thorn Volley", "color": "93b979", "cost": 180.0, "description": "Fires {arrow_count} arrows in a wide fan, each dealing {damage} damage. The center aims at the target; fixed-angle outer arrows can hit surrounding enemies, but often miss."}
-	},
-	"splash": {
-		"cinderfield": {"name": "Cinderfield", "color": "f19b57", "cost": 320.0, "description": "Blasts leave burning ground for {burn_duration} seconds at {burn_dps} damage per second. Overlapping fire from this tower refreshes without stacking."},
-		"rupture_pyre": {"name": "Rupture Pyre", "color": "e6a16d", "cost": 320.0, "description": "Blasts deal {damage} damage every {period} seconds and push enemies back {push_distance} units, reduced by enemy resistance. Enemies resist another push for {push_immunity} seconds."}
-	},
-	"heavy": {
-		"grave_echo": {"name": "Grave Echo", "color": "c3a0ed", "cost": 360.0, "description": "A heavy orb bursts into {fragment_count} seeking fragments. Each deals {fragment_percent}% of its damage to a different enemy within {fragment_range} units. The original target is excluded; unused fragments fade."},
-		"doomstone": {"name": "Doomstone", "color": "c282bb", "cost": 360.0, "description": "Consecutive hits on one enemy increase this tower's damage by {curse_percent}% per curse stack, up to {curse_max_percent}% bonus. Switching targets resets the curse."}
-	},
-	"electric": {
-		"tempest_web": {"name": "Tempest Web", "color": "a9dce9", "cost": 300.0, "description": "Strikes up to {targets} enemies. Each strike arcs to one additional, distinct enemy within {arc_range} units for {arc_percent}% damage, reaching beyond normal range."},
-		"thunderseal": {"name": "Thunderseal", "color": "b3b5f1", "cost": 300.0, "description": "After {seal_hits} hits from this tower, a seal detonates for {seal_damage} times hit damage as a bonus and a {stun_duration}-second stun. Charges reset; {stun_immunity}-second stun immunity prevents continuous lockdown."}
-	}
-}
+const BRANCHES = preload("res://scripts/content/catalogs/towers.gd").BRANCHES
 
-const BRANCH_STAT_MULTIPLIERS := {
-	"cinderfield": {"damage": 0.75},
-	"rupture_pyre": {"damage": 1.5, "period": 1.5 / 1.1},
-	"grave_echo": {"damage": 110.0 / 90.0}
-}
+const BRANCH_STAT_MULTIPLIERS = preload("res://scripts/content/catalogs/towers.gd").BRANCH_STAT_MULTIPLIERS
 
-const ABILITIES := {
-	"frostneedle": {"slow_percent": 25.0, "slow_duration": 2.0},
-	"thorn_volley": {"arrow_count": 5, "fan_angle": 0.96},
-	"cinderfield": {"burn_duration": 3.0, "burn_multiplier": 0.4444444444444444},
-	"rupture_pyre": {"push_distance": 20.0, "push_immunity": 1.0},
-	"grave_echo": {"fragment_count": 5, "fragment_range": 90.0, "fragment_multiplier": 0.2},
-	"doomstone": {"curse_limit": 5, "curse_multiplier": 0.2},
-	"tempest_web": {"arc_range": 60.0, "arc_multiplier": 0.5},
-	"thunderseal": {"seal_hits": 5, "seal_damage": 3.0, "stun_duration": 0.4, "stun_immunity": 2.0}
-}
+const ABILITIES = preload("res://scripts/content/catalogs/towers.gd").ABILITIES
 
 static func valid_branch(kind: String, branch: String) -> bool:
-	return BRANCHES.has(kind) and BRANCHES[kind].has(branch)
+	var node := Content.tower(kind)
+	return node != null and node.valid_branch(branch)
 
 static func tower_stats(tower: Dictionary, tuning: Dictionary = {}) -> Dictionary:
 	return stats(tower.kind, tower.level, tuning, tower.get("branch", ""))
 
 # One schema drives the editor and save validation. Overrides belong to a save,
 # never to these shared defaults. Tower keys may identify a tier or branch.
-const RIFTS := {
-	"ashen_forge": {"name": "Forged Rift", "strength": 25.0},
-	"drowned_crypt": {"name": "Drowned Rift", "strength": 15.0},
-	"bloodmoon_sanctuary": {"name": "Bloodmoon Rift", "strength": 1.0}
-}
+const RIFTS = preload("res://scripts/content/catalogs/world.gd").RIFTS
 
 static func rift_strength(style: String, tuning: Dictionary = {}) -> float:
 	return tuned_value("rifts", style, "strength", tuning) if RIFTS.has(style) else 0.0
 
 static func portal_kinds(style: String) -> Array:
-	match style:
-		"castle_ruin": return DUNGEON_KINDS
-		"mourning_orchard": return ORCHARD_KINDS
-	return NORMAL_KINDS
+	var node := Content.portal(style)
+	return node.enemy_kinds() if node != null else NORMAL_KINDS.duplicate()
 
 static func exclusive_portal(style: String) -> bool:
-	return style in ["castle_ruin", "mourning_orchard"]
+	var node := Content.portal(style)
+	return node != null and node.is_exclusive()
 
 static func rift_name(style: String) -> String:
-	if style == "mourning_orchard":
-		return "Mourning Orchard Portal"
-	if style == "castle_ruin":
-		return "Castle Ruin Portal"
-	return RIFTS[style].name if RIFTS.has(style) else "Wild Rift"
+	var node := Content.portal(style)
+	return node.attribute("name") if node != null else "Wild Rift"
 
 static func rift_description(style: String, tuning: Dictionary = {}) -> String:
 	var amount := String.num(rift_strength(style, tuning), 2)
@@ -166,88 +96,9 @@ static func rift_description(style: String, tuning: Dictionary = {}) -> String:
 		"bloodmoon_sanctuary": return "Regeneration · Restores " + amount + "% of maximum health each second."
 	return "No effect · Enemies keep their normal stats."
 
-const GEAR := {
-	"warden": {"name": "Warden’s Rootheart", "root_period": 6.0, "root_duration": 0.75, "boss_root_duration": 0.35, "root_immunity": 3.0},
-	"cindermaw": {"name": "Ember Fang", "speed_per_stack": 8.0, "stack_limit": 5.0, "stack_timeout": 3.0},
-	"bell": {"name": "Tollstone", "attack_count": 4.0, "echo_multiplier": 0.5},
-	"prior": {"name": "Eclipse Shard", "attack_count": 5.0, "damage_multiplier": 1.5, "defense_bypass": 1.0}
-}
+const GEAR = preload("res://scripts/content/catalogs/gear.gd").GEAR
 
-const TUNING_FIELDS := {
-	"gear": {
-		"root_period": {"label": "Root attack interval", "suffix": " s", "min": 0.1, "max": 120.0, "step": 0.1},
-		"root_duration": {"label": "Enemy root duration", "suffix": " s", "min": 0.0, "max": 60.0, "step": 0.01},
-		"boss_root_duration": {"label": "Boss root duration", "suffix": " s", "min": 0.0, "max": 60.0, "step": 0.01},
-		"root_immunity": {"label": "Enemy root immunity", "suffix": " s", "min": 0.0, "max": 60.0, "step": 0.1},
-		"speed_per_stack": {"label": "Attack speed per stack", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
-		"stack_limit": {"label": "Maximum speed stacks", "suffix": "", "min": 0.0, "max": 100.0, "step": 1.0, "integer": true},
-		"stack_timeout": {"label": "Speed stack timeout", "suffix": " s", "min": 0.1, "max": 120.0, "step": 0.1},
-		"attack_count": {"label": "Attacks per activation", "suffix": "", "min": 1.0, "max": 100.0, "step": 1.0, "integer": true},
-		"echo_multiplier": {"label": "Echo damage", "suffix": "× hit damage", "min": 0.0, "max": 20.0, "step": 0.1},
-		"damage_multiplier": {"label": "Empowered damage", "suffix": "× hit damage", "min": 0.0, "max": 20.0, "step": 0.1},
-		"defense_bypass": {"label": "Bypass boss defenses (0 off, 1 on)", "suffix": "", "min": 0.0, "max": 1.0, "step": 1.0, "integer": true}
-	},
-	"bosses": {
-		"push_resistance": {"label": "Knockback resistance", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
-		"escort_kind": {"label": "Escort type: 0 Hollow, 1 Wraith, 2 Revenant, 3 Lantern, 4 Shade, 5 Sentinel", "suffix": "", "min": 0.0, "max": 5.0, "step": 1.0, "integer": true},
-		"hp": {"label": "Health", "suffix": " HP", "min": 1.0, "max": 100000.0, "step": 1.0},
-		"speed": {"label": "Move speed", "suffix": " units/s", "min": 1.0, "max": 250.0, "step": 1.0},
-		"payout": {"label": "Gold per defeat", "suffix": " gold", "min": 0.0, "max": 10000.0, "step": 1.0},
-		"shield": {"label": "Root shield", "suffix": " HP", "min": 0.0, "max": 10000.0, "step": 1.0},
-		"regen_period": {"label": "Defense regrowth interval", "suffix": " s", "min": 0.1, "max": 120.0, "step": 0.1},
-		"fire_multiplier": {"label": "Cinderfield shield damage", "suffix": "×", "min": 1.0, "max": 10.0, "step": 0.1},
-		"regrowth_suppression": {"label": "Counter-tower regrowth suppression", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
-		"rage_threshold": {"label": "Haste / armor health threshold", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
-		"haste_multiplier": {"label": "Low-health speed", "suffix": "×", "min": 1.0, "max": 5.0, "step": 0.1},
-		"armor_reduction": {"label": "High-health damage reduction", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
-		"frost_multiplier": {"label": "Frostneedle damage received", "suffix": "×", "min": 0.0, "max": 10.0, "step": 0.1},
-		"quench": {"label": "Frostneedle haste suppression", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
-		"toll_period": {"label": "Escort summon interval", "suffix": " s", "min": 0.1, "max": 120.0, "step": 0.1},
-		"escort_count": {"label": "Escorts per toll", "suffix": "", "min": 0.0, "max": 20.0, "step": 1.0, "integer": true},
-		"escort_limit": {"label": "Living escort limit", "suffix": "", "min": 0.0, "max": 50.0, "step": 1.0, "integer": true},
-		"seal_multiplier": {"label": "Thunderseal detonation damage", "suffix": "× hit damage", "min": 0.0, "max": 15.0, "step": 0.1},
-		"toll_delay": {"label": "Thunderseal toll delay", "suffix": " s", "min": 0.0, "max": 60.0, "step": 0.1},
-		"wards": {"label": "Protective wards", "suffix": " hits", "min": 0.0, "max": 20.0, "step": 1.0, "integer": true},
-		"doom_bypass": {"label": "Doomstone bypasses wards (0 off, 1 on)", "suffix": "", "min": 0.0, "max": 1.0, "step": 1.0, "integer": true},
-		"curse_threshold": {"label": "Doomstone stacks to suppress regrowth", "suffix": " stacks", "min": 0.0, "max": 100.0, "step": 1.0, "integer": true}
-	},
-	"rifts": {
-		"strength": {"label": "Effect strength", "suffix": "%", "min": 0.0, "max": 100.0, "step": 0.25}
-	},
-	"enemies": {
-		"push_resistance": {"label": "Knockback resistance", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
-		"hp": {"label": "Health", "suffix": " HP", "min": 1.0, "max": 100000.0, "step": 1.0},
-		"speed": {"label": "Move speed", "suffix": " units/s", "min": 1.0, "max": 250.0, "step": 1.0},
-		"payout": {"label": "Gold per defeat", "suffix": " gold", "min": 0.0, "max": 10000.0, "step": 1.0}
-	},
-	"towers": {
-		"targets": {"label": "Targets per attack", "suffix": "", "min": 1, "max": 50, "step": 1, "integer": true},
-		"slow_percent": {"label": "Slow strength (%)", "suffix": "", "min": 0, "max": 100, "step": 1},
-		"slow_duration": {"label": "Slow duration (s)", "suffix": "", "min": 0, "max": 60, "step": 0.1},
-		"arrow_count": {"label": "Arrows per volley", "suffix": "", "min": 1, "max": 31, "step": 1, "integer": true},
-		"fan_angle": {"label": "Fan spread (radians)", "suffix": "", "min": 0, "max": 3.14, "step": 0.01},
-		"burn_duration": {"label": "Burn duration (s)", "suffix": "", "min": 0.1, "max": 60, "step": 0.1},
-		"burn_multiplier": {"label": "Burn damage per second / hit damage", "suffix": "", "min": 0, "max": 10, "step": 0.01},
-		"push_distance": {"label": "Knockback distance", "suffix": "", "min": 0, "max": 300, "step": 1},
-		"push_immunity": {"label": "Knockback immunity (s)", "suffix": "", "min": 0, "max": 60, "step": 0.1},
-		"fragment_count": {"label": "Seeking fragments", "suffix": "", "min": 0, "max": 50, "step": 1, "integer": true},
-		"fragment_range": {"label": "Fragment reach", "suffix": "", "min": 0, "max": 600, "step": 1},
-		"fragment_multiplier": {"label": "Fragment damage / hit damage", "suffix": "", "min": 0, "max": 10, "step": 0.01},
-		"curse_limit": {"label": "Maximum curse stacks", "suffix": "", "min": 0, "max": 100, "step": 1, "integer": true},
-		"curse_multiplier": {"label": "Bonus damage per curse stack", "suffix": "", "min": 0, "max": 10, "step": 0.01},
-		"arc_range": {"label": "Chain lightning reach", "suffix": "", "min": 0, "max": 600, "step": 1},
-		"arc_multiplier": {"label": "Chain damage / hit damage", "suffix": "", "min": 0, "max": 10, "step": 0.01},
-		"seal_hits": {"label": "Hits per seal", "suffix": "", "min": 1, "max": 100, "step": 1, "integer": true},
-		"seal_damage": {"label": "Seal bonus / hit damage", "suffix": "", "min": 0, "max": 20, "step": 0.1},
-		"stun_duration": {"label": "Stun duration (s)", "suffix": "", "min": 0, "max": 60, "step": 0.1},
-		"stun_immunity": {"label": "Stun immunity (s)", "suffix": "", "min": 0, "max": 60, "step": 0.1},
-		"damage": {"label": "Damage per hit", "suffix": "", "min": 0.1, "max": 100000.0, "step": 0.1},
-		"period": {"label": "Attack interval", "suffix": " s", "min": 0.1, "max": 120.0, "step": 0.01},
-		"range": {"label": "Reach", "suffix": " units", "min": 10.0, "max": 600.0, "step": 1.0},
-		"cost": {"label": "Build / upgrade cost", "suffix": " gold", "min": 1.0, "max": 100000.0, "step": 1.0},
-		"splash": {"label": "Blast radius", "suffix": " units", "min": 0.0, "max": 300.0, "step": 1.0}
-	}
-}
+const TUNING_FIELDS = preload("res://scripts/content/catalogs/tuning.gd").TUNING_FIELDS
 
 static func fields_for(category: String, kind: String) -> Dictionary:
 	var result := {}
@@ -271,41 +122,23 @@ static func field_limits(category: String, kind: String, stat: String) -> Dictio
 	return limits
 
 static func definitions(category: String) -> Dictionary:
-	if category == "gear":
-		return GEAR
-	if category == "bosses":
-		return BOSSES
-	if category == "rifts":
-		return RIFTS
-	if category == "enemies":
-		return ENEMIES
-	return tower_definitions()
-
-static var tower_defaults: Dictionary = {}
+	return Content.catalog().definitions(category)
 
 static func tier_key(kind: String, level: int, branch: String = "") -> String:
 	return kind if level == 1 else kind + ":" + (branch if level == 4 else str(level))
 
 static func tower_definitions() -> Dictionary:
-	if not tower_defaults.is_empty():
-		return tower_defaults
-	for kind in TOWERS:
-		for level in range(1, 4):
-			var entry := _scaled_stats(kind, level)
-			entry.cost = TOWERS[kind].cost if level == 1 else TOWER_UPGRADES[kind][level - 2].cost
-			tower_defaults[tier_key(kind, level)] = entry
-		for branch in BRANCHES[kind]:
-			var entry := _scaled_stats(kind, 4, {}, branch)
-			entry.cost = BRANCHES[kind][branch].cost
-			tower_defaults[tier_key(kind, 4, branch)] = entry
-	return tower_defaults
+	return definitions("towers")
 
 static func tuned_value(category: String, kind: String, stat: String, tuning: Dictionary = {}) -> float:
-	return tuning.get(category, {}).get(kind, {}).get(stat, definitions(category)[kind][stat])
+	var node := Content.catalog().find(category, kind)
+	return tuning.get(category, {}).get(kind, {}).get(stat, node.attribute(stat))
 
 static func definition(category: String, kind: String, tuning: Dictionary = {}) -> Dictionary:
-	var result: Dictionary = definitions(category)[kind].duplicate()
-	result.merge(tuning.get(category, {}).get(kind, {}), true)
+	var node := Content.catalog().find(category, kind)
+	if node == null:
+		return {}
+	var result := node.definition(tuning)
 	if category == "towers":
 		result.description = tower_description(result)
 	return result
@@ -351,37 +184,10 @@ static func safe(value: Variant) -> float:
 	return clampf(float(value), 0.0, MAX_MONEY) if is_finite(float(value)) else 0.0
 
 static func _scaled_stats(kind: String, level: int, tuning: Dictionary = {}, branch: String = "") -> Dictionary:
-	var s: Dictionary = TOWERS[kind].duplicate()
-	s.merge(tuning.get("towers", {}).get(kind, {}), true)
-	s.targets = s.get("targets", 1)
-	var tier := clampi(level, 1, 3)
-	if tier == 1:
-		return s
-	var upgrade: Dictionary = TOWER_UPGRADES[kind][tier - 2]
-	if upgrade.has("targets"):
-		s.targets = tuning.get("towers", {}).get(kind, {}).get("targets", upgrade.targets)
-	for field in ["damage", "period", "range", "splash"]:
-		var base: float = TOWERS[kind][field]
-		# Preserve legacy base overrides until a tier gets an absolute override.
-		# A custom blast on a single-target tower stays fixed.
-		if base > 0.0:
-			s[field] = upgrade[field] * (s[field] / base)
-	if level >= 4 and valid_branch(kind, branch):
-		var specialization: Dictionary = BRANCHES[kind][branch]
-		s.name = specialization.name
-		s.description = specialization.description
-		s.color = specialization.color
-		s.merge(ABILITIES[branch], true)
-		for field in BRANCH_STAT_MULTIPLIERS.get(branch, {}):
-			s[field] *= BRANCH_STAT_MULTIPLIERS[branch][field]
-	s.period = clampf(s.period, 0.1, TUNING_FIELDS.towers.period.max)
-	return s
+	return Content.tower(kind).scaled_stats(level, tuning, branch)
 
 static func stats(kind: String, level: int, tuning: Dictionary = {}, branch: String = "") -> Dictionary:
-	var result := _scaled_stats(kind, level, tuning, branch)
-	if level > 1:
-		result.merge(tuning.get("towers", {}).get(tier_key(kind, level, branch), {}), true)
-	return result
+	return Content.tower(kind).stats(level, tuning, branch)
 
 # Descriptions use the same resolved values as combat, including tier overrides.
 static func tower_description(resolved: Dictionary) -> String:

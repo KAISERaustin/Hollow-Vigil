@@ -14,8 +14,10 @@ static func branch_hit(combat: VigilCombat, shot: Dictionary, enemy: Dictionary)
 	var damage: float = shot.damage
 	# The launched branch can differ from the owner's current form (including
 	# scripted attacks). Its defaults still come from the shared catalog.
-	var ability: Dictionary = Balance.ABILITIES.get(branch, {}).duplicate()
-	ability.merge(Balance.tower_stats(combat.data.towers[shot.tower_id], combat.tuning), true)
+	var node := Balance.Content.ability(branch)
+	var ability := Balance.tower_stats(combat.data.towers[shot.tower_id], combat.tuning)
+	if node != null:
+		ability = node.resolve(ability)
 	if branch == "doomstone":
 		var curse: Dictionary = combat.curses.get(shot.tower_id, {"target": -1, "stacks": 0})
 		curse.stacks = mini(int(ability.curse_limit), int(curse.stacks) + 1) if curse.target == enemy.id else 0

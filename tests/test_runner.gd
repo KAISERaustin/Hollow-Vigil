@@ -42,6 +42,7 @@ func clean_test_save(path: String) -> void:
 			DirAccess.remove_absolute(path + suffix)
 
 func run() -> void:
+	preload("res://tests/unit/content_node_checks.gd").run(self)
 	preload("res://tests/unit/orchard_checks.gd").run(self)
 	preload("res://tests/unit/rift_checks.gd").run(self)
 	preload("res://tests/unit/economy_checks.gd").run(self)

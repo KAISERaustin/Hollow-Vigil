@@ -43,13 +43,8 @@ static func discover_castles(combat: VigilCombat) -> void:
 			create(combat, g.id, kind)
 
 static func create(combat: VigilCombat, id: String, kind: String, authored_path: Array[Vector2] = []) -> Dictionary:
-	var stats := Balance.definition("bosses", kind, combat.tuning)
 	combat.enemy_serial += 1
-	var e := {"id": combat.enemy_serial, "source": id, "kind": kind, "boss": true,
-		"hp": stats.hp, "max_hp": stats.hp, "dead": false,
-		"pos": VigilWorld.center(id), "segment": 1, "path": [], "tile": id,
-		"previous": "", "steps": 0, "shield": stats.get("shield", 0.0),
-		"wards": int(stats.get("wards", 0)), "regen": stats.get("regen_period", 10.0), "toll": stats.get("toll_period", 8.0), "toll_delayed": false}
+	var e := Balance.Content.boss(kind).create_encounter(combat.enemy_serial, id, VigilWorld.center(id), combat.tuning)
 	if not authored_path.is_empty():
 		e.path = authored_path
 		e.pos = authored_path[0]
@@ -129,29 +124,10 @@ static func apply_balance(e: Dictionary, previous: Dictionary, tuning: Dictionar
 			e[field] = ceili(e[field])
 
 static func speed(e: Dictionary, now: float, tuning: Dictionary = {}) -> float:
-	var stats := Balance.definition("bosses", e.kind, tuning)
-	var value: float = stats.speed
-	if e.kind == "cindermaw" and e.hp <= e.max_hp * stats.rage_threshold / 100.0:
-		var suppression: float = stats.quench / 100.0 if e.get("slow_until", 0.0) > now else 0.0
-		value *= 1.0 + (stats.haste_multiplier - 1.0) * (1.0 - suppression)
-	return value
+	return Balance.Content.boss(e.kind).movement_speed(e, now, tuning)
 
 static func damage(e: Dictionary, amount: float, branch: String, fire: bool, tuning: Dictionary = {}, pierce: bool = false) -> float:
-	var stats := Balance.definition("bosses", e.kind, tuning)
-	if e.kind == "cindermaw":
-		if branch == "frostneedle":
-			amount *= stats.frost_multiplier
-		if not pierce and e.hp > e.max_hp * stats.rage_threshold / 100.0:
-			amount *= 1.0 - stats.armor_reduction / 100.0
-	if not pierce and e.kind == "prior" and e.wards > 0 and (branch != "doomstone" or stats.doom_bypass == 0):
-		e.wards -= 1
-		return 0.0
-	if not pierce and e.kind == "warden" and e.shield > 0.0:
-		var multiplier: float = stats.fire_multiplier if fire else 1.0
-		var absorbed := minf(e.shield, amount * multiplier)
-		e.shield -= absorbed
-		amount -= absorbed / multiplier
-	return amount
+	return Balance.Content.boss(e.kind).absorb_damage(e, amount, branch, fire, tuning, pierce)
 
 static func advance(combat: VigilCombat, delta: float) -> void:
 	# Spawn escorts after iterating the original list, never recursively in-loop.

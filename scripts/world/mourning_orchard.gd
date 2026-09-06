@@ -16,7 +16,8 @@ static func cluster(seed_value: int) -> Array[Vector2i]:
 			var cell := Vector2i(x, y)
 			if maxi(absi(x), absi(y)) >= 3 and not VigilWorld.is_ruin(VigilWorld.key(cell), seed_value):
 				available.append(cell)
-	var count := rng.randi_range(6, 9)
+	var definition := Balance.Content.catalog().get_node("landmark/mourning_orchard")
+	var count := rng.randi_range(definition.attribute("min_tiles"), definition.attribute("max_tiles"))
 	var result: Array[Vector2i] = []
 	# Retry isolated starts, without changing the eligible terrain or ruin layout.
 	while not available.is_empty():

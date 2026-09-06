@@ -1,12 +1,7 @@
 extends RefCounted
 
 # Each encounter's source coordinate is the permanent identity of its drop.
-const DEFINITIONS := {
-	"warden": {"name": "Warden’s Rootheart", "color": "a9d58b", "symbol": "root", "description": "Every 6 seconds, a primary shot roots its target for 0.75 seconds (0.35 for bosses). Each enemy can be rooted only once every 3 seconds."},
-	"cindermaw": {"name": "Ember Fang", "color": "ffa568", "symbol": "fang", "description": "Consecutive attacks on the same primary target gain 8% attack speed, up to 40%. Resets when the target changes or attacks stop for 3 seconds."},
-	"bell": {"name": "Tollstone", "color": "8ce3dc", "symbol": "bell", "description": "Every fourth attack echoes the primary shot at 50% base damage. The echo keeps its blast radius but triggers no specialization or relic effects."},
-	"prior": {"name": "Eclipse Shard", "color": "d2adf3", "symbol": "eclipse", "description": "Every fifth attack empowers its primary shot: +50% damage and bypasses boss shields, armor and wards. Its blast shares this power; secondary arrows, chains and damage over time do not pierce."}
-}
+const DEFINITIONS = preload("res://scripts/content/catalogs/gear.gd").PRESENTATION
 
 static func description(relic_kind: String, tuning: Dictionary = {}) -> String:
 	var gear := Balance.definition("gear", relic_kind, tuning)
@@ -51,24 +46,9 @@ static func prepare(combat: VigilCombat, tower: Dictionary, target: Dictionary, 
 	var relic_kind := kind(combat.data, tower)
 	if relic_kind == "":
 		return stats
-	var gear := Balance.definition("gear", relic_kind, combat.tuning)
-	var result := stats.duplicate()
-	var progress: Dictionary = combat.relic_progress.get(tower.id, {"attacks": 0, "target": -1, "stacks": 0, "last": -100.0, "root_ready": 0.0})
-	progress.attacks += 1
-	match relic_kind:
-		"warden":
-			if combat.simulation_time >= progress.root_ready:
-				result.relic_root = true
-				progress.root_ready = combat.simulation_time + gear.root_period
-		"cindermaw":
-			progress.stacks = mini(int(gear.stack_limit), int(progress.stacks) + 1) if progress.target == target.id and combat.simulation_time - progress.last < gear.stack_timeout else 0
-			result.period /= 1.0 + progress.stacks * gear.speed_per_stack / 100.0
-		"bell":
-			result.relic_echo = int(progress.attacks) % int(gear.attack_count) == 0
-		"prior":
-			result.relic_pierce = int(progress.attacks) % int(gear.attack_count) == 0
-	progress.target = target.id
-	progress.last = combat.simulation_time
+	var node := Balance.Content.gear(relic_kind)
+	var progress: Dictionary = combat.relic_progress.get(tower.id, node.make_record())
+	var result := node.prepare(progress, target.id, combat.simulation_time, stats, combat.tuning)
 	combat.relic_progress[tower.id] = progress
 	return result
 

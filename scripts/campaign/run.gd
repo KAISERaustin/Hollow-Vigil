@@ -38,11 +38,7 @@ func start_wave() -> bool:
 	if phase != "planning" or wave >= mission.waves.size():
 		return false
 	refresh_checkpoint()
-	schedule.clear()
-	for group in mission.waves[wave]:
-		for count in range(int(group[1])):
-			schedule.append({"kind": group[0], "lane": int(group[2]), "at": float(group[3]) + count * float(group[4]), "order": schedule.size()})
-	schedule.sort_custom(func(a, b): return a.at < b.at if a.at != b.at else a.order < b.order)
+	schedule = Balance.Content.wave(mission.index, wave).schedule()
 	next_spawn = 0
 	wave_time = 0.0
 	phase = "wave"
@@ -84,7 +80,7 @@ func tick(delta: float) -> void:
 			finished.emit()
 
 func _escaped(enemy: Dictionary) -> void:
-	var damage := 20 if enemy.get("boss", false) else (3 if enemy.kind == "sentinel" else (2 if enemy.kind in ["heavy", "shade"] else 1))
+	var damage := Balance.Content.enemy(enemy.kind, enemy.get("boss", false)).escape_damage()
 	health = maxi(0, health - damage)
 
 func medal() -> int:
@@ -100,7 +96,7 @@ func tower_at(socket: int) -> String:
 	return game.economy.tower_at(pad.region, pad.pad)
 
 func build(socket: int, kind: String) -> bool:
-	if not editable() or socket not in mission.pads:
+	if not editable() or not Balance.Content.level(mission.index).allows_socket(socket):
 		return false
 	var pad := Catalog.socket(socket)
 	if game.economy.build(kind, pad.region, pad.pad).is_empty():
@@ -109,19 +105,19 @@ func build(socket: int, kind: String) -> bool:
 	return true
 
 func upgrade(socket: int, branch: String = "") -> bool:
-	if not editable() or socket not in mission.pads or not game.economy.upgrade(tower_at(socket), -1, branch):
+	if not editable() or not Balance.Content.level(mission.index).allows_socket(socket) or not game.economy.upgrade(tower_at(socket), -1, branch):
 		return false
 	_after_edit()
 	return true
 
 func sell(socket: int) -> bool:
-	if not editable() or socket not in mission.pads or game.economy.sell(tower_at(socket)).is_empty():
+	if not editable() or not Balance.Content.level(mission.index).allows_socket(socket) or game.economy.sell(tower_at(socket)).is_empty():
 		return false
 	_after_edit()
 	return true
 
 func target(socket: int, mode: String) -> bool:
-	if not editable() or socket not in mission.pads:
+	if not editable() or not Balance.Content.level(mission.index).allows_socket(socket):
 		return false
 	var id := tower_at(socket)
 	if not game.set_tower_target(id, mode):

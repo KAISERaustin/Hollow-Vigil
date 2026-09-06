@@ -53,7 +53,7 @@ func _add_tower(kind: String, region: String, pad: int) -> String:
 	var id := str(data.next_tower)
 	data.next_tower += 1
 	indexed_tower_count = -1
-	data.towers[id] = {"id": id, "kind": kind, "region": region, "pad": pad, "level": 1, "earnings": 0.0, "cooldown": 0.0, "angle": 0.0, "rebuild_remaining": 0.0, "target_mode": "first"}
+	data.towers[id] = Balance.Content.tower(kind).create(id, region, pad)
 	return id
 
 func tower_at(region: String, pad: int) -> String:
@@ -64,10 +64,14 @@ func needs_first_property() -> bool:
 	# Saves created before onboarding was introduced remain unrestricted.
 	return data.get("first_property_required", false)
 
+func can_place(kind: String, region: String, pad: int) -> bool:
+	var node := Balance.Content.tower(kind)
+	return node != null and pad >= 0 and pad < VigilWorld.PADS.size() and node.can_place("plus", data.regions.has(region), tower_at(region, pad) != "")
+
 func build(kind: String, region: String, pad: int) -> String:
 	if needs_first_property():
 		return ""
-	if not Balance.TOWERS.has(kind) or not data.regions.has(region) or pad < 0 or pad >= 4 or tower_at(region, pad) != "":
+	if not can_place(kind, region, pad):
 		return ""
 	if not spend(Balance.tuned_value("towers", kind, "cost", tuning)):
 		return ""
@@ -93,7 +97,7 @@ func upgrade(id: String, expected_level: int = -1, branch: String = "") -> bool:
 	return true
 
 func relocate(id: String, region: String, pad: int, expected_level: int = -1) -> bool:
-	if not data.towers.has(id) or not data.regions.has(region) or pad < 0 or pad >= 4 or tower_at(region, pad) != "":
+	if not data.towers.has(id) or not can_place(data.towers[id].kind, region, pad):
 		return false
 	var tower: Dictionary = data.towers[id]
 	if tower.get("rebuild_remaining", 0.0) > 0.0 or (expected_level != -1 and tower.level != expected_level):
@@ -191,6 +195,10 @@ func equip_relic(id: String, relic_id: String, expected_current: String, expecte
 		return false
 	if relic_id != "" and (not data.get("relics", {}).has(relic_id) or Relics.owner(data, relic_id) != expected_owner):
 		return false
+	if relic_id != "":
+		var gear := Balance.Content.gear(data.relics[relic_id])
+		if gear == null or not gear.can_equip_on(Balance.Content.tower(data.towers[id].kind)):
+			return false
 	if relic_id == expected_current:
 		return true
 	if expected_owner != "" and data.towers.has(expected_owner):

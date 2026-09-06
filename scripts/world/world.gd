@@ -2,11 +2,11 @@ class_name VigilWorld
 extends RefCounted
 
 const DIRS := [Vector2i(-1, 0), Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1)]
-const PADS := [Vector2(-76, -76), Vector2(85, -78), Vector2(-79, 83), Vector2(83, 85)]
+const PADS = preload("res://scripts/content/catalogs/world.gd").PADS
 const CORE_POSITION := Vector2.ZERO
-const STYLES := ["forest", "ashen_forge", "drowned_crypt", "bloodmoon_sanctuary"]
-const NEW_STYLES := ["ashen_forge", "drowned_crypt", "bloodmoon_sanctuary", "mourning_orchard"]
-const ALL_STYLES := STYLES + ["castle_ruin", "mourning_orchard"]
+const STYLES = preload("res://scripts/content/catalogs/world.gd").STYLES
+const NEW_STYLES = preload("res://scripts/content/catalogs/world.gd").NEW_STYLES
+const ALL_STYLES = preload("res://scripts/content/catalogs/world.gd").ALL_STYLES
 const Orchard = preload("res://scripts/world/mourning_orchard.gd")
 
 static func is_ruin(id: String, seed_value: int) -> bool:
@@ -52,7 +52,7 @@ static func make_region(id: String, parent: String, seed_value: int) -> Dictiona
 		side = DIRS.find(outward)
 	else:
 		side = 0
-	return {"id": id, "parent": parent, "style": "forest" if parent == "" else region_style(id, seed_value), "road_version": 2, "side": side, "bend": -24.0 if h % 2 == 0 else 24.0, "traffic": 0, "timer": 0.25, "unlocks": [], "history": {}, "history_time": 0.0}
+	return Balance.Content.region("forest" if parent == "" else region_style(id, seed_value)).create(id, parent, side, -24.0 if h % 2 == 0 else 24.0)
 
 # Every tile owns immutable roads with shared edge centers and edge tangents.
 # Routing uses every owned neighbor, independently of the expansion parent.

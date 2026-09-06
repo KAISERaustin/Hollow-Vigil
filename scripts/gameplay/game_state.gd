@@ -18,7 +18,8 @@ var tuning: Dictionary:
 
 func is_creative() -> bool:
 	# Saves from before modes existed retain their editor access.
-	return data.get("mode", "creative") == "creative"
+	var mode := Balance.Content.catalog().get_node("level/" + data.get("mode", "creative"))
+	return mode != null and mode.rule("developer_controls", false)
 
 func add_developer_gold() -> bool:
 	if not is_creative():

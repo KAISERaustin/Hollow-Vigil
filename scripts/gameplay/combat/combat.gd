@@ -138,24 +138,10 @@ func spawn_on_path(kind: String, route: Array[Vector2], style: String = "forest"
 	return _create_enemy("0,0", kind, route, style)
 
 func _create_enemy(id: String, kind: String, route: Array[Vector2], style: String) -> Dictionary:
-	var s := Balance.definition("enemies", kind, tuning)
 	enemy_serial += 1
 	var e: Dictionary = enemy_pool.pop_back() if not enemy_pool.is_empty() else {}
-	e.clear() # Pooled enemies must not inherit crowd control or charges.
-	e.id = enemy_serial
-	e.source = id
-	e.kind = kind
-	# Origin is captured once: crossing another biome never changes the effect.
-	e.rift_style = style
-	e.hp = s.hp * rift_health_multiplier(e)
-	e.max_hp = e.hp
-	# Keep the chosen route on this enemy. A new purchase only changes future
-	# spawns, never the path or segment index of an enemy already moving.
-	# Linear routes share their cached array instead of copying it per spawn.
-	e.path = route
-	e.pos = e.path[0]
-	e.segment = 1
-	e.dead = false
+	var multiplier := rift_health_multiplier({"rift_style": style})
+	Balance.Content.enemy(kind).create_into(e, enemy_serial, id, route, style, tuning, multiplier)
 	enemies.append(e)
 	spatial_ready = false
 	return e
@@ -243,7 +229,7 @@ func tick(delta: float) -> void:
 			target_locks.erase(tower_id)
 			continue
 		var tower: Dictionary = data.towers[tower_id]
-		if tower.get("target_mode", "first") != "most_hp":
+		if not Balance.Content.locks_target(tower.get("target_mode", "first")):
 			target_locks.erase(tower_id)
 			continue
 		var radius: float = Balance.tower_stats(tower, tuning).range
@@ -273,7 +259,7 @@ func tick(delta: float) -> void:
 		if voice.is_empty():
 			voice = t.kind
 		sound_requested.emit("shot_" + voice, pos)
-		if t.get("target_mode", "first") == "most_hp":
+		if Balance.Content.locks_target(t.get("target_mode", "first")):
 			target_locks[t.id] = target.id
 		stats = Relics.prepare(self, t, target, stats)
 		t.cooldown = stats.period
