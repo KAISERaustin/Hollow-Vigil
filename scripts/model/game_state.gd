@@ -100,6 +100,7 @@ func expand(id: String) -> bool:
 		return false
 	data.regions[id] = VigilWorld.make_region(id, options[id], data.seed)
 	data.first_property_required = false
+	economy.sound_requested.emit("menu_expand", Vector2.INF)
 	# A new neighbor can add an equal route or shorten an older rift's route.
 	combat.rebuild_routes()
 	combat.Bosses.awaken(combat, id)
@@ -154,6 +155,9 @@ func save(now: float = -1.0) -> bool:
 func reset_progress() -> bool:
 	var fresh := VigilState.new()
 	fresh.save_path = save_path
+	# Sound is a player preference, independent of progression.
+	if data.settings.has("audio"):
+		fresh.data.settings.audio = data.settings.audio.duplicate(true)
 	# Recovery chooses the highest sequence, so supersede every saved candidate.
 	fresh.data.sequence = data.sequence
 	for suffix in ["", ".tmp", ".bak"]:

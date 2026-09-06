@@ -309,6 +309,10 @@ func show_settings() -> void:
 		app.persist()
 	mode = "settings"
 	clear_sheet("Settings")
+	var sound := preload("res://scripts/audio/audio_settings.gd").new()
+	sound.app = app
+	sheet_content.add_child(sound)
+	sheet_content.add_child(UI.rule())
 	var developer := UI.button("Developer Controls", show_developer_controls)
 	developer.name = "OpenDeveloperControls"
 	sheet_content.add_child(developer)

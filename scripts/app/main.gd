@@ -5,6 +5,7 @@ const UI = preload("res://scripts/ui/interface.gd")
 const TowerActions = preload("res://scripts/ui/tower_actions.gd")
 const TowerDialog = preload("res://scripts/ui/tower_dialog.gd")
 const TowerMove = preload("res://scripts/ui/tower_move.gd")
+var audio: Node
 var hud: VigilHUD
 var game := VigilState.new()
 var field: Battlefield
@@ -39,6 +40,9 @@ func _ready() -> void:
 	get_tree().auto_accept_quit = false
 	theme = UI.theme()
 	build_interface()
+	audio = preload("res://scripts/audio/audio_director.gd").new()
+	audio.app = self
+	add_child(audio)
 	if game.offline_award >= 1.0:
 		show_return_earnings(game.offline_award)
 	if not game.save_error.is_empty():
@@ -183,6 +187,8 @@ func fit_return_popup() -> void:
 func show_return_earnings(amount: float) -> void:
 	if not return_overlay.visible:
 		return_opener = get_viewport().gui_get_focus_owner()
+	if is_instance_valid(audio):
+		audio.play("menu_return")
 	pending_return_gold += amount
 	return_amount.text = Balance.money(pending_return_gold) + " gold"
 	toast_timer = 0.0
@@ -218,6 +224,7 @@ func collect_all() -> void:
 		toast("Your sentinels are earning. Gold will gather here.")
 
 func collection_effect(amount: float) -> void:
+	audio.play("menu_collect")
 	# The transaction is complete before this purely visual effect is created.
 	update_hud()
 	var mote := UI.value("+" + Balance.money(amount) + " gold", 18)
@@ -246,6 +253,8 @@ func collection_effect(amount: float) -> void:
 	tween.chain().tween_callback(mote.queue_free)
 
 func toast(message: String, seconds: float = 4.0, color: Color = UI.TEXT) -> void:
+	if is_instance_valid(audio):
+		audio.play("menu_notice")
 	toast_label.text = message
 	toast_label.add_theme_color_override("font_color", color)
 	toast_label.modulate.a = 1.0
@@ -261,6 +270,8 @@ func reset_progress() -> void:
 	if not game.reset_progress():
 		toast(game.save_error, 8.0)
 		return
+	audio.bind_game()
+	audio.play("menu_reset")
 	panels.close_sheet()
 	panels.selection_region = "0,0"
 	panels.selection_pad = -1
@@ -334,9 +345,11 @@ func _notification(what: int) -> void:
 		get_tree().quit()
 	elif what == NOTIFICATION_APPLICATION_PAUSED:
 		persist()
+		audio.set_suspended(true)
 		game.suspended = true
 		accumulator = 0.0
 	elif what == NOTIFICATION_APPLICATION_RESUMED:
+		audio.set_suspended(false)
 		if game.suspended:
 			var amount := game.apply_offline(Time.get_unix_time_from_system())
 			persist()
@@ -344,7 +357,10 @@ func _notification(what: int) -> void:
 			if amount >= 1.0:
 				show_return_earnings(amount)
 	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		audio.set_suspended(true)
 		persist()
+	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		audio.set_suspended(false)
 	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		if return_overlay.visible:
 			close_return_popup()
