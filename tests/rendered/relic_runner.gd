@@ -131,6 +131,20 @@ func run() -> void:
 		await Harness.capture(app, "relic-picker-" + str(dimensions.x))
 		app.tower_dialog.dismiss()
 		await Harness.capture(app, "relic-actions-" + str(dimensions.x))
+	# A larger collection must keep the final icon reachable inside the scroll area.
+	for index in range(24):
+		app.game.data.relics["scroll-" + str(index)] = "warden"
+	root.size = Vector2i(360, 640)
+	root.content_scale_size = root.size
+	app.tower_dialog.open_action("equipment")
+	await frame()
+	var last := app.tower_dialog.find_child("Relic_scroll-23", true, false) as Button
+	app.tower_dialog.scroll.ensure_control_visible(last)
+	await frame()
+	check(app.tower_dialog.scroll.scroll_vertical > 0, "Large equipment collections scroll")
+	check(app.tower_dialog.scroll.get_global_rect().grow(1).encloses(last.get_global_rect()), "Last equipment icon is reachable")
+	await Harness.tap(app, last.get_global_rect().get_center(), true)
+	check(app.tower_dialog.mode == "equipment_detail" and app.tower_dialog.relic_choice == "scroll-23", "Last row opens the existing description menu")
 	for suffix in ["", ".tmp", ".bak"]:
 		if FileAccess.file_exists(app.game.save_path + suffix):
 			DirAccess.remove_absolute(app.game.save_path + suffix)
