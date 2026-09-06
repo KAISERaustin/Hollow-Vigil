@@ -21,7 +21,7 @@ func run() -> void:
 		for wave in mission.waves:
 			check(not wave.is_empty(), "Every wave has enemies")
 			for group in wave:
-				check(group[0] in Balance.NORMAL_KINDS + Balance.DUNGEON_KINDS or Balance.BOSSES.has(group[0]), "Authored enemy is supported")
+				check(group[0] in Balance.CAMPAIGN_KINDS or Balance.BOSSES.has(group[0]), "Authored enemy is supported")
 				check(group[1] > 0 and group[2] >= 0 and group[2] < mission.routes.size() and group[3] >= 0 and group[4] > 0, "Wave timing and lane are valid")
 				if Balance.BOSSES.has(group[0]):
 					bosses += group[1]

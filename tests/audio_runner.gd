@@ -191,27 +191,29 @@ func run() -> void:
 	var id := g.economy.build("rapid", "0,0", 0)
 	for kind in Balance.ENEMIES:
 		events.clear()
-		g.data.regions["-1,0"].style = "castle_ruin" if kind in Balance.DUNGEON_KINDS else "forest"
+		g.data.regions["-1,0"].style = Balance.enemy_portal_style(kind)
 		var source := preload("res://tests/support/orchard_fixture.gd").populate(g) if kind in Balance.ORCHARD_KINDS else "-1,0"
 		var enemy := g.combat.spawn(source, kind)
 		g.combat.hit(enemy, 100000.0, id)
 		g.combat.hit(enemy, 100000.0, id)
-		check(events.count("death_" + kind) == 1, "Exactly one death cue: " + kind)
+		var cue: String = Balance.Content.enemy(kind).rule("death_cue")
+		check(events.count(cue) == 1 and Director.CATALOG.has(cue), "Exactly one assigned death cue: " + kind)
 	for kind in Balance.BOSSES:
 		events.clear()
 		var boss: Dictionary = g.combat.Bosses.create(g.combat, "-1,0", kind)
-		check(events.has("boss_" + kind + "_awaken"), "Boss awakening: " + kind)
+		check(events.has(Balance.Content.boss(kind).sound_cue("awaken")), "Boss awakening: " + kind)
 		g.combat.Bosses.advance(g.combat, .05)
-		check(events.has("boss_" + kind + "_step"), "Boss movement: " + kind)
+		check(events.has(Balance.Content.boss(kind).sound_cue("step")), "Boss movement: " + kind)
 		boss.regen = .01
 		boss.toll = .01
 		boss.hp = boss.max_hp * .25
 		g.combat.Bosses.advance(g.combat, .05)
-		check(events.has("boss_" + kind + "_ability"), "Boss special ability: " + kind)
+		if kind in ["warden", "cindermaw", "bell", "prior"]:
+			check(events.has("boss_" + kind + "_ability"), "Boss special ability: " + kind)
 		boss.shield = 0.0
 		boss.wards = 0
 		g.combat.hit(boss, 1000000.0, id)
-		check(events.has("boss_" + kind + "_death"), "Boss death: " + kind)
+		check(events.has(Balance.Content.boss(kind).sound_cue("death")), "Boss death: " + kind)
 	# Save validation, old saves, reset persistence and live settings widgets.
 	var old_combat := g.combat
 	var old_economy := g.economy

@@ -1,6 +1,9 @@
 extends "res://scripts/content/nodes/enemy_node.gd"
 
 ## Bosses inherit Enemy identity, health and movement rules plus encounter defenses.
+func sound_cue(event: String) -> String:
+	return "boss_" + rule("presentation", {}).get("sound_family", _rules.kind) + "_" + event
+
 func create_encounter(serial: int, source: String, position: Vector2, tuning: Dictionary = {}) -> Dictionary:
 	var stats := definition(tuning)
 	return make_record({"id": serial, "source": source, "kind": _rules.kind,

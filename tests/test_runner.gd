@@ -18,6 +18,10 @@ func advance(g: VigilState, seconds: float) -> void:
 		g.combat.tick(Balance.STEP)
 
 func fixture_enemy(g: VigilState, kind: String = "basic") -> Dictionary:
+	# Generic combat fixtures use only their authored targets, not biome bosses.
+	for encounter in g.combat.enemies.duplicate():
+		if encounter.get("boss", false):
+			g.combat.enemies.erase(encounter)
 	if kind in Balance.ORCHARD_KINDS:
 		var gate := preload("res://tests/support/orchard_fixture.gd").populate(g)
 		return g.combat.spawn(gate, kind)
@@ -26,9 +30,14 @@ func fixture_enemy(g: VigilState, kind: String = "basic") -> Dictionary:
 		g.data.balance += Balance.expansion_cost(g.data.regions.size())
 		g.expand("-1,0")
 		g.data.balance = balance
-	# Base combat fixtures intentionally exclude biome bonuses.
-	g.data.regions["-1,0"].style = "castle_ruin" if kind in Balance.DUNGEON_KINDS else "forest"
-	return g.combat.spawn("-1,0", kind)
+		g.combat.enemies.clear()
+	g.data.regions["-1,0"].style = Balance.enemy_portal_style(kind)
+	var enemy := g.combat.spawn("-1,0", kind)
+	# Generic combat assertions isolate base stats after using the real roster.
+	enemy.rift_style = "forest"
+	enemy.hp = Balance.tuned_value("enemies", kind, "hp", g.tuning)
+	enemy.max_hp = enemy.hp
+	return enemy
 
 func legacy_core_fixture(seed_value: int) -> VigilState:
 	# Existing core-only progress can build without new-game onboarding.
@@ -43,6 +52,7 @@ func clean_test_save(path: String) -> void:
 
 func run() -> void:
 	preload("res://tests/unit/content_node_checks.gd").run(self)
+	preload("res://tests/unit/portal_roster_checks.gd").run(self)
 	preload("res://tests/unit/orchard_checks.gd").run(self)
 	preload("res://tests/unit/rift_checks.gd").run(self)
 	preload("res://tests/unit/economy_checks.gd").run(self)

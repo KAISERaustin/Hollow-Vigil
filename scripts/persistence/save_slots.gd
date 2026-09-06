@@ -84,7 +84,7 @@ func decode_build(code: String) -> Dictionary:
 	var snapshot: Variant = parser.data
 	if not snapshot is Dictionary or snapshot.get("mode") != "creative" or not storage.valid_data(snapshot):
 		return {}
-	return snapshot
+	return storage.migrate_portal_unlocks(snapshot)
 
 func archive(slot: int) -> bool:
 	if slot < 0 or slot >= COUNT:

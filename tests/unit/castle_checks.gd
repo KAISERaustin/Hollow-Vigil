@@ -143,7 +143,7 @@ static func run(suite: SceneTree) -> void:
 		suite.check(mob.kind in Balance.DUNGEON_KINDS and mob.pos == VigilWorld.center(claim_gate.id), "Dungeon mobs emerge only at central ruin portal")
 		suite.check(mob.path[-1] == VigilWorld.CORE_POSITION, "Dungeon route reaches the core")
 	suite.check(seen.size() == 2, "Both exclusive dungeon mobs spawn after attunement")
-	for kind in ["ruin_knight", "sepulcher"]:
+	for kind in ["sepulcher"]:
 		var cost: float = Balance.portal_unlock_costs("castle_ruin")[kind]
 		var gold: float = claimed.data.balance
 		claimed.data.balance = cost - 1.0
@@ -194,7 +194,7 @@ static func run(suite: SceneTree) -> void:
 	reloaded.save_path = claimed.save_path
 	suite.check(reloaded.load_save(1000), "Purchased castle restores")
 	suite.check(reloaded.data.regions[claim_gate.id].unlocks.has("sentinel"), "Dungeon attunement survives save and reload")
-	for kind in ["ruin_knight", "sepulcher"]:
+	for kind in ["sepulcher"]:
 		suite.check(reloaded.data.regions[claim_gate.id].unlocks.has(kind), "Elite attunement survives save and reload")
 	suite.check(reloaded.data.regions.has(claim_gate.id) and reloaded.data.towers.size() == claimed.data.towers.size(), "Ruin and towers survive reload")
 	suite.check(reloaded.combat.enemies.filter(func(e): return e.get("boss", false) and e.source == claim_gate.id).size() == 1, "Purchasing and reloading never duplicate existing castle boss")

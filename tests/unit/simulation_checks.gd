@@ -50,13 +50,15 @@ static func test_crowded_spawning(suite: SceneTree) -> void:
 	g.data.towers.clear()
 	g.expand("1,0")
 	for i in range(901):
-		g.combat.spawn("1,0", "heavy")
+		g.combat.spawn("1,0")
 	var first: Dictionary = g.combat.enemies[0]
 	var position: Vector2 = first.pos
+	var before_count := g.combat.enemies.size()
+	var before_serial := g.combat.enemy_serial
 	for r in g.data.regions.values():
 		r.timer = 0.0
 	g.combat.tick(Balance.STEP)
-	suite.check(g.combat.enemy_serial == 902 and g.combat.enemies.size() == 902, "Every rift still spawns above the former 900-enemy limit")
+	suite.check(g.combat.enemy_serial == before_serial + 1 and g.combat.enemies.size() == before_count + 1 and before_count >= 901, "Every rift still spawns above the former 900-enemy limit")
 	suite.check(not first.dead and first.pos != position, "Existing distant enemies keep their identity and continue moving")
 	suite.check(g.data.kills == 0 and g.economy.unclaimed() == 0.0, "Spawning and moving enemies never award unearned gold")
 	print("PASS GROUP: crowded worlds do not suppress rifts or retire live enemies")

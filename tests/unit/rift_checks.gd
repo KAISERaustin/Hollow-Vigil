@@ -9,7 +9,7 @@ static func run(suite: SceneTree) -> void:
 		region.timer = 1000.0
 	for style in VigilWorld.STYLES:
 		game.data.regions["2,0"].style = style
-		for kind in Balance.NORMAL_KINDS:
+		for kind in Balance.portal_kinds(style):
 			game.combat.enemies.clear()
 			var enemy := game.combat.spawn("2,0", kind)
 			var base: Dictionary = Balance.ENEMIES[kind]
@@ -28,19 +28,19 @@ static func run(suite: SceneTree) -> void:
 			suite.check(enemy.rift_style == style, "Crossing a tile cannot replace or stack the source effect")
 	game.combat.enemies.clear()
 	game.data.regions["2,0"].style = "ashen_forge"
-	var forged := game.combat.spawn("2,0", "basic")
+	var forged := game.combat.spawn("2,0", "cinder_imp")
 	forged.hp *= 0.4
 	game.set_balance_stat("rifts", "ashen_forge", "strength", 50.0)
-	suite.check(is_equal_approx(forged.max_hp, Balance.ENEMIES.basic.hp * 1.5) and is_equal_approx(forged.hp / forged.max_hp, 0.4), "Live health bonus preserves damage fraction")
-	game.set_balance_stat("enemies", "basic", "hp", 200.0)
+	suite.check(is_equal_approx(forged.max_hp, Balance.ENEMIES.cinder_imp.hp * 1.5) and is_equal_approx(forged.hp / forged.max_hp, 0.4), "Live health bonus preserves damage fraction")
+	game.set_balance_stat("enemies", "cinder_imp", "hp", 200.0)
 	suite.check(forged.max_hp == 300.0 and is_equal_approx(forged.hp, 120.0), "Enemy health tuning composes with the rift bonus")
 	game.set_balance_stat("rifts", "ashen_forge", "strength", 0.0)
 	suite.check(forged.max_hp == 200.0, "Zero disables forged bonus live")
 	game.reset_developer_balance()
-	suite.check(is_equal_approx(forged.max_hp, Balance.ENEMIES.basic.hp * 1.25), "Reset restores default rift bonus")
+	suite.check(is_equal_approx(forged.max_hp, Balance.ENEMIES.cinder_imp.hp * 1.25), "Reset restores default rift bonus")
 	game.combat.enemies.clear()
 	game.data.regions["2,0"].style = "bloodmoon_sanctuary"
-	var blood := game.combat.spawn("2,0", "basic")
+	var blood := game.combat.spawn("2,0", "blood_acolyte")
 	blood.hp -= 0.001
 	game.combat.tick(Balance.STEP)
 	suite.check(blood.hp == blood.max_hp, "Regeneration cannot exceed full health")
@@ -56,12 +56,12 @@ static func run(suite: SceneTree) -> void:
 	suite.check(recycled.rift_style == "forest" and recycled.hp == Balance.ENEMIES.basic.hp, "Recycled grass enemies inherit no old effect")
 	game.combat.enemies.clear()
 	game.data.regions["2,0"].style = "drowned_crypt"
-	var drowned := game.combat.spawn("2,0", "basic")
+	var drowned := game.combat.spawn("2,0", "drowned_thrall")
 	game.set_balance_stat("rifts", "drowned_crypt", "strength", 50.0)
 	drowned.slow_until = game.combat.simulation_time + 10.0
 	var start: Vector2 = drowned.pos
 	game.combat.tick(Balance.STEP)
-	suite.check(absf(start.distance_to(drowned.pos) - Balance.ENEMIES.basic.speed * 1.5 * 0.75 * Balance.STEP) < 0.001, "Live speed bonus respects slows")
+	suite.check(absf(start.distance_to(drowned.pos) - Balance.ENEMIES.drowned_thrall.speed * 1.5 * 0.75 * Balance.STEP) < 0.001, "Live speed bonus respects slows")
 	drowned.stun_until = game.combat.simulation_time + 10.0
 	start = drowned.pos
 	game.combat.tick(Balance.STEP)

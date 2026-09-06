@@ -33,6 +33,7 @@ const NORMAL_KINDS = preload("res://scripts/content/catalogs/actors.gd").NORMAL_
 const DUNGEON_KINDS = preload("res://scripts/content/catalogs/actors.gd").DUNGEON_KINDS
 
 const ORCHARD_KINDS = preload("res://scripts/content/catalogs/actors.gd").ORCHARD_KINDS
+const CAMPAIGN_KINDS = preload("res://scripts/content/catalogs/actors.gd").CAMPAIGN_KINDS
 
 # Stable numeric escort choices intentionally exclude portal-exclusive orchard foes.
 const ESCORT_KINDS = preload("res://scripts/content/catalogs/actors.gd").ESCORT_KINDS
@@ -91,18 +92,27 @@ static func rift_name(style: String) -> String:
 	return node.attribute("name") if node != null else "Wild Rift"
 
 static func rift_description(style: String, tuning: Dictionary = {}) -> String:
+	var portal := Content.portal(style)
+	if portal == null:
+		return ""
+	var inhabitants: Array[String] = []
+	for kind in portal.enemy_kinds():
+		inhabitants.append(ENEMIES[kind].name)
+	var roster := "Summons only " + ", ".join(inhabitants) + ". "
+	var availability := "All three are active immediately, with equal chances." if portal.unlock_costs().is_empty() else "Attune the other inhabitants to add them to this portal's spawns."
 	var amount := String.num(rift_strength(style, tuning), 2)
 	match style:
 		"mourning_orchard":
-			var inhabitants: Array[String] = []
-			for kind in ORCHARD_KINDS:
-				inhabitants.append("%s (%s HP, %s gold)" % [ENEMIES[kind].name, String.num(tuned_value("enemies", kind, "hp", tuning)), String.num(tuned_value("enemies", kind, "payout", tuning))])
-			return "A root-bound portal at the center of every Mourning Orchard tile. Summons only " + ", ".join(inhabitants) + ", with equal chances. All three are active immediately."
-		"castle_ruin": return "Dungeon portal · Summons Abyss Shades. Attune Crypt Sentinels, Ruinbound Knights and Sepulcher Colossi to add them to this portal’s spawns."
-		"ashen_forge": return "Hardened · +" + amount + "% maximum health."
-		"drowned_crypt": return "Restless · +" + amount + "% movement speed."
-		"bloodmoon_sanctuary": return "Regeneration · Restores " + amount + "% of maximum health each second."
-	return "No effect · Enemies keep their normal stats."
+			return roster + availability
+		"castle_ruin": return "One dungeon portal per castle ruin. " + roster + availability
+		"ashen_forge": return roster + availability + " Hardened: +" + amount + "% maximum health throughout the journey."
+		"drowned_crypt": return roster + availability + " Restless: +" + amount + "% movement speed throughout the journey."
+		"bloodmoon_sanctuary": return roster + availability + " Regeneration: restores " + amount + "% of maximum health each second throughout the journey."
+	return roster + availability
+
+static func enemy_portal_style(kind: String) -> String:
+	var node := Content.enemy(kind)
+	return node.rule("portal_style", "forest") if node != null else "forest"
 
 const GEAR = preload("res://scripts/content/catalogs/gear.gd").GEAR
 

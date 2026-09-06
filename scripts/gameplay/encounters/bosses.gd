@@ -1,32 +1,39 @@
 extends RefCounted
 
 const Areas = preload("res://scripts/world/hidden_areas.gd")
-const TYPES := ["warden", "cindermaw", "bell", "prior"]
+const TYPES := ["warden", "cindermaw", "bell", "prior", "ruined_king", "mourning_matriarch"]
 const DEFINITIONS = Balance.BOSSES
 
-# The first generated cell is already fixed independently of purchase order.
-static func kind_at(id: String, seed_value: int) -> String:
-	var sector := Areas.sector_for(VigilWorld.coord(id))
-	if VigilWorld.key(Areas.cluster(sector, seed_value)[0]) != id:
+# Saved encounters retain their identities; new encounters use the tile's biome.
+static func kind_at(id: String, seed_value: int, style: String = "") -> String:
+	if id == "0,0":
 		return ""
-	return TYPES[absi(("cluster-boss:" + str(sector) + ":" + str(seed_value)).hash()) % TYPES.size()]
+	var biome := Balance.Content.region(style if style != "" else VigilWorld.region_style(id, seed_value))
+	return biome.boss_kind() if biome != null else ""
+
+static func legacy_kind_at(id: String, seed_value: int, castle: bool = false) -> String:
+	var sector := Areas.sector_for(VigilWorld.coord(id))
+	if not castle and VigilWorld.key(Areas.cluster(sector, seed_value)[0]) != id:
+		return ""
+	return TYPES[absi(("cluster-boss:" + str(sector) + ":" + str(seed_value)).hash()) % 4]
 
 static func awaken(combat: VigilCombat, id: String) -> void:
 	var gate := Areas.gate(Areas.sector_for(VigilWorld.coord(id)), int(combat.data.seed))
-	if combat.data.castles.has(gate.id):
+	if id == gate.id and combat.data.castles.has(gate.id):
 		return
 	var region: Dictionary = combat.data.regions[id]
-	var kind := kind_at(id, int(combat.data.seed))
+	var kind := kind_at(id, int(combat.data.seed), region.style)
 	if kind == "" or region.has("boss"):
 		return
 	region.boss = {"status": "active", "kind": kind}
 	create(combat, id, kind)
+	capture(combat, combat.data.regions, combat.data.castles)
 
 static func record(combat: VigilCombat, id: String) -> Dictionary:
 	return combat.data.castles[id] if combat.data.castles.has(id) else combat.data.regions[id]
 
-static func castle_kind(sector: Vector2i, seed_value: int) -> String:
-	return kind_at(VigilWorld.key(Areas.cluster(sector, seed_value)[0]), seed_value)
+static func castle_kind(_sector: Vector2i, _seed_value: int) -> String:
+	return Balance.Content.region("castle_ruin").boss_kind()
 
 static func discover_castles(combat: VigilCombat) -> void:
 	var sectors := {}
@@ -41,6 +48,7 @@ static func discover_castles(combat: VigilCombat) -> void:
 			var kind := castle_kind(sector, int(combat.data.seed))
 			combat.data.castles[g.id] = {"boss": {"status": "active", "kind": kind}}
 			create(combat, g.id, kind)
+			capture(combat, combat.data.regions, combat.data.castles)
 
 static func create(combat: VigilCombat, id: String, kind: String, authored_path: Array[Vector2] = []) -> Dictionary:
 	combat.enemy_serial += 1
@@ -60,7 +68,7 @@ static func create(combat: VigilCombat, id: String, kind: String, authored_path:
 	else:
 		next_leg(combat, e)
 	combat.enemies.append(e)
-	combat.sound_requested.emit("boss_" + kind + "_awaken", e.pos)
+	combat.sound_requested.emit(Balance.Content.boss(kind).sound_cue("awaken"), e.pos)
 	return e
 
 static func next_leg(combat: VigilCombat, e: Dictionary) -> void:
@@ -139,7 +147,7 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 		# Footfalls use transient simulation timestamps, and stop when stunned.
 		if e.get("stun_until", 0.0) <= combat.simulation_time and combat.simulation_time >= e.get("next_footfall", 0.0):
 			e.next_footfall = combat.simulation_time + 1.5
-			combat.sound_requested.emit("boss_" + e.kind + "_step", e.pos)
+			combat.sound_requested.emit(Balance.Content.boss(e.kind).sound_cue("step"), e.pos)
 		var stats := Balance.definition("bosses", e.kind, combat.tuning)
 		if e.kind == "cindermaw":
 			var raging: bool = e.hp <= e.max_hp * stats.rage_threshold / 100.0

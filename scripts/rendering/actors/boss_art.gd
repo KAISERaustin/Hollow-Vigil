@@ -15,6 +15,29 @@ static func eyes(c: CanvasItem, at: Vector2, z: float, color: Color) -> void:
 
 static func portrait(c: CanvasItem, kind: String, at: Vector2, z: float) -> void:
 	match kind:
+		"ruined_king":
+			# A broad walking throne, chipped crown and split royal tabard.
+			shape(c,[Vector2(-34,-24),Vector2(34,-24),Vector2(34,29),Vector2(22,40),Vector2(-22,40),Vector2(-34,29)],at,z,Color("74798c"))
+			for side in [-1,1]:
+				shape(c,[Vector2(side*23,-18),Vector2(side*40,-12),Vector2(side*37,21),Vector2(side*24,24)],at,z,Color("99948c"))
+			shape(c,[Vector2(-19,-39),Vector2(-23,-54),Vector2(-9,-46),Vector2(0,-57),Vector2(8,-46),Vector2(22,-52),Vector2(18,-36)],at,z,Art.GOLD)
+			shape(c,[Vector2(-18,-35),Vector2(18,-35),Vector2(15,-12),Vector2(0,-5),Vector2(-15,-12)],at,z,Color("99948c"))
+			eyes(c,at+Vector2(0,-23)*z,z,Art.INK)
+			shape(c,[Vector2(-15,-3),Vector2(15,-3),Vector2(19,35),Vector2(5,29),Vector2(0,43),Vector2(-18,34)],at,z,Art.LILAC)
+			shape(c,[Vector2(0,5),Vector2(7,13),Vector2(0,22),Vector2(-7,13)],at,z,Art.GOLD,2)
+			c.draw_polyline(PackedVector2Array([at+Vector2(8,-34)*z,at+Vector2(3,-28)*z,at+Vector2(7,-19)*z]),Art.INK,2*z,true)
+		"mourning_matriarch":
+			# An upright coffin carried by roots beneath a fruit-laden funeral veil.
+			for side in [-1,1]:
+				shape(c,[Vector2(side*12,17),Vector2(side*27,24),Vector2(side*36,43),Vector2(side*24,37),Vector2(side*9,30)],at,z,Color("727953"))
+			shape(c,[Vector2(-13,-30),Vector2(13,-30),Vector2(25,-10),Vector2(18,38),Vector2(-18,38),Vector2(-25,-10)],at,z,Color("727953"))
+			shape(c,[Vector2(-16,-38),Vector2(15,-38),Vector2(30,23),Vector2(19,15),Vector2(9,30),Vector2(0,21),Vector2(-12,30),Vector2(-27,20)],at,z,Color("c4b6b1"))
+			shape(c,[Vector2(-12,-29),Vector2(12,-29),Vector2(8,-9),Vector2(0,-4),Vector2(-8,-9)],at,z,Art.PAPER)
+			eyes(c,at+Vector2(0,-21)*z,z*0.8,Art.INK)
+			for side in [-1,1]:
+				c.draw_polyline(PackedVector2Array([at+Vector2(0,-36)*z,at+Vector2(side*19,-42)*z,at+Vector2(side*29,-54)*z]),Art.INK,4*z,true)
+				shape(c,[Vector2(-5,-5),Vector2(5,-5),Vector2(7,1),Vector2(0,7),Vector2(-7,1)],at+Vector2(side*20,-43)*z,z,Color("a5aa73"),2)
+			c.draw_line(at+Vector2(0,4)*z,at+Vector2(0,18)*z,Art.INK,2*z,true)
 		"warden":
 			# A hanging forest mantle, bone mask and two branch antlers. No limbs.
 			shape(c,[Vector2(-16,-24),Vector2(16,-24),Vector2(22,32),Vector2(13,28),Vector2(8,39),Vector2(3,35),Vector2(0,45),Vector2(-7,36),Vector2(-11,39),Vector2(-15,28),Vector2(-22,32)],at,z,Color("567456"))

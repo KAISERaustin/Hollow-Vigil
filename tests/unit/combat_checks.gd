@@ -188,7 +188,7 @@ static func test_road_junctions(suite: SceneTree) -> void:
 			suite.check(segment > 0, "Route from %s reaches the road junction with bend %s" % [child_id, bend])
 			if segment <= 0:
 				continue
-			for kind in Balance.NORMAL_KINDS:
+			for kind in Balance.portal_kinds(g.data.regions[child_id].style):
 				g.combat.enemies.clear()
 				var enemy := g.combat.spawn(child_id, kind)
 				enemy.rift_style = "forest" # Isolate exact road-junction movement.

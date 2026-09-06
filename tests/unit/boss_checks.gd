@@ -8,9 +8,11 @@ static func fixture(kind: String) -> VigilState:
 	game.data.balance = 1.0e30
 	game.data.first_property_required = false
 	var target := Vector2i.ZERO
-	for y in range(-3,4):
-		for x in range(-3,4):
-			var cell := Areas.cluster(Vector2i(x,y),879)[0]
+	for y in range(-24,25):
+		for x in range(-24,25):
+			var cell := Vector2i(x,y)
+			if abs(x) + abs(y) < 2:
+				continue
 			if Bosses.kind_at(VigilWorld.key(cell),879) == kind and (target == Vector2i.ZERO or Vector2(cell).length() < Vector2(target).length()):
 				target = cell
 	var cursor := Vector2i.ZERO
@@ -31,18 +33,17 @@ static func shot(id: String, branch: String, amount: float = 100.0) -> Dictionar
 
 static func run(suite: SceneTree) -> void:
 	var kinds := {}
-	for y in range(-3,4):
-		for x in range(-3,4):
-			var cells := Areas.cluster(Vector2i(x,y),879)
-			var count := 0
-			for cell in cells:
-				var kind := Bosses.kind_at(VigilWorld.key(cell),879)
-				if kind != "":
-					count += 1
-					kinds[kind] = true
-			suite.check(count == 1,"Exactly one fixed boss tile per cluster")
-	suite.check(kinds.size() == 4,"All four boss types occur across clusters")
+	for style in VigilWorld.ALL_STYLES:
+		var kind := Balance.Content.region(style).boss_kind()
+		suite.check(Balance.BOSSES.has(kind) and not kinds.has(kind), "Every biome has a distinct registered boss: " + style)
+		kinds[kind] = true
+		suite.check(Bosses.kind_at("1,0", 879, style) == kind, "Saved tile style selects its biome boss")
+	suite.check(kinds.size() == 6 and Bosses.kind_at("0,0",879) == "", "Six biome bosses with no starting-core encounter")
+	legacy_encounters(suite)
 	for kind in Bosses.TYPES:
+		for event in ["awaken", "step", "death", "escape"]:
+			var cue := Balance.Content.boss(kind).sound_cue(event)
+			suite.check(preload("res://assets/audio/catalog.json").data.has(cue) and ResourceLoader.exists("res://assets/audio/" + cue + ".wav"), "Boss presentation assigns an available sound: " + kind + "/" + event)
 		var game := fixture(kind)
 		var e: Dictionary = game.combat.enemies[0]
 		var source: String = e.source
@@ -163,7 +164,28 @@ static func run(suite: SceneTree) -> void:
 	game.combat.curses[tid].target = -1
 	Bosses.advance(game.combat,0.1)
 	suite.check(e.wards == 3,"Changing curse target restores ward regeneration")
-	print("PASS GROUP: boss clusters, patrol roads, counters, persistence and one-time rewards")
+	print("PASS GROUP: six biome bosses, patrol roads, counters, legacy persistence and one-time rewards")
+
+static func legacy_encounters(suite: SceneTree) -> void:
+	var game := preload("res://tests/unit/castle_checks.gd").fixture()
+	var gate := Areas.gate(Vector2i.ZERO, 879)
+	var old_kind := Bosses.legacy_kind_at(gate.id, 879, true)
+	game.combat.enemies.clear()
+	Bosses.create(game.combat, gate.id, old_kind)
+	var saved := game.snapshot(1000)
+	suite.check(game.storage.valid_data(saved), "Original randomly assigned castle boss remains a valid save")
+	game.save_path = "user://biome-boss-legacy.save"
+	suite.clean_test_save(game.save_path)
+	suite.check(game.save(1000), "Legacy active castle boss saves")
+	var restored := VigilState.new()
+	restored.save_path = game.save_path
+	suite.check(restored.load_save(1000), "Legacy active castle boss reloads")
+	var bosses := restored.combat.enemies.filter(func(e): return e.get("boss", false) and e.source == gate.id)
+	suite.check(bosses.size() == 1 and bosses[0].kind == old_kind, "Biome update preserves legacy identity without duplicate encounters")
+	var invalid := saved.duplicate(true)
+	invalid.castles[gate.id].boss.kind = "missing_boss"
+	suite.check(not game.storage.valid_data(invalid), "Unknown saved bosses remain rejected")
+	suite.clean_test_save(game.save_path)
 
 static func core_escape_checks(suite: SceneTree) -> void:
 	var loop_game := VigilState.new(879)

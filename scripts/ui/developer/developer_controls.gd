@@ -254,7 +254,7 @@ func refresh_identity() -> void:
 				"bell": "A haunted bell that periodically summons escorts. Delaying its tolls keeps the procession under control.",
 				"prior": "A spectral prior protected by regenerating wards. Curses can bypass its defenses and suppress regrowth."
 			}
-			description.text = summaries[selected_kind] + " Counter: " + definition.weakness + "."
+			description.text = definition.get("description", summaries.get(selected_kind, "")) + " Counter: " + definition.weakness + "."
 	portrait.accessibility_name = identity_title.text + " portrait"
 	portrait.queue_redraw()
 

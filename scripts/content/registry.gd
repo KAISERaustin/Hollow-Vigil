@@ -168,32 +168,33 @@ func _populate_towers() -> void:
 			_add(AbilityNode.new("ability/" + branch, get_node("ability"), Towers.ABILITIES[branch], {"tower": kind}), "abilities", branch)
 
 func _populate_actors() -> void:
-	for family in {"normal": Actors.NORMAL_KINDS, "dungeon": Actors.DUNGEON_KINDS, "orchard": Actors.ORCHARD_KINDS}:
-		var parent := _add(EnemyNode.new("enemy/" + family, get_node("enemy")))
-		var kinds: Array = {"normal": Actors.NORMAL_KINDS, "dungeon": Actors.DUNGEON_KINDS, "orchard": Actors.ORCHARD_KINDS}[family]
+	for family in Actors.FAMILIES:
+		var parent := _add(EnemyNode.new("enemy/" + family, get_node("enemy"), {}, {"portal_style": family, "art": "orchard" if family == "mourning_orchard" else "classic"}))
+		var kinds: Array = Actors.FAMILIES[family]
 		for kind in kinds:
-			_add(EnemyNode.new("enemy/" + kind, parent, Actors.ENEMIES[kind], Actors.ENEMY_RULES.get(kind, {}).merged({"kind": kind})), "enemies", kind)
+			var rules: Dictionary = Actors.ENEMY_RULES.get(kind, {}).merged({"kind": kind, "scripted": kind in Actors.CAMPAIGN_KINDS, "escort": kind in Actors.ESCORT_KINDS, "death_cue": "death_" + kind})
+			rules.merge(Actors.PRESENTATION.get(kind, {}), true)
+			_add(EnemyNode.new("enemy/" + kind, parent, Actors.ENEMIES[kind], rules), "enemies", kind)
 	for kind in Actors.BOSSES:
-		_add(BOSS_TYPES.get(kind, BossNode).new("boss/" + kind, get_node("boss"), Actors.BOSSES[kind], {"kind": kind, "drop": "gear/" + kind if Gear.GEAR.has(kind) else ""}), "bosses", kind)
+		_add(BOSS_TYPES.get(kind, BossNode).new("boss/" + kind, get_node("boss"), Actors.BOSSES[kind], {"kind": kind, "presentation": Actors.BOSS_PRESENTATION.get(kind, {}), "drop": "gear/" + kind if Gear.GEAR.has(kind) else ""}), "bosses", kind)
 	for kind in Gear.GEAR:
 		_add(GEAR_TYPES.get(kind, GearNode).new("gear/" + kind, get_node("gear"), Gear.GEAR[kind], {"kind": kind, "presentation": Gear.PRESENTATION[kind]}), "gear", kind)
 
 func _populate_world(root: ContentNode) -> void:
 	var world := _add(ContentNode.new("world", root))
 	_add(RegionNode.new("region", world, {}, {}, World.REGION_DEFAULTS))
-	_add(PortalNode.new("portal", world, {}, {"tuning_category": "rifts", "exclusive": false, "enemy_kinds": Actors.NORMAL_KINDS, "unlock_costs": Actors.UNLOCK_COSTS}))
+	_add(PortalNode.new("portal", world, {}, {"tuning_category": "rifts", "exclusive": true, "allow_escorts": true}))
 	var socket := _add(ContentNode.new("socket", world, {}, {"occupants": ["tower"], "capacity": 1}))
 	_add(ContentNode.new("socket/plus", socket, {"name": "Tower socket", "positions": World.PADS}, {"kind": "plus"}))
 	var landmark := _add(ContentNode.new("landmark", world))
 	for kind in World.LANDMARKS:
 		_add(ContentNode.new("landmark/" + kind, landmark, World.LANDMARKS[kind]))
 	for style in World.ALL_STYLES:
-		_add(RegionNode.new("region/" + style, get_node("region"), {}, {"kind": style, "portal": "portal/" + style}))
-		var exclusive: bool = style in ["castle_ruin", "mourning_orchard"]
-		var attributes: Dictionary = World.RIFTS.get(style, {"name": "Mourning Orchard Portal" if style == "mourning_orchard" else ("Castle Ruin Portal" if style == "castle_ruin" else "Wild Rift")})
-		var kinds: Array = Actors.ORCHARD_KINDS if style == "mourning_orchard" else (Actors.DUNGEON_KINDS if style == "castle_ruin" else Actors.NORMAL_KINDS)
-		var costs: Dictionary = Actors.DUNGEON_UNLOCK_COSTS if style == "castle_ruin" else Actors.UNLOCK_COSTS
-		_add(PortalNode.new("portal/" + style, get_node("portal"), attributes, {"kind": style, "exclusive": exclusive, "enemy_kinds": kinds, "unlock_costs": costs}), "rifts" if World.RIFTS.has(style) else "portals", style)
+		_add(RegionNode.new("region/" + style, get_node("region"), {}, {"kind": style, "portal": "portal/" + style, "boss": World.BIOME_BOSSES[style]}))
+		var config: Dictionary = World.PORTALS[style]
+		var attributes: Dictionary = World.RIFTS.get(style, {"name": config.name})
+		var rules: Dictionary = config.merged({"kind": style, "enemy_kinds": Actors.FAMILIES[style]})
+		_add(PortalNode.new("portal/" + style, get_node("portal"), attributes, rules), "rifts" if World.RIFTS.has(style) else "portals", style)
 
 func _populate_levels(root: ContentNode) -> void:
 	var level_root := _add(LevelNode.new("level", root))

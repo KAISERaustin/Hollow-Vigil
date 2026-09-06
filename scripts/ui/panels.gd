@@ -298,6 +298,8 @@ func show_expansion(id: String) -> void:
 	mode = "expand"
 	field.show_expansion = true
 	clear_sheet("Claim Castle Ruin" if VigilWorld.is_ruin(id, int(game.data.seed)) else "Expand")
+	var biome := Balance.Content.region(VigilWorld.region_style(id, int(game.data.seed)))
+	sheet_content.add_child(UI.paragraph("Biome boss: " + Balance.BOSSES[biome.boss_kind()].name, 14))
 	if VigilWorld.is_ruin(id, int(game.data.seed)):
 		var description := "Open dungeon ground with connecting paths and four tower sockets. This territory has no portal; the other ruin territories remain available to claim."
 		if VigilWorld.is_dungeon_portal(id, int(game.data.seed)):
@@ -337,7 +339,15 @@ func show_entrance(id: String) -> void:
 		var status := UI.paragraph("MAX · Rift maxed out", 16)
 		status.add_theme_color_override("font_color", UI.GOLD)
 		sheet_content.add_child(status)
-	sheet_content.add_child(UI.paragraph(Balance.rift_description(style, game.tuning) + ("" if Balance.exclusive_portal(style) else " Applies to every enemy from this rift for its entire journey."), 14))
+	sheet_content.add_child(UI.paragraph(Balance.rift_description(style, game.tuning), 14))
+	for kind in Balance.portal_kinds(style):
+		var enemy: Dictionary = Balance.ENEMIES[kind]
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		row.add_child(UI.enemy_preview(kind))
+		var available: bool = kind in Balance.portal_available_kinds(style, r.unlocks)
+		row.add_child(UI.paragraph(enemy.name + (" · Active" if available else " · Attunement required"), 14))
+		sheet_content.add_child(row)
 	var revision := sheet_revision
 	var traffic := UI.button("Spawn rate · MAX" if traffic_maxed else "Increased spawn rate  ·  " + UI.exact_money(game.economy.traffic_cost(id)) + " gold", func():
 		if revision == sheet_revision and game.economy.buy_traffic(id, int(r.traffic)):

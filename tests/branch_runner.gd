@@ -14,6 +14,9 @@ func fixture(kind: String, branch: String) -> VigilState:
 	var g := VigilState.new(123)
 	g.data.balance = 10000.0
 	g.expand("-1,0")
+	# Branch fixtures measure authored targets without the tile's new encounter.
+	g.combat.enemies.clear()
+	g.data.regions["-1,0"].erase("boss")
 	g.data.regions["-1,0"].style = "forest" # Measure tower branches without biome effects.
 	g.data.regions["-1,0"].timer = 10.0
 	var id := g.economy.build(kind,"0,0",0)

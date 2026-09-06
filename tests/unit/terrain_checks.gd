@@ -45,7 +45,7 @@ static func run(suite: SceneTree) -> void:
 	for r in g.data.regions.values():
 		r.timer = 1000.0
 	for id in ["1,0", "0,1", "1,1"]:
-		var enemy := g.combat.spawn(id, "fast")
+		var enemy := g.combat.spawn(id, Balance.portal_kinds(g.data.regions[id].style)[1])
 		var on_road := true
 		for tick in range(100):
 			g.combat.tick(Balance.STEP)

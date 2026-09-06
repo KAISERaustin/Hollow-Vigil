@@ -6,10 +6,10 @@ var failures := 0
 
 class Board extends Node2D:
 	func _draw() -> void:
-		for i in range(4):
+		for i in range(Bosses.TYPES.size()):
 			var kind: String = Bosses.TYPES[i]
 			var e := {"kind":kind,"hp":Bosses.DEFINITIONS[kind].hp,"max_hp":Bosses.DEFINITIONS[kind].hp,"shield":600.0 if i==0 else 0.0,"wards":3}
-			Art.draw(self,e,Vector2(225+(i%2)*450,235+(i/2)*390),2.3)
+			Art.draw(self,e,Vector2(225+(i%2)*450,235+floori(i/2.0)*390),2.3)
 
 
 func _initialize() -> void:
@@ -22,7 +22,7 @@ func frame() -> void:
 	await RenderingServer.frame_post_draw
 
 func run() -> void:
-	root.size = Vector2i(900,800)
+	root.size = Vector2i(900,1200)
 	root.content_scale_size = root.size
 	var background := ColorRect.new()
 	background.color = Color("e8ddbd")
@@ -33,8 +33,8 @@ func run() -> void:
 	await frame()
 	var img := root.get_texture().get_image()
 	# Check visible native ink/fills around each boss, independently of its label.
-	for i in range(4):
-		var center := Vector2i(225+(i%2)*450,235+(i/2)*390)
+	for i in range(Bosses.TYPES.size()):
+		var center := Vector2i(225+(i%2)*450,235+floori(i/2.0)*390)
 		var colored := 0
 		for y in range(center.y-62,center.y+56):
 			for x in range(center.x-55,center.x+55):
@@ -51,9 +51,9 @@ func run() -> void:
 	var game := preload("res://tests/unit/boss_checks.gd").fixture("warden")
 	game.combat.enemies.clear()
 	var source: String = game.data.regions.keys()[-1]
-	for i in range(4):
+	for i in range(Bosses.TYPES.size()):
 		var e := Bosses.create(game.combat,source,Bosses.TYPES[i])
-		e.pos = Vector2((i%2)*220-110,(i/2)*260-80)
+		e.pos = Vector2((i%2)*220-110,floori(i/2.0)*260-80)
 	var field := Battlefield.new()
 	field.state = game
 	root.add_child(field)

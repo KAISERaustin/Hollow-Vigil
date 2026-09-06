@@ -87,7 +87,7 @@ func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = ""
 		return false
 	# Mark dead synchronously before any credit, so splash and simultaneous shots are safe.
 	enemy.dead = true
-	sound_requested.emit("boss_" + enemy.kind + "_death" if enemy.get("boss", false) else "death_" + enemy.kind, enemy.pos)
+	sound_requested.emit(Balance.Content.boss(enemy.kind).sound_cue("death") if enemy.get("boss", false) else Balance.Content.enemy(enemy.kind).rule("death_cue"), enemy.pos)
 	var is_boss: bool = enemy.get("boss", false)
 	var reward: float = Balance.tuned_value("bosses", enemy.kind, "payout", tuning) if is_boss else Balance.tuned_value("enemies", enemy.kind, "payout", tuning)
 	if enemy.has("summoner"):
@@ -117,18 +117,18 @@ func spawn(id: String, forced_kind: String = "", escort: bool = false) -> Dictio
 	var r: Dictionary = data.regions[id]
 	var kind := forced_kind
 	var style: String = r.get("style", "forest")
-	var allowed := Balance.portal_kinds(style)
+	var portal := Balance.Content.portal(style)
+	if portal == null:
+		return {}
 	if kind == "":
-		var available := Balance.portal_available_kinds(style, r.unlocks)
-		if available.is_empty():
+		kind = portal.choose_kind(r.unlocks, rng.randf())
+	var enemy_type := Balance.Content.enemy(kind)
+	if enemy_type == null:
+		return {}
+	if escort:
+		if not portal.rule("allow_escorts", true) or not enemy_type.rule("escort", false):
 			return {}
-		kind = available[rng.randi_range(0, available.size() - 1)] if Balance.exclusive_portal(style) else Balance.enemy_kind(r.unlocks, rng.randf())
-	# Orchard inhabitants can never be summoned by bosses or another portal.
-	if style == "mourning_orchard" and (kind not in Balance.ORCHARD_KINDS or escort):
-		return {}
-	if kind in Balance.ORCHARD_KINDS and style != "mourning_orchard":
-		return {}
-	if not Balance.ENEMIES.has(kind) or (not escort and kind not in allowed):
+	elif not portal.accepts(kind):
 		return {}
 	if not paths.has(id) or paths[id].size() < 2:
 		return {}
@@ -136,7 +136,8 @@ func spawn(id: String, forced_kind: String = "", escort: bool = false) -> Dictio
 	return _create_enemy(id, kind, route, style)
 
 func spawn_on_path(kind: String, route: Array[Vector2], style: String = "forest") -> Dictionary:
-	if not scripted_spawns or kind not in Balance.NORMAL_KINDS + Balance.DUNGEON_KINDS or route.size() < 2:
+	var enemy_type := Balance.Content.enemy(kind)
+	if not scripted_spawns or enemy_type == null or not enemy_type.rule("scripted", false) or route.size() < 2:
 		return {}
 	return _create_enemy("0,0", kind, route, style)
 
@@ -209,7 +210,7 @@ func tick(delta: float) -> void:
 						p = e.path
 						continue
 					e.dead = true
-					sound_requested.emit("boss_" + e.kind + "_escape" if e.get("boss", false) else "escape", e.pos)
+					sound_requested.emit(Balance.Content.boss(e.kind).sound_cue("escape") if e.get("boss", false) else "escape", e.pos)
 					if e.get("boss", false):
 						Bosses.record(self, e.source).boss = {"status": "escaped", "kind": e.kind}
 					data.escapes += 1.0

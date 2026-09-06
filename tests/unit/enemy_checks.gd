@@ -4,17 +4,18 @@ static func run(suite: SceneTree) -> void:
 	var g := VigilState.new(314)
 	g.data.balance = 10000
 	g.expand("1,0")
-	g.data.regions["1,0"].style = "forest" # These assertions cover base enemy stats.
+	g.data.regions["1,0"].style = "ashen_forge"
+	g.set_balance_stat("rifts", "ashen_forge", "strength", 0.0) # Isolate the Keeper's base stats.
 	g.data.balance = 139
 	suite.check(not g.economy.unlock("1,0", "lantern") and g.data.balance == 139, "Keeper attunement rejects insufficient gold")
 	g.data.balance = 10000
 	suite.check(g.economy.unlock("1,0", "lantern") and g.data.balance == 9860, "Keeper attunement costs 140 gold")
 	suite.check(not g.economy.unlock("1,0", "lantern") and g.data.balance == 9860, "Duplicate attunement cannot charge")
 	suite.check(not g.data.regions["0,0"].unlocks.has("lantern"), "Attunement belongs only to its rift")
-	for mask in range(8):
+	for mask in range(1 << Balance.UNLOCK_COSTS.size()):
 		var unlocks: Array = []
 		var kinds := Balance.UNLOCK_COSTS.keys()
-		for i in range(3):
+		for i in range(kinds.size()):
 			if mask & (1 << i):
 				unlocks.append(kinds[i])
 		var counts := {}
@@ -29,7 +30,7 @@ static func run(suite: SceneTree) -> void:
 	for i in range(80):
 		var spawned := g.combat.spawn("1,0")
 		seen = seen or spawned.kind == "lantern"
-		suite.check(spawned.kind in ["basic", "lantern"], "Rift spawns only attuned enemies")
+		suite.check(spawned.kind in ["cinder_imp", "lantern"], "Rift spawns only attuned enemies")
 	suite.check(seen, "Normal spawning includes the Keeper after attunement")
 	g.combat.enemies.clear()
 	var enemy := g.combat.spawn("1,0", "lantern")

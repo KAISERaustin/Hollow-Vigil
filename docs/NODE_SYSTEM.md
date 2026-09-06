@@ -25,6 +25,8 @@ graph TD
     Boss --> Reliquary
     Boss --> Bell
     Boss --> Prior
+    Boss --> RuinedKing[Ruined King]
+    Boss --> MourningMatriarch[Mourning Matriarch]
     Entity --> Gear
     Content --> World
     World --> Region
@@ -108,6 +110,14 @@ This also inherits Ashneedle's authored upgrades and branches. Supply different 
 To ship a tower, add its rows to `scripts/content/catalogs/towers.gd`: `TOWERS`, `TOWER_UPGRADES`, `BRANCHES`, `PROJECTILES`, and relevant ability definitions. The registry creates the type and descendant tiers automatically. Existing menus and validators use the same source tables through Balance aliases. Add art, audio and new attack mechanics, then test construction, combat, upgrades, equipment and saving. Existing tower names and IDs are preserved; Pike is an extension example, not an added playable tower.
 
 ## Other extensions
+
+### Biome bosses
+
+Every region subtype supplies `boss_kind()` from `catalogs/world.gd`'s `BIOME_BOSSES`. Forest uses Briarbound Warden, Ashen Forge uses Cinder Reliquary, Drowned Crypt uses Drowned Bell, Bloodmoon Sanctuary uses Eclipse Prior, Castle Ruin uses Ruined King, and Mourning Orchard uses Mourning Matriarch. New non-core owned tiles awaken their associated boss once. Castle gates retain their discovery encounter and do not duplicate it when purchased; other owned castle tiles have their own encounter. The starting core never awakens a boss.
+
+Ruined King and Mourning Matriarch inherit the shared Boss → Enemy node, with distinct stats, knockback resistance and native silhouettes. They award gold; the four existing relic definitions remain unchanged. Their sound families are assigned through boss presentation rules. No new special ability or mutable shared state is introduced. Optional future abilities should use attachable components.
+
+Existing active, defeated and escaped encounters retain their saved identities, including the old seeded random castle bosses. Save validation accepts that original mapping so the biome update does not reset victories, damage, routes or relic ownership. New encounters always resolve the owning region's current biome.
 
 The node/component architecture is the default for every future game addition, not only attributes. Follow `AGENTS.md`: identify the reusable node/category and shared rules, reuse or extend existing nodes, and compose reusable objects for the new content or mechanic. Implement optional capabilities once, assign them explicitly to one or more types, and keep mutable state on each live instance. Inheritance supplies the shared category; composition supplies selectable behavior. The current hierarchy is the foundation for that work. The illustrative periodic speed boost has not been added.
 

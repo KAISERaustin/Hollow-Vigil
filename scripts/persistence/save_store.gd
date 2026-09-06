@@ -10,7 +10,7 @@ func write(path: String, data: Dictionary) -> bool:
 	if not valid_data(data):
 		last_error = "Couldn't save invalid progress. Your previous save is safe."
 		return false
-	var payload := JSON.stringify(data, "", true, true)
+	var payload := JSON.stringify(migrate_portal_unlocks(data), "", true, true)
 	var envelope := JSON.stringify({"payload": payload, "checksum": payload.sha256_text()})
 	var f := FileAccess.open(path + ".tmp", FileAccess.WRITE)
 	if f == null:
@@ -49,7 +49,19 @@ func read_candidate(path: String) -> Dictionary:
 		if not _valid_data(parsed, 1, LEGACY_MAX_TOWER_LEVEL):
 			return {}
 		parsed = _migrate_v1(parsed)
-	return parsed if valid_data(parsed) else {}
+	return migrate_portal_unlocks(parsed) if valid_data(parsed) else {}
+
+func migrate_portal_unlocks(data: Dictionary) -> Dictionary:
+	# Called only after validation. Keep compatible purchases, refund retired ones
+	# at their original price, and remove them so repeated restores cannot refund twice.
+	var migrated := data.duplicate(true)
+	for region in migrated.regions.values():
+		var portal := Balance.Content.portal(region.get("style", "forest"))
+		var refund := portal.retired_unlock_refund(region.unlocks)
+		migrated.balance = minf(Balance.MAX_MONEY, migrated.balance + refund)
+		var costs := portal.unlock_costs()
+		region.unlocks = region.unlocks.filter(func(kind): return costs.has(kind))
+	return migrated
 
 func _migrate_v1(legacy: Dictionary) -> Dictionary:
 	var migrated := legacy.duplicate(true)
@@ -132,9 +144,9 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 				return false
 		if r.id != id or not r.parent is String or (r.parent != "" and not d.regions.has(r.parent)):
 			return false
-		if r.has("boss") and not valid_boss(r.boss, id, d):
-			return false
 		if r.has("style") and (not r.style is String or (r.style not in ["forest", "castle_ruin"] and not r.style in VigilWorld.NEW_STYLES)):
+			return false
+		if r.has("boss") and not valid_boss(r.boss, id, d):
 			return false
 		if r.has("road_version") and not number(r.road_version, 1, 2, true):
 			return false
@@ -149,7 +161,7 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 			return false
 		var seen_unlocks := {}
 		for kind in r.unlocks:
-			if not kind is String or not Balance.portal_unlock_costs(r.get("style", "forest")).has(kind) or seen_unlocks.has(kind):
+			if not kind is String or not Balance.Content.portal(r.get("style", "forest")).saved_unlock_costs().has(kind) or seen_unlocks.has(kind):
 				return false
 			seen_unlocks[kind] = true
 		for value in r.history.values():
@@ -245,8 +257,12 @@ func valid_coordinate(value: Variant) -> bool:
 
 func valid_boss(b: Variant, id: String, d: Dictionary) -> bool:
 	const Bosses = preload("res://scripts/gameplay/encounters/bosses.gd")
-	var kind := Bosses.kind_at(id, int(d.seed)) if not d.get("castles", {}).has(id) else Bosses.castle_kind(Bosses.Areas.sector_for(VigilWorld.coord(id)), int(d.seed))
-	if not b is Dictionary or not b.get("kind") is String or b.kind != kind or b.kind == "":
+	var castle: bool = d.get("castles", {}).has(id)
+	var kind := Bosses.kind_at(id, int(d.seed), d.regions.get(id, {}).get("style", "")) if not castle else Bosses.castle_kind(Bosses.Areas.sector_for(VigilWorld.coord(id)), int(d.seed))
+	var legacy := Bosses.legacy_kind_at(id, int(d.seed), castle)
+	# Authored/developer terrain edits do not replace an already awakened boss.
+	var generated := Bosses.kind_at(id, int(d.seed))
+	if not b is Dictionary or not b.get("kind") is String or b.kind == "" or b.kind not in [kind, legacy, generated]:
 		return false
 	if b.get("status") in ["defeated", "escaped"]:
 		return true
