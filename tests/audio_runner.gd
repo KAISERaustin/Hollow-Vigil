@@ -152,6 +152,7 @@ func run() -> void:
 	var g := app.game
 	g.data.balance = 1000000.0
 	g.expand("-1,0")
+	g.data.regions["-1,0"].style = "forest" # Weapon tests use a Forest target.
 	g.combat.sound_requested.connect(record)
 	g.economy.sound_requested.connect(record)
 	for kind in Balance.TOWERS:
