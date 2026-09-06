@@ -6,8 +6,9 @@ var roads: Array[PackedVector2Array] = []
 var scenery: Array[Dictionary] = []
 var ground_details: Array[Dictionary] = []
 var world_center := Vector2.ZERO
+var pads: Array = []
 
-func configure(data: Dictionary, seed_value: int) -> void:
+func configure(data: Dictionary, seed_value: int, authored: Dictionary = {}) -> void:
 	roads.clear()
 	scenery.clear()
 	ground_details.clear()
@@ -17,9 +18,15 @@ func configure(data: Dictionary, seed_value: int) -> void:
 	size = Vector2.ONE * Balance.TILE
 	clip_contents = true
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	for side in range(4):
+	pads = authored.get("pads", VigilWorld.PADS)
+	for side in range(4) if authored.is_empty() else []:
 		var points := PackedVector2Array()
 		for point in VigilWorld.spoke(region, side):
+			points.append(point - world_center)
+		roads.append(points)
+	for route in authored.get("roads", []):
+		var points := PackedVector2Array()
+		for point in route:
 			points.append(point - world_center)
 		roads.append(points)
 	plan_scenery(seed_value)
@@ -37,7 +44,7 @@ func plan_ground_details(seed_value: int) -> void:
 		if p.length() < 40:
 			continue
 		var blocked := false
-		for pad in VigilWorld.PADS:
+		for pad in pads:
 			if Rect2(pad + Vector2(-29, -64), Vector2(58, 94)).has_point(p):
 				blocked = true
 		for road in roads:
@@ -64,7 +71,7 @@ func plan_scenery(seed_value: int) -> void:
 		if p.length() < 58:
 			continue
 		var blocked := false
-		for pad in VigilWorld.PADS:
+		for pad in pads:
 			# Reserve the full tower silhouette above each socket, even before
 			# it is built, so a prop never grows out of a roof or flame.
 			if p.distance_to(pad) < 46 or Rect2(pad + Vector2(-36, -64), Vector2(72, 102)).has_point(p):
@@ -94,7 +101,7 @@ func _draw() -> void:
 		draw_polyline(road, VigilTerrainArt.ROAD, 23.0, true)
 	for road in roads:
 		VigilTerrainArt.road_detail(self, road)
-	for pad in VigilWorld.PADS:
+	for pad in pads:
 		VigilTerrainArt.socket(self, pad)
 	if style == "castle_ruin":
 		return

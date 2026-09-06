@@ -327,31 +327,10 @@ func centered(text: String, at: Vector2, pixels: int, color: Color) -> void:
 func _draw() -> void:
 	if state == null:
 		return
-	if terrain_layer != null:
-		terrain_layer.synchronize(state, camera, zoom, size)
+	draw_map()
 	var visible_rect := Rect2(Vector2(-100, -100), size + Vector2(200, 200))
 	var world_view := Rect2(world(visible_rect.position), visible_rect.size / zoom)
 	var visible_regions := RegionQuery.in_view(state.data.regions, world_view, Balance.TILE * 0.5)
-	for id in visible_regions:
-		var c := screen(VigilWorld.center(id))
-		if not visible_rect.intersects(Rect2(c - Vector2.ONE * 150.0 * zoom, Vector2.ONE * 300.0 * zoom)):
-			continue
-		draw_region(state.data.regions[id])
-	# Draw portals after every tile, so newly purchased terrain cannot cover them.
-	for id in visible_regions:
-		if VigilWorld.has_rift(id, state.data.regions, int(state.data.seed)) and visible_rect.has_point(screen(state.paths[id][0])):
-			draw_entrance(id)
-	for id in RegionQuery.in_view(expansion_frontier(), world_view):
-		var c := screen(expansion_marker(id))
-		if not visible_rect.has_point(c):
-			continue
-		draw_set_transform(c, 0, Vector2.ONE * zoom)
-		VigilTerrainArt.disk(self, Vector2.ZERO, 24.0, GOLD if show_expansion else VigilTerrainArt.PAPER, 4.0)
-		draw_line(-Vector2(7, 0), Vector2(7, 0), Color.BLACK, 3.0, true)
-		draw_line(-Vector2(0, 7), Vector2(0, 7), Color.BLACK, 3.0, true)
-		centered(Balance.money(Balance.expansion_cost(state.data.regions.size())) + " g", Vector2(0, 43), 13, GOLD)
-		draw_set_transform(Vector2.ZERO)
-	draw_core()
 	var range_pos := Vector2.ZERO
 	var range_radius := 0.0
 	if state.data.towers.has(selected_tower):
@@ -400,6 +379,34 @@ func _draw() -> void:
 			draw_arc(p, (7.0 + fade * 18.0) * zoom, 0, TAU, 32, VigilTerrainArt.MINT, 2.0 * zoom, true)
 		else:
 			draw_arc(p, (1.0 - fade) * 12.0 * zoom, 0, TAU, 20, color, 2.0 * zoom, true)
+
+
+func draw_map() -> void:
+	if terrain_layer != null:
+		terrain_layer.synchronize(state, camera, zoom, size)
+	var visible_rect := Rect2(Vector2(-100, -100), size + Vector2(200, 200))
+	var world_view := Rect2(world(visible_rect.position), visible_rect.size / zoom)
+	var visible_regions := RegionQuery.in_view(state.data.regions, world_view, Balance.TILE * 0.5)
+	for id in visible_regions:
+		var c := screen(VigilWorld.center(id))
+		if not visible_rect.intersects(Rect2(c - Vector2.ONE * 150.0 * zoom, Vector2.ONE * 300.0 * zoom)):
+			continue
+		draw_region(state.data.regions[id])
+	# Draw portals after every tile, so newly purchased terrain cannot cover them.
+	for id in visible_regions:
+		if VigilWorld.has_rift(id, state.data.regions, int(state.data.seed)) and visible_rect.has_point(screen(state.paths[id][0])):
+			draw_entrance(id)
+	for id in RegionQuery.in_view(expansion_frontier(), world_view):
+		var c := screen(expansion_marker(id))
+		if not visible_rect.has_point(c):
+			continue
+		draw_set_transform(c, 0, Vector2.ONE * zoom)
+		VigilTerrainArt.disk(self, Vector2.ZERO, 24.0, GOLD if show_expansion else VigilTerrainArt.PAPER, 4.0)
+		draw_line(-Vector2(7, 0), Vector2(7, 0), Color.BLACK, 3.0, true)
+		draw_line(-Vector2(0, 7), Vector2(0, 7), Color.BLACK, 3.0, true)
+		centered(Balance.money(Balance.expansion_cost(state.data.regions.size())) + " g", Vector2(0, 43), 13, GOLD)
+		draw_set_transform(Vector2.ZERO)
+	draw_core()
 
 
 func draw_region(region: Dictionary) -> void:

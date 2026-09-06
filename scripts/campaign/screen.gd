@@ -26,6 +26,7 @@ var dialog_card: PanelContainer
 var dialog_body: VBoxContainer
 var dialog_title: Label
 var save_notice: Label
+var socket_dialog := false
 
 func _ready() -> void:
 	name = "Campaign"
@@ -54,7 +55,11 @@ func fit() -> void:
 	layout.offset_bottom = safe.end.y - size.y
 	if is_instance_valid(dialog_card):
 		dialog_card.size = Vector2(minf(470, safe.size.x), minf(490, safe.size.y))
-		dialog_card.position = safe.position + (safe.size - dialog_card.size) * 0.5
+		if socket_dialog:
+			dialog_card.size.y = minf(340, safe.size.y * 0.44)
+			dialog_card.position = Vector2(safe.get_center().x - dialog_card.size.x * 0.5, safe.end.y - dialog_card.size.y)
+		else:
+			dialog_card.position = safe.position + (safe.size - dialog_card.size) * 0.5
 
 func clear_page(next: String) -> void:
 	page = next
@@ -187,13 +192,14 @@ func show_battle() -> void:
 	var controls := HBoxContainer.new()
 	controls.add_theme_constant_override("separation", 8)
 	layout.add_child(controls)
-	controls.add_child(UI.button("−", func(): board.set_zoom(board.view_zoom - 0.35), 44))
-	controls.add_child(UI.button("+", func(): board.set_zoom(board.view_zoom + 0.35), 44))
-	controls.add_child(UI.button("Waves & rules", show_waves, 44))
+	controls.add_child(UI.button("−", func(): board.set_zoom(board.zoom / 1.25, board.size * 0.5), 44))
+	controls.add_child(UI.button("+", func(): board.set_zoom(board.zoom * 1.25, board.size * 0.5), 44))
+	controls.add_child(UI.button("Fit", func(): board.reset_view(), 44))
+	controls.add_child(UI.button("Waves", show_waves, 44))
 	wave_button = UI.gold_button("", begin_wave, 50)
 	wave_button.name = "StartCampaignWave"
 	layout.add_child(wave_button)
-	save_notice = UI.paragraph("Tap a stone socket to build. Drag when zoomed in.", 12)
+	save_notice = UI.paragraph("Drag to explore · Pinch to zoom · Tap a socket", 12)
 	layout.add_child(save_notice)
 	refresh()
 
@@ -205,6 +211,11 @@ func add_board(interactive: bool) -> void:
 	board.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	board.custom_minimum_size.y = 140
 	board.socket_picked.connect(show_socket)
+	board.empty_picked.connect(func():
+		if socket_dialog:
+			selected = -1
+			dialog.hide()
+	)
 	layout.add_child(board)
 
 func begin_wave() -> void:
@@ -224,7 +235,9 @@ func refresh() -> void:
 	wave_button.text = "Start wave %d" % (run.wave+1) if run.phase == "planning" else "%d enemies remaining" % (run.game.combat.enemies.size() + run.schedule.size() - run.next_spawn)
 	if run.phase in ["victory", "defeat"]:
 		wave_button.text = "Sanctuary restored" if run.phase == "victory" else "The flame went out"
-	board.queue_redraw()
+	board.selected_tower = run.tower_at(selected) if selected >= 0 else ""
+	board.simulation_rate = speed
+	board.update_view(0, accumulator)
 
 func save_progress() -> void:
 	if run == null:
@@ -246,8 +259,12 @@ func show_socket(socket: int) -> void:
 	if not run.editable():
 		return
 	selected = socket
+	board.selected = socket
+	board.selected_region = Catalog.socket(socket).region
+	board.selected_pad = Catalog.socket(socket).pad
+	board.selected_tower = run.tower_at(socket)
 	var id: String = run.tower_at(socket)
-	open_dialog("Build a tower" if id.is_empty() else "Manage tower")
+	open_dialog("Build a tower" if id.is_empty() else "Manage tower", true)
 	if id.is_empty():
 		for kind in Balance.TOWERS:
 			var stats: Dictionary = Balance.TOWERS[kind]
@@ -351,7 +368,10 @@ func _build_dialog() -> void:
 	scroll.add_child(dialog_body)
 	dialog.hide()
 
-func open_dialog(title: String) -> void:
+func open_dialog(title: String, for_socket: bool = false) -> void:
+	socket_dialog = for_socket
+	dialog.color = Color(0, 0, 0, 0) if for_socket else Color(0.03, 0.04, 0.05, 0.8)
+	dialog.mouse_filter = Control.MOUSE_FILTER_IGNORE if for_socket else Control.MOUSE_FILTER_STOP
 	for child in dialog_body.get_children():
 		dialog_body.remove_child(child)
 		child.queue_free()
