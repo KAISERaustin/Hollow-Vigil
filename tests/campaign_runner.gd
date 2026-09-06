@@ -5,6 +5,7 @@ const Run = preload("res://scripts/campaign/run.gd")
 const Progress = preload("res://scripts/campaign/progress.gd")
 
 func run() -> void:
+	check_effect_cleanup()
 	check(Catalog.MISSIONS.size() == 20, "Campaign contains exactly 20 authored missions")
 	var layouts := {}
 	for index in range(20):
@@ -112,3 +113,30 @@ func run() -> void:
 	check(not sandbox.combat.scripted_spawns and sandbox.combat.spawn_on_path("basic",route).is_empty(), "Sandbox does not accept campaign spawns")
 	print("Campaign: %d checks, %d failures" % [checks,failures.size()])
 	quit(0 if failures.is_empty() else 1)
+
+func check_effect_cleanup() -> void:
+	for outcome in ["planning", "victory", "defeat"]:
+		var battle := Run.new(0)
+		battle.start_wave()
+		battle.next_spawn = battle.schedule.size()
+		if outcome == "victory":
+			battle.wave = battle.mission.waves.size() - 1
+		elif outcome == "defeat":
+			battle.health = 0
+		var finished_count := [0]
+		battle.finished.connect(func(): finished_count[0] += 1)
+		for kind in ["shot", "death", "relic_drop"]:
+			battle.game.combat.add_effect({"kind": kind, "life": 0.5, "max_life": 0.5})
+		battle.tick(Balance.STEP)
+		check(battle.phase == outcome, "Wave reaches %s with effects still visible" % outcome)
+		check(finished_count[0] == 0, "Result waits for lingering effects")
+		var active: float = battle.game.data.active_seconds
+		var balance: float = battle.game.data.balance
+		var life: float = battle.game.combat.effects[0].life
+		battle.tick(0.1)
+		check(battle.game.combat.effects[0].life < life, "Effects keep fading during %s" % outcome)
+		battle.tick(1.0)
+		battle.tick(1.0)
+		check(battle.game.combat.effects.is_empty(), "All transient effects expire during %s" % outcome)
+		check(battle.game.data.active_seconds == active and battle.game.data.balance == balance, "Effect cleanup cannot advance combat or repay rewards")
+		check(finished_count[0] == (0 if outcome == "planning" else 1), "Result appears exactly once after cleanup")

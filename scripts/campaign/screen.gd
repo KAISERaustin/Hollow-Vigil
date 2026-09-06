@@ -220,8 +220,16 @@ func connect_run() -> void:
 	)
 	run.finished.connect(show_result)
 	if is_instance_valid(app) and is_instance_valid(app.audio):
-		run.game.combat.sound_requested.connect(play_run_sound)
+		run.game.combat.sound_requested.connect(play_combat_sound)
 		run.game.economy.sound_requested.connect(play_run_sound)
+
+func combat_audio_active() -> bool:
+	return page == "battle" and run != null and run.phase == "wave" and not paused
+
+func play_combat_sound(cue: String, sound_position: Vector2) -> void:
+	if is_visible_in_tree() and is_instance_valid(board):
+		# Combat voices expire with playback; planning transactions remain audible.
+		app.audio.play(cue, sound_position, board, combat_audio_active)
 
 func play_run_sound(cue: String, sound_position: Vector2) -> void:
 	if page == "battle" and is_visible_in_tree() and is_instance_valid(board):

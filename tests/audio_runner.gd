@@ -285,12 +285,43 @@ func run() -> void:
 	app.add_child(campaign)
 	campaign.start_mission(0)
 	await settle()
+	campaign.set_process(false)
+	check(campaign.run.start_wave(), "Campaign audio fixture starts a wave")
 	a.elapsed += 2
 	accepted = a.accepted_events
 	campaign.run.game.combat.sound_requested.emit("shot_heavy", Vector2(100000, 100000))
 	check(a.accepted_events == accepted, "Campaign preserves positions and rejects offscreen combat")
 	campaign.run.game.combat.sound_requested.emit("shot_heavy", campaign.board.world(campaign.board.size * .5))
 	check(a.accepted_events == accepted + 1, "Visible campaign combat is audible")
+	campaign.paused = true
+	a._process(0.0)
+	check(not a.voices.towers.any(func(voice): return voice.playing), "Campaign pause stops combat tails")
+	a.elapsed += 2
+	accepted = a.accepted_events
+	campaign.run.game.combat.sound_requested.emit("shot_heavy", campaign.board.world(campaign.board.size * .5))
+	check(a.accepted_events == accepted, "Paused campaign rejects combat cues")
+	campaign.paused = false
+	campaign.run.game.combat.sound_requested.emit("shot_heavy", campaign.board.world(campaign.board.size * .5))
+	check(a.accepted_events == accepted + 1, "Unpaused wave can play fresh combat")
+	# Finish an actual wave through the simulation transition, then wait in planning.
+	campaign.run.schedule.clear()
+	campaign.run.next_spawn = 0
+	campaign.run.tick(Balance.STEP)
+	check(campaign.run.phase == "planning", "Empty completed wave enters planning")
+	a._process(0.0)
+	check(not a.voices.towers.any(func(voice): return voice.playing), "Wave completion stops combat tails")
+	accepted = a.accepted_events
+	for i in range(1200):
+		campaign.run.tick(Balance.STEP)
+		a._process(Balance.STEP)
+	check(a.accepted_events == accepted, "One minute between waves produces no new effects")
+	campaign.run.game.combat.sound_requested.emit("shot_heavy", campaign.board.world(campaign.board.size * .5))
+	check(a.accepted_events == accepted, "Planning rejects late combat signals")
+	campaign.run.game.economy.sound_requested.emit("menu_build", Vector2.INF)
+	check(a.accepted_events == accepted + 1, "Planning retains building feedback")
+	check(campaign.run.start_wave(), "Next wave starts normally")
+	campaign.run.game.combat.sound_requested.emit("shot_heavy", campaign.board.world(campaign.board.size * .5))
+	check(a.accepted_events == accepted + 2, "Next wave accepts fresh combat without stale cooldowns")
 	campaign.show_map()
 	a._process(0.0)
 	check(not a.voices.towers.any(func(voice): return voice.playing), "Leaving campaign battle stops its combat tails")

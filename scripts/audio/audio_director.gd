@@ -139,6 +139,10 @@ func _process(delta: float) -> void:
 	# Re-evaluate visibility when the camera moves or a world is covered/closed.
 	for pool in voices.values():
 		for player in pool:
+			if player.playing and player.has_meta("active_when"):
+				var active: Callable = player.get_meta("active_when")
+				if not active.is_valid() or not active.call():
+					player.stop()
 			if player.playing and player.has_meta("source_field"):
 				var source = player.get_meta("source_field").get_ref()
 				if not audible_at(source, player.get_meta("source_position")):
@@ -151,8 +155,10 @@ func audible_at(source: Control, position: Vector2) -> bool:
 		return false
 	return not position.is_finite() or Rect2(Vector2.ZERO, source.size).has_point(source.screen(position))
 
-func play(cue: String, position: Vector2 = Vector2.INF, source_field: Control = null) -> void:
+func play(cue: String, position: Vector2 = Vector2.INF, source_field: Control = null, active_when: Callable = Callable()) -> void:
 	if not CATALOG.has(cue) or suspended:
+		return
+	if not active_when.is_null() and (not active_when.is_valid() or not active_when.call()):
 		return
 	var spec: Dictionary = CATALOG[cue]
 	var category: String = spec.category
@@ -173,6 +179,10 @@ func play(cue: String, position: Vector2 = Vector2.INF, source_field: Control = 
 		if player.playing:
 			continue
 		player.stream = streams[cue]
+		if player.has_meta("active_when"):
+			player.remove_meta("active_when")
+		if not active_when.is_null():
+			player.set_meta("active_when", active_when)
 		if player.has_meta("source_field"):
 			player.remove_meta("source_field")
 			player.remove_meta("source_position")
