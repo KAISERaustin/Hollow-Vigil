@@ -73,6 +73,7 @@ func run() -> void:
 	a.set_volume("towers", 0.0)
 	for voice in a.voices.towers:
 		check(voice.volume_linear == 0.0, "Zero number silences active tower voices")
+		check(not voice.playing, "Category mute discards effects instead of reviving their tails")
 	check(a.music.volume_linear > 0.0, "Tower mute leaves music audible")
 	a.set_volume("towers", 1.0)
 	a.elapsed += 2
@@ -82,6 +83,18 @@ func run() -> void:
 	a.play("menu_collect")
 	check(a.accepted_events == accepted and a.music.volume_linear == 0, "Master mute silences all categories")
 	a.set_muted(false)
+	check(not a.voices.towers.any(func(voice): return voice.playing), "Unmute does not revive old tower effects")
+	a.elapsed += 2
+	a.play("boss_bell_ability")
+	check(a.voices.bosses.any(func(voice): return voice.playing), "Boss preview starts before master mute")
+	a.set_volume("master", 0.0)
+	a.set_volume("master", 1.0)
+	check(not a.voices.bosses.any(func(voice): return voice.playing), "Master zero discards old effects")
+	a.elapsed += 2
+	a.play("boss_bell_ability")
+	a.set_muted(true)
+	a.set_muted(false)
+	check(not a.voices.bosses.any(func(voice): return voice.playing), "Mute toggle discards old effects")
 	a.set_suspended(true)
 	check(a.music.stream_paused, "Background music pauses on suspension")
 	for pool in a.voices.values():
@@ -89,6 +102,20 @@ func run() -> void:
 			check(not voice.playing, "Suspension stops transient sounds")
 	a.set_suspended(false)
 	check(not a.music.stream_paused, "Resume continues music")
+	app._notification(Node.NOTIFICATION_APPLICATION_PAUSED)
+	app._notification(Node.NOTIFICATION_APPLICATION_FOCUS_IN)
+	check(a.suspended, "Focus gain cannot override application pause")
+	app._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	app._notification(Node.NOTIFICATION_APPLICATION_RESUMED)
+	check(a.suspended, "Application resume cannot override lost focus")
+	app._notification(Node.NOTIFICATION_APPLICATION_FOCUS_IN)
+	check(not a.suspended, "Audio resumes once both lifecycle blockers clear")
+	app.slot_active = false
+	app._notification(Node.NOTIFICATION_APPLICATION_PAUSED)
+	app._notification(Node.NOTIFICATION_APPLICATION_RESUMED)
+	check(not a.suspended and not a.music.stream_paused, "Resume restores menu audio without a loaded slot")
+	app.slot_active = true
+	app.game.suspended = false
 	# Actual combat events, not cosmetic effect inspection.
 	a.stop_effects()
 	a.elapsed += 2
@@ -102,6 +129,21 @@ func run() -> void:
 	a.elapsed += 2
 	a.play("shot_heavy", visible_position)
 	check(a.accepted_events == accepted, "Hidden world rejects new combat")
+	app.hud.show()
+	a.elapsed += 2
+	app.game.economy.sound_requested.emit("menu_build", Vector2.INF)
+	check(a.voices.menu.any(func(voice): return voice.playing), "Visible world accepts transaction feedback")
+	app.hud.hide()
+	a._process(0.0)
+	check(not a.voices.menu.any(func(voice): return voice.playing), "Hidden world stops non-positional transaction tails")
+	accepted = a.accepted_events
+	a.elapsed += 2
+	app.game.economy.sound_requested.emit("menu_upgrade", Vector2.INF)
+	check(a.accepted_events == accepted, "Hidden world rejects non-positional simulation feedback")
+	a.play("shot_heavy")
+	check(a.accepted_events == accepted + 1, "Explicit settings previews remain available without a visible world")
+	a.stop_effects()
+	accepted = a.accepted_events
 	app.hud.show()
 	app.slot_active = false
 	a.play("shot_heavy", visible_position)
@@ -171,10 +213,15 @@ func run() -> void:
 		g.combat.hit(boss, 1000000.0, id)
 		check(events.has("boss_" + kind + "_death"), "Boss death: " + kind)
 	# Save validation, old saves, reset persistence and live settings widgets.
+	var old_combat := g.combat
+	var old_economy := g.economy
 	app.reset_progress()
 	a.stop_effects() # The explicit reset confirmation is allowed; idle effects are not.
 	a.set_volume("music", 0.0)
 	accepted = a.accepted_events
+	old_combat.sound_requested.emit("shot_heavy", visible_position)
+	old_economy.sound_requested.emit("menu_build", Vector2.INF)
+	check(a.accepted_events == accepted, "Reset disconnects both stale simulation services")
 	for i in range(600):
 		g.combat.tick(Balance.STEP)
 	check(a.accepted_events == accepted, "Fresh empty reset produces no spontaneous sound effects")

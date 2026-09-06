@@ -9,6 +9,8 @@ var slot_menu: Control
 var slot_active := true
 var active_slot := 0
 var audio: Node
+var application_paused := false
+var application_unfocused := false
 var public_builds: Node
 var campaign_progress := preload("res://scripts/campaign/progress.gd").new()
 var campaign_backup: Node
@@ -421,17 +423,18 @@ func _notification(what: int) -> void:
 		persist()
 		get_tree().quit()
 	elif what == NOTIFICATION_APPLICATION_PAUSED:
-		persist()
+		application_paused = true
 		audio.set_suspended(true)
+		persist()
 		game.suspended = true
 		accumulator = 0.0
 	elif what == NOTIFICATION_APPLICATION_RESUMED:
+		application_paused = false
+		audio.set_suspended(application_unfocused)
 		if is_instance_valid(campaign):
-			audio.set_suspended(false)
 			return
 		if not slot_active or (is_instance_valid(slot_menu) and slot_menu.visible):
 			return
-		audio.set_suspended(false)
 		if game.suspended:
 			var amount := game.apply_offline(Time.get_unix_time_from_system())
 			persist()
@@ -439,10 +442,12 @@ func _notification(what: int) -> void:
 			if amount >= 1.0:
 				show_return_earnings(amount)
 	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		application_unfocused = true
 		audio.set_suspended(true)
 		persist()
 	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
-		audio.set_suspended(false)
+		application_unfocused = false
+		audio.set_suspended(application_paused)
 	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		if is_instance_valid(campaign):
 			campaign.go_back()
@@ -483,12 +488,12 @@ func _input(event: InputEvent) -> void:
 func restore_cloud_progress(snapshot: Dictionary, _world_id: String, _revision: int) -> void:
 	if cloud.backup_slot >= 0 and (not slot_active or cloud.backup_slot != active_slot):
 		var target: VigilState = cloud.game
-		var archive := target.save_path + ".before-cloud-" + preload("res://scripts/cloud/cloud_codec.gd").uuid()
+		var target_archive := target.save_path + ".before-cloud-" + preload("res://scripts/cloud/cloud_codec.gd").uuid()
 		var sequence := 0
 		for suffix in ["", ".tmp", ".bak"]:
 			var candidate := target.storage.read_candidate(target.save_path + suffix)
 			sequence = maxi(sequence, int(candidate.get("sequence", 0)))
-			if FileAccess.file_exists(target.save_path + suffix) and DirAccess.copy_absolute(target.save_path + suffix, archive + suffix) != OK:
+			if FileAccess.file_exists(target.save_path + suffix) and DirAccess.copy_absolute(target.save_path + suffix, target_archive + suffix) != OK:
 				cloud.restore_completed(false)
 				return
 		snapshot.sequence = sequence + 1

@@ -193,7 +193,7 @@ func show_briefing(index: int) -> void:
 	clear_page("briefing")
 	run = Run.new(index)
 	header("%02d · %s" % [index+1, run.mission.name], show_map)
-	layout.add_child(UI.paragraph(Catalog.CHAPTERS[index/5].story, 14))
+	layout.add_child(UI.paragraph(Catalog.CHAPTERS[int(index / 5.0)].story, 14))
 	add_board(false)
 	layout.add_child(UI.paragraph(run.mission.brief, 15))
 	layout.add_child(UI.paragraph("%d waves  ·  %d starting gold  ·  20 flame" % [run.mission.waves.size(), run.mission.gold], 13))
@@ -223,9 +223,9 @@ func connect_run() -> void:
 		run.game.combat.sound_requested.connect(play_run_sound)
 		run.game.economy.sound_requested.connect(play_run_sound)
 
-func play_run_sound(cue: String, position: Vector2) -> void:
+func play_run_sound(cue: String, sound_position: Vector2) -> void:
 	if page == "battle" and is_visible_in_tree() and is_instance_valid(board):
-		app.audio.play(cue, position, board)
+		app.audio.play(cue, sound_position, board)
 
 func show_battle() -> void:
 	clear_page("battle")

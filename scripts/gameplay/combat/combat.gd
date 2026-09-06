@@ -152,13 +152,18 @@ func _create_enemy(id: String, kind: String, route: Array[Vector2], style: Strin
 func rift_health_multiplier(enemy: Dictionary) -> float:
 	return 1.0 + Balance.rift_strength("ashen_forge", tuning) / 100.0 if enemy.get("rift_style", "forest") == "ashen_forge" else 1.0
 
+func advance_effects(delta: float) -> void:
+	if not is_finite(delta) or delta <= 0.0:
+		return
+	for fx in effects:
+		fx.life -= delta
+	effects = effects.filter(func(fx): return fx.life > 0.0)
+
 func tick(delta: float) -> void:
 	if not is_finite(delta) or delta <= 0.0:
 		return
 	# Age existing effects first so a fresh projectile starts at its muzzle.
-	for fx in effects:
-		fx.life -= delta
-	effects = effects.filter(func(fx): return fx.life > 0.0)
+	advance_effects(delta)
 	simulation_time += delta
 	data.active_seconds += delta
 	tick_count += 1

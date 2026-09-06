@@ -12,6 +12,7 @@ var health := Catalog.MAX_HEALTH
 var wave_time := 0.0
 var schedule: Array[Dictionary] = []
 var next_spawn := 0
+var finish_pending := false
 
 func _init(index: int = 0) -> void:
 	mission = Catalog.level(index)
@@ -43,7 +44,12 @@ func start_wave() -> bool:
 	return true
 
 func tick(delta: float) -> void:
-	if phase != "wave" or not is_finite(delta) or delta <= 0.0:
+	if not is_finite(delta) or delta <= 0.0:
+		return
+	if phase != "wave":
+		# Presentation may finish without advancing enemies, damage or rewards.
+		game.combat.advance_effects(delta)
+		_finish_when_effects_end()
 		return
 	wave_time += delta
 	while next_spawn < schedule.size() and schedule[next_spawn].at <= wave_time:
@@ -58,7 +64,8 @@ func tick(delta: float) -> void:
 	if health <= 0:
 		phase = "defeat"
 		changed.emit()
-		finished.emit()
+		finish_pending = true
+		_finish_when_effects_end()
 	elif next_spawn == schedule.size() and game.combat.enemies.is_empty():
 		wave += 1
 		# A single transition pays each cleared wave exactly once.
@@ -73,7 +80,13 @@ func tick(delta: float) -> void:
 			tower.cooldown = 0.0
 		changed.emit()
 		if phase == "victory":
-			finished.emit()
+			finish_pending = true
+			_finish_when_effects_end()
+
+func _finish_when_effects_end() -> void:
+	if finish_pending and game.combat.effects.is_empty():
+		finish_pending = false
+		finished.emit()
 
 func _escaped(enemy: Dictionary) -> void:
 	var damage := Balance.Content.enemy(enemy.kind, enemy.get("boss", false)).escape_damage()

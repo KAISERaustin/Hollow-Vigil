@@ -96,8 +96,8 @@ static func tower(kind: String) -> TowerNode:
 	# Tier definitions are available through find(), but are never build kinds.
 	return node if node != null and node.rule("base_kind", "").is_empty() else null
 
-static func enemy(kind: String, boss: bool = false) -> EnemyNode:
-	return catalog().find("bosses" if boss else "enemies", kind) as EnemyNode
+static func enemy(kind: String, is_boss: bool = false) -> EnemyNode:
+	return catalog().find("bosses" if is_boss else "enemies", kind) as EnemyNode
 
 static func boss(kind: String) -> BossNode:
 	return catalog().find("bosses", kind) as BossNode
@@ -207,10 +207,10 @@ func _populate_levels(root: ContentNode) -> void:
 	for index in range(Levels.MISSIONS.size()):
 		var attributes: Dictionary = Levels.MISSIONS[index].duplicate(true)
 		attributes.index = index
-		attributes.chapter = index / 5
-		attributes.style = Levels.CHAPTERS[index / 5].style
+		attributes.chapter = int(index / 5.0)
+		attributes.style = Levels.CHAPTERS[int(index / 5.0)].style
 		attributes.reward = 35 + index * 4
 		attributes.tuning = {"bosses": {"warden": {"hp": 1800.0, "shield": 300.0, "regen_period": 12.0}}} if index == 4 else {}
-		_add(LevelNode.new("level/" + str(index), get_node("level/chapter/" + str(index / 5)), attributes), "levels", str(index))
-		for wave in range(attributes.waves.size()):
-			_add(WaveNode.new("wave/" + str(index) + "/" + str(wave), wave_root, {"groups": attributes.waves[wave]}, {"level": index, "wave": wave}))
+		_add(LevelNode.new("level/" + str(index), get_node("level/chapter/" + str(int(index / 5.0))), attributes), "levels", str(index))
+		for wave_index in range(attributes.waves.size()):
+			_add(WaveNode.new("wave/" + str(index) + "/" + str(wave_index), wave_root, {"groups": attributes.waves[wave_index]}, {"level": index, "wave": wave_index}))

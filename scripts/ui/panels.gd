@@ -85,6 +85,7 @@ func clear_sheet(title: String, subtitle: String = "") -> void:
 			child.queue_free()
 	content_scroll.show()
 	content_scroll.scroll_vertical = 0
+	sheet_content.add_theme_constant_override("separation", 12)
 	sheet_revision += 1
 	prices.clear()
 	for node in sheet_content.get_children():
@@ -370,21 +371,21 @@ func _player_card() -> PanelContainer:
 	var card := PanelContainer.new()
 	card.name = "PlayerNameCard"
 	card.mouse_filter = Control.MOUSE_FILTER_PASS
-	var style := UI.surface(UI.GOLD, 3, 16)
+	var style := UI.surface(UI.GOLD, 3, 10)
 	style.shadow_color = Color(UI.BORDER, 0.18)
 	style.shadow_offset = Vector2(0, 4)
 	style.shadow_size = 2
 	card.add_theme_stylebox_override("panel", style)
-	var stack := VBoxContainer.new()
-	stack.add_theme_constant_override("separation", 6)
+	var stack := HBoxContainer.new()
+	stack.add_theme_constant_override("separation", 12)
 	card.add_child(stack)
-	var caption := UI.label("HOLLOW VIGIL  /  PLAYER", 12)
-	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var caption := UI.label("PLAYER ACCOUNT", 12)
+	caption.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	stack.add_child(caption)
-	stack.add_child(UI.rule())
 	var player_name := UI.heading("", 24)
 	player_name.name = "SettingsPlayerName"
-	player_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	player_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	player_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	player_name.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	stack.add_child(player_name)
 	var refresh := func():
@@ -403,12 +404,12 @@ func show_settings() -> void:
 		app.persist()
 	mode = "settings"
 	clear_sheet("Settings")
-	sheet_content.add_child(UI.heading("Account", 18))
+	sheet_content.add_theme_constant_override("separation", 6)
 	sheet_content.add_child(_player_card())
 	var cloud_button := UI.button("Account & cloud backups", show_cloud_saves)
 	cloud_button.name = "OpenCloudSaves"
 	sheet_content.add_child(UI.action_row("Account & cloud backups", cloud_button, "Open"))
-	sheet_content.add_child(UI.heading("Information", 18))
+	sheet_content.add_child(UI.heading("Current game", 18))
 	var stats := HBoxContainer.new()
 	stats.add_theme_constant_override("separation", 12)
 	sheet_content.add_child(stats)
@@ -425,13 +426,11 @@ func show_settings() -> void:
 	var campaign_button := UI.button("Campaign", app.show_campaign)
 	campaign_button.name = "OpenCampaign"
 	sheet_content.add_child(UI.action_row("The Last Procession", campaign_button, "Play"))
-	sheet_content.add_child(UI.paragraph("Current game · Slot %d" % (app.active_slot + 1), 14))
-	sheet_content.add_child(UI.paragraph(str(game.data.get("mode", "creative")).capitalize(), 14))
+	var game_summary := "Slot %d · %s" % [app.active_slot + 1, str(game.data.get("mode", "creative")).capitalize()]
 	if game.data.has("setup"):
-		sheet_content.add_child(UI.paragraph(game.data.setup.name, 16))
-	sheet_content.add_child(UI.action_row("Saved games", UI.button("Saved games", app.show_save_slots), "Open"))
+		game_summary += "\n" + str(game.data.setup.name)
+	sheet_content.add_child(UI.action_row("Saved games", UI.button("Saved games", app.show_save_slots), "Open", null, game_summary))
 	if game.is_creative():
-		sheet_content.add_child(UI.heading("Creative mode", 18))
 		var developer := UI.button("Developer Controls", show_developer_controls)
 		developer.name = "OpenDeveloperControls"
 		sheet_content.add_child(UI.action_row("Creative rules", developer, "Edit"))
@@ -443,8 +442,6 @@ func show_settings() -> void:
 	upload.name = "UploadBuild"
 	upload.disabled = not game.is_creative()
 	sheet_content.add_child(UI.action_row("Upload build", upload, "Open"))
-	sheet_content.add_child(UI.rule())
-	sheet_content.add_child(UI.heading("Reset this game", 18))
 	sheet_content.add_child(UI.action_row("Reset progress", UI.accent_button("Reset progress", show_reset_confirmation, UI.DANGER), "Reset"))
 
 func show_sound_settings() -> void:

@@ -16,7 +16,7 @@ func _ready() -> void:
 		button.number = index + 1
 		button.completed = index < progress.data.completed_levels
 		if index % 5 == 4:
-			button.gate = Catalog.CHAPTERS[index / 5].gate_art
+			button.gate = Catalog.CHAPTERS[int(index / 5.0)].gate_art
 		button.pressed.connect(func(): level_picked.emit(index))
 		button.name = "CampaignLevel%d" % (index + 1)
 		button.disabled = not progress.unlocked(index)
@@ -27,7 +27,7 @@ func _ready() -> void:
 	arrange()
 
 func point(index: int) -> Vector2:
-	var chapter := index / 5
+	var chapter := int(index / 5.0)
 	var within := index % 5
 	var x := [0.22, 0.42, 0.70, 0.30, 0.80][within] as float
 	return Vector2(size.x * x, chapter * 450 + (370 if within == 4 else 115 + within * 70))
@@ -65,7 +65,7 @@ func _draw() -> void:
 			if index < progress.data.completed_levels:
 				draw_circle(at, 31, Color(0.88,0.71,0.4,0.15))
 			var right := at.x < size.x*0.5
-			var origin := Vector2(at.x+34 if right else 12, at.y-4)
+			var origin := Vector2(at.x+34 if right else 12.0, at.y-4)
 			if i == 4:
 				origin = Vector2(16, top + 391)
 			var width := size.x-origin.x-10 if right else at.x-46

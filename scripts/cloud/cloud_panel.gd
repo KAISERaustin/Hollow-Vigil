@@ -116,7 +116,6 @@ func rebuild() -> void:
 	audio_toggle.disabled = service.busy
 	audio_toggle.toggled.connect(func(value): service.include_audio = value)
 	add_child(UI.action_row("Include sound preferences in the next Infinite upload", audio_toggle))
-	add_child(UI.rule())
 	add_child(UI.heading("Restore an Infinite backup", 18))
 	var destination := OptionButton.new()
 	destination.name = "BackupRestoreSlot"

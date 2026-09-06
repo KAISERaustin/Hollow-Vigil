@@ -63,18 +63,23 @@ func _ready() -> void:
 		observe_control(node)
 
 func bind_game() -> void:
-	if combat != null and combat.sound_requested.is_connected(play):
-		combat.sound_requested.disconnect(play)
-	if economy != null and economy.sound_requested.is_connected(play):
-		economy.sound_requested.disconnect(play)
+	if combat != null and combat.sound_requested.is_connected(play_game_sound):
+		combat.sound_requested.disconnect(play_game_sound)
+	if economy != null and economy.sound_requested.is_connected(play_game_sound):
+		economy.sound_requested.disconnect(play_game_sound)
 	combat = app.game.combat
 	economy = app.game.economy
-	combat.sound_requested.connect(play)
-	economy.sound_requested.connect(play)
+	combat.sound_requested.connect(play_game_sound)
+	economy.sound_requested.connect(play_game_sound)
 	stop_effects()
 	last_cue.clear()
 	last_category.clear()
 	apply_mix()
+
+func play_game_sound(cue: String, position: Vector2) -> void:
+	# Transactions use INF but still belong to the world that produced them.
+	# Direct UI cues and settings previews intentionally have no world owner.
+	play(cue, position, app.field)
 
 func preferences() -> Dictionary:
 	return app.game.data.settings.get("audio", {})
@@ -111,6 +116,9 @@ func apply_mix() -> void:
 	for category in voices:
 		for player in voices[category]:
 			player.volume_linear = gain(category) * float(player.get_meta("distance_gain", 1.0))
+			# Discard muted transients so raising the volume cannot revive old events.
+			if gain(category) <= 0.0 or volume("master") <= 0.0:
+				player.stop()
 	if is_instance_valid(music):
 		music.volume_linear = gain("music")
 
@@ -141,7 +149,7 @@ func audible_at(source: Control, position: Vector2) -> bool:
 		return false
 	if source == app.field and (not app.slot_active or (is_instance_valid(app.slot_menu) and app.slot_menu.visible)):
 		return false
-	return Rect2(Vector2.ZERO, source.size).has_point(source.screen(position))
+	return not position.is_finite() or Rect2(Vector2.ZERO, source.size).has_point(source.screen(position))
 
 func play(cue: String, position: Vector2 = Vector2.INF, source_field: Control = null) -> void:
 	if not CATALOG.has(cue) or suspended:
@@ -151,9 +159,9 @@ func play(cue: String, position: Vector2 = Vector2.INF, source_field: Control = 
 	if not voices.has(category) or gain(category) <= 0.0 or volume("master") <= 0.0:
 		return
 	var distance_gain := 1.0
-	if position.is_finite():
-		if source_field == null:
-			source_field = app.field
+	if position.is_finite() and source_field == null:
+		source_field = app.field
+	if source_field != null:
 		if not audible_at(source_field, position):
 			return
 	if elapsed - float(last_cue.get(cue, -100.0)) < float(spec.cooldown):
@@ -168,7 +176,7 @@ func play(cue: String, position: Vector2 = Vector2.INF, source_field: Control = 
 		if player.has_meta("source_field"):
 			player.remove_meta("source_field")
 			player.remove_meta("source_position")
-		if position.is_finite():
+		if source_field != null:
 			player.set_meta("source_field", weakref(source_field))
 			player.set_meta("source_position", position)
 		player.set_meta("distance_gain", distance_gain)

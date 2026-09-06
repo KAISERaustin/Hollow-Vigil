@@ -269,11 +269,11 @@ static func playback_button(action: Callable, fast_forward: bool = false) -> But
 	)
 	return control
 
-static func back_button(label: String, action: Callable) -> Button:
+static func back_button(back_label: String, action: Callable) -> Button:
 	var back := button("←", action)
 	back.name = "BackButton"
-	back.accessibility_name = label
-	back.tooltip_text = label
+	back.accessibility_name = back_label
+	back.tooltip_text = back_label
 	back.custom_minimum_size.x = TARGET
 	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -293,7 +293,7 @@ static func enemy_preview(kind: String) -> Control:
 	preview.resized.connect(preview.queue_redraw)
 	return preview
 
-static func action_row(title: String, action: BaseButton, action_text: String = "", preview: Control = null) -> HBoxContainer:
+static func action_row(title: String, action: BaseButton, action_text: String = "", preview: Control = null, subtitle: String = "") -> HBoxContainer:
 	# Only the trailing control handles taps. Text and row gaps pass drags to
 	# the surrounding ScrollContainer, including when the action is disabled.
 	var row := HBoxContainer.new()
@@ -310,7 +310,17 @@ static func action_row(title: String, action: BaseButton, action_text: String = 
 	var description := paragraph(title, BODY)
 	description.add_theme_color_override("font_color", TEXT)
 	description.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(description)
+	if subtitle.is_empty():
+		row.add_child(description)
+	else:
+		var copy := VBoxContainer.new()
+		copy.mouse_filter = Control.MOUSE_FILTER_PASS
+		copy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		copy.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		copy.add_theme_constant_override("separation", 2)
+		copy.add_child(description)
+		copy.add_child(paragraph(subtitle, 13))
+		row.add_child(copy)
 	action.accessibility_name = title
 	action.custom_minimum_size = Vector2(88, TARGET)
 	action.size_flags_horizontal = Control.SIZE_SHRINK_END
@@ -348,7 +358,11 @@ static func number_row(title: String, number: SpinBox, preview: Button = null, i
 	if preview != null:
 		preview.size_flags_horizontal = Control.SIZE_SHRINK_END
 		identity.add_child(preview)
-	var controls: BoxContainer = HBoxContainer.new() if preview != null else VBoxContainer.new()
+	var controls: BoxContainer
+	if preview != null:
+		controls = HBoxContainer.new()
+	else:
+		controls = VBoxContainer.new()
 	controls.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	controls.custom_minimum_size.x = 112
 	controls.add_theme_constant_override("separation", 8)

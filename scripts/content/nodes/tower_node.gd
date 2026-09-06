@@ -27,28 +27,28 @@ func scaled_stats(level: int, tuning: Dictionary = {}, branch: String = "") -> D
 	if _rules.has("base_kind"):
 		return _base_type().scaled_stats(level, tuning, branch)
 	var kind: String = _rules.kind
-	var stats := definition(tuning)
-	stats.targets = stats.get("targets", 1)
+	var scaled := definition(tuning)
+	scaled.targets = scaled.get("targets", 1)
 	var tier := clampi(level, 1, 3)
 	if tier == 1:
-		return stats
+		return scaled
 	var upgrade: Dictionary = _rules.upgrades[tier - 2]
 	if upgrade.has("targets"):
-		stats.targets = tuning.get("towers", {}).get(kind, {}).get("targets", upgrade.targets)
+		scaled.targets = tuning.get("towers", {}).get(kind, {}).get("targets", upgrade.targets)
 	for field in ["damage", "period", "range", "splash"]:
 		var base: float = _attributes[field]
 		if base > 0.0:
-			stats[field] = upgrade[field] * (stats[field] / base)
+			scaled[field] = upgrade[field] * (scaled[field] / base)
 	if level >= 4 and valid_branch(branch):
 		var specialization: Dictionary = _rules.branches[branch]
-		stats.name = specialization.name
-		stats.description = specialization.description
-		stats.color = specialization.color
-		stats.merge(_rules.abilities[branch], true)
+		scaled.name = specialization.name
+		scaled.description = specialization.description
+		scaled.color = specialization.color
+		scaled.merge(_rules.abilities[branch], true)
 		for field in _rules.multipliers.get(branch, {}):
-			stats[field] *= _rules.multipliers[branch][field]
-	stats.period = clampf(stats.period, 0.1, Tuning.TUNING_FIELDS.towers.period.max)
-	return stats
+			scaled[field] *= _rules.multipliers[branch][field]
+	scaled.period = clampf(scaled.period, 0.1, Tuning.TUNING_FIELDS.towers.period.max)
+	return scaled
 
 func stats(level: int = 0, tuning: Dictionary = {}, branch: String = "") -> Dictionary:
 	if level == 0:

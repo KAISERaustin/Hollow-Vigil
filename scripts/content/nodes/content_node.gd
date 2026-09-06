@@ -15,10 +15,10 @@ var _attributes: Dictionary
 var _rules: Dictionary
 var _defaults: Dictionary
 
-func _init(key: String = "", ancestor: VigilContentNode = null, attributes: Dictionary = {}, rules: Dictionary = {}, defaults: Dictionary = {}) -> void:
+func _init(key: String = "", ancestor: VigilContentNode = null, attribute_values: Dictionary = {}, rules: Dictionary = {}, defaults: Dictionary = {}) -> void:
 	_id = key
 	_parent = ancestor
-	_attributes = _inherit(ancestor._attributes if ancestor != null else {}, attributes)
+	_attributes = _inherit(ancestor._attributes if ancestor != null else {}, attribute_values)
 	_rules = _inherit(ancestor._rules if ancestor != null else {}, rules)
 	_defaults = _inherit(ancestor._defaults if ancestor != null else {}, defaults)
 	_freeze(_attributes)
@@ -68,6 +68,6 @@ func definition(tuning: Dictionary = {}) -> Dictionary:
 func make_record(fields: Dictionary = {}) -> Dictionary:
 	return _inherit(_defaults, fields)
 
-func derive(key: String, attributes: Dictionary = {}, rules: Dictionary = {}, defaults: Dictionary = {}) -> VigilContentNode:
+func derive(key: String, attribute_values: Dictionary = {}, rules: Dictionary = {}, defaults: Dictionary = {}) -> VigilContentNode:
 	# Preserve the family implementation when adding another data-only subtype.
-	return get_script().new(key, self, attributes, rules, defaults)
+	return get_script().new(key, self, attribute_values, rules, defaults)
