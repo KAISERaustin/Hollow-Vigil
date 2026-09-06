@@ -98,9 +98,11 @@ func clear_sheet(title: String, subtitle: String = "") -> void:
 		node.queue_free()
 	action_button = null
 	var row := HBoxContainer.new()
+	if mode == "developer":
+		row.add_theme_constant_override("separation", 8)
 	header_content.add_child(row)
-	var heading := UI.heading(title, 30 if mode == "settings" else 24)
-	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var heading := UI.fitted_heading(title) if mode == "developer" else UI.heading(title, 30 if mode == "settings" else 24)
+	heading.name = "SheetTitle"
 	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(heading)
 	var close := UI.close_button(close_sheet, 48)
@@ -503,6 +505,10 @@ func show_developer_controls() -> void:
 	controls.layout_changed.connect(func():
 		back.name = "BackToCategories" if controls.editor.visible else "BackToSettings"
 		back.accessibility_name = "Back to categories" if controls.editor.visible else "Back to settings"
+		var title := header_content.find_child("SheetTitle", true, false) as Label
+		title.text = controls.category.capitalize() if controls.editor.visible else "Developer Controls"
+		UI.fit_heading(title)
+		content_scroll.scroll_vertical = 0
 		call_deferred("fit_sheet")
 	)
 	sheet_content.add_child(controls)

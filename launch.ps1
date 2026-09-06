@@ -81,6 +81,7 @@ try {
             Invoke-Godot -Name 'welcome-menu' -EngineArguments @('--script', 'res://tests/rendered/welcome_menu_checks.gd')
             Invoke-Godot -Name 'ui-style' -EngineArguments @('--script', 'res://tests/rendered/ui_style_checks.gd')
             Invoke-Godot -Name 'menu-layout' -EngineArguments @('--script', 'res://tests/rendered/menu_layout_checks.gd')
+            Invoke-Godot -Name 'developer-layout' -EngineArguments @('--script', 'res://tests/rendered/developer_layout_checks.gd')
             Invoke-Godot -Name 'portal-rosters-ui' -EngineArguments @('--script', 'res://tests/rendered/portal_roster_checks.gd')
         }
         if ($TerrainTests -or $Check) {

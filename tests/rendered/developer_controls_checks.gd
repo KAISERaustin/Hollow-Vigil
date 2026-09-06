@@ -75,6 +75,10 @@ static func run(app: VigilApp, harness: Script, failures: Array[String]) -> void
 					failures.append("Input did not edit its selected type: " + controls.selected_kind + "/" + stat)
 		await settle(app)
 	controls.show_category("bosses")
+	# Inspect the ward counter on its owner, independent of catalog ordering.
+	var prior_index: int = Balance.BOSSES.keys().find("prior")
+	controls.selector.select(prior_index)
+	controls.selector.item_selected.emit(prior_index)
 	await settle(app)
 	await harness.capture(app, "developer-bosses")
 	app.panels.content_scroll.ensure_control_visible(controls.inputs.regrowth_suppression)

@@ -203,6 +203,8 @@ func observe_control(node: Node) -> void:
 	if node is BaseButton and not node.has_meta("audio_preview"):
 		node.pressed.connect(func():
 			var text: String = node.text.to_lower() if node is Button else ""
+			if text.is_empty():
+				text = node.accessibility_name.to_lower()
 			var cue := "menu_click"
 			if text == "×" or text.contains("close") or text.contains("cancel") or text.begins_with("back"):
 				cue = "menu_close"

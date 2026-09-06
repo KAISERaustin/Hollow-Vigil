@@ -2,7 +2,7 @@
 
 Use the root `launch.ps1` commands documented in the README. `-Check` runs headless, full rendered UI, GPU terrain and artwork checks sequentially. The runner prepares imports, checks script compilation, isolates test saves under `.runtime/tests`, and fails on script/engine errors. Each automated test entry point has a timeout for interrupted or failed coroutines.
 
-`./launch.ps1 -StyleTests` checks fifteen UI screens, including tower information, Developer Controls, targeting, and relocation, at 540×960, 360×640, and 390×844 with 100%, 125%, and 150% text. It verifies viewport containment and reachable close/confirmation controls and captures `artifacts/style-*.png`. It is also included in `-Check`. Tower action targets are 48 map units at baseline zoom; their size and offsets scale with their towers, including at screen edges. Rendered smoke checks cover mouse and touch at four zooms and three viewport sizes.
+`./launch.ps1 -StyleTests` checks sixteen UI screens, including tower information, Developer Controls, targeting, and relocation, at 540×960, 360×640, and 390×844 with the standard text size. It verifies viewport containment and reachable close/confirmation controls and captures `artifacts/style-*.png`. It is also included in `-Check`. Tower action targets are 48 map units at baseline zoom; their size and offsets scale with their towers, including at screen edges. Rendered smoke checks cover mouse and touch at four zooms and three viewport sizes.
 
 ## Coverage
 
@@ -42,6 +42,8 @@ For a clean-checkout check, copy source and configuration to an isolated directo
 Rendered checks use the native Godot engine, not a browser. Desktop-generated touch events are not physical-device testing. Export-package content checks do not replace running an installed Windows or Android release build.
 
 ## Developer tier controls
+
+`rendered/developer_layout_checks.gd`, included in `-StyleTests` and `-Check`, opens all five categories with mouse/touch, checks every type and tower tier at all three phone sizes, and captures `artifacts/developer-layout-*.png`. It verifies single-line titles without clipping, square 48×48 navigation buttons, top-right dismissal, immediately visible selectors, bounded dropdowns, complete numeric labels, reachable field/reset rows, and returning to the top when switching categories. Audio is muted in this layout-only fixture.
 
 Run `Godot --headless --path . --script tests/developer_tiers_runner.gd` for schema limits, independent tier edits, branch prices/refunds, cooldowns, ability behavior and persistence. These tests are also included in the main headless runner. Run `Godot --path . --script tests/rendered/developer_tiers_runner.gd` for mouse/touch/keyboard step buttons and type-in fields, every tower tier and specialization, numeric input, responsive layout and save/reload. The rendered run captures `artifacts/developer-tier-frostneedle.png` and `artifacts/developer-tier-frostneedle-abilities.png`. Test saves have disposable developer-specific names.
 

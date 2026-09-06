@@ -215,6 +215,30 @@ static func heading(text: String, pixels: int = 30) -> Label:
 	l.add_theme_font_override("font", font(600 if pixels >= OBJECT_TITLE else 700, pixels >= OBJECT_TITLE))
 	return l
 
+static func fitted_heading(text: String, pixels: int = OBJECT_TITLE, minimum: int = BODY) -> Label:
+	# Titles share one responsive rule; body copy still wraps at its normal size.
+	var l := heading(text, pixels)
+	l.autowrap_mode = TextServer.AUTOWRAP_OFF
+	l.clip_text = true
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	l.set_meta("fitted_heading_max", pixels)
+	l.set_meta("fitted_heading_min", minimum)
+	l.resized.connect(fit_heading.bind(l))
+	return l
+
+static func fit_heading(l: Label) -> void:
+	if l.size.x <= 1:
+		return
+	var pixels := type_size(int(l.get_meta("fitted_heading_max", OBJECT_TITLE)))
+	var minimum := type_size(int(l.get_meta("fitted_heading_min", BODY)))
+	var face := l.get_theme_font("font")
+	while pixels > minimum and face.get_string_size(l.text, HORIZONTAL_ALIGNMENT_LEFT, -1, pixels).x > l.size.x:
+		pixels -= 1
+	if l.get_theme_font_size("font_size") != pixels:
+		l.add_theme_font_size_override("font_size", pixels)
+	l.accessibility_name = l.text
+
 static func value(text: String, pixels: int = 24) -> Label:
 	var l := label(text, pixels)
 	l.add_theme_font_override("font", font(700))
@@ -241,7 +265,17 @@ static func button(text: String, action: Callable, height: float = 48) -> Button
 	return b
 
 static func close_button(action: Callable, height: float = 48) -> Button:
-	return button("×", action, height)
+	var close := button("", action, height)
+	close.accessibility_name = "Close"
+	close.custom_minimum_size = Vector2.ONE * maxf(TARGET, height)
+	close.size_flags_horizontal = Control.SIZE_SHRINK_END
+	close.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	close.draw.connect(func():
+		var center := close.size * 0.5
+		close.draw_line(center - Vector2(8, 8), center + Vector2(8, 8), TEXT, 3)
+		close.draw_line(center - Vector2(8, -8), center + Vector2(8, -8), TEXT, 3)
+	)
+	return close
 
 static func toggle_button(enabled: bool, action: Callable) -> Button:
 	var control := button("On" if enabled else "Off", func(): pass)
@@ -272,13 +306,18 @@ static func playback_button(action: Callable, fast_forward: bool = false) -> But
 	return control
 
 static func back_button(back_label: String, action: Callable) -> Button:
-	var back := button("←", action)
+	var back := button("", action)
 	back.name = "BackButton"
 	back.accessibility_name = back_label
 	back.accessibility_description = back_label
 	back.custom_minimum_size.x = TARGET
 	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	back.draw.connect(func():
+		var center := back.size * 0.5
+		back.draw_line(center - Vector2(8, 0), center + Vector2(8, 0), TEXT, 3)
+		back.draw_polyline(PackedVector2Array([center + Vector2(0, -8), center - Vector2(8, 0), center + Vector2(0, 8)]), TEXT, 3)
+	)
 	return back
 
 static func gold_button(text: String, action: Callable, height: float = 50) -> Button:

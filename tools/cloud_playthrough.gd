@@ -6,6 +6,8 @@ func _initialize() -> void:
 	call_deferred("run")
 
 func run() -> void:
+	var session_title := OS.get_environment("HOLLOW_QA_TITLE")
+	if not session_title.is_empty(): root.title = session_title
 	var app := VigilApp.new()
 	app.load_saved_progress = false
 	app.game.save_path = "user://cloud-acceptance-placeholder.save"
@@ -21,11 +23,14 @@ func run() -> void:
 	# Sign in only after the first visible frame. A manual retry stays available
 	# if networking fails, without granting any permissions or bypassing Auth.
 	await RenderingServer.frame_post_draw
+	if OS.get_environment("HOLLOW_QA_AUTO_SIGN_IN") == "1":
+		await authenticate(app)
 	var sign_in := Button.new()
 	sign_in.text = "Sign in to QA account"
 	sign_in.position = Vector2(24, 24)
 	sign_in.size = Vector2(260, 48)
 	app.add_child(sign_in)
+	if app.cloud.signed_in(): sign_in.hide()
 	sign_in.pressed.connect(func():
 		sign_in.disabled = true
 		await authenticate(app)

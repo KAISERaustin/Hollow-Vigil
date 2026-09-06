@@ -70,17 +70,18 @@ func _ready() -> void:
 	add_child(editor)
 	var identity := PanelContainer.new()
 	identity.name = "BalanceIdentity"
-	identity.add_theme_stylebox_override("panel", UI.surface(UI.GOLD))
+	identity.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, 2, 12))
 	editor.add_child(identity)
 	var identity_stack := VBoxContainer.new()
+	identity_stack.add_theme_constant_override("separation", 8)
 	identity.add_child(identity_stack)
-	identity_title = UI.paragraph("", UI.OBJECT_TITLE)
+	identity_title = UI.fitted_heading("")
+	identity_title.name = "BalanceTitle"
 	identity_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	identity_title.add_theme_font_override("font", UI.font(700, true))
 	identity_stack.add_child(identity_title)
 	portrait = Control.new()
 	portrait.name = "BalancePortrait"
-	portrait.custom_minimum_size = Vector2(0, 144)
+	portrait.custom_minimum_size = Vector2(0, 96)
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	portrait.draw.connect(draw_portrait)
 	portrait.resized.connect(portrait.queue_redraw)
@@ -123,6 +124,9 @@ func _ready() -> void:
 		show_fields()
 	)
 	editor.add_child(tier_selector)
+	# Keep type and tier selection reachable before artwork or long descriptions.
+	editor.move_child(selector, 0)
+	editor.move_child(tier_selector, 1)
 	limit_dropdown(tier_selector)
 	tier_selector.get_popup().shrink_width = false
 	hint = UI.paragraph("", 12)
@@ -259,16 +263,18 @@ func refresh_identity() -> void:
 			}
 			description.text = definition.get("description", summaries.get(selected_kind, "")) + " Counter: " + definition.weakness + "."
 	portrait.accessibility_name = identity_title.text + " portrait"
+	UI.fit_heading(identity_title)
 	portrait.queue_redraw()
 
 func draw_portrait() -> void:
 	var center := portrait.size * 0.5
+	var art_scale := portrait.size.y / 144.0
 	match category:
-		"enemies": VigilEnemyArt.draw(portrait, selected_kind, center + Vector2(0, 10), 3.0)
-		"bosses": preload("res://scripts/rendering/actors/boss_art.gd").portrait(portrait, selected_kind, center + Vector2(0, 5), 1.1)
-		"rifts": preload("res://scripts/rendering/actors/rift_art.gd").draw(portrait, selected_kind, center + Vector2(0, 20), 1.8)
-		"gear": preload("res://scripts/rendering/actors/relic_art.gd").draw(portrait, selected_kind, center, 3.6)
-		"towers": VigilTerrainArt.sentinel(portrait, selected_kind, center + Vector2(0, 46), 1.7, selected_level, selected_branch)
+		"enemies": VigilEnemyArt.draw(portrait, selected_kind, center + Vector2(0, 10) * art_scale, 3.0 * art_scale)
+		"bosses": preload("res://scripts/rendering/actors/boss_art.gd").portrait(portrait, selected_kind, center + Vector2(0, 5) * art_scale, 1.1 * art_scale)
+		"rifts": preload("res://scripts/rendering/actors/rift_art.gd").draw(portrait, selected_kind, center + Vector2(0, 20) * art_scale, 1.8 * art_scale)
+		"gear": preload("res://scripts/rendering/actors/relic_art.gd").draw(portrait, selected_kind, center, 3.6 * art_scale)
+		"towers": VigilTerrainArt.sentinel(portrait, selected_kind, center + Vector2(0, 46) * art_scale, 1.7 * art_scale, selected_level, selected_branch)
 
 func add_number(stat: String) -> void:
 	var descriptor: Dictionary = Balance.field_limits(category, editing_kind(), stat)

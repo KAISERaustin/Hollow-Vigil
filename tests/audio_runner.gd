@@ -43,6 +43,14 @@ func run() -> void:
 		a.set_volume(category, 1.0)
 	a.set_muted(false)
 	var master_bus := AudioServer.get_bus_index(a.master_bus_name)
+	const UI = preload("res://scripts/ui/shared/interface.gd")
+	for icon in [UI.close_button(func(): pass), UI.back_button("Back to categories", func(): pass)]:
+		app.add_child(icon)
+		a.elapsed += 2
+		a.last_cue.clear()
+		icon.pressed.emit()
+		check(a.last_cue.has("menu_close"), "Drawn navigation icons retain dismissal audio through their accessible names")
+		icon.queue_free()
 	check(AudioServer.get_bus_send(AudioServer.get_bus_index(a.bus_name)) == a.master_bus_name, "All effects pass through the final master bus")
 	check(AudioServer.get_bus_send(master_bus) == &"Master", "Private master feeds device Master")
 	check(a.music.bus == a.bus_name, "Music uses the same master route")
