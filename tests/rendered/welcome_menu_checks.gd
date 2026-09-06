@@ -20,9 +20,16 @@ func run() -> void:
 		await settle()
 		var menu: Control = app.slot_menu
 		check(menu.find_child("ScreenTitle",true,false).text == "Hollow Vigil", "Startup title")
+		var title: Label = menu.find_child("ScreenTitle",true,false)
+		check(absf(title.get_global_rect().get_center().x - viewport.x * 0.5) < 2, "Title centered")
+		var campaign: Button = menu.find_child("OpenCampaign",true,false)
+		var infinite: Button = menu.find_child("OpenInfinite",true,false)
+		var mode_center := (campaign.get_global_rect().position.y + infinite.get_global_rect().end.y) * 0.5
+		check(absf(mode_center - viewport.y * 0.5) < 3, "Modes vertically centered")
 		for id in ["OpenCampaign", "OpenInfinite"]:
 			var button: Button = menu.find_child(id,true,false)
 			check(menu.scroll.get_global_rect().encloses(button.get_global_rect()), id + " fits " + str(viewport))
+			check(absf(button.get_global_rect().get_center().x - viewport.x * 0.5) < 2, id + " horizontally centered")
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://artifacts/main-menu-" + str(viewport.x) + ".png")
 		menu.find_child("OpenCampaign",true,false).pressed.emit()

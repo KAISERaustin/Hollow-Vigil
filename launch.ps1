@@ -78,6 +78,7 @@ try {
             Invoke-Godot -Name 'visual' -EngineArguments @('--script', 'res://tests/rendered/visual_runner.gd')
         }
         if ($StyleTests -or $Check) {
+            Invoke-Godot -Name 'welcome-menu' -EngineArguments @('--script', 'res://tests/rendered/welcome_menu_checks.gd')
             Invoke-Godot -Name 'ui-style' -EngineArguments @('--script', 'res://tests/rendered/ui_style_checks.gd')
             Invoke-Godot -Name 'menu-layout' -EngineArguments @('--script', 'res://tests/rendered/menu_layout_checks.gd')
         }

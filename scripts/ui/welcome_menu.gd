@@ -51,7 +51,7 @@ func arrange() -> void:
 	title.add_theme_font_size_override("font_size", mini(42, int(width / 7.6)))
 	title.position = Vector2(0, height * 0.25)
 	title.size = Vector2(width, 58)
-	subtitle.position = Vector2(0, height * 0.25 + 60)
+	subtitle.position = Vector2(0, height * 0.25 + 52)
 	subtitle.size = Vector2(width, 24)
 	var button_width := minf(320, width - 16)
 	modes.size = Vector2(button_width, 126)

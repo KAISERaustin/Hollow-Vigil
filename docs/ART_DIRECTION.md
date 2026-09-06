@@ -27,6 +27,13 @@ The artwork implementation lives in scripts/rendering/terrain/terrain_art.gd, sc
 
 ## Extension contract
 
+The opening page composes `scripts/ui/shared/welcome_art.gd` illustrations in
+`scripts/ui/welcome_menu.gd`: a portal-and-sentinel title crest and a miniature
+battlefield. These reusable, stateless Controls call the existing terrain,
+tower, enemy and portal drawing library without starting a simulation. Keep the
+mode actions centered, the title readable and the art non-interactive. The
+welcome-menu rendered checks cover phone layouts and both navigation paths.
+
 Add a biome to `VigilWorld.STYLES` and `VigilWorld.NEW_STYLES`, then give it a ground color and scenery in `scripts/rendering/terrain/terrain_art.gd`. New tower/enemy drawings live in the same file. Game statistics stay in `scripts/gameplay/balance.gd`. Preserve road and socket geometry when changing artwork.
 
 Call `refresh_paths()` after changing a region appearance in editor tools or fixtures to invalidate cached terrain. Run `./launch.ps1 -Check` after a renderer change. No image atlases or blend shaders are required.
