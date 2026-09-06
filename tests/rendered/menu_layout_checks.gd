@@ -28,6 +28,26 @@ func run() -> void:
 		root.size = viewport
 		root.content_scale_size = viewport
 		await settle()
+		# Empty-body expansion sheets must settle after cold opens and taller menus.
+		for previous in ["closed", "settings", "build"]:
+			if previous == "settings":
+				app.panels.show_settings()
+			elif previous == "build":
+				app.panels.show_build()
+			else:
+				app.panels.close_sheet()
+			await settle()
+			app.panels.show_expansion("1,0")
+			# Emulate the narrow provisional widths before the container's sort.
+			app.panels.header_content.get_child(0).get_child(0).size.x = 1
+			app.panels.action_button.size.x = 1
+			app.panels.fit_sheet()
+			await settle()
+			check(app.panels.size.y < 170, "expansion too tall after " + previous + " at " + str(viewport) + ": " + str(app.panels.size.y))
+			check(app.field.get_global_rect().encloses(app.panels.get_global_rect()), "expansion outside battlefield")
+			var close := app.panels.find_child("CloseSheet", true, false) as Control
+			check(app.panels.get_global_rect().encloses(close.get_global_rect()), "expansion close clipped")
+			check(app.panels.get_global_rect().encloses(app.panels.action_button.get_global_rect()), "expansion claim clipped")
 		app.panels.select_pad("0,0", 1)
 		await settle()
 		var choices := app.panels.sheet_content.get_child(0)

@@ -54,10 +54,13 @@ func _ready() -> void:
 	sheet_content.get_parent().add_theme_constant_override("margin_top", 0)
 	sheet_content.get_parent().add_theme_constant_override("margin_bottom", 0)
 	sheet_content.get_parent().size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	sheet_content.minimum_size_changed.connect(func():
-		if visible:
-			call_deferred("fit_sheet")
-	)
+	# Wrapped titles and footer buttons can change minimum height after their
+	# containers assign a width. Refit all sections, including empty-body sheets.
+	for section in [header_content, sheet_content, action_footer]:
+		section.minimum_size_changed.connect(func():
+			if visible:
+				call_deferred("fit_sheet")
+		)
 	app.resized.connect(fit_sheet)
 	hide()
 
