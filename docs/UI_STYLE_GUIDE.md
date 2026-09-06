@@ -42,15 +42,15 @@ Use semantic names in UI code. The hex values are sRGB; default fills and text a
 | action.danger | #DB8D73 | Sell and reset confirmations; always include an explicit verb |
 | identity.arcane | #B49DCC | Rifts and arcane identity markers |
 | identity.core | #93C9BC | Core identity and recovery illustrations |
-| focus.light | #000000 | Keyboard focus ring on light controls |
-| focus.dark | #E8DDBD | Keyboard focus ring on dark surfaces |
+| focus.light | #000000 | Reserved ink color; no focus ring |
+| focus.dark | #E8DDBD | Reserved paper color; no focus ring |
 | scrim | #000000 at 65% | One modal overlay over the inactive scene |
 
 Forest #95AA83, forge #BB8C76, crypt #7FA6AA, and sanctuary #AE879B belong to world identity. Do not recolor the entire UI when the biome changes. Reuse the actual tower and enemy drawings in portraits.
 
 Color needs context. Coral on a flame-tower portrait means tower identity; coral on a button labeled Sell tower means a destructive action. Lavender does not imply rarity, and mint does not mean every positive outcome. Successful actions use a clear message and, for earnings, an ochre badge. Warning text remains ink on a light panel with an icon and explanation. Do not set small text in pale accent colors on parchment.
 
-Target at least 4.5:1 contrast for all essential text and 3:1 for meaningful control boundaries and focus indicators. Check final composited colors, including disabled states. These are project design targets; device accessibility still needs testing.
+Target at least 4.5:1 contrast for all essential text and 3:1 for meaningful control boundaries. Check final composited colors, including disabled states. These are project design targets; device accessibility still needs testing.
 
 ## Typography
 
@@ -112,9 +112,9 @@ Primary buttons use ochre, ink text, 4-unit borders, and semibold labels. Second
 | State | Required presentation |
 | --- | --- |
 | Default | Semantic fill, ink label and outline |
-| Hover | Add a 2-unit inset ink keyline; keep the semantic fill |
-| Pressed | Keep keyline; offset contents down 1 unit without moving the hit area |
-| Keyboard focus | 2-unit ring inset 6; use the appropriate light or dark focus token |
+| Hover | Keep the semantic fill; do not add a ring or outline |
+| Pressed | No added ring; offset contents down 1 unit without moving the hit area |
+| Keyboard focus | No ring or outline; retain keyboard navigation |
 | Selected tab | Ochre plus a visible underline or selection marker; not color alone |
 | Disabled | Inset fill, secondary text, no hover or pressed response; show reason nearby |
 | Pending | Preserve button width, show action-specific progress text, prevent duplicate activation |
@@ -157,7 +157,7 @@ Reference layouts are 360 × 640, 390 × 844, and 540 × 960 in effective UI uni
 
 The original build stretched a 540 × 960 canvas. The restyled desktop UI now reflows at the window's size, while mobile uses display-density scaling and safe-area conversion. Do not equate a 48-unit control with a 48-point touch target without checking the final scale on the physical device. World zoom must not shrink HUD text. Tower action controls and gold badges are intentionally anchored in map space and scale with their towers, including their spacing and hit areas. Verify density reporting and touch sizes on supported phones before release.
 
-Respect safe areas on every overlay as well as the header and footer. Test standard text size, long names, large balances, and translated labels that are roughly 30% longer. Increase vertical space or scroll; do not clip, ellipsize purchase consequences, or reduce essential type below the minimum. Tooltips supplement labels. Icon-only controls require accessible names. Controller or keyboard focus follows visual reading order and remains visible.
+Respect safe areas on every overlay as well as the header and footer. Test standard text size, long names, large balances, and translated labels that are roughly 30% longer. Increase vertical space or scroll; do not clip, ellipsize purchase consequences, or reduce essential type below the minimum. Tooltips supplement labels. Icon-only controls require accessible names. Controller or keyboard focus follows visual reading order without drawing a ring.
 
 Hover is optional; every action must work by tap and keyboard. Use 120 ms for control feedback and about 180 ms for panel entry or exit. No bounce, camera shake, or continuous pulsing in interface chrome. Use normal motion with a fixed 60 FPS cap; there are no player text-size, power-saving, or reduced-motion settings.
 
@@ -173,7 +173,7 @@ Before accepting a new screen, confirm:
 - One primary action is obvious in the active task; destructive actions are explicit.
 - Text, cost, state, and consequence are understandable without color or hover.
 - Safe areas, compact screens, enlarged text, and large values remain usable.
-- Focus is visible, dismissal is predictable, and modal input cannot reach the world.
+- Focus navigation works without rings, dismissal is predictable, and modal input cannot reach the world.
 - The battlefield, collection flow, tower selection, and model-owned values still behave correctly.
 - Updated rendered screenshots cover default, focused, disabled, selected, and modal states. Run `./launch.ps1 -Smoke` for UI behavior; use the broader project checks when changing shared rendering. Verify physical phones separately.
 
