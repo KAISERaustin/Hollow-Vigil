@@ -48,17 +48,17 @@ static func run(suite: SceneTree) -> void:
 		var source: String = e.source
 		Bosses.awaken(game.combat,source)
 		suite.check(game.combat.enemies.size() == 1,"Repeated unlock cannot duplicate a boss")
-		# Exercise the real purchase trigger with this already-connected frontier.
-		game.data.regions.erase(source)
+		# Existing owned encounters keep the legacy center-to-road behavior.
+		game.data.regions[source].erase("boss")
 		game.combat.enemies.clear()
 		game.refresh_paths()
-		suite.check(game.expand(source),"Boss tile can be purchased normally")
-		suite.check(game.combat.enemies.size() == 1,"Purchasing boss tile summons exactly one boss")
+		Bosses.awaken(game.combat, source)
+		suite.check(game.combat.enemies.size() == 1,"Legacy owned boss tile summons exactly one boss")
 		e = game.combat.enemies[0]
 		for r in game.data.regions.values():
 			r.timer = 9.0
 		var original_leg: Array = e.path.duplicate()
-		var frontier := VigilWorld.frontier(game.data.regions)
+		var frontier := VigilWorld.frontier(game.data.regions, int(game.data.seed))
 		game.expand(frontier.keys()[0])
 		suite.check(e.path == original_leg,"Expansion preserves an existing patrol leg")
 		# Exercise junction transitions while keeping the core out of patrols.

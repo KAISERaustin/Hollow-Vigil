@@ -231,7 +231,7 @@ func show_tower() -> void:
 	app.update_hud()
 
 func show_expansion(id: String) -> void:
-	if not VigilWorld.frontier(game.data.regions).has(id):
+	if not VigilWorld.frontier(game.data.regions, int(game.data.seed)).has(id):
 		return
 	mode = "expand"
 	field.show_expansion = true

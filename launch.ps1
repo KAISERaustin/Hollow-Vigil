@@ -81,6 +81,7 @@ try {
         }
         if ($TerrainTests -or $Check) {
             Invoke-Godot -Name 'terrain' -EngineArguments @('--script', 'res://tests/rendered/terrain_palette_checks.gd')
+            Invoke-Godot -Name 'castle-art' -EngineArguments @('--script', 'res://tests/rendered/castle_art_checks.gd')
         }
         if ($ArtSmoke -or $Check) {
             Invoke-Godot -Name 'branch-visual' -EngineArguments @('--script', 'res://tests/rendered/branch_visual_runner.gd')

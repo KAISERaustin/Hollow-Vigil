@@ -133,12 +133,14 @@ static func without_backtracking(path: Array[Vector2]) -> Array[Vector2]:
 			result.append(point)
 	return result
 
-static func frontier(regions: Dictionary) -> Dictionary:
+static func frontier(regions: Dictionary, seed_value: int = -1) -> Dictionary:
 	var result := {}
 	for id in regions:
 		for d in DIRS:
 			var candidate := key(coord(id) + d)
 			if not regions.has(candidate) and not result.has(candidate):
+				if seed_value >= 0 and preload("res://scripts/world/hidden_areas.gd").reserved(coord(candidate), seed_value, regions):
+					continue
 				result[candidate] = id
 	return result
 

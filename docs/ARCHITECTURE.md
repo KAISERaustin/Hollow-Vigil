@@ -30,6 +30,16 @@ When all existing candidates are unreadable, loading reports the problem and blo
 
 For a future schema change, add a pure migration at the storage boundary and test old fixtures, round trips, interrupted writes and rejection of unknown versions. Keep unrelated settings when loading. Do not add live enemies, rendering nodes or cached terrain to saves.
 
+## Permanent castle ruins
+
+`world/hidden_areas.gd` retains the original seeded four/five-cell sector footprints. Unowned footprints are excluded from the seeded expansion frontier; they never enter `regions`, so they have no ordinary portals, sockets, traffic or gameplay roads. Any footprint overlapping existing owned terrain is exempt as a whole, preserving legacy terrain, towers and boss records. The core and starter choices remain clear.
+
+`world/castle_plan.gd` plans a complete structure in local coordinates, with courtyard, great-hall, keep and chamber-range variants. Its 60-unit architectural lattice crosses the 300-unit terrain boundaries. Only exposed footprint edges receive exterior walls; damage removes spans without moving shared vertices. Floors, corner foundations, fallen beams, rubble and the gate corridor share the same deterministic plan. Keep the versioned decoration stream stable for reload consistency. `rendering/hidden_areas.gd` draws complete nearby clusters above the terrain lattice, masking internal grid lines. Cloud banks do not cover the boundary against an ordinary region.
+
+The gate chooses a seeded exposed side on one encounter tile and meets the neighboring road's exact endpoint. Purchasing that reachable neighbor awakens the encounter once. Boss movement samples run from 65 units inside, through the threshold, along that neighbor's road, then into existing patrol routing. Interior partitions reserve the approach clearance. Bosses never route back through decorative tiles.
+
+Optional `castles` save records retain active, defeated and escaped encounters independently of terrain. Active positions and sampled routes are validated against either the authored emergence path or an ordinary patrol leg before writing or loading. Legacy region-based encounters retain their existing paths and statuses. `castle_checks.gd` verifies seed stability, outlines, expansion, movement and persistence; `castle_art_checks.gd` renders four plans at three zooms and checks identical offscreen returns. The latter runs under `launch.ps1 -TerrainTests` and `-Check`.
+
 ## Adding content
 
 Developer balance is stored as sparse `settings.developer_balance` overrides per enemy/tower type. `Balance.TUNING_FIELDS` defines editable fields and finite bounds for both sliders and save validation; `Balance.definition`, `tuned_value`, and `stats` resolve values with defaults. Runtime consumers must pass the owning game's tuning instead of changing shared constants. `VigilState` applies edits, preserving live health and cooldown fractions and clearing stale production samples. `scripts/ui/developer_controls.gd` owns the editor; the app debounces saves and flushes when leaving it. Saves without overrides keep the defaults.

@@ -12,7 +12,7 @@ static func test_world(suite: SceneTree) -> void:
 	var first_pad := VigilWorld.pad_position("0,0", 0)
 	var directions := {}
 	for i in range(80):
-		var options := VigilWorld.frontier(g.data.regions)
+		var options := VigilWorld.frontier(g.data.regions, int(g.data.seed))
 		var id: String = options.keys()[i % options.size()]
 		suite.check(g.expand(id), "Expansion %d purchases successfully" % i)
 		var r: Dictionary = g.data.regions[id]
@@ -48,14 +48,14 @@ static func test_territory_styles(suite: SceneTree) -> void:
 	var seen := {}
 	suite.check(g.data.regions["0,0"].style == "forest", "Starting territory retains forest")
 	for i in range(1, 61):
-		var id := "%d,0" % i
+		var id: String = VigilWorld.frontier(g.data.regions, int(g.data.seed)).keys()[i % VigilWorld.frontier(g.data.regions, int(g.data.seed)).size()]
 		suite.check(g.expand(id), "Styled territory can be claimed")
 		var style: String = g.data.regions[id].style
 		suite.check(style in VigilWorld.STYLES, "New territory selects a supported theme")
 		seen[style] = true
 	suite.check(seen.has("forest") and seen.size() == 4, "Purchased territories include forest and all three other themes")
 	var before: Dictionary = g.data.regions.duplicate(true)
-	suite.check(not g.expand("1,0") and g.data.regions == before, "Failed claim cannot reroll existing styles")
+	suite.check(not g.expand("0,0") and g.data.regions == before, "Failed claim cannot reroll existing styles")
 	g.save_path = "user://territory-style-test.save"
 	suite.clean_test_save(g.save_path)
 	suite.check(g.save(1000), "Styled world saves")

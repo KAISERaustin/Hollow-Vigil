@@ -127,7 +127,7 @@ static func test_portal_controls(suite: SceneTree) -> void:
 			for point in [expand, expand_edge]:
 				chosen.kind = ""
 				field.tap(point)
-				suite.check(chosen.kind == "expand" and chosen.id == frontier, "Expansion center and edge select the correct territory at zoom %.2f" % scale)
+				suite.check((chosen.kind == "expand" and chosen.id == frontier) if VigilWorld.frontier(g.data.regions, int(g.data.seed)).has(frontier) else chosen.kind == "", "Expansion center and edge select the correct territory at zoom %.2f" % scale)
 			chosen.kind = ""
 			field.tap((rift_edge + expand_edge) * 0.5)
 			suite.check(chosen.kind == "", "Gap between portal and expansion does not select either at zoom %.2f" % scale)
@@ -136,7 +136,7 @@ static func test_portal_controls(suite: SceneTree) -> void:
 	for id in ["-1,-1", "-1,-2", "0,-2", "1,-2", "1,-1"]:
 		g.expand(id)
 	field.zoom = 0.42
-	for id in VigilWorld.frontier(g.data.regions):
+	for id in VigilWorld.frontier(g.data.regions, int(g.data.seed)):
 		chosen.kind = ""
 		field.tap(field.screen(field.expansion_marker(id)))
 		suite.check(chosen.kind == "expand" and chosen.id == id, "Crowded frontier %s remains selectable at minimum zoom" % id)

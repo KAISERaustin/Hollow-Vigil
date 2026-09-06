@@ -87,10 +87,15 @@ static func run(app: Control) -> void:
 	await preload("res://tests/rendered/tower_panel_checks.gd").run(app, load("res://tests/rendered/visual_smoke.gd"), failures)
 	await preload("res://tests/rendered/relocation_ui_checks.gd").run(app, load("res://tests/rendered/visual_smoke.gd"), failures)
 	# Exercise the neighboring map controls through real mouse and touch events.
+	var frontier_id := ""
+	for candidate in VigilWorld.frontier(game.data.regions, int(game.data.seed)):
+		if Vector2(VigilWorld.coord(candidate) - Vector2i(-1,0)).length() == 1.0:
+			frontier_id = candidate
+			break
 	for scale in [1.0, 0.65, 0.42, 1.65]:
 		app.field.zoom = scale
 		var portal: Vector2 = game.paths["-1,0"][0]
-		var frontier: Vector2 = app.field.expansion_marker("-2,0")
+		var frontier: Vector2 = app.field.expansion_marker(frontier_id)
 		app.field.camera = (portal + frontier) * 0.5
 		for touch in [false, true]:
 			await tap(app, app.field.global_position + app.field.screen(portal), touch)
@@ -272,6 +277,7 @@ static func run(app: Control) -> void:
 
 static func camera_test_world() -> VigilState:
 	var g := VigilState.new(569)
+	g.data.first_property_required = false # Retain the legacy 33-road camera fixture.
 	g.data.towers.clear()
 	g.save_path = "user://smoke.save"
 	g.combat.rng.seed = 569
@@ -279,7 +285,8 @@ static func camera_test_world() -> VigilState:
 	for side in [-1, 1]:
 		for i in range(1, 17):
 			var id := "%d,0" % (side * i)
-			g.expand(id)
+			g.data.regions[id] = VigilWorld.make_region(id, "%d,0" % (side * (i-1)), int(g.data.seed))
+			g.refresh_paths()
 			g.economy.build("rapid", id, 1 if side < 0 else 0)
 	return g
 

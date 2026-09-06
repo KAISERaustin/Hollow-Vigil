@@ -23,7 +23,7 @@ func synchronize(state: VigilState, world_view: Rect2) -> void:
 			var cell := VigilWorld.coord(id)
 			var directions: Array[Vector2] = []
 			for direction in VigilWorld.DIRS:
-				if not state.data.regions.has(VigilWorld.key(cell + direction)):
+				if not state.data.regions.has(VigilWorld.key(cell + direction)) and not preload("res://scripts/world/hidden_areas.gd").reserved(cell + direction, int(state.data.seed), state.data.regions):
 					directions.append(Vector2(direction))
 			if not directions.is_empty():
 				var border := {"cell": cell, "directions": directions}

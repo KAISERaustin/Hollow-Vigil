@@ -48,7 +48,7 @@ func expansion_frontier() -> Dictionary:
 	var signature := [state, state.terrain_revision, state.data.seed, state.data.regions.size()]
 	if frontier_signature != signature:
 		frontier_signature = signature
-		frontier_cache = VigilWorld.frontier(state.data.regions)
+		frontier_cache = VigilWorld.frontier(state.data.regions, int(state.data.seed))
 	return frontier_cache
 const GOLD := VigilTerrainArt.GOLD
 const TEXT := VigilTerrainArt.PAPER
@@ -229,7 +229,7 @@ func tap(pos: Vector2) -> void:
 			nearest = id
 			is_entrance = true
 			distance = candidate
-	for id in VigilWorld.frontier(state.data.regions):
+	for id in VigilWorld.frontier(state.data.regions, int(state.data.seed)):
 		var c := screen(expansion_marker(id))
 		var candidate := pos.distance_to(c) / EXPANSION_HIT_RADIUS
 		if candidate < 1.0 and candidate < distance:

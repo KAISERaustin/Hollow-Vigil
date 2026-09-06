@@ -22,7 +22,7 @@ func _init(seed_value: int = 0) -> void:
 	data = {
 		"version": Balance.VERSION, "sequence": 0, "seed": world_seed,
 		"balance": Balance.STARTING_GOLD, "reserve": 0.0, "lifetime_earnings": 0.0, "kills": 0.0, "escapes": 0.0,
-		"regions": {"0,0": VigilWorld.make_region("0,0", "", world_seed)}, "towers": {},
+		"regions": {"0,0": VigilWorld.make_region("0,0", "", world_seed)}, "towers": {}, "castles": {},
 		"next_tower": 1, "automation": false, "first_property_required": true, "last_accounted": Time.get_unix_time_from_system(),
 		"active_seconds": 0.0, "settings": {"low_power": false},
 		"camera": [0.0, 0.0, 1.0]
@@ -95,7 +95,7 @@ func apply_balance(candidate: Dictionary) -> bool:
 	return true
 
 func expand(id: String) -> bool:
-	var options := VigilWorld.frontier(data.regions)
+	var options := VigilWorld.frontier(data.regions, int(data.seed))
 	if not options.has(id) or not economy.spend(Balance.expansion_cost(data.regions.size())):
 		return false
 	data.regions[id] = VigilWorld.make_region(id, options[id], data.seed)
@@ -103,6 +103,7 @@ func expand(id: String) -> bool:
 	# A new neighbor can add an equal route or shorten an older rift's route.
 	combat.rebuild_routes()
 	combat.Bosses.awaken(combat, id)
+	combat.Bosses.discover_castles(combat)
 	terrain_revision += 1
 	return true
 
@@ -138,7 +139,7 @@ func snapshot(now: float = -1.0) -> Dictionary:
 		now = Time.get_unix_time_from_system()
 	data.last_accounted = maxf(data.last_accounted, now)
 	var result := data.duplicate(true)
-	combat.Bosses.capture(combat, result.regions)
+	combat.Bosses.capture(combat, result.regions, result.get("castles", {}))
 	return result
 
 func save(now: float = -1.0) -> bool:
@@ -193,6 +194,7 @@ func load_save(now: float = -1.0) -> bool:
 		return false
 	save_blocked = false
 	data = best
+	data.castles = data.get("castles", {})
 	economy = VigilEconomy.new(data)
 	combat = VigilCombat.new(data, economy, paths)
 	# JSON numbers are floats; convert discrete counters before using them as IDs.

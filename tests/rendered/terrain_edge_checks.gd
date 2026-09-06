@@ -13,6 +13,10 @@ static func run(tree: SceneTree) -> int:
 	# exercised separately with the world grid below.
 	layer.clouds.hide()
 	layer.cloud_edges.hide()
+	# Ordinary tile clipping/grid tests isolate the terrain layer. Castle
+	# overlays intentionally replace both fog and internal grid strokes;
+	# castle_art_checks verifies those combined boundaries separately.
+	layer.hidden_areas.hide()
 	var cases := 0
 	var samples := 0
 	var failures := 0

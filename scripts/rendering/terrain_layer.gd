@@ -33,6 +33,8 @@ func synchronize(state: VigilState, camera: Vector2, zoom: float, viewport_size:
 		# while the battlefield's portals, enemies and controls remain above it.
 		move_child(cloud_edges, -1)
 		move_child(grid, -1)
+		# The unified ruin ground masks the lattice only inside its footprint.
+		move_child(hidden_areas, -1)
 	var world_view := Rect2(camera - viewport_size * 0.5 / zoom, viewport_size / zoom)
 	clouds.synchronize(world_view)
 	hidden_areas.synchronize(state, world_view)

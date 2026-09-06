@@ -133,6 +133,21 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 			if not number(value):
 				return false
 	# All region shapes are now validated, so road reconstruction is safe.
+	if not d.get("castles", {}) is Dictionary:
+		return false
+	const Areas = preload("res://scripts/world/hidden_areas.gd")
+	for id in d.get("castles", {}):
+		if not valid_coordinate(id) or not d.castles[id] is Dictionary:
+			return false
+		var sector := Areas.sector_for(VigilWorld.coord(id))
+		var g := Areas.gate(sector, int(d.seed))
+		if g.id != id or Areas.preserved(sector, int(d.seed), d.regions) or not d.regions.has(g.neighbor):
+			return false
+		var boss: Variant = d.castles[id].get("boss")
+		if not valid_boss(boss, id, d):
+			return false
+		if boss.status == "active" and not valid_boss_road(boss, d.regions, int(d.seed)):
+			return false
 	for r in d.regions.values():
 		if r.has("boss") and r.boss.status == "active" and not valid_boss_road(r.boss, d.regions):
 			return false
@@ -194,14 +209,15 @@ func valid_coordinate(value: Variant) -> bool:
 
 func valid_boss(b: Variant, id: String, d: Dictionary) -> bool:
 	const Bosses = preload("res://scripts/model/bosses.gd")
-	if not b is Dictionary or not b.get("kind") is String or b.kind != Bosses.kind_at(id, int(d.seed)) or b.kind == "":
+	var kind := Bosses.kind_at(id, int(d.seed)) if d.regions.has(id) else Bosses.castle_kind(Bosses.Areas.sector_for(VigilWorld.coord(id)), int(d.seed))
+	if not b is Dictionary or not b.get("kind") is String or b.kind != kind or b.kind == "":
 		return false
 	if b.get("status") in ["defeated", "escaped"]:
 		return true
 	if b.get("status") != "active":
 		return false
 	for field in ["tile", "previous"]:
-		if not b.get(field) is String or not d.regions.has(b[field]):
+		if not b.get(field) is String or (not d.regions.has(b[field]) and not (field == "previous" and b[field] == id and d.get("castles", {}).has(id))):
 			return false
 	if Vector2(VigilWorld.coord(b.tile) - VigilWorld.coord(b.previous)).length() != 1.0:
 		return false
@@ -221,11 +237,19 @@ func valid_boss(b: Variant, id: String, d: Dictionary) -> bool:
 			return false
 	return true
 
-func valid_boss_road(b: Dictionary, regions: Dictionary) -> bool:
+func valid_boss_road(b: Dictionary, regions: Dictionary, seed_value: int = -1) -> bool:
 	var side := VigilWorld.DIRS.find(VigilWorld.coord(b.tile) - VigilWorld.coord(b.previous))
-	var expected := VigilWorld.spoke(regions[b.previous], side)
-	expected.reverse()
-	expected.append_array(VigilWorld.spoke(regions[b.tile], (side + 2) % 4).slice(1))
+	var expected: Array[Vector2] = []
+	if not regions.has(b.previous):
+		const Areas = preload("res://scripts/world/hidden_areas.gd")
+		var g := Areas.gate(Areas.sector_for(VigilWorld.coord(b.previous)), seed_value)
+		if b.previous != g.id or b.tile != g.neighbor:
+			return false
+		expected = Areas.emergence(g, regions)
+	else:
+		expected = VigilWorld.spoke(regions[b.previous], side)
+		expected.reverse()
+		expected.append_array(VigilWorld.spoke(regions[b.tile], (side + 2) % 4).slice(1))
 	if expected.size() != b.path.size():
 		return false
 	for i in range(expected.size()):

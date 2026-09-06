@@ -19,6 +19,26 @@ static func awaken(combat: VigilCombat, id: String) -> void:
 	region.boss = {"status": "active", "kind": kind}
 	create(combat, id, kind)
 
+static func record(combat: VigilCombat, id: String) -> Dictionary:
+	return combat.data.regions[id] if combat.data.regions.has(id) else combat.data.castles[id]
+
+static func castle_kind(sector: Vector2i, seed_value: int) -> String:
+	return kind_at(VigilWorld.key(Areas.cluster(sector, seed_value)[0]), seed_value)
+
+static func discover_castles(combat: VigilCombat) -> void:
+	var sectors := {}
+	for id in combat.data.regions:
+		for direction in VigilWorld.DIRS:
+			sectors[Areas.sector_for(VigilWorld.coord(id) + direction)] = true
+	for sector in sectors:
+		if Areas.preserved(sector, int(combat.data.seed), combat.data.regions):
+			continue
+		var g := Areas.gate(sector, int(combat.data.seed))
+		if combat.paths.has(g.neighbor) and not combat.data.castles.has(g.id):
+			var kind := castle_kind(sector, int(combat.data.seed))
+			combat.data.castles[g.id] = {"boss": {"status": "active", "kind": kind}}
+			create(combat, g.id, kind)
+
 static func create(combat: VigilCombat, id: String, kind: String) -> Dictionary:
 	var stats := Balance.definition("bosses", kind, combat.tuning)
 	combat.enemy_serial += 1
@@ -27,7 +47,15 @@ static func create(combat: VigilCombat, id: String, kind: String) -> Dictionary:
 		"pos": VigilWorld.center(id), "segment": 1, "path": [], "tile": id,
 		"previous": "", "steps": 0, "shield": stats.get("shield", 0.0),
 		"wards": int(stats.get("wards", 0)), "regen": stats.get("regen_period", 10.0), "toll": stats.get("toll_period", 8.0), "toll_delayed": false}
-	next_leg(combat, e)
+	if not combat.data.regions.has(id):
+		var g := Areas.gate(Areas.sector_for(VigilWorld.coord(id)), int(combat.data.seed))
+		e.path = Areas.emergence(g, combat.data.regions)
+		e.pos = e.path[0]
+		e.previous = id
+		e.tile = g.neighbor
+		e.steps = 1
+	else:
+		next_leg(combat, e)
 	combat.enemies.append(e)
 	return e
 
@@ -154,7 +182,9 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 				count += 1
 		var stats := Balance.definition("bosses", "bell", combat.tuning)
 		for index in range(maxi(0, mini(int(stats.escort_count), int(stats.escort_limit) - count))):
-			var escort := combat.spawn(bell.source, "basic")
+			var escort := combat.spawn(bell.tile, "basic")
+			if escort.is_empty():
+				continue
 			escort.summoner = bell.id
 			escort.rift_style = "forest"
 			escort.hp = Balance.tuned_value("enemies", "basic", "hp", combat.tuning)
@@ -165,7 +195,7 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 			escort.path.append_array(combat.paths[bell.tile].slice(1))
 			escort.segment = 1
 
-static func capture(combat: VigilCombat, regions: Dictionary) -> void:
+static func capture(combat: VigilCombat, regions: Dictionary, castles: Dictionary = {}) -> void:
 	for e in combat.enemies:
 		if not e.get("boss", false) or e.dead:
 			continue
@@ -174,11 +204,13 @@ static func capture(combat: VigilCombat, regions: Dictionary) -> void:
 			saved.path.append([point.x, point.y])
 		for field in ["hp", "segment", "tile", "previous", "steps", "shield", "wards", "regen", "toll", "toll_delayed"]:
 			saved[field] = e[field]
-		regions[e.source].boss = saved
+		(regions[e.source] if regions.has(e.source) else castles[e.source]).boss = saved
 
 static func restore(combat: VigilCombat) -> void:
-	for id in combat.data.regions:
-		var saved: Dictionary = combat.data.regions[id].get("boss", {})
+	var records: Dictionary = combat.data.regions.duplicate()
+	records.merge(combat.data.get("castles", {}))
+	for id in records:
+		var saved: Dictionary = records[id].get("boss", {})
 		# Existing worlds gain their previously uncovered encounter once. Once
 		# captured, both active and defeated records prevent a second awakening.
 		if saved.is_empty():
@@ -195,3 +227,4 @@ static func restore(combat: VigilCombat) -> void:
 		for point in saved.path:
 			e.path.append(Vector2(point[0], point[1]))
 		avoid_core(combat, e)
+	discover_castles(combat)

@@ -73,12 +73,12 @@ func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = ""
 	if enemy.has("summoner"):
 		reward = 0.0
 	if is_boss:
-		data.regions[enemy.source].boss = {"status": "defeated", "kind": enemy.kind}
+		Bosses.record(self, enemy.source).boss = {"status": "defeated", "kind": enemy.kind}
 	economy.credit(tower_id, reward)
 	data.kills += 1.0
-	var r: Dictionary = data.regions[enemy.source]
 	# One-time encounters must not inflate recurring offline income.
 	if not is_boss and not enemy.has("summoner"):
+		var r: Dictionary = data.regions[enemy.source]
 		r.history[tower_id] = r.history.get(tower_id, 0.0) + reward
 	income_events.append(Vector2(simulation_time, reward))
 	add_effect({"kind": "death", "pos": enemy.pos, "life": 0.45, "max_life": 0.45, "color": Bosses.DEFINITIONS[enemy.kind].color if is_boss else Balance.ENEMIES[enemy.kind].color})
@@ -173,7 +173,7 @@ func tick(delta: float) -> void:
 						continue
 					e.dead = true
 					if e.get("boss", false):
-						data.regions[e.source].boss = {"status": "escaped", "kind": e.kind}
+						Bosses.record(self, e.source).boss = {"status": "escaped", "kind": e.kind}
 					data.escapes += 1.0
 					add_effect({"kind": "escape", "pos": e.pos, "life": 0.55, "max_life": 0.55, "color": "9bddd8"})
 			else:
