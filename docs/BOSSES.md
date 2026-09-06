@@ -17,7 +17,7 @@ legacy save can reverse an inbound core leg along the same road without warping.
 | Boss | Health / speed / gold | Ability and level-four counter |
 | --- | --- | --- |
 | Briarbound Warden | 3200 / 27 / 450 | 600-point root shield regrows every 10 seconds. Cinderfield ground damage deals double shield damage and pauses regrowth while occupied. Excess damage passes into health without doubling. |
-| Cindermaw | 3600 / 25 / 500 | Takes 30% less damage above half health. At half health loses armor and gains 70% speed. Frostneedle deals 50% extra damage, suppresses haste while chilled, and retains its usual 25% slow. |
+| The Cinder Reliquary | 3600 / 25 / 500 | Takes 30% less damage above half health. At half health loses armor and gains 70% speed. Frostneedle deals 50% extra damage, suppresses haste while chilled, and retains its usual 25% slow. |
 | The Drowned Bell | 2800 / 32 / 450 | Summons three Hollows every 8 seconds, capped at six live escorts per bell. Thunderseal's detonation bonus is 50% stronger and delays the next toll by 2 seconds, once per toll. Escorts grant no gold. |
 | The Eclipse Prior | 3000 / 30 / 500 | Three wards each absorb one damage event; refill every 10 seconds. Doomstone bypasses wards and retains its normal damage stacks. A fully stacked curse pauses ward regrowth while its tower maintains that target in range and is not rebuilding. |
 
@@ -28,10 +28,13 @@ reload. Defeated or escaped bosses cannot respawn. Boss and escort
 rewards do not feed repeating offline income. Rift biome bonuses and developer
 enemy tuning apply to ordinary enemies, not bosses.
 
-Detailed sprite artwork preserves the approved four-boss concept, with persistent
-names, health bars, weakness labels, root shield bar and visible crystal wards.
-Boss artwork and its attached indicators render at 60% of their original size.
-The model lives in `scripts/model/bosses.gd`; artwork in
-`scripts/rendering/boss_art.gd`. Run `./launch.ps1 -Tests` for encounter checks
+Native flat artwork uses the terrain, portal and enemy palette and line style.
+The Warden and Cinder Reliquary float without limbs. Boss titles use parchment
+nameplates and shared serif typography; weakness labels are removed from the map.
+Health bars, root shields and visible crystal wards remain. Artwork renders at
+0.51 scale, 15% smaller than the previous 0.6 scale. The internal `cindermaw` key
+is retained for save and encounter compatibility.
+The model lives in `scripts/gameplay/encounters/bosses.gd`; artwork in
+`scripts/rendering/actors/boss_art.gd`. Run `./launch.ps1 -Tests` for encounter checks
 and `./launch.ps1 -ArtSmoke` for the lineup and six battlefield captures.
 The initial health, speed and reward values are balance starting points.

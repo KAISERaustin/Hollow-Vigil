@@ -4,7 +4,7 @@ extends VBoxContainer
 signal settings_requested
 signal collect_requested
 
-const UI = preload("res://scripts/ui/interface.gd")
+const UI = preload("res://scripts/ui/shared/interface.gd")
 const INCOME_REFRESH_MSEC := 1000
 var next_income_refresh_msec := 0
 var gold_label: Label

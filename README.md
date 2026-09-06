@@ -48,6 +48,8 @@ its sole exit. Health and encounter
 progress survive reloads, and each boss has a level-four tower weakness and
 a one-time bounty. See [boss encounters and counters](docs/BOSSES.md).
 
+Bosses also drop **relic equipment**. Select a tower and use the diamond button at the upper left of its action circle to equip, remove, or transfer a relic for free. Every tower has one slot; equipped towers display a matching boss emblem. Selling keeps the item, and older saves receive drops for recorded victories. See [boss relics and their effects](docs/RELICS.md).
+
 ## Developer Controls
 
 Open **Settings → Developer Controls**, choose **Bosses**, **Enemies**, or **Towers**, then select a type. Enemy controls include all six types, including Abyss Shades and Crypt Sentinels, with health, speed, gold reward and knockback resistance. Bosses also expose their defenses, counter strengths, timers, and summon settings.
@@ -64,11 +66,15 @@ The editor shows factory defaults alongside current values. Offline income learn
 | --- | --- |
 | `scenes/` | Entry scene |
 | `scripts/app/` | Application lifecycle, saving, UI composition |
-| `scripts/model/` | Balance, state, economy, combat |
+| `scripts/gameplay/` | Shared state and balance API |
+| `scripts/gameplay/combat/` | Simulation, targeting, projectiles, abilities and enemy indexing |
+| `scripts/gameplay/encounters/` | Boss encounters and patrol behavior |
+| `scripts/gameplay/progression/` | Economy, tower transactions and relic equipment |
 | `scripts/persistence/` | Save validation, checksums, recovery and writes |
 | `scripts/world/` | Territory generation, roads, routes and sockets |
-| `scripts/ui/` | HUD, panels, dialogs, guide and shared styling |
-| `scripts/rendering/` | Battlefield, cached terrain and cosmetic drawing |
+| `scripts/ui/` | HUD and navigation panels; `towers/`, `developer/`, and `shared/` own focused UI |
+| `scripts/rendering/` | Battlefield composition; `terrain/`, `actors/`, and `effects/` own drawing |
+| `tools/` | Source-structure checks and asset authoring utilities |
 | `tests/unit/` | Headless gameplay, persistence, input and stress checks |
 | `tests/rendered/` | Native GPU and mouse/touch integration checks |
 | `tests/previews/` | Disposable terrain preview |
@@ -81,6 +87,8 @@ The editor shows factory defaults alongside current values. Offline income learn
 Keep GDScript `.uid` files with their scripts when moving or committing them. Commit source files, `project.godot`, scene files and export presets; generated caches and test output stay out of source control.
 
 ## Verify
+
+Run `python3 tools/check_structure.py` after moving source files. It checks resource paths, UID collisions and gameplay imports of presentation code. Engine import and the suites below remain necessary to verify GDScript and behavior.
 
 ```powershell
 ./launch.ps1 -Tests           # Headless gameplay and persistence

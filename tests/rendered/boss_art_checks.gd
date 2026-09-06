@@ -1,18 +1,16 @@
 extends SceneTree
 
-const Bosses = preload("res://scripts/model/bosses.gd")
-const Art = preload("res://scripts/rendering/boss_art.gd")
+const Bosses = preload("res://scripts/gameplay/encounters/bosses.gd")
+const Art = preload("res://scripts/rendering/actors/boss_art.gd")
 var failures := 0
 
 class Board extends Node2D:
 	func _draw() -> void:
-		Art.begin_frame(self)
 		for i in range(4):
 			var kind: String = Bosses.TYPES[i]
 			var e := {"kind":kind,"hp":Bosses.DEFINITIONS[kind].hp,"max_hp":Bosses.DEFINITIONS[kind].hp,"shield":600.0 if i==0 else 0.0,"wards":3}
 			Art.draw(self,e,Vector2(225+(i%2)*450,235+(i/2)*390),2.3)
 
-		Art.end_frame(self)
 
 func _initialize() -> void:
 	preload("res://tests/support/timeout.gd").arm(self)
@@ -34,13 +32,17 @@ func run() -> void:
 	root.add_child(board)
 	await frame()
 	var img := root.get_texture().get_image()
-	for sprite in board.get_meta("boss_sprites",{}).values():
-		if not is_equal_approx(sprite.texture.get_width()*sprite.scale.x,128.0*0.6*2.3):
-			push_error("Boss sprites must render at 60 percent of original size")
+	# Check visible native ink/fills around each boss, independently of its label.
+	for i in range(4):
+		var center := Vector2i(225+(i%2)*450,235+(i/2)*390)
+		var colored := 0
+		for y in range(center.y-62,center.y+56):
+			for x in range(center.x-55,center.x+55):
+				if not img.get_pixel(x,y).is_equal_approx(background.color):
+					colored += 1
+		if colored < 700:
+			push_error("Boss silhouette is missing: " + Bosses.TYPES[i])
 			failures += 1
-	if not img.get_pixel(90,120).is_equal_approx(background.color):
-		push_error("Boss matte must reveal the backdrop, not a checkerboard")
-		failures += 1
 	if img.save_png("res://artifacts/boss-lineup.png") != OK:
 		failures += 1
 	board.queue_free()

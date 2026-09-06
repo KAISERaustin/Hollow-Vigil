@@ -160,6 +160,14 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 	for r in d.regions.values():
 		if r.has("boss") and r.boss.status == "active" and not valid_boss_road(r.boss, d.regions):
 			return false
+	const Relics = preload("res://scripts/gameplay/progression/relics.gd")
+	var inventory: Variant = d.get("relics", {})
+	if not inventory is Dictionary:
+		return false
+	for relic_id in inventory:
+		if not valid_coordinate(relic_id) or not inventory[relic_id] is String or not Relics.DEFINITIONS.has(inventory[relic_id]):
+			return false
+	var equipped := {}
 	var occupied := {}
 	for id in d.towers:
 		var t = d.towers[id]
@@ -178,6 +186,11 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 				return false
 		if not number(t.pad, 0, 3, true) or not number(t.level, 1, max_tower_level, true) or not number(t.earnings) or not number(t.cooldown, 0, maxf(10.0, Balance.TUNING_FIELDS.towers.period.max)) or not number(t.angle, -TAU, TAU):
 			return false
+		var relic_id: Variant = t.get("relic", "")
+		if not relic_id is String or (relic_id != "" and (not inventory.has(relic_id) or equipped.has(relic_id))):
+			return false
+		if relic_id != "":
+			equipped[relic_id] = true
 		var socket := str(t.region) + "/" + str(int(t.pad))
 		if not t.get("target_mode", "first") is String or not Balance.TARGET_MODES.has(t.get("target_mode", "first")):
 			return false
@@ -217,7 +230,7 @@ func valid_coordinate(value: Variant) -> bool:
 	return str(int(parts[0])) + "," + str(int(parts[1])) == value and abs(int(parts[0])) < 100000000 and abs(int(parts[1])) < 100000000
 
 func valid_boss(b: Variant, id: String, d: Dictionary) -> bool:
-	const Bosses = preload("res://scripts/model/bosses.gd")
+	const Bosses = preload("res://scripts/gameplay/encounters/bosses.gd")
 	var kind := Bosses.kind_at(id, int(d.seed)) if not d.get("castles", {}).has(id) else Bosses.castle_kind(Bosses.Areas.sector_for(VigilWorld.coord(id)), int(d.seed))
 	if not b is Dictionary or not b.get("kind") is String or b.kind != kind or b.kind == "":
 		return false

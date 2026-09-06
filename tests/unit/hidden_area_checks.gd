@@ -25,7 +25,7 @@ static func run(suite: SceneTree) -> void:
 						suite.check(not occupied.has(cell + direction) or occupied[cell + direction] == sector, "Separate clusters never touch")
 					occupied[cell] = sector
 	var game := VigilState.new(879)
-	var layer := preload("res://scripts/rendering/hidden_areas.gd").new()
+	var layer := preload("res://scripts/rendering/terrain/hidden_areas.gd").new()
 	var snapshot := game.data.duplicate(true)
 	var view := Rect2(-3000, -3000, 6000, 6000)
 	layer.synchronize(game, view)

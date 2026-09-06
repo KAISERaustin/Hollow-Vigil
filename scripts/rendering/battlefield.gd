@@ -1,9 +1,9 @@
 class_name Battlefield
 extends Control
 
-const RegionQuery = preload("res://scripts/rendering/region_query.gd")
+const RegionQuery = preload("res://scripts/rendering/terrain/region_query.gd")
 
-const AttackEffects = preload("res://scripts/rendering/attack_effects.gd")
+const AttackEffects = preload("res://scripts/rendering/effects/attack_effects.gd")
 
 signal picked(region: String, pad: int)
 signal relocation_picked(region: String, pad: int)
@@ -322,9 +322,7 @@ func centered(text: String, at: Vector2, pixels: int, color: Color) -> void:
 	text_at(text, at - Vector2(width * 0.5, 0), pixels, color)
 
 func _draw() -> void:
-	preload("res://scripts/rendering/boss_art.gd").begin_frame(self)
 	if state == null:
-		preload("res://scripts/rendering/boss_art.gd").end_frame(self)
 		return
 	if terrain_layer != null:
 		terrain_layer.synchronize(state, camera, zoom, size)
@@ -387,6 +385,8 @@ func _draw() -> void:
 			var origin := screen(fx.from)
 			if visible.intersects(Rect2(origin, Vector2.ZERO).expand(p).grow((fx.radius + 30.0) * zoom)):
 				AttackEffects.draw(self, fx, origin, p, zoom, effect_offset)
+		elif fx.kind == "relic_drop":
+			preload("res://scripts/rendering/actors/relic_art.gd").draw(self, fx.relic_kind, p + Vector2(0, -25 - (1.0 - fade) * 25) * zoom, zoom * (0.9 + fade * 0.4))
 		elif fx.kind == "shard_fade":
 			var tip: Vector2 = p + fx.direction * (1.0-fade)*35*zoom
 			draw_line(tip,tip+fx.direction*7*zoom,Color(color,fade),2*zoom,true)
@@ -398,7 +398,6 @@ func _draw() -> void:
 		else:
 			draw_arc(p, (1.0 - fade) * 12.0 * zoom, 0, TAU, 20, color, 2.0 * zoom, true)
 
-	preload("res://scripts/rendering/boss_art.gd").end_frame(self)
 
 func draw_region(region: Dictionary) -> void:
 	# Terrain is cached behind this interactive layer; only + glyphs redraw.
@@ -417,7 +416,7 @@ func draw_region(region: Dictionary) -> void:
 func draw_entrance(id: String) -> void:
 	var gate := screen(VigilWorld.center(id))
 	var z := entrance_scale()
-	preload("res://scripts/rendering/rift_art.gd").draw(self, state.data.regions[id].get("style", "forest"), gate, z)
+	preload("res://scripts/rendering/actors/rift_art.gd").draw(self, state.data.regions[id].get("style", "forest"), gate, z)
 
 func draw_core() -> void:
 	var gate := screen(VigilWorld.CORE_POSITION)
@@ -429,6 +428,10 @@ func draw_tower(t: Dictionary) -> void:
 	var p := screen(VigilWorld.pad_position(t.region, t.pad))
 	var z := zoom
 	VigilTerrainArt.sentinel(self, t.kind, p, z, int(t.level), t.get("branch", ""))
+	var relic_kind := preload("res://scripts/gameplay/progression/relics.gd").kind(state.data, t)
+	if relic_kind != "":
+		preload("res://scripts/rendering/actors/relic_art.gd").draw(self, relic_kind, p + Vector2(20, -17) * z, z * 0.8)
+
 	if t.get("branch", "") == "doomstone":
 		var stacks: int = state.combat.curses.get(t.id, {}).get("stacks", 0)
 		for y in [-38,-27,-16]:
@@ -467,8 +470,8 @@ func draw_enemy(e: Dictionary) -> void:
 	var p := screen(e.pos)
 	var z := zoom
 	if e.get("boss", false):
-		preload("res://scripts/rendering/boss_art.gd").draw(self, e, p, z)
-		z *= preload("res://scripts/rendering/boss_art.gd").SIZE_SCALE
+		preload("res://scripts/rendering/actors/boss_art.gd").draw(self, e, p, z)
+		z *= preload("res://scripts/rendering/actors/boss_art.gd").SIZE_SCALE
 	else:
 		VigilTerrainArt.enemy(self, e.kind, p, z)
 	if e.get("slow_until", 0.0) > state.combat.simulation_time:
@@ -483,11 +486,15 @@ func draw_enemy(e: Dictionary) -> void:
 		draw_circle(p+Vector2(-9+index*6,-30)*z,2*z,Color("b3b5f1"))
 	for index in range(int(e.get("curse_stacks", 0))):
 		draw_line(p+Vector2(-10+index*5,16)*z,p+Vector2(-8+index*5,20)*z,Color("c282bb"),2*z,true)
+	if e.get("root_until", 0.0) > state.combat.simulation_time:
+		draw_arc(p, 17*z, 0, TAU, 24, Color("a9d58b"), 2*z, true)
+		for side in [-1, 1]:
+			draw_polyline(PackedVector2Array([p+Vector2(side*20,6)*z, p+Vector2(side*9,-2)*z, p+Vector2(side*15,-13)*z]), Color("a9d58b"), 2*z, true)
 	if e.get("stun_until", 0.0) > state.combat.simulation_time:
 		draw_arc(p,18*z,0,TAU,24,VigilTerrainArt.PAPER,2*z,true)
 	var rift_style: String = e.get("rift_style", "forest")
 	if Balance.rift_strength(rift_style, state.tuning) > 0.0:
-		preload("res://scripts/rendering/rift_art.gd").enemy_mark(self, rift_style, p, z)
+		preload("res://scripts/rendering/actors/rift_art.gd").enemy_mark(self, rift_style, p, z)
 	if e.hp < e.max_hp and not e.get("boss", false):
 		var from := p + Vector2(-9, -23 * z)
 		draw_line(from, from + Vector2(18, 0), Color.BLACK, 4)

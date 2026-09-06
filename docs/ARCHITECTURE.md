@@ -8,7 +8,20 @@ UI panels and tower dialogs have typed `VigilApp` references. That dependency is
 
 `Battlefield` handles map drawing, hit testing and camera gestures. Terrain is cached in one node per territory; the shared grid only draws visible rows and columns. Appearance changes increment `terrain_revision`. The retired blending adjacency cache, shader and image atlases have been removed.
 
-Cosmetic attack effects track enemy centers by serial ID, refreshing their position after movement and attacks. When a target dies or escapes, its last position is frozen before its dictionary is recycled. Effects never retain pooled enemy objects or issue delayed damage or payouts. The existing effect factory is shared with combat; drawing only consumes the resulting records. Camera position cannot affect spawn, targeting or rewards.
+Cosmetic attack effects track enemy centers by serial ID, refreshing their position after movement and attacks. When a target dies or escapes, its last position is frozen before its dictionary is recycled. Effects never retain pooled enemy objects or issue delayed damage or payouts. `gameplay/combat/shot_factory.gd` owns projectile flight timing and creates effect records; `rendering/effects/attack_effects.gd` only draws them. Gameplay never imports presentation modules. Camera position cannot affect spawn, targeting or rewards.
+
+## Source boundaries
+
+- `gameplay/game_state.gd` coordinates the shared snapshot, live services and storage lifecycle. `gameplay/balance.gd` is the existing balance API and content catalog.
+- `gameplay/combat/combat.gd` owns the simulation clock, enemy pool, pending shots, effects, target locks and transient ability/relic state. Its public methods remain stable for callers and tests.
+- `gameplay/combat/targeting.gd` ranks supplied candidates using path distance, health and deterministic spawn-order ties; it needs no scene or game-state reference.
+- `gameplay/combat/projectiles.gd` handles launch, flight, impact, fragments and ballistic arrows. `tower_abilities.gd` handles on-hit branch effects, displacement and persistent fire. These stateless helpers receive the owning combat service explicitly; they do not store a second copy of its state or retain it in a reference cycle.
+- `gameplay/encounters/bosses.gd` owns encounter behavior. `gameplay/progression/` owns economy transactions and relic rules. Relocation, selling and equipment changes use one production-history invalidation helper.
+- `world/` owns deterministic geography and routes. `persistence/` owns schema validation, migrations and recovery. Neither belongs in a screen or draw callback.
+- `rendering/terrain/` owns map tiles, grids, clouds and castle scenery; `rendering/actors/` owns towers, enemies, bosses, rifts and relic icons; `rendering/effects/` consumes transient visual records.
+- `ui/towers/` owns tower actions, dialogs, movement and equipment; `ui/developer/` owns tuning controls; `ui/shared/` owns reusable styling and widgets. Application composition stays in `app/`.
+
+Keep each `.uid` alongside its script and update explicit `res://` references when moving files. Run `python3 tools/check_structure.py`, import with Godot, then run affected headless and rendered suites. A directory move does not change save keys, tower IDs, class names or resource UIDs.
 
 ## Invariants
 
@@ -42,14 +55,20 @@ Optional `castles` save records retain active, defeated and escaped encounters i
 
 ## Adding content
 
-Developer balance is stored as sparse `settings.developer_balance` overrides per enemy/tower type. `Balance.TUNING_FIELDS` defines editable fields and finite bounds for both sliders and save validation; `Balance.definition`, `tuned_value`, and `stats` resolve values with defaults. Runtime consumers must pass the owning game's tuning instead of changing shared constants. `VigilState` applies edits, preserving live health and cooldown fractions and clearing stale production samples. `scripts/ui/developer_controls.gd` owns the editor; the app debounces saves and flushes when leaving it. Saves without overrides keep the defaults.
+Developer balance is stored as sparse `settings.developer_balance` overrides per enemy/tower type. `Balance.TUNING_FIELDS` defines editable fields and finite bounds for both sliders and save validation; `Balance.definition`, `tuned_value`, and `stats` resolve values with defaults. Runtime consumers must pass the owning game's tuning instead of changing shared constants. `VigilState` applies edits, preserving live health and cooldown fractions and clearing stale production samples. `scripts/ui/developer/developer_controls.gd` owns the editor; the app debounces saves and flushes when leaving it. Saves without overrides keep the defaults.
 
-- **Tower:** add its level-one definition and two `TOWER_UPGRADES` rows in `scripts/model/balance.gd`. Each upgrade row contains its purchase cost and complete combat stats. `Balance.stats()` caps levels and applies developer overrides in proportion to the tier's base values. The build menu reads the definitions and upgrade prices. Add its artwork in `scripts/rendering/terrain_art.gd`. New combat mechanics need explicit combat implementation and tests; adding a display field alone does not implement behavior.
+- **Tower:** add its level-one definition, two `TOWER_UPGRADES` rows and two level-four `BRANCHES` entries in `scripts/gameplay/balance.gd`. Each upgrade row contains its purchase cost and complete combat stats; branch ability parameters live in `ABILITIES`. `Balance.stats()` caps levels and applies developer overrides in proportion to the tier's base values. The build menu reads the definitions and upgrade prices. Add its artwork in `scripts/rendering/terrain/terrain_art.gd`. Implement new projectile mechanics in `gameplay/combat/projectiles.gd` and on-hit or persistent effects in `tower_abilities.gd`, with behavior tests; adding a display field alone does not implement behavior.
 - **Enemy:** add its definition, unlock cost and spawn share in `Balance`. Unlock validation, spawning and rift text read those tables. Shares must leave room for the basic enemy. Add artwork and test distribution, movement and rewards.
 - **Biome:** update world style lists and its drawing palette/scenery. Save validation and GPU tests use the same world style names. Existing territories must keep their saved appearance.
 - **Displayed statistic:** preserve fractional values. Use balance data for text instead of copying gameplay numbers into panels.
 - **Progression limit:** use the shared constants, including `MAX_TOWER_LEVEL`, in gameplay, validation and UI.
 - **New feature:** add a focused module with a clear owner. Avoid a general framework until multiple concrete features need it. Keep public service methods typed and add boundary tests for state-changing behavior.
+
+## Sweep decisions
+
+The September 2026 organization pass removed the unreferenced `UI.content_box()` helper and `UI.TITLE` constant. Native boss drawings made the old matte shader and empty frame hooks unnecessary; their call sites were removed as well. Reference checks included scripts, scenes and tests, including string-based references.
+
+Legacy automation, appearance fields, save migrations, diagnostic runners and preview scripts remain intentional. Tests and saved progress still depend on them; absence from the current player interface does not make them dead code. Asset files remain available to the art/export workflows. No player saves or generated runtime directories were cleared.
 
 ## Scaling and future work
 

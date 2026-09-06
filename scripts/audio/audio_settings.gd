@@ -1,5 +1,5 @@
 extends VBoxContainer
-const UI = preload("res://scripts/ui/interface.gd")
+const UI = preload("res://scripts/ui/shared/interface.gd")
 var app: Control
 
 func _ready() -> void:

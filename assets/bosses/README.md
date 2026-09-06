@@ -1,4 +1,8 @@
-# Approved boss sprite source
+# Historical boss sprite source
+
+These sprites are retained as historical references. Since September 6, 2026,
+the active renderer uses native minimal artwork in `scripts/rendering/actors/boss_art.gd`
+following the revised direction in `docs/ART_DIRECTION.md`.
 
 The user approved the detailed four-boss concept and explicitly requested restoring that quality instead of simplified native polygon drawings. Four sprites were prepared using the built-in imagegen tool with that concept as the sole visual reference. Generated September 5, 2026.
 

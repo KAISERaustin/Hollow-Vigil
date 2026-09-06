@@ -1,8 +1,8 @@
 class_name VigilPanels
 extends PanelContainer
 
-const UI = preload("res://scripts/ui/interface.gd")
-const DeveloperControls = preload("res://scripts/ui/developer_controls.gd")
+const UI = preload("res://scripts/ui/shared/interface.gd")
+const DeveloperControls = preload("res://scripts/ui/developer/developer_controls.gd")
 var app: VigilApp
 var game: VigilState:
 	get: return app.game

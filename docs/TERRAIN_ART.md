@@ -18,8 +18,8 @@ reserves room around towers, portals, roads, and the three larger props.
 Decoration stays inside each tile and is cached from a separate seeded random
 stream; it does not change road geometry, combat randomness, or saved state.
 
-`scripts/rendering/terrain_art.gd` owns the drawing and
-`scripts/rendering/terrain_tile.gd` owns decoration placement. No external
+`scripts/rendering/terrain/terrain_art.gd` owns the drawing and
+`scripts/rendering/terrain/terrain_tile.gd` owns decoration placement. No external
 textures or generated raster assets are needed for gameplay.
 
 Use `./launch.ps1 -TerrainPreview` to render the four-biome comparison, a

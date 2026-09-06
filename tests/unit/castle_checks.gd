@@ -2,7 +2,7 @@ extends RefCounted
 
 const Areas = preload("res://scripts/world/hidden_areas.gd")
 const Plan = preload("res://scripts/world/castle_plan.gd")
-const Bosses = preload("res://scripts/model/bosses.gd")
+const Bosses = preload("res://scripts/gameplay/encounters/bosses.gd")
 
 static func reach(game: VigilState, target: String) -> void:
 	var queue: Array[String] = ["0,0"]

@@ -163,7 +163,7 @@ Hover is optional; every action must work by tap and keyboard. Use 120 ms for co
 
 ## Implementation and review
 
-Centralize UI colors, type roles, spacing, and surface variants in `scripts/ui/interface.gd` or a dedicated theme resource owned by it. Continue reusing `hud.gd`, `panels.gd`, `tower_actions.gd`, and `tower_dialog.gd`. The shared theme provides structural, content, badge, chrome, and borderless surface helpers. Keep gameplay statistics in `scripts/model/balance.gd`.
+Centralize UI colors, type roles, spacing, and surface variants in `scripts/ui/shared/interface.gd` or a dedicated theme resource owned by it. Continue reusing `hud.gd`, `panels.gd`, `tower_actions.gd`, and `tower_dialog.gd`. The shared theme provides structural, content, badge, chrome, and borderless surface helpers. Keep gameplay statistics in `scripts/gameplay/balance.gd`.
 
 Preserve the implemented shared fonts and tokens, readable HUD, surface hierarchy, responsive comparisons, focus rules, and standard text size and normal motion. Use `./launch.ps1 -StyleTests` to review fifteen screens at three viewport sizes at standard text size. Keep this guide and the UI paragraph in `ART_DIRECTION.md` consistent with intentional changes.
 

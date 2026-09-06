@@ -25,7 +25,7 @@ func run() -> void:
 	check(is_equal_approx(field.zoom, 0.05) and field.camera.x == 10000, "Bypass zoom out and pan")
 	field.set_zoom(10, field.size * 0.5)
 	check(field.zoom == 10, "Bypass zoom in")
-	var controls := preload("res://scripts/ui/developer_controls.gd").new()
+	var controls := preload("res://scripts/ui/developer/developer_controls.gd").new()
 	controls.game = field.state
 	controls.field = field
 	root.add_child(controls)

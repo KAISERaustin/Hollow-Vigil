@@ -1,6 +1,7 @@
 extends SceneTree
 
-const Effects = preload("res://scripts/rendering/attack_effects.gd")
+const ShotFactory = preload("res://scripts/gameplay/combat/shot_factory.gd")
+const Effects = preload("res://scripts/rendering/effects/attack_effects.gd")
 
 class EffectSheet extends Node2D:
 	var elapsed := 0.0
@@ -14,7 +15,7 @@ class EffectSheet extends Node2D:
 				VigilTerrainArt.sentinel(self, kind, base, 1.3, 1)
 				draw_circle(target, 9.0, VigilTerrainArt.INK)
 				draw_circle(target, 6.0, VigilTerrainArt.PAPER)
-				var fx := Effects.shot(kind, Vector2.ZERO, Vector2(160, 0), Balance.stats(kind, 1))
+				var fx := ShotFactory.shot(kind, Vector2.ZERO, Vector2(160, 0), Balance.stats(kind, 1))
 				var age: float = [0.025, fx.flight * 0.68, fx.flight + (fx.max_life - fx.flight) * 0.35][column]
 				if kind == "electric":
 					age = [0.025, 0.12, 0.22][column]
@@ -93,7 +94,7 @@ func battlefield_preview() -> void:
 			var enemy: Dictionary = app.game.combat.spawn("1,0", "heavy")
 			enemy.pos = source + Vector2(105, -40)
 			enemy.path = [enemy.pos, enemy.pos + Vector2(1000, 0)]
-			var fx := Effects.shot(kind, source, enemy.pos, Balance.stats(kind, 1))
+			var fx := ShotFactory.shot(kind, source, enemy.pos, Balance.stats(kind, 1))
 			app.game.combat.effects.append(fx)
 			app.field.camera = source + Vector2(45, 0)
 			app.field.zoom = 1.0

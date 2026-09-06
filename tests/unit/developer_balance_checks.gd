@@ -109,7 +109,7 @@ static func test_towers(suite: SceneTree) -> void:
 		suite.check(first.max_hp == Balance.ENEMIES.basic.hp and game.data.towers.has(id) and game.data.towers[id].level == 1, "Reset keeps built towers and live enemies")
 
 static func test_boss_tuning(suite: SceneTree) -> void:
-	var bosses = preload("res://scripts/model/bosses.gd")
+	var bosses = preload("res://scripts/gameplay/encounters/bosses.gd")
 	var fixtures = preload("res://tests/unit/boss_checks.gd")
 	for kind in Balance.BOSSES:
 		var game: VigilState = fixtures.fixture(kind)

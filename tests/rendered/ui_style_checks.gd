@@ -1,6 +1,6 @@
 extends SceneTree
 
-const UI = preload("res://scripts/ui/interface.gd")
+const UI = preload("res://scripts/ui/shared/interface.gd")
 var app: VigilApp
 var failures: Array[String] = []
 

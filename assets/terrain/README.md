@@ -1,7 +1,7 @@
 # Unknown territory clouds
 
 `unknown-clouds.png` was generated with the built-in imagegen tool. It is an
-opaque fog texture; `scripts/rendering/terrain_clouds.gd` mirrors it across
+opaque fog texture; `scripts/rendering/terrain/terrain_clouds.gd` mirrors it across
 world-aligned cells below owned terrain and the existing black grid. Only
 visible cells are drawn. Expansion reveals terrain through the existing chunk
 system, without new save state. Mipmaps keep the artwork readable when zoomed out.

@@ -1,10 +1,10 @@
 class_name VigilApp
 extends Control
 
-const UI = preload("res://scripts/ui/interface.gd")
-const TowerActions = preload("res://scripts/ui/tower_actions.gd")
-const TowerDialog = preload("res://scripts/ui/tower_dialog.gd")
-const TowerMove = preload("res://scripts/ui/tower_move.gd")
+const UI = preload("res://scripts/ui/shared/interface.gd")
+const TowerActions = preload("res://scripts/ui/towers/tower_actions.gd")
+const TowerDialog = preload("res://scripts/ui/towers/tower_dialog.gd")
+const TowerMove = preload("res://scripts/ui/towers/tower_move.gd")
 var audio: Node
 var hud: VigilHUD
 var game := VigilState.new()
@@ -323,6 +323,15 @@ func _process(delta: float) -> void:
 	while accumulator >= Balance.STEP:
 		game.combat.tick(Balance.STEP)
 		accumulator -= Balance.STEP
+	if not game.combat.relic_drops.is_empty():
+		var names: PackedStringArray = []
+		for relic_kind in game.combat.relic_drops:
+			names.append(preload("res://scripts/gameplay/progression/relics.gd").DEFINITIONS[relic_kind].name)
+		game.combat.relic_drops.clear()
+		persist()
+		if game.save_error.is_empty():
+			var reward_title := "Relic found: " + names[0] if names.size() == 1 else "%d boss relics found" % names.size()
+			toast(reward_title + "\nSelect a tower → Equipment to equip.", 8.0)
 	field.update_view(delta, accumulator)
 	# Advance the live watermark so a subsequent suspension cannot overlap active play.
 	game.data.last_accounted = maxf(game.data.last_accounted, Time.get_unix_time_from_system())

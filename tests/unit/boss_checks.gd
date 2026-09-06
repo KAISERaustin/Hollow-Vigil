@@ -1,6 +1,6 @@
 extends RefCounted
 
-const Bosses = preload("res://scripts/model/bosses.gd")
+const Bosses = preload("res://scripts/gameplay/encounters/bosses.gd")
 const Areas = preload("res://scripts/world/hidden_areas.gd")
 
 static func fixture(kind: String) -> VigilState:

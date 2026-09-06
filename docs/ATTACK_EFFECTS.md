@@ -1,6 +1,6 @@
 # Tower attack visuals
 
-`scripts/rendering/attack_effects.gd` uses Stormspire's layered colored aura,
+`scripts/rendering/effects/attack_effects.gd` uses Stormspire's layered colored aura,
 saturated strokes, and paper-white highlights as the shared visual language.
 
 - Obelisk: violet orb, rotating arcane rings and rune ticks, weaving energy

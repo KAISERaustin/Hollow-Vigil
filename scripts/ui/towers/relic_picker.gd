@@ -1,0 +1,58 @@
+extends RefCounted
+
+const UI = preload("res://scripts/ui/shared/interface.gd")
+const Relics = preload("res://scripts/gameplay/progression/relics.gd")
+const Art = preload("res://scripts/rendering/actors/relic_art.gd")
+
+static func build(dialog) -> void:
+	var data: Dictionary = dialog.app.game.data
+	dialog.body.add_child(UI.paragraph("One relic per tower. Equip or transfer freely. Replaced relics return to your collection, and selling a tower keeps its relic.", 14))
+	var group := ButtonGroup.new()
+	add_choice(dialog, group, "", "Empty slot · Remove equipment", "")
+	for kind in Relics.DEFINITIONS:
+		var definition: Dictionary = Relics.DEFINITIONS[kind]
+		var card := PanelContainer.new()
+		card.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, 2, 10))
+		dialog.body.add_child(card)
+		var stack := UI.margin(card, 12)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		stack.add_child(row)
+		var icon := Control.new()
+		icon.custom_minimum_size = Vector2(32, 32)
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.draw.connect(func(): Art.draw(icon, kind, Vector2(16,16)))
+		row.add_child(icon)
+		var title := UI.heading(definition.name, 18)
+		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(title)
+		stack.add_child(UI.paragraph(definition.description, 14))
+		var found := false
+		for relic_id in data.get("relics", {}):
+			if data.relics[relic_id] != kind:
+				continue
+			found = true
+			var owner := Relics.owner(data, relic_id)
+			var text: String = "Equip · Found at " + relic_id
+			if owner == dialog.tower_id:
+				text = "Equipped here · Found at " + relic_id
+			elif owner != "":
+				text = "Transfer from %s #%s" % [Balance.tower_stats(data.towers[owner], dialog.app.game.tuning).name, owner]
+			add_choice(dialog, group, relic_id, text, owner, stack)
+		if not found:
+			stack.add_child(UI.paragraph("Defeat " + Balance.BOSSES[kind].name + " to discover this relic.", 14))
+
+static func add_choice(dialog, group: ButtonGroup, relic_id: String, text: String, owner: String, parent: Node = null) -> void:
+	var button := UI.button(text, func():
+		dialog.relic_choice = relic_id
+		dialog.relic_owner = owner
+	, 52)
+	button.name = "Relic_" + ("empty" if relic_id == "" else relic_id)
+	button.add_theme_font_size_override("font_size", UI.type_size(14))
+	button.toggle_mode = true
+	button.button_group = group
+	button.add_theme_stylebox_override("pressed", UI.box(UI.GOLD))
+	button.add_theme_stylebox_override("hover_pressed", UI.box(UI.GOLD))
+	button.button_pressed = dialog.relic_choice == relic_id
+	(parent if parent != null else dialog.body).add_child(button)

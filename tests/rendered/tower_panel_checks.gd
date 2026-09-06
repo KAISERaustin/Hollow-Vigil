@@ -39,7 +39,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 		app.update_hud()
 		var location: Vector2 = app.field.global_position + app.field.screen(VigilWorld.pad_position("0,0", 0))
 		await harness.tap(app, location, touch)
-		check(not app.panels.visible and app.tower_actions.visible and not dialog.visible, "Tower click should reveal the five in-world controls", failures)
+		check(not app.panels.visible and app.tower_actions.visible and not dialog.visible, "Tower click should reveal the six in-world controls", failures)
 		check(g.data.balance == 410.0 and g.data.towers[rapid].earnings == 0.0, "Tower click did not collect its stored gold exactly once", failures)
 		check(g.data.towers[splash].earnings == 73.0 and g.data.reserve == 13.0, "Tower click collected another source's gold", failures)
 		await harness.tap(app, location, touch)
@@ -49,7 +49,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 			check(not app.field.earnings_badge_visible(tower), "Tower selection left an earnings badge visible", failures)
 		if not touch:
 			await harness.capture(app, "tower-badges-hidden")
-		for action in ["info", "sell", "move", "target"]:
+		for action in ["info", "sell", "move", "target", "equipment"]:
 			var before: Dictionary = g.data.duplicate(true)
 			await harness.tap(app, app.tower_actions.buttons[action].get_global_rect().get_center(), touch)
 			check(dialog.visible and dialog.mode == action and not app.tower_actions.visible, "Action icon did not open the correct modal", failures)
@@ -144,7 +144,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 			app.field.camera = VigilWorld.pad_position("0,0", int(g.data.towers[id].pad))
 			app.panels.select_pad("0,0", int(g.data.towers[id].pad))
 			await harness.capture(app, "tower-actions-%s-%d" % [g.data.towers[id].kind, viewport.x])
-			for action in ["info", "sell", "move", "target"]:
+			for action in ["info", "sell", "move", "target", "equipment"]:
 				await harness.tap(app, app.tower_actions.buttons[action].get_global_rect().get_center(), true)
 				await harness.capture(app, "tower-%s-%s-%d" % [action, g.data.towers[id].kind, viewport.x])
 				check(dialog.visible, "Tower icon inaccessible at %s" % viewport, failures)
@@ -185,7 +185,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 					check(g.data.towers[rapid].earnings == 0.0 and g.data.balance == before_collection + 1900.0, "Tower-relative earnings badge did not collect at zoom %.2f" % zoom, failures)
 					app.panels.select_pad("0,0", 0)
 					for touch in [false, true]:
-						for action in ["info", "sell", "move", "target"]:
+						for action in ["info", "sell", "move", "target", "equipment"]:
 							await harness.tap(app, app.tower_actions.buttons[action].get_global_rect().get_center(), touch)
 							check(dialog.visible and dialog.mode == action, "Tower-relative action failed at zoom %.2f" % zoom, failures)
 							await harness.tap(app, (dialog.confirm if action == "info" else dialog.cancel).get_global_rect().get_center(), touch)

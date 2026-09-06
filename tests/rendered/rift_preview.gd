@@ -1,7 +1,7 @@
 extends SceneTree
 
-const Art = preload("res://scripts/rendering/terrain_art.gd")
-const Rifts = preload("res://scripts/rendering/rift_art.gd")
+const Art = preload("res://scripts/rendering/terrain/terrain_art.gd")
+const Rifts = preload("res://scripts/rendering/actors/rift_art.gd")
 var failures := 0
 
 func _initialize() -> void:

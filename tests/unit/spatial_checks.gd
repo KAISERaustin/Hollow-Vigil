@@ -1,7 +1,7 @@
 extends RefCounted
 
-const Index = preload("res://scripts/model/enemy_index.gd")
-const Regions = preload("res://scripts/rendering/region_query.gd")
+const Index = preload("res://scripts/gameplay/combat/enemy_index.gd")
+const Regions = preload("res://scripts/rendering/terrain/region_query.gd")
 
 static func run(suite: SceneTree) -> void:
 	test_queries(suite)
