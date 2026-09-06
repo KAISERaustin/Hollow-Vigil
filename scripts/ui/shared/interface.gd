@@ -177,6 +177,10 @@ static func theme() -> Theme:
 
 static func box(bg: Color, border: Color = BORDER, radius: int = RADIUS) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
+	# Paper and darker tan surfaces share one reusable textured style.
+	# Gold accents and other semantic colors retain their own fills.
+	if bg.a > 0.0 and bg.r >= bg.g and bg.g > bg.b and bg.b >= 0.55:
+		style = preload("res://scripts/ui/shared/parchment_style.gd").new()
 	style.bg_color = bg
 	style.border_color = border
 	style.set_border_width_all(OUTLINE)
