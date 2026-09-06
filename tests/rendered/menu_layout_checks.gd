@@ -138,6 +138,9 @@ func run() -> void:
 			await settle()
 			var popup: PopupMenu = controls.selector.get_popup()
 			check(popup.size.y <= 288, category + " dropdown exceeds height cap at " + str(viewport))
+			check(popup.min_size.y <= 288, category + " dropdown initial layout exceeds height cap")
+			check(popup.position.y >= 0 and popup.position.y + popup.size.y <= viewport.y, category + " dropdown extends off screen")
+			check(popup.size.x >= int(controls.selector.size.x), category + " dropdown shrinks narrower than selector")
 			popup.hide()
 			for index in range(controls.selector.item_count):
 				controls.selector.select(index)
