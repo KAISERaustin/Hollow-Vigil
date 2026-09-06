@@ -88,9 +88,6 @@ func _ready() -> void:
 	description = UI.paragraph("", UI.CAPTION)
 	description.name = "BalanceDescription"
 	editor.add_child(description)
-	var back := UI.button("Back to categories", show_categories)
-	back.name = "BackToCategories"
-	editor.add_child(UI.action_row(back.text, back, "Back"))
 	selector = OptionButton.new()
 	selector.name = "BalanceUnit"
 	selector.custom_minimum_size.y = UI.TARGET

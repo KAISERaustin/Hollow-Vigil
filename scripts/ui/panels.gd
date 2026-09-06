@@ -427,12 +427,25 @@ func show_developer_controls() -> void:
 	controls.game = game
 	controls.field = field
 	controls.changed.connect(app.balance_changed)
-	controls.layout_changed.connect(func(): call_deferred("fit_sheet"))
+	var back := UI.button("←", func():
+		if controls.editor.visible:
+			controls.show_categories()
+			content_scroll.scroll_vertical = 0
+		else:
+			show_settings()
+	)
+	back.custom_minimum_size.x = UI.TARGET
+	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	var header := header_content.get_child(0)
+	header.add_child(back)
+	header.move_child(back, 0)
+	controls.layout_changed.connect(func():
+		back.name = "BackToCategories" if controls.editor.visible else "BackToSettings"
+		back.accessibility_name = "Back to categories" if controls.editor.visible else "Back to settings"
+		back.tooltip_text = back.accessibility_name
+		call_deferred("fit_sheet")
+	)
 	sheet_content.add_child(controls)
-	var back := UI.button("Back to settings", show_settings)
-	back.name = "BackToSettings"
-	action_footer.add_child(back)
-	action_footer.get_parent().show()
 
 func show_reset_confirmation() -> void:
 	mode = "reset"
