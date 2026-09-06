@@ -13,6 +13,8 @@ var refresh_token := ""
 var expires_at := 0.0
 var player_id := ""
 var email := ""
+var display_name := ""
+const MAX_NAME_LENGTH := 32
 var busy := false
 var status := "Cloud saves are optional. Your progress stays on this device until you sign in."
 var worlds: Array = []
@@ -122,8 +124,44 @@ func _accept_session(data: Variant) -> bool:
 	access_token = data.access_token
 	refresh_token = data.refresh_token
 	player_id = data.user.id
+	display_name = _user_name(data.user)
 	expires_at = Time.get_unix_time_from_system() + float(data.get("expires_in", 3600))
 	return true
+
+static func valid_player_name(value: Variant) -> bool:
+	if not value is String or value.strip_edges().is_empty() or value.length() > MAX_NAME_LENGTH:
+		return false
+	for character in value:
+		if character.unicode_at(0) < 32 or character.unicode_at(0) == 127:
+			return false
+	return true
+
+func _user_name(user: Dictionary) -> String:
+	var metadata: Variant = user.get("user_metadata", {})
+	var value: Variant = metadata.get("display_name", "") if metadata is Dictionary else ""
+	return value.strip_edges() if valid_player_name(value) else ""
+
+func save_player_name(value: String) -> void:
+	if busy or not signed_in():
+		return
+	value = value.strip_edges()
+	if not valid_player_name(value):
+		_say("Enter a player name with 1–32 characters, without line breaks.")
+		return
+	busy = true
+	var epoch := generation
+	_say("Saving player name…")
+	var result := await _ensure_session()
+	if result.ok:
+		result = await _request("/auth/v1/user", {"data": {"display_name": value}}, true)
+	if epoch != generation:
+		return
+	busy = false
+	if result.ok and result.data is Dictionary and result.data.get("id") == player_id and _user_name(result.data) == value:
+		display_name = value
+		_say("Player name saved to your account.")
+	else:
+		_say(_error(result))
 
 func sign_out() -> void:
 	# No account tokens are stored on disk. Invalidate in-flight callbacks too.
@@ -131,6 +169,7 @@ func sign_out() -> void:
 	access_token = ""
 	refresh_token = ""
 	player_id = ""
+	display_name = ""
 	worlds.clear()
 	conflict.clear()
 	pending.clear()
@@ -244,7 +283,7 @@ func restore_completed(ok: bool) -> void:
 	else:
 		_say("Couldn't restore the cloud save. Your previous progress is preserved.")
 
-func _rpc(function: String, body: Dictionary) -> Dictionary:
+func _ensure_session() -> Dictionary:
 	if Time.get_unix_time_from_system() >= expires_at - 60.0:
 		var refreshed := await _request("/auth/v1/token?grant_type=refresh_token", {"refresh_token": refresh_token}, false)
 		if not refreshed.ok:
@@ -256,6 +295,12 @@ func _rpc(function: String, body: Dictionary) -> Dictionary:
 		if not _accept_session(refreshed.data):
 			sign_out()
 			return {"ok": false, "code": 401, "data": null}
+	return {"ok": true}
+
+func _rpc(function: String, body: Dictionary) -> Dictionary:
+	var session := await _ensure_session()
+	if not session.ok:
+		return session
 	return await _request("/rest/v1/rpc/" + function, body, true)
 
 func _request(path: String, body: Dictionary, authenticated: bool) -> Dictionary:
@@ -267,7 +312,8 @@ func _request(path: String, body: Dictionary, authenticated: bool) -> Dictionary
 	var headers := PackedStringArray(["Content-Type: application/json", "apikey: " + key])
 	if authenticated:
 		headers.append("Authorization: Bearer " + access_token)
-	var err := request.request(url + path, headers, HTTPClient.METHOD_POST, JSON.stringify(body, "", true, true))
+	var method := HTTPClient.METHOD_PUT if path == "/auth/v1/user" else HTTPClient.METHOD_POST
+	var err := request.request(url + path, headers, method, JSON.stringify(body, "", true, true))
 	if err != OK:
 		request.queue_free()
 		return {"ok": false, "code": 0, "data": null}

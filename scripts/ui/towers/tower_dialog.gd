@@ -137,7 +137,7 @@ func open_action(action: String) -> void:
 		body.add_child(UI.paragraph(stats.description, 14))
 		var relic_kind := preload("res://scripts/gameplay/progression/relics.gd").kind(app.game.data, tower)
 		body.add_child(UI.heading("Equipment", 18))
-		body.add_child(UI.paragraph("Empty slot · Defeat bosses to collect relics." if relic_kind == "" else preload("res://scripts/gameplay/progression/relics.gd").DEFINITIONS[relic_kind].name + "\n" + preload("res://scripts/gameplay/progression/relics.gd").DEFINITIONS[relic_kind].description, 14))
+		body.add_child(UI.paragraph("Empty slot · Defeat bosses to collect relics." if relic_kind == "" else preload("res://scripts/gameplay/progression/relics.gd").DEFINITIONS[relic_kind].name + "\n" + preload("res://scripts/gameplay/progression/relics.gd").description(relic_kind, app.game.tuning), 14))
 		body.add_child(UI.heading("Level 4 specializations", 18))
 		body.add_child(UI.paragraph("At level 3, the upgrade button locks and two choices appear beside it. Tap a side once, then tap its checkmark to purchase that permanent specialization.", 14))
 		var branch_options: Array = Balance.BRANCHES[tower.kind].values()

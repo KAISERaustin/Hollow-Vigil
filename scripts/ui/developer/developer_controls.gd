@@ -10,6 +10,7 @@ var field: Battlefield
 var category := "enemies"
 var selected_kind := "basic"
 var tabs: Dictionary = {}
+var general: VBoxContainer
 var category_list: VBoxContainer
 var editor: VBoxContainer
 var selector: OptionButton
@@ -26,12 +27,14 @@ func _ready() -> void:
 	if not game.is_creative():
 		return
 	add_theme_constant_override("separation", 12)
+	general = VBoxContainer.new()
+	add_child(general)
 	var add_gold := UI.button("Add 1,000,000 gold", func():
 		game.add_developer_gold()
 		changed.emit()
 	)
 	add_gold.name = "AddMillionGold"
-	add_child(UI.action_row(add_gold.text, add_gold, "Add"))
+	general.add_child(UI.action_row(add_gold.text, add_gold, "Add"))
 	if field != null:
 		var free_camera := UI.button("Unrestricted zoom and pan", func(): pass)
 		free_camera.name = "UnrestrictedCamera"
@@ -39,7 +42,7 @@ func _ready() -> void:
 		free_camera.set_pressed_no_signal(field.unrestricted_camera)
 		free_camera.toggled.connect(field.set_unrestricted_camera)
 		free_camera.tooltip_text = "Bypass camera limits for this session. Turn off to restore the two-tile limits."
-		add_child(UI.action_row(free_camera.text, free_camera, "Toggle"))
+		general.add_child(UI.action_row(free_camera.text, free_camera, "Toggle"))
 		var health_numbers := UI.button("Show enemy and boss health", func(): pass)
 		health_numbers.name = "ShowHealthNumbers"
 		health_numbers.toggle_mode = true
@@ -48,10 +51,11 @@ func _ready() -> void:
 			field.show_health_numbers = enabled
 			field.queue_redraw()
 		)
-		add_child(UI.action_row(health_numbers.text, health_numbers, "Toggle"))
+		general.add_child(UI.action_row(health_numbers.text, health_numbers, "Toggle"))
 	category_list = VBoxContainer.new()
 	category_list.name = "BalanceCategories"
 	add_child(category_list)
+	move_child(category_list, 0)
 	for section in ["bosses", "rifts", "enemies", "towers", "gear"]:
 		var tab := UI.button(section.capitalize(), show_category.bind(section))
 		tab.name = section.capitalize() + "Category"
@@ -127,6 +131,7 @@ func commit_fields() -> void:
 func show_categories() -> void:
 	commit_fields()
 	editor.hide()
+	general.show()
 	category_list.show()
 	refresh_focus()
 
@@ -134,6 +139,7 @@ func show_category(section: String) -> void:
 	commit_fields()
 	category = section
 	category_list.hide()
+	general.hide()
 	editor.show()
 	selector.clear()
 	var definitions: Dictionary = Balance.TOWERS if category == "towers" else Balance.definitions(category)

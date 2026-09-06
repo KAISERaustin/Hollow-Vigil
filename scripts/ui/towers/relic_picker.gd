@@ -49,7 +49,7 @@ static func build(dialog) -> void:
 		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(title)
-		stack.add_child(UI.paragraph(definition.description, 14))
+		stack.add_child(UI.paragraph(Relics.description(kind, dialog.app.game.tuning), 14))
 		var found := false
 		for relic_id in data.get("relics", {}):
 			if data.relics[relic_id] != kind:

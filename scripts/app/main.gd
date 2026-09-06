@@ -9,6 +9,7 @@ var slot_menu: Control
 var slot_active := true
 var active_slot := 0
 var audio: Node
+var public_builds: Node
 var cloud: Node
 var hud: VigilHUD
 var game := VigilState.new()
@@ -54,6 +55,12 @@ func _ready() -> void:
 	cloud.enabled = load_saved_progress
 	cloud.restore_requested.connect(restore_cloud_progress)
 	add_child(cloud)
+	public_builds = preload("res://scripts/cloud/public_builds.gd").new()
+	public_builds.cloud = cloud
+	if not load_saved_progress:
+		public_builds.outbox_path = game.save_path + ".public-builds-test"
+	public_builds.set_process(load_saved_progress)
+	add_child(public_builds)
 	if use_slots:
 		slot_menu = preload("res://scripts/ui/save_slots_panel.gd").new()
 		slot_menu.app = self

@@ -54,6 +54,30 @@ func run() -> void:
 	s.responses.append({"ok":true,"code":200,"data":[]})
 	await s.verify_link("01234567")
 	check(s.signed_in() and s.requests[-1].path.ends_with("list_saves"), "Successful OTP loads cloud worlds")
+	check(s.display_name.is_empty(), "Existing unnamed accounts remain supported")
+	var requests_before := s.requests.size()
+	for invalid_name in ["", "   ", "x".repeat(33), "Name\nBreak", "Name\tTab"]:
+		await s.save_player_name(invalid_name)
+	check(s.requests.size() == requests_before, "Invalid names never leave the device")
+	s.responses.append({"ok":true,"code":200,"data":{"id":s.player_id,"user_metadata":{"display_name":"Éowyn 星"}}})
+	await s.save_player_name("  Éowyn 星  ")
+	check(s.display_name == "Éowyn 星" and s.requests[-1].path == "/auth/v1/user" and s.requests[-1].authenticated, "Unicode name saved on authenticated account")
+	check(s.requests[-1].body == {"data":{"display_name":"Éowyn 星"}}, "Profile update sends only trimmed display name")
+	s.responses.append({"ok":false,"code":0,"data":null})
+	await s.save_player_name("Unsaved")
+	check(s.display_name == "Éowyn 星" and not s.busy, "Failed name update preserves confirmed name and permits retry")
+	var session := {"user":{"id":s.player_id,"user_metadata":{"display_name":"Éowyn 星"}},"access_token":"synthetic","refresh_token":"synthetic","expires_in":3600}
+	s.sign_out()
+	check(s.display_name.is_empty(), "Sign-out clears player name")
+	await s.save_player_name("Signed out")
+	check(s._accept_session(session) and s.display_name == "Éowyn 星", "Name restored from account on subsequent sign-in")
+	s.expires_at = 0
+	s.responses.append({"ok":true,"code":200,"data":session})
+	s.responses.append({"ok":true,"code":200,"data":{"id":s.player_id,"user_metadata":{"display_name":"Renamed"}}})
+	await s.save_player_name("Renamed")
+	check(s.display_name == "Renamed" and s.requests[-2].path.contains("refresh_token"), "Expired token refreshed before account rename")
+	session.user = {"id":Codec.uuid(),"user_metadata":{"display_name":42}}
+	check(s._accept_session(session) and s.display_name.is_empty(), "Different or malformed profile cannot inherit previous name")
 	s.player_id = Codec.uuid()
 	s.access_token = "synthetic"
 	s.refresh_token = "synthetic"

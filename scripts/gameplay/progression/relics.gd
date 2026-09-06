@@ -8,6 +8,15 @@ const DEFINITIONS := {
 	"prior": {"name": "Eclipse Shard", "color": "d2adf3", "symbol": "eclipse", "description": "Every fifth attack empowers its primary shot: +50% damage and bypasses boss shields, armor and wards. Its blast shares this power; secondary arrows, chains and damage over time do not pierce."}
 }
 
+static func description(relic_kind: String, tuning: Dictionary = {}) -> String:
+	var gear := Balance.definition("gear", relic_kind, tuning)
+	match relic_kind:
+		"warden": return "Every %s seconds, a primary shot roots its target for %s seconds (%s for bosses). Each enemy can be rooted once every %s seconds." % [gear.root_period, gear.root_duration, gear.boss_root_duration, gear.root_immunity]
+		"cindermaw": return "Consecutive attacks on the same target gain %s%% attack speed, up to %s stacks. Resets when the target changes or attacks stop for %s seconds." % [gear.speed_per_stack, gear.stack_limit, gear.stack_timeout]
+		"bell": return "Every %s attacks, echo the primary shot at %s%% base damage. The echo keeps its blast radius but triggers no specialization or relic effects." % [gear.attack_count, gear.echo_multiplier * 100.0]
+		"prior": return "Every %s attacks, empower the primary shot and its blast to %s%% damage. %s Secondary attacks and damage over time do not pierce." % [gear.attack_count, gear.damage_multiplier * 100.0, "Bypasses boss defenses." if gear.defense_bypass > 0.0 else "Boss defenses still apply."]
+	return ""
+
 static func kind(data: Dictionary, tower: Dictionary) -> String:
 	return data.get("relics", {}).get(tower.get("relic", ""), "")
 

@@ -71,12 +71,17 @@ func export_build(game: VigilState, setup_name: String = "Untitled setup", descr
 func decode_build(code: String) -> Dictionary:
 	if code.length() > 16 * 1024 * 1024:
 		return {}
-	var envelope: Variant = JSON.parse_string(code)
+	var parser := JSON.new()
+	if parser.parse(code) != OK:
+		return {}
+	var envelope: Variant = parser.data
 	if not envelope is Dictionary or envelope.get("format") != BUILD_FORMAT or not envelope.get("payload") is String:
 		return {}
 	if envelope.get("checksum") != envelope.payload.sha256_text():
 		return {}
-	var snapshot: Variant = JSON.parse_string(envelope.payload)
+	if parser.parse(envelope.payload) != OK:
+		return {}
+	var snapshot: Variant = parser.data
 	if not snapshot is Dictionary or snapshot.get("mode") != "creative" or not storage.valid_data(snapshot):
 		return {}
 	return snapshot

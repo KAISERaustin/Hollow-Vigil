@@ -330,15 +330,52 @@ func return_to_core() -> void:
 	close_sheet()
 	app.persist()
 
+func _player_card() -> PanelContainer:
+	var card := PanelContainer.new()
+	card.name = "PlayerNameCard"
+	card.mouse_filter = Control.MOUSE_FILTER_PASS
+	var style := UI.surface(UI.GOLD, 3, 16)
+	style.shadow_color = Color(UI.BORDER, 0.18)
+	style.shadow_offset = Vector2(0, 4)
+	style.shadow_size = 2
+	card.add_theme_stylebox_override("panel", style)
+	var stack := VBoxContainer.new()
+	stack.add_theme_constant_override("separation", 6)
+	card.add_child(stack)
+	var caption := UI.label("HOLLOW VIGIL  /  PLAYER", 12)
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stack.add_child(caption)
+	stack.add_child(UI.rule())
+	var player_name := UI.heading("", 24)
+	player_name.name = "SettingsPlayerName"
+	player_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	player_name.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	stack.add_child(player_name)
+	var hint := UI.paragraph("", 12)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stack.add_child(hint)
+	var refresh := func():
+		var signed_in: bool = app.cloud.signed_in()
+		player_name.text = app.cloud.display_name if signed_in and not app.cloud.display_name.is_empty() else ("Choose your name" if signed_in else "Guest")
+		hint.text = "Manage your name in Account & cloud saves" if signed_in else "Sign in to give your account a name"
+	refresh.call()
+	app.cloud.changed.connect(refresh)
+	card.tree_exiting.connect(func():
+		if app.cloud.changed.is_connected(refresh):
+			app.cloud.changed.disconnect(refresh))
+	return card
+
 func show_settings() -> void:
 	if mode == "developer":
+		commit_developer_fields()
 		app.persist()
 	mode = "settings"
 	clear_sheet("Settings")
+	sheet_content.add_child(_player_card())
 	var sound_button := UI.button("Sound", show_sound_settings)
 	sound_button.name = "OpenSoundSettings"
 	sheet_content.add_child(UI.action_row("Sound", sound_button, "Open"))
-	var cloud_button := UI.button("Cloud saves", show_cloud_saves)
+	var cloud_button := UI.button("Account & cloud saves", show_cloud_saves)
 	cloud_button.name = "OpenCloudSaves"
 	sheet_content.add_child(UI.action_row(cloud_button.text, cloud_button, "Open"))
 	sheet_content.add_child(UI.paragraph("Save %d · %s" % [app.active_slot + 1, str(game.data.get("mode", "creative")).capitalize()], 14))
@@ -424,7 +461,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func show_cloud_saves() -> void:
 	mode = "cloud"
-	clear_sheet("Cloud saves")
+	clear_sheet("Account & cloud saves")
 	var controls := preload("res://scripts/cloud/cloud_panel.gd").new()
 	controls.app = app
 	sheet_content.add_child(controls)

@@ -7,10 +7,19 @@ var content: VBoxContainer
 var card: PanelContainer
 var scroll: ScrollContainer
 var message: Label
+var upload_revision := -1
+var view_revision := 0
+var public_browser: RefCounted
 var creation_mode := "creative"
 var selected_configuration: Dictionary = {}
 
 func _ready() -> void:
+	public_browser = preload("res://scripts/ui/public_builds_panel.gd").new()
+	public_browser.menu = self
+	app.public_builds.changed.connect(func():
+		if is_instance_valid(message) and upload_revision == view_revision:
+			message.text = app.public_builds.status
+	)
 	name = "SaveSlots"
 	color = UI.BG
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -35,6 +44,7 @@ func fit() -> void:
 	card.position = safe.position + (safe.size - card.size) * 0.5
 
 func clear(title: String) -> void:
+	view_revision += 1
 	for child in content.get_children():
 		content.remove_child(child)
 		child.queue_free()
@@ -83,6 +93,7 @@ func show_creation(slot: int, reset: bool = true) -> void:
 	var choose := UI.button("Choose saved configuration", show_configurations.bind(slot))
 	choose.name = "ChooseConfiguration"
 	add_action(choose)
+	add_action(UI.button("Public Builds", show_public_builds.bind(slot)))
 	if not selected_configuration.is_empty():
 		add_action(UI.button("Use a fresh world", func():
 			selected_configuration = {}
@@ -120,6 +131,7 @@ func show_configurations(slot: int) -> void:
 	clear("Saved configurations")
 	content.add_child(UI.paragraph("Choose a configuration to use its world, towers, resources and rules. Your original save stays available.", 14))
 	add_action(UI.button("Back to world options", show_creation.bind(slot, false)))
+	add_action(UI.button("Public Builds", show_public_builds.bind(slot)))
 	var saved := slots.configurations()
 	if saved.is_empty():
 		content.add_child(UI.paragraph("No configurations yet. Open a Creative world and use Settings → Save configuration to add one.", 16))
@@ -137,7 +149,7 @@ func show_configurations(slot: int) -> void:
 
 func show_export() -> void:
 	clear("Save configuration")
-	content.add_child(UI.paragraph("Keep a reusable copy of this world, towers, resources and rules. Choose it when creating a new save.", 14))
+	content.add_child(UI.paragraph("Save and automatically publish this world, towers, resources and rules to Public Builds. Your account name, title and description will be visible to everyone. Offline exports upload after you sign in.", 14))
 	content.add_child(UI.heading("Configuration name", 18))
 	var title := LineEdit.new()
 	title.name = "SetupName"
@@ -164,9 +176,13 @@ func show_export() -> void:
 		if not slots.save_configuration(app.game, title.text, description.text):
 			message.text = slots.error
 			return
+		var code := slots.export_build(app.game, title.text, description.text)
+		app.public_builds.queue_export(code)
 		app.game.data.setup = {"name": title.text.strip_edges(), "description": description.text}
 		app.persist()
 		clear("Configuration saved")
+		message.text = app.public_builds.status
+		upload_revision = view_revision
 		content.add_child(UI.paragraph("“%s” is in your configuration library. To use it, open an empty save and choose Saved configuration." % title.text.strip_edges(), 16))
 		add_action(UI.button("Your saves", show_slots))
 		add_action(UI.button("Back to game", close))
@@ -174,9 +190,13 @@ func show_export() -> void:
 	save.name = "SaveConfiguration"
 	add_action(save)
 
+func show_public_builds(slot: int = -1) -> void:
+	public_browser.show_page(slot)
+
 func close() -> void:
 	if not app.slot_active:
 		return
+	view_revision += 1
 	app.game.suspended = false
 	hide()
 

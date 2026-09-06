@@ -13,6 +13,15 @@ static func run(app: VigilApp, harness: Script, failures: Array[String]) -> void
 		return
 	await settle(app)
 	var controls := app.panels.find_child("DeveloperControls", true, false)
+	if controls.category_list.get_child_count() != 5 or controls.editor.visible:
+		failures.append("Developer home must show five categories and no editor")
+	await harness.capture(app, "developer-categories")
+	app.panels.content_scroll.ensure_control_visible(controls.tabs.enemies)
+	await settle(app)
+	await harness.tap(app, controls.tabs.enemies.get_global_rect().get_center())
+	await settle(app)
+	if controls.category != "enemies" or not controls.editor.visible or controls.category_list.visible:
+		failures.append("Enemy category did not open its editor")
 	var number: SpinBox = controls.inputs.hp
 	app.panels.content_scroll.ensure_control_visible(number.get_parent())
 	await settle(app)
@@ -88,6 +97,7 @@ static func run(app: VigilApp, harness: Script, failures: Array[String]) -> void
 	app.panels.show_developer_controls()
 	await settle(app)
 	controls = app.panels.find_child("DeveloperControls", true, false)
+	controls.show_category("enemies")
 	if controls.inputs.hp.value != app.game.tuning.enemies.basic.hp:
 		failures.append("Reopening Developer Controls did not restore numeric values")
 	await harness.capture(app, "developer-enemies")
@@ -97,7 +107,44 @@ static func run(app: VigilApp, harness: Script, failures: Array[String]) -> void
 	await harness.tap(app, reset_all.get_global_rect().get_center(), true)
 	if controls.inputs.hp.value != Balance.ENEMIES.basic.hp or not app.game.tuning.is_empty():
 		failures.append("Reset did not restore displayed default values")
+	# Reproduce a typed HP edit followed immediately by each way out, without Enter.
+	var helpers := preload("res://tests/test_runner.gd").new()
+	var enemy: Dictionary = helpers.fixture_enemy(app.game)
+	for destination in ["close", "settings", "category", "type", "home"]:
+		app.panels.show_developer_controls()
+		controls = app.panels.find_child("DeveloperControls", true, false)
+		controls.show_category("enemies")
+		app.game.reset_developer_balance()
+		controls.show_fields()
+		var hp: SpinBox = controls.inputs.hp
+		hp.get_line_edit().grab_focus()
+		hp.get_line_edit().text = "400"
+		match destination:
+			"close": app.panels.close_sheet()
+			"settings": app.panels.show_settings()
+			"category": controls.show_category("bosses")
+			"type":
+				controls.selector.select(1)
+				controls.selector.item_selected.emit(1)
+			"home": controls.show_categories()
+		if enemy.hp != 400.0 or enemy.max_hp != 400.0:
+			failures.append("Typed 45 to 400 HP edit lost on " + destination)
+		if destination in ["close", "settings"]:
+			var snapshot := app.game.storage.read_candidate(app.game.save_path)
+			if snapshot.get("settings", {}).get("developer_balance", {}).get("enemies", {}).get("basic", {}).get("hp", 0) != 400.0:
+				failures.append("Typed HP not saved on " + destination)
+	app.panels.show_developer_controls()
+	controls = app.panels.find_child("DeveloperControls", true, false)
+	controls.find_child("ShowHealthNumbers", true, false).button_pressed = true
+	if not app.field.show_health_numbers:
+		failures.append("Health overlay toggle did not enable live HP numbers")
 	app.panels.close_sheet()
+	app.field.camera = enemy.pos
+	app.field.queue_redraw()
+	await settle(app)
+	await harness.capture(app, "developer-live-400-hp")
+	helpers.free()
+	app.game.reset_developer_balance()
 	app.set_process(true)
 	print("DEVELOPER_CONTROLS: mouse, touch, keyboard, every type, save and reopen checked")
 

@@ -52,7 +52,9 @@ Bosses also drop **relic equipment**. Select a tower and use the diamond button 
 
 ## Developer Controls
 
-Open **Settings → Developer Controls**, choose **Bosses**, **Enemies**, or **Towers**, then select a type. Enemy controls include all six types, including Abyss Shades and Crypt Sentinels, with health, speed, gold reward and knockback resistance. Bosses also expose their defenses, counter strengths, timers, and summon settings.
+Open **Settings → Developer Controls**, choose **Bosses**, **Rifts**, **Enemies**, **Towers**, or **Gear** from the category list, then select a type in its editor. Use **Back to categories** to choose another group. Enemy controls include all six types, including Abyss Shades and Crypt Sentinels, with health, speed, gold reward and knockback resistance. Bosses also expose their defenses, counter strengths, timers, and summon settings.
+
+Typed numbers apply when you press Enter, switch types or categories, go back, or close the panel. A full-health Hollow changed from 45 HP to 400 HP immediately has 400 HP; damaged enemies keep their remaining health percentage, and rift bonuses still apply. Turn on **Show enemy and boss health** to see current / maximum HP on the battlefield during this session. Gear exposes every relic's effect strength, cadence, and duration; equipped relics use changes on their next attack. Existing root cooldowns retain their remaining proportion, while shots already in flight retain their launch damage.
 
 For towers, choose **Tier 1**, **Tier 2**, **Tier 3**, or either **Tier 4 specialization**. Each tier has independent damage, attack interval, reach, cost, blast radius and target count. Specializations also expose slow strength/duration, volley count/spread, burn damage/duration, knockback, fragment count/reach/damage, curse limits/strength, chain reach/damage, or seal and stun settings. Type an exact number or use the plus/minus buttons on the right. Labels and row dividers leave room to scroll without changing values. Costs apply to the selected build or upgrade and flow through refunds and relocation prices. Multiple projectiles can each apply their configured blast.
 

@@ -5,6 +5,7 @@ static func run(suite: SceneTree) -> void:
 	test_live_enemies(suite)
 	test_towers(suite)
 	test_boss_tuning(suite)
+	test_gear_tuning(suite)
 	print("PASS GROUP: developer balance validation, persistence, live combat, pricing and resets")
 
 static func test_validation_and_storage(suite: SceneTree) -> void:
@@ -192,3 +193,67 @@ static func test_boss_tuning(suite: SceneTree) -> void:
 		bosses.advance(game.combat, 0.05)
 	var escorts := game.combat.enemies.filter(func(enemy): return enemy.get("summoner", -1) == e.id)
 	suite.check(escorts.size() == 3 and e.toll == 4.0, "Bell honors tuned summon count, cap and interval")
+
+static func test_gear_tuning(suite: SceneTree) -> void:
+	const Relics = preload("res://scripts/gameplay/progression/relics.gd")
+	for kind in Balance.GEAR:
+		var game: VigilState = suite.legacy_core_fixture(879)
+		var id := game.economy.build("rapid", "0,0", 0)
+		var tower: Dictionary = game.data.towers[id]
+		Relics.award(game.data, "90,90", kind)
+		game.economy.equip_relic(id, "90,90", "")
+		var enemy: Dictionary = suite.fixture_enemy(game)
+		game.set_balance_stat("enemies", "basic", "hp", 10000.0)
+		var stats := Balance.tower_stats(tower, game.tuning)
+		match kind:
+			"warden":
+				game.set_balance_stat("gear", kind, "root_duration", 2.0)
+				game.set_balance_stat("gear", kind, "boss_root_duration", 1.0)
+				game.set_balance_stat("gear", kind, "root_immunity", 4.0)
+				var attack := Relics.prepare(game.combat, tower, enemy, stats)
+				game.combat.launch_shot(tower, enemy.pos, enemy, attack)
+				game.combat.advance_shots(1.0)
+				suite.check(enemy.root_until == 2.0 and enemy.root_immune_until == 4.0, "Equipped root gear uses edited duration and immunity on impact")
+				game.combat.simulation_time = 3.0
+				game.set_balance_stat("gear", kind, "root_period", 2.0)
+				suite.check(game.combat.relic_progress[id].root_ready == 4.0, "Live root cooldown rescales its remaining half")
+				var boss := {"id": -1, "boss": true}
+				Relics.root_target(game.combat, {"relic_root": true, "target_id": -1}, boss)
+				suite.check(boss.root_until == 4.0, "Gear has independent boss root duration")
+			"cindermaw":
+				game.set_balance_stat("gear", kind, "speed_per_stack", 50.0)
+				game.set_balance_stat("gear", kind, "stack_limit", 2.0)
+				game.set_balance_stat("gear", kind, "stack_timeout", 1.0)
+				var attack := {}
+				for index in range(4):
+					attack = Relics.prepare(game.combat, tower, enemy, stats)
+				suite.check(attack.period == stats.period / 2.0, "Equipped Fang uses tuned stack strength and cap")
+				game.set_balance_stat("gear", kind, "stack_limit", 1.0)
+				suite.check(game.combat.relic_progress[id].stacks == 1, "Reducing gear cap clamps existing stacks")
+				game.combat.simulation_time = 1.0
+				suite.check(Relics.prepare(game.combat, tower, enemy, stats).period == stats.period, "Tuned timeout clears existing attack speed stacks")
+			"bell", "prior":
+				game.set_balance_stat("gear", kind, "attack_count", 2.0)
+				game.set_balance_stat("gear", kind, "echo_multiplier" if kind == "bell" else "damage_multiplier", 3.0)
+				for index in range(2):
+					game.combat.launch_shot(tower, enemy.pos, enemy, Relics.prepare(game.combat, tower, enemy, stats))
+					game.combat.advance_shots(1.0)
+				var expected: float = stats.damage * (5.0 if kind == "bell" else 4.0)
+				suite.check(is_equal_approx(enemy.max_hp - enemy.hp, expected), "Equipped " + kind + " uses tuned activation count and actual damage")
+		game.reset_developer_balance("gear", kind)
+		suite.check(Balance.definition("gear", kind, game.tuning) == Balance.GEAR[kind], "Reset gear restores all of its effect defaults")
+	var game: VigilState = preload("res://tests/unit/boss_checks.gd").fixture("warden")
+	var boss: Dictionary = game.combat.enemies[0]
+	var id := game.economy.build("rapid", "0,0", 0)
+	var tower: Dictionary = game.data.towers[id]
+	Relics.award(game.data, "90,90", "prior")
+	game.economy.equip_relic(id, "90,90", "")
+	game.set_balance_stat("gear", "prior", "attack_count", 1.0)
+	game.set_balance_stat("gear", "prior", "damage_multiplier", 2.0)
+	for bypass in [0.0, 1.0]:
+		game.set_balance_stat("gear", "prior", "defense_bypass", bypass)
+		var before: float = boss.hp
+		var stats := Balance.tower_stats(tower, game.tuning)
+		game.combat.launch_shot(tower, boss.pos, boss, Relics.prepare(game.combat, tower, boss, stats))
+		game.combat.advance_shots(1.0)
+		suite.check(boss.hp == before - stats.damage * 2.0 * bypass, "Gear defense bypass toggle controls real boss shield penetration")

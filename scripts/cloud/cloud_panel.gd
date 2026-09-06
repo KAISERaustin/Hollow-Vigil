@@ -5,6 +5,8 @@ var app: VigilApp
 var service: Node
 var confirmation_world := ""
 var confirm_local := false
+var name_draft := ""
+var name_edited := false
 
 func _ready() -> void:
 	service = app.cloud
@@ -20,6 +22,8 @@ func rebuild() -> void:
 	if not service.configured():
 		return
 	if not service.signed_in():
+		name_draft = ""
+		name_edited = false
 		var address := LineEdit.new()
 		address.name = "CloudEmail"
 		address.placeholder_text = "Email address"
@@ -52,6 +56,24 @@ func rebuild() -> void:
 		add_child(_button("Use this device's progress", func(): confirm_local = false; service.keep_local()))
 		add_child(_button("Cancel", func(): confirm_local = false; rebuild()))
 		return
+	add_child(UI.heading("Player name", 18))
+	var player_name := LineEdit.new()
+	player_name.name = "PlayerNameInput"
+	player_name.accessibility_name = "Player name"
+	player_name.placeholder_text = "Choose your player name"
+	player_name.text = name_draft if name_edited else service.display_name
+	player_name.max_length = service.MAX_NAME_LENGTH
+	player_name.custom_minimum_size.y = 48
+	player_name.expand_to_text_length = false
+	player_name.editable = not service.busy
+	player_name.text_changed.connect(func(value: String): name_draft = value; name_edited = true)
+	add_child(player_name)
+	var save_name := UI.button("Save name", func(): service.save_player_name(player_name.text))
+	save_name.name = "SavePlayerName"
+	save_name.disabled = service.busy
+	add_child(UI.action_row("Name on your account", save_name, "Save"))
+	add_child(UI.paragraph("1–32 characters. Your name follows your account across devices.", 12))
+	add_child(UI.rule())
 	var audio_toggle := CheckButton.new()
 	audio_toggle.text = "Sync sound preferences"
 	audio_toggle.button_pressed = service.include_audio
@@ -73,7 +95,7 @@ func rebuild() -> void:
 		var date: String = str(world.updated_at).substr(0, 16).replace("T", " ")
 		add_child(_button("Restore world %s · %s…" % [str(int(world.seed)), date], func(): confirmation_world = world_id; rebuild()))
 	add_child(_button("Sign out", service.sign_out))
-	add_child(UI.paragraph("Only progress, world reconstruction, save revisions and reward checkpoints are uploaded. Sound preferences are optional. Art, code, camera and developer settings stay on this device.", 12))
+	add_child(UI.paragraph("Your player name is stored on your account. Only progress, world reconstruction, save revisions and reward checkpoints are uploaded. Sound preferences are optional. Art, code, camera and developer settings stay on this device.", 12))
 
 func _button(title: String, action: Callable) -> HBoxContainer:
 	var button := UI.button(title, action)

@@ -29,7 +29,7 @@ func run() -> void:
 	controls.game = field.state
 	controls.field = field
 	root.add_child(controls)
-	var toggle := controls.get_node("UnrestrictedCamera") as Button
+	var toggle := controls.find_child("UnrestrictedCamera", true, false) as Button
 	check(toggle.button_pressed, "Toggle reflects bypass")
 	toggle.button_pressed = false
 	check(not field.unrestricted_camera and field.camera.x < 10000 and field.zoom <= maxf(1.65, field.minimum_zoom()), "Toggle restores limits immediately")
