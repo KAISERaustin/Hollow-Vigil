@@ -298,7 +298,7 @@ static func action_row(title: String, action: BaseButton, action_text: String = 
 	row.add_child(action)
 	return row
 
-static func number_row(title: String, number: SpinBox, preview: Button = null) -> HBoxContainer:
+static func number_row(title: String, number: SpinBox, preview: Button = null, illustration: Control = null) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.set_meta("scroll_number_row", true)
 	row.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -309,17 +309,29 @@ static func number_row(title: String, number: SpinBox, preview: Button = null) -
 	copy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	copy.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	copy.add_theme_constant_override("separation", GAP)
-	copy.add_child(paragraph(title, BODY))
+	var identity := HBoxContainer.new()
+	identity.mouse_filter = Control.MOUSE_FILTER_PASS
+	identity.add_theme_constant_override("separation", GAP)
+	if illustration != null:
+		identity.add_child(illustration)
+	var caption := paragraph(title, BODY)
+	caption.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	identity.add_child(caption)
+	copy.add_child(identity)
 	row.add_child(copy)
 	if preview != null:
-		preview.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		copy.add_child(preview)
-	var controls := VBoxContainer.new()
+		preview.size_flags_horizontal = Control.SIZE_SHRINK_END
+		identity.add_child(preview)
+	var controls: BoxContainer = HBoxContainer.new() if preview != null else VBoxContainer.new()
 	controls.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	controls.custom_minimum_size.x = 112
 	controls.add_theme_constant_override("separation", 8)
-	row.add_child(controls)
+	if preview != null:
+		copy.add_child(controls)
+	else:
+		row.add_child(controls)
 	number.custom_minimum_size = Vector2(112, TARGET)
+	number.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	number.select_all_on_focus = true
 	# Use large explicit +/- controls instead of the built-in tiny arrows.
 	number.add_theme_constant_override("buttons_width", 0)
@@ -328,6 +340,7 @@ static func number_row(title: String, number: SpinBox, preview: Button = null) -
 	var entry := number.get_line_edit()
 	entry.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER_DECIMAL
 	entry.accessibility_name = number.accessibility_name
+	entry.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	entry.add_theme_stylebox_override("normal", box(SURFACE))
 	entry.add_theme_stylebox_override("focus", focus_box())
 	entry.add_theme_color_override("font_color", TEXT)

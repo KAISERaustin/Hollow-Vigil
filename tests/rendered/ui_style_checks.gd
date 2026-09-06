@@ -36,7 +36,7 @@ func run() -> void:
 			app.game.data.settings.text_scale = factor
 			app.apply_ui_preferences()
 			await settle()
-			for screen in ["hud", "build", "expand", "rift", "core", "settings", "developer", "reset", "tower-info", "upgrade", "sell", "move", "target", "move-pick", "return"]:
+			for screen in ["hud", "build", "expand", "rift", "castle-rift", "core", "settings", "developer", "reset", "tower-info", "upgrade", "sell", "move", "target", "move-pick", "return"]:
 				app.panels.close_sheet()
 				app.close_return_popup()
 				app.reset_scrim.hide()
@@ -46,6 +46,11 @@ func run() -> void:
 					"build": app.panels.select_pad("0,0", 1)
 					"expand": app.panels.show_expansion("1,0")
 					"rift": app.panels.show_entrance("-1,0")
+					"castle-rift":
+						var original_style: String = app.game.data.regions["-1,0"].style
+						app.game.data.regions["-1,0"].style = "castle_ruin"
+						app.panels.show_entrance("-1,0")
+						app.game.data.regions["-1,0"].style = original_style
 					"core": app.panels.show_core()
 					"settings":
 						app.panels.show_settings()
@@ -128,5 +133,5 @@ func run() -> void:
 	print("FONT_METRICS: ", UI.font(400).get_string_size("Hollow Vigil", 0, -1, 24), " / ", UI.font(700).get_string_size("Hollow Vigil", 0, -1, 24))
 	for failure in failures:
 		push_error(failure)
-	print("UI_STYLE: ", failures.size(), " failures; 15 screens, 3 viewports, standard text size")
+	print("UI_STYLE: ", failures.size(), " failures; 16 screens, 3 viewports, standard text size")
 	quit(0 if failures.is_empty() else 1)
