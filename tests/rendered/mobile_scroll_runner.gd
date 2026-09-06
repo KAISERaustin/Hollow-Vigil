@@ -132,7 +132,7 @@ func check_number_rows() -> void:
 		root.size = viewport
 		root.content_scale_size = viewport
 		for screen in ["sound", "developer"]:
-			if screen == "sound": app.panels.show_settings()
+			if screen == "sound": app.panels.show_sound_settings()
 			else: app.panels.show_developer_controls()
 			await settle()
 			check(app.panels.find_children("*", "Slider", true, false).is_empty(), screen + " still contains a slider")

@@ -54,4 +54,4 @@ Run Godot with `--path . --audio-driver Dummy --script tests/rendered/mobile_scr
 
 ## Save modes and setups
 
-Run Godot with `--headless --path . --script tests/save_slots_runner.gd` for three-slot isolation, legacy saves, named setup round trips into both modes, developer mutation guards, reset behavior, corrupt exports and slot archival. Run `--path . --audio-driver Dummy --script tests/rendered/save_slots_runner.gd` for the picker at three mobile sizes, mode creation, export fields, Survival editor/camera restrictions and switching saves. Disposable test filenames keep player saves untouched.
+Run Godot with `--headless --path . --script tests/save_slots_runner.gd` for three-slot isolation, legacy saves, named setup round trips into both modes, developer mutation guards, reset behavior, corrupt exports and slot archival. Run `--path . --audio-driver Dummy --script tests/rendered/save_slots_runner.gd` for the picker at three mobile sizes, world configuration selection, mode creation, configuration fields, Survival editor/camera restrictions and switching saves. Disposable test filenames keep player saves untouched.

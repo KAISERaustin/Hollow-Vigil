@@ -153,7 +153,7 @@ func run() -> void:
 	for viewport in [Vector2i(540, 960), Vector2i(360, 640), Vector2i(390, 844)]:
 		root.size = viewport
 		root.content_scale_size = viewport
-		app.panels.show_settings()
+		app.panels.show_sound_settings()
 		await settle()
 		for category in Director.DEFAULTS:
 			var number := app.panels.find_child("Audio_" + category, true, false) as SpinBox

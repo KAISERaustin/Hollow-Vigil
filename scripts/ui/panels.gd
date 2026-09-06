@@ -269,16 +269,26 @@ func show_entrance(id: String) -> void:
 	mode = "rift"
 	var r: Dictionary = game.data.regions[id]
 	var style: String = r.get("style", "forest")
+	var traffic_maxed: bool = r.traffic >= Balance.MAX_TRAFFIC_LEVEL
+	var rift_maxed := traffic_maxed
+	if style != "castle_ruin":
+		for kind in Balance.UNLOCK_COSTS:
+			if kind not in r.unlocks:
+				rift_maxed = false
 	clear_sheet(Balance.rift_name(style))
+	if rift_maxed:
+		var status := UI.paragraph("MAX · Rift maxed out", 16)
+		status.add_theme_color_override("font_color", UI.GOLD)
+		sheet_content.add_child(status)
 	sheet_content.add_child(UI.paragraph(Balance.rift_description(style, game.tuning) + ("" if style == "castle_ruin" else " Applies to every enemy from this rift for its entire journey."), 14))
 	var revision := sheet_revision
-	var traffic := UI.button("Increase traffic  ·  " + UI.exact_money(game.economy.traffic_cost(id)) + " gold", func():
+	var traffic := UI.button("Traffic · MAX" if traffic_maxed else "Increase traffic  ·  " + UI.exact_money(game.economy.traffic_cost(id)) + " gold", func():
 		if revision == sheet_revision and game.economy.buy_traffic(id, int(r.traffic)):
 			app.persist()
 			show_entrance(id)
 	)
-	price_button(traffic, game.economy.traffic_cost(id), r.traffic >= Balance.MAX_TRAFFIC_LEVEL)
-	sheet_content.add_child(UI.action_row(traffic.text, traffic, "Increase"))
+	price_button(traffic, game.economy.traffic_cost(id), traffic_maxed)
+	sheet_content.add_child(UI.action_row(traffic.text, traffic, "MAX" if traffic_maxed else "Increase"))
 	if style == "castle_ruin":
 		return
 	for kind in Balance.UNLOCK_COSTS:
@@ -312,9 +322,9 @@ func show_settings() -> void:
 		app.persist()
 	mode = "settings"
 	clear_sheet("Settings")
-	var sound := preload("res://scripts/audio/audio_settings.gd").new()
-	sound.app = app
-	sheet_content.add_child(sound)
+	var sound_button := UI.button("Sound", show_sound_settings)
+	sound_button.name = "OpenSoundSettings"
+	sheet_content.add_child(UI.action_row("Sound", sound_button, "Open"))
 	var cloud_button := UI.button("Cloud saves", show_cloud_saves)
 	cloud_button.name = "OpenCloudSaves"
 	sheet_content.add_child(UI.action_row(cloud_button.text, cloud_button, "Open"))
@@ -326,7 +336,7 @@ func show_settings() -> void:
 		var developer := UI.button("Developer Controls", show_developer_controls)
 		developer.name = "OpenDeveloperControls"
 		sheet_content.add_child(UI.action_row(developer.text, developer, "Open"))
-		sheet_content.add_child(UI.action_row("Export setup", UI.button("Export setup", app.show_save_slots.bind(true)), "Export"))
+		sheet_content.add_child(UI.action_row("Save configuration", UI.button("Save configuration", app.show_save_slots.bind(true)), "Open"))
 	var stats := HBoxContainer.new()
 	stats.add_theme_constant_override("separation", 12)
 	sheet_content.add_child(stats)
@@ -344,6 +354,16 @@ func show_settings() -> void:
 	sheet_content.add_child(UI.heading("Progress", 18))
 	sheet_content.add_child(UI.action_row("Reset progress", UI.accent_button("Reset progress", show_reset_confirmation, UI.DANGER), "Reset"))
 	sheet_content.add_child(UI.action_row("Return to the core", UI.button("Return to the core", return_to_core), "Return"))
+
+func show_sound_settings() -> void:
+	mode = "sound"
+	clear_sheet("Sound")
+	var sound := preload("res://scripts/audio/audio_settings.gd").new()
+	sound.app = app
+	sheet_content.add_child(sound)
+	var back := UI.button("Back to settings", show_settings)
+	back.name = "BackToSettings"
+	sheet_content.add_child(UI.action_row(back.text, back, "Back"))
 
 func show_developer_controls() -> void:
 	if not game.is_creative():

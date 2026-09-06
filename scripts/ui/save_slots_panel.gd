@@ -5,7 +5,10 @@ var app: VigilApp
 var slots := VigilSaveSlots.new()
 var content: VBoxContainer
 var card: PanelContainer
+var scroll: ScrollContainer
 var message: Label
+var creation_mode := "creative"
+var selected_configuration: Dictionary = {}
 
 func _ready() -> void:
 	name = "SaveSlots"
@@ -14,7 +17,7 @@ func _ready() -> void:
 	card = PanelContainer.new()
 	card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 4, 16))
 	add_child(card)
-	var scroll := ScrollContainer.new()
+	scroll = ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.follow_focus = true
 	UI.keyboard_scroll(scroll, "Save slots and setup")
@@ -35,6 +38,7 @@ func clear(title: String) -> void:
 	for child in content.get_children():
 		content.remove_child(child)
 		child.queue_free()
+	scroll.set_deferred("scroll_vertical", 0)
 	content.add_child(UI.heading(title, 28))
 	message = UI.paragraph("", 13)
 	content.add_child(message)
@@ -67,110 +71,108 @@ func show_slots() -> void:
 	if app.slot_active:
 		add_action(UI.button("Back to game", close))
 
-func show_creation(slot: int) -> void:
+func show_creation(slot: int, reset: bool = true) -> void:
+	if reset:
+		creation_mode = "creative"
+		selected_configuration = {}
 	clear("Create save %d" % (slot + 1))
-	content.add_child(UI.paragraph("Start fresh, or paste a previously exported setup. Choose how you want to play it.", 14))
-	var code := TextEdit.new()
-	code.name = "SetupImportCode"
-	code.placeholder_text = "Optional setup export code"
-	code.custom_minimum_size.y = 100
-	code.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-	style_entry(code)
-	content.add_child(code)
-	add_action(UI.button("Paste setup", func(): code.text = DisplayServer.clipboard_get()))
-	add_action(UI.button("Load setup file", func(): choose_file(false, func(path: String): code.text = FileAccess.get_file_as_string(path))))
-	var preview := UI.paragraph("", 14)
-	content.add_child(preview)
-	code.text_changed.connect(func():
-		var snapshot := slots.decode_build(code.text.strip_edges())
-		preview.text = "" if code.text.strip_edges().is_empty() else "Invalid setup code"
-		if not snapshot.is_empty():
-			var setup: Dictionary = snapshot.get("setup", {})
-			preview.text = setup.get("name", "Untitled setup") + "\n" + setup.get("description", "")
+	content.add_child(UI.paragraph("Choose your world and how you want to play, then create your save.", 14))
+	content.add_child(UI.heading("World configuration", 18))
+	content.add_child(UI.paragraph(selected_configuration.get("name", "Fresh world"), 16))
+	content.add_child(UI.paragraph(selected_configuration.get("description", "Start with the default world, resources and rules."), 14))
+	var choose := UI.button("Choose saved configuration", show_configurations.bind(slot))
+	choose.name = "ChooseConfiguration"
+	add_action(choose)
+	if not selected_configuration.is_empty():
+		add_action(UI.button("Use a fresh world", func():
+			selected_configuration = {}
+			show_creation(slot, false)
+		))
+	content.add_child(UI.rule())
+	content.add_child(UI.heading("Game mode", 18))
+	var modes := OptionButton.new()
+	modes.name = "CreationMode"
+	modes.custom_minimum_size.y = UI.TARGET
+	modes.add_item("Creative")
+	modes.add_item("Survival")
+	modes.select(0 if creation_mode == "creative" else 1)
+	content.add_child(modes)
+	var mode_help := UI.paragraph("", 14)
+	content.add_child(mode_help)
+	var update_mode := func(index: int):
+		creation_mode = "creative" if index == 0 else "survival"
+		mode_help.text = "Adjust world rules and balance with Developer Controls." if index == 0 else "Play with your chosen rules. Developer Controls are locked."
+	modes.item_selected.connect(update_mode)
+	update_mode.call(modes.selected)
+	content.add_child(UI.rule())
+	add_action(UI.button("Back to saves", show_slots))
+	var create := UI.button("Create save", func():
+		var game := slots.create(slot, creation_mode, selected_configuration.get("code", ""))
+		if game == null:
+			message.text = slots.error
+		else:
+			app.activate_slot(game, slot)
 	)
-	for mode in ["creative", "survival"]:
-		var button := UI.button("Create " + mode.capitalize(), func():
-			var game := slots.create(slot, mode, code.text.strip_edges())
-			if game == null:
-				message.text = slots.error
-			else:
-				app.activate_slot(game, slot)
+	create.name = "CreateSave"
+	add_action(create)
+
+func show_configurations(slot: int) -> void:
+	clear("Saved configurations")
+	content.add_child(UI.paragraph("Choose a configuration to use its world, towers, resources and rules. Your original save stays available.", 14))
+	add_action(UI.button("Back to world options", show_creation.bind(slot, false)))
+	var saved := slots.configurations()
+	if saved.is_empty():
+		content.add_child(UI.paragraph("No configurations yet. Open a Creative world and use Settings → Save configuration to add one.", 16))
+	for configuration in saved:
+		content.add_child(UI.heading(configuration.name, 18))
+		if not configuration.description.is_empty():
+			content.add_child(UI.paragraph(configuration.description, 14))
+		var select := UI.button("Use this configuration", func():
+			selected_configuration = configuration
+			show_creation(slot, false)
 		)
-		button.name = "Create" + mode.capitalize()
-		add_action(button)
-	add_action(UI.button("Back", show_slots))
+		select.name = "SelectConfiguration" + str(saved.find(configuration))
+		add_action(select)
+		content.add_child(UI.rule())
 
 func show_export() -> void:
-	clear("Export Creative setup")
-	content.add_child(UI.paragraph("Includes your world, towers, resources and tuned values. Import into an empty save as Creative or Survival.", 14))
+	clear("Save configuration")
+	content.add_child(UI.paragraph("Keep a reusable copy of this world, towers, resources and rules. Choose it when creating a new save.", 14))
+	content.add_child(UI.heading("Configuration name", 18))
 	var title := LineEdit.new()
 	title.name = "SetupName"
-	title.placeholder_text = "Setup name"
+	title.placeholder_text = "For example, Stronger enemies"
 	title.max_length = 80
 	title.text = app.game.data.get("setup", {}).get("name", "")
 	title.custom_minimum_size.y = UI.TARGET
 	style_entry(title)
 	content.add_child(title)
+	content.add_child(UI.heading("Description", 18))
 	var description := TextEdit.new()
 	description.name = "SetupDescription"
-	description.placeholder_text = "Describe your changes (up to 4,000 characters)"
+	description.placeholder_text = "What did you change? (optional)"
 	description.text = app.game.data.get("setup", {}).get("description", "")
 	description.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
 	description.custom_minimum_size.y = 140
 	style_entry(description)
 	content.add_child(description)
-	var output := TextEdit.new()
-	output.name = "SetupExportCode"
-	output.editable = false
-	output.custom_minimum_size.y = 100
-	output.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-	style_entry(output)
-	var generate := func() -> String:
+	add_action(UI.button("Back to game", close))
+	var save := UI.button("Save configuration", func():
 		if title.text.strip_edges().is_empty() or description.text.length() > 4000:
-			message.text = "Enter a setup name and a description of at most 4,000 characters."
-			return ""
-		var code := slots.export_build(app.game, title.text, description.text)
-		if code.is_empty():
-			message.text = "Couldn't export this setup."
-			return ""
+			message.text = "Enter a name and keep the description under 4,001 characters."
+			return
+		if not slots.save_configuration(app.game, title.text, description.text):
+			message.text = slots.error
+			return
 		app.game.data.setup = {"name": title.text.strip_edges(), "description": description.text}
 		app.persist()
-		output.text = code
-		return code
-	add_action(UI.button("Copy export code", func():
-		var code: String = generate.call()
-		if not code.is_empty():
-			DisplayServer.clipboard_set(code)
-			message.text = "Copied. Paste this code when creating a save in either mode."
-	))
-	add_action(UI.button("Save setup file", func():
-		var code: String = generate.call()
-		if not code.is_empty():
-			choose_file(true, func(path: String):
-				var file := FileAccess.open(path, FileAccess.WRITE)
-				if file == null:
-					message.text = "Couldn't write that file. Choose another location."
-				else:
-					file.store_string(code)
-					file.close()
-					message.text = "Setup exported."
-			)
-	))
-	content.add_child(output)
-	add_action(UI.button("Back to game", close))
-
-func choose_file(saving: bool, callback: Callable) -> void:
-	var dialog := FileDialog.new()
-	dialog.use_native_dialog = true
-	dialog.access = FileDialog.ACCESS_FILESYSTEM
-	dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE if saving else FileDialog.FILE_MODE_OPEN_FILE
-	dialog.filters = PackedStringArray(["*.hvbuild ; Hollow Vigil setup"])
-	if saving:
-		dialog.current_file = "setup.hvbuild"
-	add_child(dialog)
-	dialog.file_selected.connect(func(path: String): callback.call(path); dialog.queue_free())
-	dialog.canceled.connect(dialog.queue_free)
-	dialog.popup_centered_ratio(0.85)
+		clear("Configuration saved")
+		content.add_child(UI.paragraph("“%s” is in your configuration library. To use it, open an empty save and choose Saved configuration." % title.text.strip_edges(), 16))
+		add_action(UI.button("Your saves", show_slots))
+		add_action(UI.button("Back to game", close))
+	)
+	save.name = "SaveConfiguration"
+	add_action(save)
 
 func close() -> void:
 	if not app.slot_active:
@@ -180,7 +182,7 @@ func close() -> void:
 
 func show_archive(slot: int) -> void:
 	clear("Free save %d?" % (slot + 1))
-	content.add_child(UI.paragraph("This removes the save from the picker so you can create another. Its files are kept in the local save folder as an archive. Export any Creative setup you want to reuse first.", 14))
+	content.add_child(UI.paragraph("This removes the save from the picker so you can create another. Its files are kept in the local save folder as an archive. Save a configuration of any Creative world you want to reuse first.", 14))
 	add_action(UI.button("Cancel", show_slots))
 	add_action(UI.accent_button("Archive and free slot", func():
 		if not slots.archive(slot):
@@ -210,4 +212,6 @@ func add_action(button: Button) -> void:
 	elif caption.begins_with("Load"): caption = "Load"
 	elif caption.begins_with("Copy"): caption = "Copy"
 	elif caption.begins_with("Save"): caption = "Save"
+	elif caption.begins_with("Choose"): caption = "Choose"
+	elif caption.begins_with("Use"): caption = "Use"
 	content.add_child(UI.action_row(button.text, button, caption))

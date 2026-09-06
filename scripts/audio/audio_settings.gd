@@ -4,7 +4,6 @@ var app: Control
 
 func _ready() -> void:
 	add_theme_constant_override("separation", 10)
-	add_child(UI.heading("Sound", 20))
 	add_child(UI.paragraph("Type a percentage or use − / +. Set a category to 0% to silence it.", 13))
 	var mute := CheckButton.new()
 	mute.name = "MuteAudio"
@@ -46,7 +45,7 @@ func _ready() -> void:
 			app.audio.set_volume(category, app.audio.DEFAULTS[category])
 		app.audio.set_muted(false)
 		app.persist()
-		app.panels.show_settings()
+		app.panels.show_sound_settings()
 	)
 	reset.name = "RestoreAudioDefaults"
 	add_child(UI.action_row(reset.text, reset, "Restore"))
