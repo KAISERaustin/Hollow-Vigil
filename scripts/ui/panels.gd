@@ -22,6 +22,7 @@ var content_scroll: ScrollContainer
 var header_content: VBoxContainer
 var action_footer: VBoxContainer
 var opener: Control
+var settings_sheet_height := 520.0
 
 func _ready() -> void:
 	var layout := VBoxContainer.new()
@@ -118,6 +119,11 @@ func fit_sheet() -> void:
 		# Keep gameplay panels as small as their controls allow.
 		desired_height = sheet_height()
 		# sheet_height already includes the visible layout gaps and panel border.
+	if mode == "settings":
+		settings_sheet_height = desired_height
+	elif mode == "sound":
+		# Keep the Settings frame when entering or rebuilding its Sound submenu.
+		desired_height = settings_sheet_height
 	if mode == "core":
 		# Include the shared inner margins and panel padding, without unused space.
 		desired_height = sheet_height()

@@ -48,6 +48,25 @@ func run() -> void:
 		app.panels.content_scroll.ensure_control_visible(last_action)
 		await settle()
 		check(app.panels.content_scroll.get_global_rect().grow(1).encloses(last_action.get_global_rect()), "settings action unreachable at " + str(viewport))
+		for game_mode in ["creative", "survival"]:
+			app.game.data.mode = game_mode
+			app.panels.show_settings()
+			await settle()
+			var settings_rect := app.panels.get_global_rect()
+			app.panels.find_child("OpenSoundSettings", true, false).pressed.emit()
+			await settle()
+			check(app.panels.get_global_rect().is_equal_approx(settings_rect), game_mode + " sound moved from settings at " + str(viewport))
+			app.panels.find_child("RestoreAudioDefaults", true, false).pressed.emit()
+			await settle()
+			check(app.panels.get_global_rect().is_equal_approx(settings_rect), "restoring sound defaults moved panel")
+			var sound_back := app.panels.find_child("BackToSettings", true, false) as Button
+			app.panels.content_scroll.ensure_control_visible(sound_back)
+			await settle()
+			check(app.panels.content_scroll.get_global_rect().grow(1).encloses(sound_back.get_global_rect()), "sound back action unreachable at " + str(viewport))
+			sound_back.pressed.emit()
+			await settle()
+			check(app.panels.mode == "settings" and app.panels.get_global_rect().is_equal_approx(settings_rect), "return from sound moved settings")
+		app.game.data.mode = "creative"
 		app.panels.show_developer_controls()
 		await settle()
 		var controls := app.panels.find_child("DeveloperControls", true, false)
