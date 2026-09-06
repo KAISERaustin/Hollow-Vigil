@@ -93,6 +93,9 @@ func build_tower_ui() -> void:
 func _ready() -> void:
 	name = "Campaign"
 	color = UI.PANEL
+	var paper := UI.surface(UI.PANEL, 0, 0)
+	draw.connect(func(): draw_style_box(paper, Rect2(Vector2.ZERO, size)))
+	resized.connect(queue_redraw)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	theme = UI.theme()
 	progress.load_progress()

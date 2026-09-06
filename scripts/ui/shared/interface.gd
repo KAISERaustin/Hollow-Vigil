@@ -40,13 +40,13 @@ static func type_size(pixels: int) -> int:
 static func exact_money(amount: float) -> String:
 	return String.num(amount, 0 if is_equal_approx(amount, roundf(amount)) else 2)
 
-static func surface(bg: Color = PANEL, outline: int = OUTLINE, padding: int = PADDING) -> StyleBoxFlat:
+static func surface(bg: Color = PANEL, outline: int = OUTLINE, padding: int = PADDING) -> StyleBox:
 	var style := box(bg)
 	style.set_border_width_all(outline)
 	style.set_content_margin_all(padding)
 	return style
 
-static func plain() -> StyleBoxFlat:
+static func plain() -> StyleBox:
 	return surface(Color.TRANSPARENT, 0, 0)
 
 static func rounded_viewport_frame(background: Color = PANEL, outline: int = OUTLINE) -> Control:
@@ -70,12 +70,12 @@ static func rounded_viewport_frame(background: Color = PANEL, outline: int = OUT
 	frame.resized.connect(frame.queue_redraw)
 	return frame
 
-static func chrome() -> StyleBoxFlat:
+static func chrome() -> StyleBox:
 	var style := surface(PANEL, OUTLINE, 0)
 	style.set_corner_radius_all(0)
 	return style
 
-static func badge(bg: Color = GOLD) -> StyleBoxFlat:
+static func badge(bg: Color = GOLD) -> StyleBox:
 	return surface(bg, 2, 8)
 
 static func safe_rect(control: Control) -> Rect2:
@@ -175,8 +175,8 @@ static func theme() -> Theme:
 			t.set_icon(part, type, ImageTexture.new())
 	return t
 
-static func box(bg: Color, border: Color = BORDER, radius: int = RADIUS) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
+static func box(bg: Color, border: Color = BORDER, radius: int = RADIUS) -> StyleBox:
+	var style: StyleBox = StyleBoxFlat.new()
 	# Paper and darker tan surfaces share one reusable textured style.
 	# Gold accents and other semantic colors retain their own fills.
 	if bg.a > 0.0 and bg.r >= bg.g and bg.g > bg.b and bg.b >= 0.55:

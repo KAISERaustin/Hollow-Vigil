@@ -1,10 +1,37 @@
-extends StyleBoxFlat
+extends StyleBox
 ## Reusable textured fill; retain StyleBoxFlat's layout and border API.
 
 const PAPER = preload("res://assets/ui/welcome-parchment.png")
 
+var bg_color := Color.WHITE
+var border_color := Color.BLACK
+var draw_center := true
+var border_width_left := 0
+var border_width_top := 0
+var border_width_right := 0
+var border_width_bottom := 0
+var corner_radius_top_left := 0
+var corner_radius_top_right := 0
+var corner_radius_bottom_right := 0
+var corner_radius_bottom_left := 0
+var shadow_color := Color.TRANSPARENT
+var shadow_offset := Vector2.ZERO
+var shadow_size := 0
+
+func set_border_width_all(width: int) -> void:
+	border_width_left = width
+	border_width_top = width
+	border_width_right = width
+	border_width_bottom = width
+
+func set_corner_radius_all(radius: int) -> void:
+	corner_radius_top_left = radius
+	corner_radius_top_right = radius
+	corner_radius_bottom_right = radius
+	corner_radius_bottom_left = radius
+
 func _draw(canvas_item: RID, rect: Rect2) -> void:
-	if draw_center and bg_color.a > 0.0:
+	if draw_center and bg_color.a > 0.0 and rect.has_area():
 		var points := PackedVector2Array()
 		var uvs := PackedVector2Array()
 		var radii := [corner_radius_top_left, corner_radius_top_right, corner_radius_bottom_right, corner_radius_bottom_left]
@@ -38,4 +65,7 @@ func _draw(canvas_item: RID, rect: Rect2) -> void:
 	rim.corner_radius_top_right = corner_radius_top_right
 	rim.corner_radius_bottom_right = corner_radius_bottom_right
 	rim.corner_radius_bottom_left = corner_radius_bottom_left
+	rim.shadow_color = shadow_color
+	rim.shadow_offset = shadow_offset
+	rim.shadow_size = shadow_size
 	rim.draw(canvas_item, rect)

@@ -142,8 +142,7 @@ func show_slots() -> void:
 		add_action(UI.button("Retry public uploads", app.public_builds.flush))
 	add_action(UI.button("Account & backups", app.show_backups))
 	add_action(UI.button("Browse community builds", show_public_builds))
-	if app.slot_active:
-		footer.add_child(UI.button("Back to game", close))
+	footer.hide()
 
 func show_creation(slot: int, reset: bool = true) -> void:
 	if reset:
