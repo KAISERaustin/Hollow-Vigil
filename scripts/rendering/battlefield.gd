@@ -311,7 +311,7 @@ func earnings_rect(t: Dictionary) -> Rect2:
 func core_is_visible() -> bool:
 	return Rect2(Vector2.ZERO, size).has_point(screen(VigilWorld.CORE_POSITION))
 
-func update_view(delta: float, tick_remainder: float = 0.0) -> void:
+func update_view(_delta: float, tick_remainder: float = 0.0) -> void:
 	effect_offset = tick_remainder
 	queue_redraw()
 
@@ -327,21 +327,21 @@ func _draw() -> void:
 		return
 	if terrain_layer != null:
 		terrain_layer.synchronize(state, camera, zoom, size)
-	var visible := Rect2(Vector2(-100, -100), size + Vector2(200, 200))
-	var world_view := Rect2(world(visible.position), visible.size / zoom)
+	var visible_rect := Rect2(Vector2(-100, -100), size + Vector2(200, 200))
+	var world_view := Rect2(world(visible_rect.position), visible_rect.size / zoom)
 	var visible_regions := RegionQuery.in_view(state.data.regions, world_view, Balance.TILE * 0.5)
 	for id in visible_regions:
 		var c := screen(VigilWorld.center(id))
-		if not visible.intersects(Rect2(c - Vector2.ONE * 150.0 * zoom, Vector2.ONE * 300.0 * zoom)):
+		if not visible_rect.intersects(Rect2(c - Vector2.ONE * 150.0 * zoom, Vector2.ONE * 300.0 * zoom)):
 			continue
 		draw_region(state.data.regions[id])
 	# Draw portals after every tile, so newly purchased terrain cannot cover them.
 	for id in visible_regions:
-		if VigilWorld.has_rift(id, state.data.regions, int(state.data.seed)) and visible.has_point(screen(state.paths[id][0])):
+		if VigilWorld.has_rift(id, state.data.regions, int(state.data.seed)) and visible_rect.has_point(screen(state.paths[id][0])):
 			draw_entrance(id)
 	for id in RegionQuery.in_view(expansion_frontier(), world_view):
 		var c := screen(expansion_marker(id))
-		if not visible.has_point(c):
+		if not visible_rect.has_point(c):
 			continue
 		draw_set_transform(c, 0, Vector2.ONE * zoom)
 		VigilTerrainArt.disk(self, Vector2.ZERO, 24.0, GOLD if show_expansion else VigilTerrainArt.PAPER, 4.0)
@@ -364,7 +364,7 @@ func _draw() -> void:
 		draw_arc(screen(range_pos), range_radius * zoom, 0, TAU, 72, GOLD, 1.5, true)
 	for patch in state.combat.burning_ground:
 		var center := screen(patch.pos)
-		if not visible.grow(patch.radius*zoom).has_point(center):
+		if not visible_rect.grow(patch.radius*zoom).has_point(center):
 			continue
 		draw_circle(center, patch.radius*zoom, Color(0.3,0.16,0.10,0.35))
 		draw_arc(center,patch.radius*zoom,0,TAU,40,Color("f19b57"),2*zoom,true)
@@ -372,10 +372,10 @@ func _draw() -> void:
 			var ember: Vector2 = center + Vector2.from_angle(index*2.4)*sqrt(index/9.0)*patch.radius*zoom
 			draw_line(ember,ember+Vector2(2,-5-sin(state.combat.simulation_time*5+index)*2)*zoom,VigilTerrainArt.GOLD,2*zoom,true)
 	for e in state.combat.visible_enemies(world_view):
-		if visible.has_point(screen(e.pos)):
+		if visible_rect.has_point(screen(e.pos)):
 			draw_enemy(e)
 	for t in state.economy.towers_in_regions(visible_regions):
-		if visible.has_point(screen(VigilWorld.pad_position(t.region, t.pad))):
+		if visible_rect.has_point(screen(VigilWorld.pad_position(t.region, t.pad))):
 			draw_tower(t)
 	draw_upgrade_poofs()
 	for fx in state.combat.effects:
@@ -384,7 +384,7 @@ func _draw() -> void:
 		var p := screen(fx.pos)
 		if fx.kind == "shot":
 			var origin := screen(fx.from)
-			if visible.intersects(Rect2(origin, Vector2.ZERO).expand(p).grow((fx.radius + 30.0) * zoom)):
+			if visible_rect.intersects(Rect2(origin, Vector2.ZERO).expand(p).grow((fx.radius + 30.0) * zoom)):
 				AttackEffects.draw(self, fx, origin, p, zoom, effect_offset)
 		elif fx.kind == "relic_drop":
 			preload("res://scripts/rendering/actors/relic_art.gd").draw(self, fx.relic_kind, p + Vector2(0, -25 - (1.0 - fade) * 25) * zoom, zoom * (0.9 + fade * 0.4))
@@ -503,7 +503,7 @@ func draw_enemy(e: Dictionary) -> void:
 
 	if show_health_numbers and state.is_creative():
 		var label := "%s / %s HP" % [String.num(e.hp, 1).trim_suffix(".0"), String.num(e.max_hp, 1).trim_suffix(".0")]
-		var font := ThemeDB.fallback_font
-		var at := p + Vector2(-font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x * 0.5, -38 * z)
-		draw_string_outline(font, at, label, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, 4, Color.BLACK)
-		draw_string(font, at, label, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.WHITE)
+		var health_font := ThemeDB.fallback_font
+		var at := p + Vector2(-health_font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x * 0.5, -38 * z)
+		draw_string_outline(health_font, at, label, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, 4, Color.BLACK)
+		draw_string(health_font, at, label, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.WHITE)

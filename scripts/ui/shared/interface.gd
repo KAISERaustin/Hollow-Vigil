@@ -37,8 +37,8 @@ static func font(weight: int = 400, serif: bool = false) -> Font:
 static func type_size(pixels: int) -> int:
 	return ceili(maxi(META, pixels) * text_scale)
 
-static func exact_money(value: float) -> String:
-	return String.num(value, 0 if is_equal_approx(value, roundf(value)) else 2)
+static func exact_money(amount: float) -> String:
+	return String.num(amount, 0 if is_equal_approx(amount, roundf(amount)) else 2)
 
 static func surface(bg: Color = PANEL, outline: int = OUTLINE, padding: int = PADDING) -> StyleBoxFlat:
 	var style := box(bg)

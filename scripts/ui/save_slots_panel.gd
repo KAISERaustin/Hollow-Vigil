@@ -43,13 +43,23 @@ func fit() -> void:
 	card.size = Vector2(minf(460, safe.size.x), safe.size.y)
 	card.position = safe.position + (safe.size - card.size) * 0.5
 
-func clear(title: String) -> void:
+func clear(title: String, header_action: Button = null) -> void:
 	view_revision += 1
 	for child in content.get_children():
 		content.remove_child(child)
 		child.queue_free()
 	scroll.set_deferred("scroll_vertical", 0)
-	content.add_child(UI.heading(title, 28))
+	var heading := UI.heading(title, 28)
+	if header_action == null:
+		content.add_child(heading)
+	else:
+		var header := HBoxContainer.new()
+		header.add_theme_constant_override("separation", UI.GAP)
+		heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		heading.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		header.add_child(heading)
+		header.add_child(header_action)
+		content.add_child(header)
 	message = UI.paragraph("", 13)
 	content.add_child(message)
 	call_deferred("fit")

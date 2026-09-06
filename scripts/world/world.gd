@@ -148,7 +148,7 @@ static func without_backtracking(path: Array[Vector2]) -> Array[Vector2]:
 			result.append(point)
 	return result
 
-static func frontier(regions: Dictionary, seed_value: int = -1) -> Dictionary:
+static func frontier(regions: Dictionary, _seed_value: int = -1) -> Dictionary:
 	var result := {}
 	for id in regions:
 		for d in DIRS:

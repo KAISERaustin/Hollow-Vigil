@@ -4,7 +4,21 @@ const UI = preload("res://scripts/ui/shared/interface.gd")
 var menu: Control
 
 func show_page(slot: int = -1, page: int = 0) -> void:
-	menu.clear("Public Builds")
+	var refresh := UI.button("", show_page.bind(slot, 0))
+	refresh.name = "RefreshPublicBuilds"
+	refresh.tooltip_text = "Refresh public builds"
+	refresh.accessibility_name = "Refresh public builds"
+	refresh.custom_minimum_size = Vector2(UI.TARGET, UI.TARGET)
+	refresh.size_flags_horizontal = Control.SIZE_SHRINK_END
+	refresh.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	refresh.draw.connect(func():
+		var center := refresh.size * 0.5
+		refresh.draw_arc(center, 10.0, 0.0, TAU * 0.8, 32, UI.TEXT, 2.5, true)
+		refresh.draw_colored_polygon(PackedVector2Array([
+			center + Vector2(5, -13), center + Vector2(5, -5), center + Vector2(-2, -9)
+		]), UI.TEXT)
+	)
+	menu.clear("Public Builds", refresh)
 	var revision: int = menu.view_revision
 	menu.content.add_child(UI.paragraph("Worlds and rules shared by other players. Choose a build for a new Creative or Survival playthrough.", 14))
 	menu.add_action(UI.button("Back to world options" if slot >= 0 else "Back to saves", func():
@@ -32,7 +46,6 @@ func show_page(slot: int = -1, page: int = 0) -> void:
 		menu.add_action(UI.button("Previous page", show_page.bind(slot, page - 1)))
 	if result.data.size() == 20:
 		menu.add_action(UI.button("Next page", show_page.bind(slot, page + 1)))
-	menu.add_action(UI.button("Refresh", show_page.bind(slot, 0)))
 
 func select_build(id: String, slot: int, revision: int) -> void:
 	if menu.view_revision != revision:

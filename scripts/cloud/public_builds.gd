@@ -54,17 +54,17 @@ func flush() -> void:
 	var epoch: int = cloud.generation
 	# Refresh account metadata in the JWT before the server snapshots the author name.
 	cloud.expires_at = 0.0
-	var owner: String = cloud.player_id
+	var account_id: String = cloud.player_id
 	for item in outbox.duplicate():
-		if item.owner != "" and item.owner != owner:
+		if item.owner != "" and item.owner != account_id:
 			continue
 		# Bind an offline export before the first request, so account changes cannot republish it.
 		if item.owner == "":
-			item.owner = owner
+			item.owner = account_id
 			if not _save():
 				break
 		var result: Dictionary = await cloud._rpc("publish_public_build", {"build_id": item.id, "configuration": item.configuration, "exported_at": item.created_at})
-		if cloud.player_id != owner:
+		if cloud.player_id != account_id:
 			break
 		if not result.ok:
 			status = "Public upload pending. Check your connection and account name; it will retry automatically."

@@ -47,7 +47,10 @@ func encode(data: Dictionary, world_id: String, include_audio: bool = false) -> 
 	for key in data.regions:
 		var r: Dictionary = data.regions[key]
 		var rid := entity_id(world_id, "region", key)
-		out.regions.append({"id": rid, "local_key": key, "parent_id": null if r.parent == "" else entity_id(world_id, "region", r.parent),
+		var parent_id: Variant = null
+		if r.parent != "":
+			parent_id = entity_id(world_id, "region", r.parent)
+		out.regions.append({"id": rid, "local_key": key, "parent_id": parent_id,
 			"side": int(r.side), "bend": int(r.bend), "traffic": int(r.traffic), "style": r.get("style", "forest"), "road_version": int(r.get("road_version", 2)), "history_time": r.history_time})
 		for kind in r.unlocks:
 			out.unlocks.append({"id": entity_id(world_id, "unlock", key + "/" + kind), "region_id": rid, "kind": kind})
@@ -56,11 +59,14 @@ func encode(data: Dictionary, world_id: String, include_audio: bool = false) -> 
 				"tower_id": entity_id(world_id, "tower", tower_id), "earned": r.history[tower_id]})
 	for key in data.towers:
 		var t: Dictionary = data.towers[key]
+		var relic_id: Variant = null
+		if t.get("relic", "") != "":
+			relic_id = entity_id(world_id, "relic", t.relic)
 		out.towers.append({"id": entity_id(world_id, "tower", key), "local_key": key,
 			"region_id": entity_id(world_id, "region", t.region), "kind": t.kind, "pad": int(t.pad),
 			"level": int(t.level), "branch": t.get("branch", ""), "earnings": t.earnings,
 			"target_mode": t.get("target_mode", "first"), "rebuild_remaining": t.get("rebuild_remaining", 0.0),
-			"relic_id": null if t.get("relic", "") == "" else entity_id(world_id, "relic", t.relic)})
+			"relic_id": relic_id})
 	for key in data.get("relics", {}):
 		out.relics.append({"id": entity_id(world_id, "relic", key), "source_key": key, "kind": data.relics[key]})
 	for is_castle in [false, true]:

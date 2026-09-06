@@ -122,8 +122,8 @@ func fit_sheet() -> void:
 		# sheet_height already includes the visible layout gaps and panel border.
 	if mode == "settings":
 		settings_sheet_height = desired_height
-	elif mode == "sound":
-		# Keep the Settings frame when entering or rebuilding its Sound submenu.
+	elif mode in ["sound", "cloud"]:
+		# Keep the Settings frame when entering or rebuilding its submenus.
 		desired_height = settings_sheet_height
 	if mode == "core":
 		# Include the shared inner margins and panel padding, without unused space.
@@ -394,13 +394,13 @@ func show_settings() -> void:
 	stats.add_theme_constant_override("separation", 12)
 	sheet_content.add_child(stats)
 	for stat in [["Lifetime gold", game.data.lifetime_earnings], ["Escaped", game.data.escapes]]:
-		var field := PanelContainer.new()
-		field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		field.add_theme_stylebox_override("panel", UI.plain())
-		stats.add_child(field)
+		var stat_panel := PanelContainer.new()
+		stat_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		stat_panel.add_theme_stylebox_override("panel", UI.plain())
+		stats.add_child(stat_panel)
 		var contents := VBoxContainer.new()
 		contents.add_theme_constant_override("separation", 4)
-		field.add_child(contents)
+		stat_panel.add_child(contents)
 		contents.add_child(UI.label(stat[0], 12, UI.MUTED))
 		contents.add_child(UI.heading(Balance.money(stat[1]), 18))
 	sheet_content.add_child(UI.rule())

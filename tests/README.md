@@ -56,6 +56,10 @@ Run Godot with `--path . --audio-driver Dummy --script tests/rendered/mobile_scr
 
 Run Godot with `--headless --path . --script tests/save_slots_runner.gd` for three-slot isolation, legacy saves, named setup round trips into both modes, developer mutation guards, reset behavior, corrupt exports and slot archival. Run `--path . --audio-driver Dummy --script tests/rendered/save_slots_runner.gd` for the picker at three mobile sizes, world configuration selection, mode creation, configuration fields, Survival editor/camera restrictions and switching saves. Disposable test filenames keep player saves untouched.
 
+## Account names
+
+Run `--headless --path . --script tests/cloud_service_runner.gd` for account-name validation, save responses, session refresh and sign-in restoration. Run `supabase/tests/player_names_contract.sql` as postgres for transactional profile creation, name updates, Unicode limits, malformed metadata and account isolation. All SQL fixtures roll back. The private Auth trigger projects account metadata into `player_profiles` in the same transaction; the migration also backfills existing accounts, including those without cloud worlds.
+
 ## Public Builds
 
 Run `--headless --path . --script tests/public_builds_runner.gd` for persistent offline uploads, unnamed accounts, account isolation, and stable retry IDs. Run `--path . --audio-driver Dummy --script tests/rendered/public_builds_runner.gd` for three phone sizes, catalog selection, Survival configuration import, and network failures. `supabase/tests/public_builds_contract.sql` checks publication, idempotency, author attribution, public reading, and denied mutations inside a rolled-back transaction.

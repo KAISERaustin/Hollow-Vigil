@@ -110,7 +110,7 @@ static func launch_fan(combat: VigilCombat, tower: Dictionary, origin: Vector2, 
 	var angle := muzzle.angle_to_point(target.pos)
 	var count := int(stats.get("arrow_count", 5))
 	for index in range(count - 1):
-		var slot := index if index < count / 2 else index + 1
+		var slot := index if index < floori(count / 2.0) else index + 1
 		var fraction := float(slot) / maxf(1.0, count - 1)
 		var offset: float = (fraction - 0.5) * stats.get("fan_angle", 0.96)
 		var end: Vector2 = muzzle + Vector2.from_angle(angle + offset) * stats.range

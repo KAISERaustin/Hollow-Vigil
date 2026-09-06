@@ -24,11 +24,11 @@ func fit_safe_area() -> void:
 	if screen_size.x <= 0 or screen_size.y <= 0 or not safe.has_area():
 		return
 	# Safe-area pixels must be converted to the expanded canvas coordinates.
-	var scale := get_viewport_rect().size / screen_size
-	var left := maxf(0.0, safe.position.x) * scale.x
-	var right := maxf(0.0, screen_size.x - safe.end.x) * scale.x
-	var top := maxf(0.0, safe.position.y) * scale.y
-	safe_bottom = maxf(0.0, screen_size.y - safe.end.y) * scale.y
+	var canvas_scale := get_viewport_rect().size / screen_size
+	var left := maxf(0.0, safe.position.x) * canvas_scale.x
+	var right := maxf(0.0, screen_size.x - safe.end.x) * canvas_scale.x
+	var top := maxf(0.0, safe.position.y) * canvas_scale.y
+	safe_bottom = maxf(0.0, screen_size.y - safe.end.y) * canvas_scale.y
 	for margin in [header_margin, footer_margin]:
 		margin.add_theme_constant_override("margin_left", 12 + ceili(left))
 		margin.add_theme_constant_override("margin_right", 12 + ceili(right))

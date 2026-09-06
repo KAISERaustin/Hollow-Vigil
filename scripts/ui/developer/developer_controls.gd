@@ -21,6 +21,9 @@ var fields: VBoxContainer
 var inputs: Dictionary = {}
 var hint: Label
 var detail: Label
+var portrait: Control
+var identity_title: Label
+var description: Label
 
 func _ready() -> void:
 	name = "DeveloperControls"
@@ -65,6 +68,26 @@ func _ready() -> void:
 	editor.name = "BalanceEditor"
 	editor.add_theme_constant_override("separation", 12)
 	add_child(editor)
+	var identity := PanelContainer.new()
+	identity.name = "BalanceIdentity"
+	identity.add_theme_stylebox_override("panel", UI.surface(UI.GOLD))
+	editor.add_child(identity)
+	var identity_stack := VBoxContainer.new()
+	identity.add_child(identity_stack)
+	identity_title = UI.paragraph("", UI.OBJECT_TITLE)
+	identity_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	identity_title.add_theme_font_override("font", UI.font(700, true))
+	identity_stack.add_child(identity_title)
+	portrait = Control.new()
+	portrait.name = "BalancePortrait"
+	portrait.custom_minimum_size = Vector2(0, 144)
+	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	portrait.draw.connect(draw_portrait)
+	portrait.resized.connect(portrait.queue_redraw)
+	identity_stack.add_child(portrait)
+	description = UI.paragraph("", UI.CAPTION)
+	description.name = "BalanceDescription"
+	editor.add_child(description)
 	var back := UI.button("Back to categories", show_categories)
 	back.name = "BackToCategories"
 	editor.add_child(UI.action_row(back.text, back, "Back"))
@@ -183,6 +206,7 @@ func populate_tiers() -> void:
 	tier_selector.accessibility_name = "Choose tower upgrade tier or specialization"
 
 func show_fields() -> void:
+	refresh_identity()
 	if category == "towers":
 		hint.text = "Tier %d · Live changes · Auto-saved" % selected_level
 		detail.text = "Edit this tier independently. Costs are for building tier 1 or purchasing the selected upgrade. Specialization effects appear below combat stats."
@@ -200,6 +224,39 @@ func show_fields() -> void:
 		add_number(stat)
 	# Scrolling follows focus as players move between exact-value fields.
 	call_deferred("refresh_focus")
+
+func refresh_identity() -> void:
+	var definition: Dictionary = Balance.definitions(category)[editing_kind()]
+	identity_title.text = definition.name
+	match category:
+		"enemies": description.text = definition.description
+		"towers":
+			identity_title.text = Balance.TOWERS[selected_kind].name + " · Tier " + str(selected_level)
+			description.text = Balance.TOWERS[selected_kind].description
+			if selected_branch != "":
+				identity_title.text = Balance.BRANCHES[selected_kind][selected_branch].name + " · Tier 4"
+				description.text = Balance.BRANCHES[selected_kind][selected_branch].description
+		"rifts": description.text = Balance.rift_description(selected_kind, game.tuning)
+		"gear": description.text = preload("res://scripts/gameplay/progression/relics.gd").description(selected_kind, game.tuning)
+		"bosses":
+			var summaries := {
+				"warden": "A forest guardian protected by a regenerating root shield. Fire can burn away its protection and suppress regrowth.",
+				"cindermaw": "An armored fire spirit in a broken vessel. It hastens when wounded; frost can quench its rage.",
+				"bell": "A haunted bell that periodically summons escorts. Delaying its tolls keeps the procession under control.",
+				"prior": "A spectral prior protected by regenerating wards. Curses can bypass its defenses and suppress regrowth."
+			}
+			description.text = summaries[selected_kind] + " Counter: " + definition.weakness + "."
+	portrait.accessibility_name = identity_title.text + " portrait"
+	portrait.queue_redraw()
+
+func draw_portrait() -> void:
+	var center := portrait.size * 0.5
+	match category:
+		"enemies": VigilEnemyArt.draw(portrait, selected_kind, center + Vector2(0, 10), 3.0)
+		"bosses": preload("res://scripts/rendering/actors/boss_art.gd").portrait(portrait, selected_kind, center + Vector2(0, 5), 1.1)
+		"rifts": preload("res://scripts/rendering/actors/rift_art.gd").draw(portrait, selected_kind, center + Vector2(0, 20), 1.8)
+		"gear": preload("res://scripts/rendering/actors/relic_art.gd").draw(portrait, selected_kind, center, 3.6)
+		"towers": VigilTerrainArt.sentinel(portrait, selected_kind, center + Vector2(0, 46), 1.7, selected_level, selected_branch)
 
 func add_number(stat: String) -> void:
 	var descriptor: Dictionary = Balance.field_limits(category, editing_kind(), stat)
@@ -222,6 +279,7 @@ func add_number(stat: String) -> void:
 			return
 		var accepted := game.set_tower_tier_stat(kind, stat, value) if section == "towers" else game.set_balance_stat(section, kind, stat, value)
 		if accepted:
+			refresh_identity()
 			if section == "rifts":
 				detail.text = Balance.rift_description(kind, game.tuning) + " Set to 0 to disable. Health adjustments preserve remaining health percentage."
 			changed.emit()

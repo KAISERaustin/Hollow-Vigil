@@ -378,7 +378,7 @@ static func rebuild_seconds(tower: Dictionary, tuning: Dictionary = {}) -> float
 
 static func rebuild_time_text(seconds: float) -> String:
 	var whole := ceili(maxf(0.0, seconds))
-	return "%d:%02d" % [whole / 60, whole % 60]
+	return "%d:%02d" % [floori(whole / 60.0), whole % 60]
 
 static func expansion_cost(count: int) -> float:
 	return ceil(100.0 * pow(float(count), 1.35))
