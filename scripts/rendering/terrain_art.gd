@@ -53,6 +53,23 @@ static func socket(canvas: CanvasItem, at: Vector2) -> void:
 		canvas.draw_line(at + Vector2.from_angle(angle) * 15, at + Vector2.from_angle(angle) * 19, INK, 1.2, true)
 
 static func portal(canvas: CanvasItem, at: Vector2, zoom: float, core: bool) -> void:
+	if core:
+		# Cut stone, a solid ink recess and a mint heart share the rifts' language.
+		# Keep the silhouette inside the existing core culling margin.
+		var z := Vector2.ONE * zoom
+		var w := 2.5 * zoom
+		ellipse(canvas, at + Vector2(0, 17) * z, Vector2(28, 7) * z, INK, 0)
+		shape(canvas, [Vector2(-24, 10), Vector2(-22, -18), Vector2(-12, -32), Vector2(12, -32), Vector2(22, -18), Vector2(24, 10)], at, z, PAPER, w)
+		shape(canvas, [Vector2(-14, 9), Vector2(-13, -15), Vector2(-7, -23), Vector2(7, -23), Vector2(13, -15), Vector2(14, 9)], at, z, INK, w)
+		for side in [-1, 1]:
+			shape(canvas, [Vector2(side * 16, 9), Vector2(side * 18, -10), Vector2(side * 26, -4), Vector2(side * 27, 10)], at, z, MINT, w)
+			canvas.draw_line(at + Vector2(side * 17, -24) * z, at + Vector2(side * 12, -19) * z, INK, 1.5 * zoom, true)
+		# The intact heart and gold crest distinguish home from a hostile rift.
+		shape(canvas, [Vector2(0, -20), Vector2(9, -7), Vector2(0, 7), Vector2(-9, -7)], at, z, MINT, 1.8 * zoom)
+		shape(canvas, [Vector2(0, -17), Vector2(0, 3), Vector2(-6, -7)], at, z, PAPER, 0)
+		shape(canvas, [Vector2(-7, -30), Vector2(0, -40), Vector2(7, -30), Vector2(0, -26)], at, z, GOLD, w)
+		shape(canvas, [Vector2(-27, 10), Vector2(27, 10), Vector2(24, 17), Vector2(-24, 17)], at, z, PAPER, w)
+		return
 	var accent := MINT if core else LILAC
 	var center := at + Vector2(0, -5) * zoom
 	ellipse(canvas, center, Vector2(23, 29) * zoom, accent, 2.5 * zoom)
