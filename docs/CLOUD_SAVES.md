@@ -39,9 +39,9 @@ Never reuse a retired type key for a different kind of content. Renaming a displ
 
 ## Player flow
 
-Open Settings → Cloud saves. Email a sign-in link, copy the link from the email without opening it, and paste it into the game. Only verification links for this project's exact HTTPS endpoint are accepted; the game exchanges the hash directly with Supabase. The input is masked. Tokens and email are kept in memory only, so restarting the game requires sign-in again. No credentials are written into saves or the repository.
+Open Settings → Cloud saves. Request an email and enter its eight-digit code within 15 minutes. Alternatively, copy its sign-in link without opening it and paste it into the same field. Only verification links for this project's exact HTTPS endpoint are accepted; the game exchanges the hash directly with Supabase. Codes are bound to the requested email, preserve leading zeros, and reject non-ASCII digits. The input is masked. Tokens and email are kept in memory only, so restarting the game requires sign-in again. No credentials are written into saves or the repository.
 
-Supabase's default free mail service restricts recipients to organization/team email addresses. This supports initial owner-device testing. Public distribution requires configuring an email sender or another Auth provider; no paid service has been enabled. Default templates use links, so custom templates/Pro are unnecessary for this initial flow.
+Supabase's built-in mail service restricts recipients to organization/team email addresses, even on Pro. This supports initial owner-device testing. Public distribution still requires configuring an email sender or another Auth provider. Both the Confirm sign up and Magic link or OTP templates now use `supabase/templates/sign-in.html` with subject `Your Hollow Vigil sign-in code`; the retained link supports older installed builds. No custom SMTP provider has been configured.
 
 On a new device, select a saved world and confirm restore. The previous local save is archived before the replacement is written. Alternatively, explicitly choose to back up the local world as a separate world (up to ten per account). Resetting local progress creates a separate, initially unlinked world; it does not delete existing cloud worlds.
 
@@ -71,4 +71,30 @@ The first two cover the allowlist, entity references, active bosses/castles, rel
 
 Verified on 2026-09-06: 30 codec checks, 17 service checks, and 30,451 existing regression checks passed. The live SQL contract passed again after the production-duration migration. Live HTTPS Auth, upload/readback, idempotent retries, stale revisions, and previously unknown tower/enemy keys passed; this left a separate test world with seed `424242` in the owner's account. This was API readback with a fresh request, not a second physical device test. The cloud screen was rendered at 390 × 844.
 
-Security Advisor reported zero errors and one warning: leaked password protection disabled. Sign-in here uses email links. No paid plan or email provider was enabled. Schema was applied through the dashboard; the CLI migration history has not been reconciled, so do not blindly run `db push` against this existing project.
+After the Pro upgrade on 2026-09-06, Security Advisor reported no findings. Schema was applied through the dashboard; the CLI migration history has not been reconciled, so do not blindly run `db push` against this existing project.
+
+## Pro configuration
+
+The Supabase connector was reconnected and verified with the Hollow Vigil project list, organization plan (`pro`), and a SQL query confirming all twelve public tables have RLS. Future tools must target `sjjohzftzshgceamffhx`; a connection exposing another project is not a reason to change `client.cfg`.
+
+Verified dashboard settings:
+
+- Leaked-password protection enabled (Pro), plus reauthentication for password changes. The game itself remains passwordless.
+- Session lifetime: 720 hours (30 days); inactivity timeout: 168 hours (7 days). Both limits are Pro features and are enforced on refresh. Single-session enforcement remains off to support cross-device saves. Access tokens retain the recommended 3,600-second lifetime and refresh-token replay detection remains enabled.
+- Email codes/links expire after 900 seconds; code length is eight digits. Branded templates and code entry improve the sign-in flow but OTP itself does not require Pro.
+- The game clears expired credentials and shows sign-in again when refresh is rejected, while retaining its durable outbox. Network failures and rate limits preserve the session for retry. Signing back into the same account recovers the queued mutation.
+- Daily database backups and seven-day log retention are included automatically in Pro. The spend cap remains enabled. No additional compute, branch, PITR, custom domain or log-drain subscription was purchased.
+
+Validation: 27 service checks and 30 codec checks passed. The live rollback-only SQL contract passed through the repaired connector. The isolated rendered panel check (`tests/cloud_panel_runner.gd`) passed at 390 × 844; the full-app cloud UI runner stalled reading an existing imported audio resource and was stopped, so full-app rendering remains unverified for this change. Email templates were previewed and saved in the dashboard; delivery and a successful real email-code exchange have not been exercised in this change. Existing installed builds need a new game release to expose code entry; their link sign-in remains supported.
+
+### Recovery and operations
+
+Use [Scheduled backups](https://supabase.com/dashboard/project/sjjohzftzshgceamffhx/database/backups/scheduled) to inspect the most recent successful backup. At verification, the only available physical backup was **2026-09-06 07:18:19 UTC**, before the cloud-save schema was installed. Wait for a newer scheduled backup before relying on it to recover this schema and its data. Seven-day retention is a rolling window, not seven backups immediately after upgrading.
+
+For an individual device issue, use the game's restore/conflict controls and local `.before-cloud-*.save` recovery files first. A database restore affects every player and loses changes after the selected backup; it is an incident operation, not an individual player's undo button. Before a database restore, preserve current data and pause cloud writes, identify the backup timestamp and affected players, and arrange downtime. After restoration, confirm project health, run the SQL contract, and test authenticated save listing and restore before resuming cloud writes. Reconcile device outboxes explicitly: restoring the database also rolls back revision counters, so do not assume devices will resume transparently. No destructive restore drill was performed here.
+
+Backups contain database records, not Storage file contents. The game currently keeps its assets in the installed build. If cloud-hosted assets are added, provide an independent object backup process.
+
+Use [Logs](https://supabase.com/dashboard/project/sjjohzftzshgceamffhx/logs) for the included seven-day history and [Security Advisor](https://supabase.com/dashboard/project/sjjohzftzshgceamffhx/advisors/security) after schema/auth changes. SQL contract tests intentionally cause rejected operations; distinguish these from player-facing failures. Check [organization usage](https://supabase.com/dashboard/org/gehcbpsnzylmdwlkmwud/usage) before increasing resource limits.
+
+References: [Pro plan](https://supabase.com/pricing), [session controls](https://supabase.com/docs/guides/auth/sessions), [password protection](https://supabase.com/docs/guides/auth/password-security), [email codes](https://supabase.com/docs/guides/auth/auth-email-passwordless), [database backups](https://supabase.com/docs/guides/platform/backups).

@@ -36,6 +36,18 @@ func run() -> void:
 	check(g.save(), "Local save works without account")
 	await s.sync_now()
 	check(s.requests.is_empty(), "Signed-out game makes no upload")
+	s.email = "player@example.invalid"
+	for invalid_code in ["1234567", "123456789", "1234abcd", "+1234567", "１２３４５６７８"]:
+		await s.verify_link(invalid_code)
+	check(s.requests.is_empty(), "Malformed codes never leave the device")
+	s.responses.append({"ok":false,"code":403,"data":null})
+	await s.verify_link(" 01234567 ")
+	check(s.requests[-1].body == {"email":s.email,"token":"01234567","type":"email"}, "OTP verification keeps leading zeros and binds code to requested email")
+	check(not s.requests[-1].authenticated and not s.signed_in(), "Invalid OTP creates no session")
+	s.responses.append({"ok":true,"code":200,"data":{"user":{"id":Codec.uuid()},"access_token":"synthetic","refresh_token":"synthetic","expires_in":3600}})
+	s.responses.append({"ok":true,"code":200,"data":[]})
+	await s.verify_link("01234567")
+	check(s.signed_in() and s.requests[-1].path.ends_with("list_saves"), "Successful OTP loads cloud worlds")
 	s.player_id = Codec.uuid()
 	s.access_token = "synthetic"
 	s.refresh_token = "synthetic"
@@ -76,6 +88,22 @@ func run() -> void:
 	s2.player_id = Codec.uuid()
 	s2._load_pending()
 	check(s2.pending.is_empty(), "Different account cannot send previous account outbox")
+	s.expires_at = 0.0
+	s.responses.append({"ok":false,"code":0,"data":null})
+	await s.sync_now()
+	check(s.signed_in() and s.pending.mutation == queued, "Offline refresh preserves credentials and queued save")
+	check(s.status.begins_with("Offline"), "Offline refresh is not reported as expired sign-in")
+	s.responses.append({"ok":false,"code":429,"data":null})
+	await s.sync_now()
+	check(s.signed_in() and s.pending.mutation == queued, "Rate-limited refresh preserves sign-in and queued save")
+	s.responses.append({"ok":false,"code":400,"data":{"error_code":"refresh_token_not_found"}})
+	await s.sync_now()
+	check(not s.signed_in(), "Expired Pro session exposes sign-in controls again")
+	check(FileAccess.file_exists(s._pending_path()), "Expired session preserves durable outbox")
+	s.player_id = g.data.cloud.player_id
+	s.refresh_token = "synthetic"
+	s._load_pending()
+	check(s.pending.get("mutation") == queued, "Same-account reauthentication recovers exact queued mutation")
 	s.sign_out()
 	check(not s.signed_in() and s.pending.is_empty(), "Sign-out clears tokens and in-memory upload")
 	check(g.save(), "Offline play saves after sign-out")

@@ -27,14 +27,14 @@ func rebuild() -> void:
 		address.custom_minimum_size.y = 48
 		address.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_EMAIL_ADDRESS
 		add_child(address)
-		add_child(_button("Email me a sign-in link", func(): service.send_code(address.text)))
+		add_child(_button("Email me a sign-in code", func(): service.send_code(address.text)))
 		if not service.email.is_empty():
 			var code := LineEdit.new()
 			code.name = "CloudSignInLink"
-			code.placeholder_text = "Paste sign-in link from email"
+			code.placeholder_text = "Email code or sign-in link"
 			code.secret = true
 			code.custom_minimum_size.y = 48
-			code.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_URL
+			code.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_DEFAULT
 			add_child(code)
 			add_child(_button("Sign in", func(): service.verify_link(code.text)))
 		add_child(UI.paragraph("No password is needed. Sign in again after restarting the game. Offline play always works.", 12))

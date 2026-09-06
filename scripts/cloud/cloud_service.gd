@@ -63,12 +63,12 @@ func send_code(address: String) -> void:
 		_say("Enter your email address.")
 		return
 	busy = true
-	_say("Sending sign-in link…")
+	_say("Sending sign-in code…")
 	var result := await _request("/auth/v1/otp", {"email": address, "create_user": true}, false)
 	busy = false
 	if result.ok:
 		email = address
-		_say("Copy the sign-in link from your email and paste it below. You can keep playing while you wait.")
+		_say("Enter the code from your email within 15 minutes, or paste its sign-in link. Keep playing while you wait.")
 	else:
 		_say(_error(result))
 
@@ -76,8 +76,16 @@ func verify_link(link: String) -> void:
 	if busy or email.is_empty():
 		return
 	var credentials := parse_sign_in_link(link)
+	var code := link.strip_edges()
+	if code.length() == 8:
+		var digits_only := true
+		for digit in code:
+			if digit < "0" or digit > "9":
+				digits_only = false
+		if digits_only:
+			credentials = {"email": email, "token": code, "type": "email"}
 	if credentials.is_empty():
-		_say("Copy the sign-in link from the email for this game. Paste the link itself, without opening it first.")
+		_say("Enter the eight-digit email code, or copy the sign-in link without opening it first.")
 		return
 	busy = true
 	_say("Signing in…")
@@ -239,7 +247,14 @@ func restore_completed(ok: bool) -> void:
 func _rpc(function: String, body: Dictionary) -> Dictionary:
 	if Time.get_unix_time_from_system() >= expires_at - 60.0:
 		var refreshed := await _request("/auth/v1/token?grant_type=refresh_token", {"refresh_token": refresh_token}, false)
-		if not refreshed.ok or not _accept_session(refreshed.data):
+		if not refreshed.ok:
+			# Network/rate-limit failures are retryable, not expired sessions.
+			if int(refreshed.code) in [400, 401, 403]:
+				sign_out()
+				return {"ok": false, "code": 401, "data": null}
+			return refreshed
+		if not _accept_session(refreshed.data):
+			sign_out()
 			return {"ok": false, "code": 401, "data": null}
 	return await _request("/rest/v1/rpc/" + function, body, true)
 
