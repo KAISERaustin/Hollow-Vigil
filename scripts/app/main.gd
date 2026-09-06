@@ -35,10 +35,8 @@ func _ready() -> void:
 		get_window().content_scale_factor = clampf(DisplayServer.screen_get_dpi() / 160.0, 1.0, 4.0)
 	if load_saved_progress:
 		game.load_save()
-	Engine.max_fps = 30 if game.data.settings.low_power else 60
+	Engine.max_fps = 60
 	get_tree().auto_accept_quit = false
-	UI.text_scale = float(game.data.settings.get("text_scale", 1.0))
-	UI.reduced_motion = bool(game.data.settings.get("reduced_motion", false))
 	theme = UI.theme()
 	build_interface()
 	if game.offline_award >= 1.0:
@@ -127,8 +125,6 @@ func fit_display() -> void:
 	panels.call_deferred("fit_sheet")
 
 func apply_ui_preferences() -> void:
-	UI.text_scale = float(game.data.settings.get("text_scale", 1.0))
-	UI.reduced_motion = bool(game.data.settings.get("reduced_motion", false))
 	theme = UI.theme()
 	for node in find_children("*", "Control", true, false):
 		if node.has_meta("ui_font_size"):
@@ -245,8 +241,7 @@ func collection_effect(amount: float) -> void:
 	)
 	var tween := create_tween()
 	tween.set_parallel(true)
-	if not UI.reduced_motion:
-		tween.tween_property(mote, "position:y", mote.position.y - 36.0, 0.95).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(mote, "position:y", mote.position.y - 36.0, 0.95).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(mote, "modulate:a", 0.0, 0.5).set_delay(0.45)
 	tween.chain().tween_callback(mote.queue_free)
 
@@ -282,7 +277,7 @@ func reset_progress() -> void:
 	accumulator = 0.0
 	save_timer = 0.0
 	hud_timer = 0.0
-	Engine.max_fps = 30 if game.data.settings.low_power else 60
+	Engine.max_fps = 60
 	apply_ui_preferences()
 	update_hud()
 	toast("Progress reset. Your new vigil begins." if game.save_error.is_empty() else game.save_error, 6.0)

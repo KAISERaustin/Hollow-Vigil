@@ -16,7 +16,13 @@ func run() -> void:
 	app = VigilApp.new()
 	app.load_saved_progress = false
 	app.game.save_path = "user://ui-style.save"
+	# Retired preferences must not affect runtime behavior.
+	app.game.data.settings.low_power = true
+	app.game.data.settings.text_scale = 1.5
+	app.game.data.settings.reduced_motion = true
 	root.add_child(app)
+	if Engine.max_fps != 60 or UI.text_scale != 1.0:
+		failures.append("legacy settings changed FPS or text size")
 	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	app.set_process(false)
 	app.game.data.balance = 1000000.0
@@ -26,7 +32,7 @@ func run() -> void:
 	for viewport in [Vector2i(540, 960), Vector2i(360, 640), Vector2i(390, 844)]:
 		root.size = viewport
 		root.content_scale_size = viewport
-		for factor in [1.0, 1.25, 1.5]:
+		for factor in [1.0]:
 			app.game.data.settings.text_scale = factor
 			app.apply_ui_preferences()
 			await settle()
@@ -41,7 +47,11 @@ func run() -> void:
 					"expand": app.panels.show_expansion("1,0")
 					"rift": app.panels.show_entrance("-1,0")
 					"core": app.panels.show_core()
-					"settings": app.panels.show_settings()
+					"settings":
+						app.panels.show_settings()
+						for button in app.panels.find_children("*", "Button", true, false):
+							if button.text.begins_with("Power saving:") or button.text.begins_with("Text size:") or button.text.begins_with("Reduced motion:"):
+								failures.append("retired setting visible: " + button.text)
 					"developer": app.panels.show_developer_controls()
 					"reset": app.panels.show_reset_confirmation()
 					"tower-info":
@@ -118,5 +128,5 @@ func run() -> void:
 	print("FONT_METRICS: ", UI.font(400).get_string_size("Hollow Vigil", 0, -1, 24), " / ", UI.font(700).get_string_size("Hollow Vigil", 0, -1, 24))
 	for failure in failures:
 		push_error(failure)
-	print("UI_STYLE: ", failures.size(), " failures; 15 screens, 3 viewports, 3 text scales")
+	print("UI_STYLE: ", failures.size(), " failures; 15 screens, 3 viewports, standard text size")
 	quit(0 if failures.is_empty() else 1)

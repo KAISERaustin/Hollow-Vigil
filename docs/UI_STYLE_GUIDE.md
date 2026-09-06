@@ -125,7 +125,7 @@ Focus can coexist with selected or hover states. Do not replace the primary acti
 
 Keep Settings on the left and location identity in the middle. The location should be recognizable without competing with the world. The footer places unclaimed earnings beside Collect all, with spendable gold, gold per second, and lifetime kills in a lower row. Separate those statistics with alignment and spacing before adding boxes. Shorten visible captions to Gold / sec and Kills when width is limited; retain full accessible names.
 
-Aim to leave at least 60% of screen height to the battlefield during ordinary play at default text size. At large text sizes, readability wins; allow a taller HUD. When nothing is collectable, keep the layout stable and show No earnings yet. Never collapse the primary action or move neighboring stats as values change.
+Aim to leave at least 60% of screen height to the battlefield during ordinary play at default text size. When nothing is collectable, keep the layout stable and show No earnings yet. Never collapse the primary action or move neighboring stats as values change.
 
 ### Tower selection and details
 
@@ -157,15 +157,15 @@ Reference layouts are 360 × 640, 390 × 844, and 540 × 960 in effective UI uni
 
 The original build stretched a 540 × 960 canvas. The restyled desktop UI now reflows at the window's size, while mobile uses display-density scaling and safe-area conversion. Do not equate a 48-unit control with a 48-point touch target without checking the final scale on the physical device. World zoom must not shrink HUD text. Tower action controls and gold badges are intentionally anchored in map space and scale with their towers, including their spacing and hit areas. Verify density reporting and touch sizes on supported phones before release.
 
-Respect safe areas on every overlay as well as the header and footer. Test 100%, 125%, and 150% text size, long names, large balances, and translated labels that are roughly 30% longer. Increase vertical space or scroll; do not clip, ellipsize purchase consequences, or reduce essential type below the minimum. Tooltips supplement labels. Icon-only controls require accessible names. Controller or keyboard focus follows visual reading order and remains visible.
+Respect safe areas on every overlay as well as the header and footer. Test standard text size, long names, large balances, and translated labels that are roughly 30% longer. Increase vertical space or scroll; do not clip, ellipsize purchase consequences, or reduce essential type below the minimum. Tooltips supplement labels. Icon-only controls require accessible names. Controller or keyboard focus follows visual reading order and remains visible.
 
-Hover is optional; every action must work by tap and keyboard. Use 120 ms for control feedback and about 180 ms for panel entry or exit. No bounce, camera shake, or continuous pulsing in interface chrome. Reduced motion removes translation and uses immediate state updates or a short fade. These motion settings are design targets for future UI work.
+Hover is optional; every action must work by tap and keyboard. Use 120 ms for control feedback and about 180 ms for panel entry or exit. No bounce, camera shake, or continuous pulsing in interface chrome. Use normal motion with a fixed 60 FPS cap; there are no player text-size, power-saving, or reduced-motion settings.
 
 ## Implementation and review
 
 Centralize UI colors, type roles, spacing, and surface variants in `scripts/ui/interface.gd` or a dedicated theme resource owned by it. Continue reusing `hud.gd`, `panels.gd`, `tower_actions.gd`, and `tower_dialog.gd`. The shared theme provides structural, content, badge, chrome, and borderless surface helpers. Keep gameplay statistics in `scripts/model/balance.gd`.
 
-Preserve the implemented shared fonts and tokens, readable HUD, surface hierarchy, responsive comparisons, focus rules, and persisted text-size and reduced-motion preferences. Use `./launch.ps1 -StyleTests` to review fifteen screens at three viewport sizes and three text scales. Keep this guide and the UI paragraph in `ART_DIRECTION.md` consistent with intentional changes.
+Preserve the implemented shared fonts and tokens, readable HUD, surface hierarchy, responsive comparisons, focus rules, and standard text size and normal motion. Use `./launch.ps1 -StyleTests` to review fifteen screens at three viewport sizes at standard text size. Keep this guide and the UI paragraph in `ART_DIRECTION.md` consistent with intentional changes.
 
 Before accepting a new screen, confirm:
 

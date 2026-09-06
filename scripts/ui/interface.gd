@@ -21,8 +21,7 @@ const PADDING := 16
 const TARGET := 48
 const SANS = preload("res://assets/fonts/NotoSans.ttf")
 const SERIF = preload("res://assets/fonts/NotoSerif.ttf")
-static var text_scale := 1.0
-static var reduced_motion := false
+const text_scale := 1.0
 static var fonts: Dictionary = {}
 
 static func font(weight: int = 400, serif: bool = false) -> Font:

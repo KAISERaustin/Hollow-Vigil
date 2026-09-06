@@ -297,25 +297,6 @@ func show_settings() -> void:
 		app.persist()
 	mode = "settings"
 	clear_sheet("Settings", "Raise sentinels, gather gold, and expand your vigil beyond the mist.")
-	sheet_content.add_child(UI.button("Power saving: " + ("On · 30 FPS" if game.data.settings.low_power else "Off · 60 FPS"), func():
-		game.data.settings.low_power = not game.data.settings.low_power
-		Engine.max_fps = 30 if game.data.settings.low_power else 60
-		app.persist()
-		show_settings()
-	))
-	sheet_content.add_child(UI.button("Text size: %d%%" % roundi(UI.text_scale * 100), func():
-		var sizes := [1.0, 1.25, 1.5]
-		game.data.settings.text_scale = sizes[(sizes.find(UI.text_scale) + 1) % sizes.size()]
-		app.apply_ui_preferences()
-		app.persist()
-		show_settings()
-	))
-	sheet_content.add_child(UI.button("Reduced motion: " + ("On" if UI.reduced_motion else "Off"), func():
-		game.data.settings.reduced_motion = not UI.reduced_motion
-		app.apply_ui_preferences()
-		app.persist()
-		show_settings()
-	))
 	var developer := UI.button("Developer Controls", show_developer_controls)
 	developer.name = "OpenDeveloperControls"
 	sheet_content.add_child(developer)
