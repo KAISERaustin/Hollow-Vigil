@@ -49,6 +49,27 @@ static func surface(bg: Color = PANEL, outline: int = OUTLINE, padding: int = PA
 static func plain() -> StyleBoxFlat:
 	return surface(Color.TRANSPARENT, 0, 0)
 
+static func rounded_viewport_frame(background: Color = PANEL, outline: int = OUTLINE) -> Control:
+	var frame := Control.new()
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var border := surface(Color.TRANSPARENT, outline, 0)
+	frame.draw.connect(func():
+		# Cover the rectangular viewport's outer corners before drawing its rim.
+		# This overlay stays in screen space and leaves map input untouched.
+		for corner in [Vector2.ZERO, Vector2(1, 0), Vector2.ONE, Vector2(0, 1)]:
+			var origin: Vector2 = corner * frame.size
+			var direction: Vector2 = Vector2.ONE - corner * 2.0
+			var points := PackedVector2Array([origin])
+			for step in range(17):
+				var angle := -PI * 0.5 - PI * 0.5 * step / 16.0
+				points.append(origin + direction * (Vector2.ONE + Vector2(cos(angle), sin(angle))) * RADIUS)
+			frame.draw_colored_polygon(points, background)
+		frame.draw_style_box(border, Rect2(Vector2.ZERO, frame.size))
+	)
+	frame.resized.connect(frame.queue_redraw)
+	return frame
+
 static func chrome() -> StyleBoxFlat:
 	var style := surface(PANEL, OUTLINE, 0)
 	style.set_corner_radius_all(0)
