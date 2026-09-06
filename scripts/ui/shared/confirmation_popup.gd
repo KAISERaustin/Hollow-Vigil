@@ -6,14 +6,14 @@ var body: VBoxContainer
 var message: Label
 var confirm: Button
 
-func configure(title: String, description: String, action: String, callback: Callable) -> void:
+func configure(heading_text: String, description: String, action: String, callback: Callable) -> void:
 	exclusive = true
 	transient = true
 	add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 4, 16))
 	body = VBoxContainer.new()
 	body.add_theme_constant_override("separation", 14)
 	add_child(body)
-	var heading := UI.heading(title, 24)
+	var heading := UI.heading(heading_text, 24)
 	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body.add_child(heading)
 	body.add_child(UI.paragraph(description, 14))

@@ -164,7 +164,7 @@ func decode(payload: Variant, local_settings: Dictionary = {}, local_camera: Arr
 		if row.status == "active":
 			for field in ["hp", "tile", "previous", "steps", "shield", "wards", "regen", "toll", "toll_delayed", "segment"]:
 				b[field] = row[field]
-			if not d.regions.has(b.tile) or not VigilSaveStore.new().valid_coordinate(b.previous):
+			if not d.regions.has(b.tile) or not VigilSaveStore.valid_coordinate(b.previous):
 				return _fail("Cloud encounter route is invalid.")
 			var path: Array[Vector2] = []
 			if row.emergence:

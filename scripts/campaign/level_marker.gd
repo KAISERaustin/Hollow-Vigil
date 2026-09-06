@@ -17,8 +17,8 @@ func _ready() -> void:
 func _draw() -> void:
 	var active := not disabled and has_focus()
 	var paper := UI.GOLD if active else Color("e8ddbd")
+	var offset := Vector2(0, 2) if button_pressed else Vector2.ZERO
 	if completed:
-		var offset := Vector2(0, 2) if button_pressed else Vector2.ZERO
 		if active:
 			draw_style_box(UI.surface(Color(0,0,0,0), 2, 4), Rect2(Vector2.ZERO, size))
 		ClearedArt.draw(self, offset, gate != null)
@@ -35,7 +35,6 @@ func _draw() -> void:
 		draw_style_box(UI.surface(paper, 2, 2), plaque)
 		draw_string(UI.font(600), plaque.position + Vector2(6, 16), str(number), HORIZONTAL_ALIGNMENT_CENTER, 24, 14, UI.TEXT)
 		return
-	var offset := Vector2(0, 2) if button_pressed else Vector2.ZERO
 	var outline := PackedVector2Array([Vector2(8,8), Vector2(16,2), Vector2(39,2), Vector2(47,10), Vector2(45,47), Vector2(9,47), Vector2(6,38), Vector2(8,8)])
 	for i in range(outline.size()): outline[i] += offset
 	draw_colored_polygon(outline, paper)

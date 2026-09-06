@@ -497,7 +497,10 @@ func restore_cloud_progress(snapshot: Dictionary, _world_id: String, _revision: 
 				cloud.restore_completed(false)
 				return
 		snapshot.sequence = sequence + 1
-		cloud.restore_completed(target.storage.write(target.save_path, snapshot))
+		var restored := target.storage.write(target.save_path, snapshot)
+		if restored and is_instance_valid(slot_menu) and slot_menu.visible:
+			slot_menu.show_slots()
+		cloud.restore_completed(restored)
 		return
 	# Archive first, then use the same validated, atomic local save machinery.
 	var archive := game.save_path + ".before-cloud-" + preload("res://scripts/cloud/cloud_codec.gd").uuid() + ".save"
