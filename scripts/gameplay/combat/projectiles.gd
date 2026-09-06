@@ -16,7 +16,8 @@ static func launch_shot(combat: VigilCombat, tower: Dictionary, origin: Vector2,
 	shot.relic_root = primary and stats.get("relic_root", false)
 	shot.relic_pierce = primary and stats.get("relic_pierce", false)
 	if shot.relic_pierce:
-		shot.damage *= 1.5
+		shot.damage *= Balance.tuned_value("gear", "prior", "damage_multiplier", combat.tuning)
+		shot.relic_pierce = Balance.tuned_value("gear", "prior", "defense_bypass", combat.tuning) > 0.0
 		fx.color = combat.Relics.DEFINITIONS.prior.color
 	if primary and stats.get("relic_echo", false):
 		# A single extra primary projectile, with no recursive branch/relic procs.
@@ -28,7 +29,7 @@ static func launch_shot(combat: VigilCombat, tower: Dictionary, origin: Vector2,
 		echo_fx.life += 0.18
 		echo_fx.max_life = echo_fx.life
 		combat.add_effect(echo_fx)
-		combat.pending_shots.append({"fx": echo_fx, "remaining": echo_fx.flight, "target_id": target.id, "tower_id": tower.id, "damage": stats.damage * 0.5, "radius": stats.splash})
+		combat.pending_shots.append({"fx": echo_fx, "remaining": echo_fx.flight, "target_id": target.id, "tower_id": tower.id, "damage": stats.damage * Balance.tuned_value("gear", "bell", "echo_multiplier", combat.tuning), "radius": stats.splash})
 	if fx.flight <= 0.0:
 		combat.resolve_shot(shot, target)
 	else:

@@ -19,6 +19,7 @@ var state: VigilState
 var camera := Vector2.ZERO
 var zoom := 1.0
 var unrestricted_camera := false
+var show_health_numbers := false
 var selected_tower := "":
 	set(value):
 		var changed := selected_tower != value
@@ -499,3 +500,10 @@ func draw_enemy(e: Dictionary) -> void:
 		var from := p + Vector2(-9, -23 * z)
 		draw_line(from, from + Vector2(18, 0), Color.BLACK, 4)
 		draw_line(from, from + Vector2(18 * e.hp / e.max_hp, 0), VigilTerrainArt.MINT, 2)
+
+	if show_health_numbers and state.is_creative():
+		var label := "%s / %s HP" % [String.num(e.hp, 1).trim_suffix(".0"), String.num(e.max_hp, 1).trim_suffix(".0")]
+		var font := ThemeDB.fallback_font
+		var at := p + Vector2(-font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x * 0.5, -38 * z)
+		draw_string_outline(font, at, label, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, 4, Color.BLACK)
+		draw_string(font, at, label, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.WHITE)

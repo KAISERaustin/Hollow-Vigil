@@ -54,6 +54,7 @@ func _ready() -> void:
 	hide()
 
 func clear_sheet(title: String, subtitle: String = "") -> void:
+	commit_developer_fields()
 	app.tower_move.cancel()
 	# Opening another panel leaves tower management and restores the gold badges.
 	field.selected_tower = ""
@@ -145,7 +146,13 @@ func sheet_height() -> float:
 			height += sheet_content.get_parent().get_combined_minimum_size().y if section == content_scroll else section.get_combined_minimum_size().y
 	return height + maxi(0, sections - 1) * layout.get_theme_constant("separation")
 
+func commit_developer_fields() -> void:
+	for child in sheet_content.get_children():
+		if child is DeveloperControls:
+			child.commit_fields()
+
 func close_sheet() -> void:
+	commit_developer_fields()
 	if is_instance_valid(app.tower_move):
 		app.tower_move.cancel()
 	if mode == "developer":

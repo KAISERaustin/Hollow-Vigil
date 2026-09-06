@@ -100,7 +100,8 @@ func apply_balance(candidate: Dictionary) -> bool:
 		return true
 	var previous := tuning
 	data.settings.developer_balance = candidate.duplicate(true)
-	# Preserve damage already taken and progress toward the next shot.
+	combat.Relics.apply_balance(combat, previous, tuning)
+	# Preserve remaining health percentage and progress toward the next shot.
 	for enemy in combat.enemies:
 		if enemy.dead:
 			continue

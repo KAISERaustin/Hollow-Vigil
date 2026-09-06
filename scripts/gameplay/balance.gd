@@ -130,7 +130,27 @@ static func rift_description(style: String, tuning: Dictionary = {}) -> String:
 		"bloodmoon_sanctuary": return "Regeneration · Restores " + amount + "% of maximum health each second."
 	return "No effect · Enemies keep their normal stats."
 
+const GEAR := {
+	"warden": {"name": "Warden’s Rootheart", "root_period": 6.0, "root_duration": 0.75, "boss_root_duration": 0.35, "root_immunity": 3.0},
+	"cindermaw": {"name": "Ember Fang", "speed_per_stack": 8.0, "stack_limit": 5.0, "stack_timeout": 3.0},
+	"bell": {"name": "Tollstone", "attack_count": 4.0, "echo_multiplier": 0.5},
+	"prior": {"name": "Eclipse Shard", "attack_count": 5.0, "damage_multiplier": 1.5, "defense_bypass": 1.0}
+}
+
 const TUNING_FIELDS := {
+	"gear": {
+		"root_period": {"label": "Root attack interval", "suffix": " s", "min": 0.1, "max": 120.0, "step": 0.1},
+		"root_duration": {"label": "Enemy root duration", "suffix": " s", "min": 0.0, "max": 60.0, "step": 0.01},
+		"boss_root_duration": {"label": "Boss root duration", "suffix": " s", "min": 0.0, "max": 60.0, "step": 0.01},
+		"root_immunity": {"label": "Enemy root immunity", "suffix": " s", "min": 0.0, "max": 60.0, "step": 0.1},
+		"speed_per_stack": {"label": "Attack speed per stack", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
+		"stack_limit": {"label": "Maximum speed stacks", "suffix": "", "min": 0.0, "max": 100.0, "step": 1.0, "integer": true},
+		"stack_timeout": {"label": "Speed stack timeout", "suffix": " s", "min": 0.1, "max": 120.0, "step": 0.1},
+		"attack_count": {"label": "Attacks per activation", "suffix": "", "min": 1.0, "max": 100.0, "step": 1.0, "integer": true},
+		"echo_multiplier": {"label": "Echo damage", "suffix": "× hit damage", "min": 0.0, "max": 20.0, "step": 0.1},
+		"damage_multiplier": {"label": "Empowered damage", "suffix": "× hit damage", "min": 0.0, "max": 20.0, "step": 0.1},
+		"defense_bypass": {"label": "Bypass boss defenses (0 off, 1 on)", "suffix": "", "min": 0.0, "max": 1.0, "step": 1.0, "integer": true}
+	},
 	"bosses": {
 		"push_resistance": {"label": "Knockback resistance", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
 		"escort_kind": {"label": "Escort type: 0 Hollow, 1 Wraith, 2 Revenant, 3 Lantern, 4 Shade, 5 Sentinel", "suffix": "", "min": 0.0, "max": 5.0, "step": 1.0, "integer": true},
@@ -215,6 +235,8 @@ static func field_limits(category: String, kind: String, stat: String) -> Dictio
 	return limits
 
 static func definitions(category: String) -> Dictionary:
+	if category == "gear":
+		return GEAR
 	if category == "bosses":
 		return BOSSES
 	if category == "rifts":

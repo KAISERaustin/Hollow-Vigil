@@ -10,6 +10,8 @@ var field: Battlefield
 var category := "enemies"
 var selected_kind := "basic"
 var tabs: Dictionary = {}
+var category_list: VBoxContainer
+var editor: VBoxContainer
 var selector: OptionButton
 var tier_selector: OptionButton
 var selected_level := 1
@@ -38,19 +40,30 @@ func _ready() -> void:
 		free_camera.toggled.connect(field.set_unrestricted_camera)
 		free_camera.tooltip_text = "Bypass camera limits for this session. Turn off to restore the two-tile limits."
 		add_child(UI.action_row(free_camera.text, free_camera, "Toggle"))
-	var tab_row := HFlowContainer.new()
-	tab_row.add_theme_constant_override("separation", 8)
-	add_child(tab_row)
-	for section in Balance.TUNING_FIELDS:
+		var health_numbers := UI.button("Show enemy and boss health", func(): pass)
+		health_numbers.name = "ShowHealthNumbers"
+		health_numbers.toggle_mode = true
+		health_numbers.set_pressed_no_signal(field.show_health_numbers)
+		health_numbers.toggled.connect(func(enabled: bool):
+			field.show_health_numbers = enabled
+			field.queue_redraw()
+		)
+		add_child(UI.action_row(health_numbers.text, health_numbers, "Toggle"))
+	category_list = VBoxContainer.new()
+	category_list.name = "BalanceCategories"
+	add_child(category_list)
+	for section in ["bosses", "rifts", "enemies", "towers", "gear"]:
 		var tab := UI.button(section.capitalize(), show_category.bind(section))
-		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		tab.autowrap_mode = TextServer.AUTOWRAP_OFF
-		tab.add_theme_font_size_override("font_size", UI.type_size(14))
-		tab.toggle_mode = true
-		tab.add_theme_stylebox_override("pressed", UI.box(UI.GOLD))
-		tab.add_theme_stylebox_override("hover_pressed", UI.box(UI.GOLD))
+		tab.name = section.capitalize() + "Category"
 		tabs[section] = tab
-		tab_row.add_child(tab)
+		category_list.add_child(UI.action_row(tab.text, tab, "Open"))
+	editor = VBoxContainer.new()
+	editor.name = "BalanceEditor"
+	editor.add_theme_constant_override("separation", 12)
+	add_child(editor)
+	var back := UI.button("Back to categories", show_categories)
+	back.name = "BackToCategories"
+	editor.add_child(UI.action_row(back.text, back, "Back"))
 	selector = OptionButton.new()
 	selector.name = "BalanceUnit"
 	selector.custom_minimum_size.y = UI.TARGET
@@ -65,47 +78,63 @@ func _ready() -> void:
 	selector.add_theme_color_override("font_hover_color", UI.TEXT)
 	selector.add_theme_color_override("font_pressed_color", UI.TEXT)
 	selector.item_selected.connect(func(index: int):
+		commit_fields()
 		selected_kind = selector.get_item_metadata(index)
 		populate_tiers()
 		show_fields()
 	)
-	add_child(selector)
+	editor.add_child(selector)
 	tier_selector = selector.duplicate(0)
 	tier_selector.name = "BalanceTier"
 	tier_selector.item_selected.connect(func(index: int):
+		commit_fields()
 		var choice: Dictionary = tier_selector.get_item_metadata(index)
 		selected_level = choice.level
 		selected_branch = choice.branch
 		show_fields()
 	)
-	add_child(tier_selector)
+	editor.add_child(tier_selector)
 	hint = UI.paragraph("", 12)
-	add_child(hint)
+	editor.add_child(hint)
 	fields = VBoxContainer.new()
 	fields.add_theme_constant_override("separation", 16)
-	add_child(fields)
+	editor.add_child(fields)
 	detail = UI.paragraph("", 12)
-	add_child(detail)
+	editor.add_child(detail)
 	var reset_selected := UI.button("Reset selected type / tier", func():
+		commit_fields()
 		game.reset_developer_balance(category, editing_kind())
 		show_fields()
 		changed.emit()
 	)
 	reset_selected.name = "ResetSelectedBalance"
-	add_child(UI.action_row(reset_selected.text, reset_selected, "Reset"))
+	editor.add_child(UI.action_row(reset_selected.text, reset_selected, "Reset"))
 	var reset_all := UI.button("Reset all balance values", func():
+		commit_fields()
 		game.reset_developer_balance()
 		show_fields()
 		changed.emit()
 	)
 	reset_all.name = "ResetAllBalance"
-	add_child(UI.action_row(reset_all.text, reset_all, "Reset"))
-	show_category(category)
+	editor.add_child(UI.action_row(reset_all.text, reset_all, "Reset"))
+	show_categories()
+
+func commit_fields() -> void:
+	for number in inputs.values():
+		if is_instance_valid(number) and number.is_inside_tree():
+			number.apply()
+
+func show_categories() -> void:
+	commit_fields()
+	editor.hide()
+	category_list.show()
+	refresh_focus()
 
 func show_category(section: String) -> void:
+	commit_fields()
 	category = section
-	for key in tabs:
-		tabs[key].set_pressed_no_signal(key == category)
+	category_list.hide()
+	editor.show()
 	selector.clear()
 	var definitions: Dictionary = Balance.TOWERS if category == "towers" else Balance.definitions(category)
 	for kind in definitions:
@@ -116,6 +145,9 @@ func show_category(section: String) -> void:
 	selected_kind = selector.get_item_metadata(0)
 	hint.text = "Live changes · Auto-saved" if category == "enemies" else "Level 1 · Live changes · Auto-saved"
 	detail.text = "Health changes keep each enemy's remaining health percentage." if category == "enemies" else "Upgrades scale from these values. Lower attack intervals fire faster. Blast radius 0 hits one target. Build cost also scales upgrades and refunds."
+	if category == "gear":
+		selector.accessibility_name = "Choose gear type"
+		hint.text = "Live changes · Auto-saved"
 	if category == "bosses":
 		selector.accessibility_name = "Choose boss type"
 		hint.text = "Live changes · Auto-saved"
@@ -150,6 +182,8 @@ func show_fields() -> void:
 		detail.text = "Edit this tier independently. Costs are for building tier 1 or purchasing the selected upgrade. Specialization effects appear below combat stats."
 	if category == "bosses":
 		detail.text = "Counter: " + Balance.BOSSES[selected_kind].weakness + ". Values override these defaults. Health, shields, wards and timers preserve their remaining proportion. Rewards apply on defeat."
+	if category == "gear":
+		detail.text = "Changes apply to equipped gear on its next attack. Active root cooldowns keep their remaining proportion. Shots already in flight keep their launch damage."
 	if category == "rifts":
 		detail.text = Balance.rift_description(selected_kind, game.tuning) + " Set to 0 to disable. Health adjustments preserve remaining health percentage."
 	inputs.clear()
@@ -185,6 +219,8 @@ func add_number(stat: String) -> void:
 			if section == "rifts":
 				detail.text = Balance.rift_description(kind, game.tuning) + " Set to 0 to disable. Health adjustments preserve remaining health percentage."
 			changed.emit()
+		else:
+			number.set_value_no_signal(current_value(stat))
 	)
 
 func current_value(stat: String) -> float:

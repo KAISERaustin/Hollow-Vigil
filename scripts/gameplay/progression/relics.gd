@@ -42,6 +42,7 @@ static func prepare(combat: VigilCombat, tower: Dictionary, target: Dictionary, 
 	var relic_kind := kind(combat.data, tower)
 	if relic_kind == "":
 		return stats
+	var gear := Balance.definition("gear", relic_kind, combat.tuning)
 	var result := stats.duplicate()
 	var progress: Dictionary = combat.relic_progress.get(tower.id, {"attacks": 0, "target": -1, "stacks": 0, "last": -100.0, "root_ready": 0.0})
 	progress.attacks += 1
@@ -49,14 +50,14 @@ static func prepare(combat: VigilCombat, tower: Dictionary, target: Dictionary, 
 		"warden":
 			if combat.simulation_time >= progress.root_ready:
 				result.relic_root = true
-				progress.root_ready = combat.simulation_time + 6.0
+				progress.root_ready = combat.simulation_time + gear.root_period
 		"cindermaw":
-			progress.stacks = mini(5, int(progress.stacks) + 1) if progress.target == target.id and combat.simulation_time - progress.last < 3.0 else 0
-			result.period /= 1.0 + progress.stacks * 0.08
+			progress.stacks = mini(int(gear.stack_limit), int(progress.stacks) + 1) if progress.target == target.id and combat.simulation_time - progress.last < gear.stack_timeout else 0
+			result.period /= 1.0 + progress.stacks * gear.speed_per_stack / 100.0
 		"bell":
-			result.relic_echo = int(progress.attacks) % 4 == 0
+			result.relic_echo = int(progress.attacks) % int(gear.attack_count) == 0
 		"prior":
-			result.relic_pierce = int(progress.attacks) % 5 == 0
+			result.relic_pierce = int(progress.attacks) % int(gear.attack_count) == 0
 	progress.target = target.id
 	progress.last = combat.simulation_time
 	combat.relic_progress[tower.id] = progress
@@ -65,5 +66,19 @@ static func prepare(combat: VigilCombat, tower: Dictionary, target: Dictionary, 
 static func root_target(combat: VigilCombat, shot: Dictionary, enemy: Dictionary) -> void:
 	if not shot.get("relic_root", false) or enemy.id != shot.get("target_id", -1) or enemy.get("root_immune_until", 0.0) > combat.simulation_time:
 		return
-	enemy.root_until = combat.simulation_time + (0.35 if enemy.get("boss", false) else 0.75)
-	enemy.root_immune_until = combat.simulation_time + 3.0
+	var gear := Balance.definition("gear", "warden", combat.tuning)
+	enemy.root_until = combat.simulation_time + (gear.boss_root_duration if enemy.get("boss", false) else gear.root_duration)
+	enemy.root_immune_until = combat.simulation_time + gear.root_immunity
+
+static func apply_balance(combat: VigilCombat, previous: Dictionary, tuning: Dictionary) -> void:
+	for id in combat.relic_progress:
+		if not combat.data.towers.has(id):
+			continue
+		var relic_kind := kind(combat.data, combat.data.towers[id])
+		var progress: Dictionary = combat.relic_progress[id]
+		if relic_kind == "warden":
+			var before := Balance.tuned_value("gear", "warden", "root_period", previous)
+			var after := Balance.tuned_value("gear", "warden", "root_period", tuning)
+			progress.root_ready = combat.simulation_time + after * clampf((progress.root_ready - combat.simulation_time) / before, 0.0, 1.0)
+		elif relic_kind == "cindermaw":
+			progress.stacks = mini(int(progress.stacks), int(Balance.tuned_value("gear", "cindermaw", "stack_limit", tuning)))
