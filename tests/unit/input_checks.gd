@@ -118,8 +118,8 @@ static func test_portal_controls(suite: SceneTree) -> void:
 			suite.check(expand.is_equal_approx(field.screen(VigilWorld.center(frontier))), "Expansion is centered on its future tile at zoom %.2f" % scale)
 			var outward := gate.direction_to(expand)
 			var rift_edge := gate + outward * (field.entrance_hit_radius() - 2.0)
-			var expand_edge := expand - outward * (Battlefield.EXPANSION_HIT_RADIUS - 2.0)
-			suite.check(gate.distance_to(expand) > field.entrance_hit_radius() + Battlefield.EXPANSION_HIT_RADIUS, "Rift %s and expansion keep separate touch areas at zoom %.2f" % [id, scale])
+			var expand_edge: Vector2 = expand - outward * (Battlefield.EXPANSION_HIT_RADIUS * scale - 2.0)
+			suite.check(gate.distance_to(expand) > field.entrance_hit_radius() + Battlefield.EXPANSION_HIT_RADIUS * scale, "Rift %s and expansion keep separate touch areas at zoom %.2f" % [id, scale])
 			for point in [gate, rift_edge]:
 				chosen.kind = ""
 				field.tap(point)

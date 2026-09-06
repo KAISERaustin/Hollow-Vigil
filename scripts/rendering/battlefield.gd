@@ -264,7 +264,7 @@ func tap(pos: Vector2) -> void:
 			distance = candidate
 	for id in VigilWorld.frontier(state.data.regions, int(state.data.seed)):
 		var c := screen(expansion_marker(id))
-		var candidate := pos.distance_to(c) / EXPANSION_HIT_RADIUS
+		var candidate := pos.distance_to(c) / (EXPANSION_HIT_RADIUS * zoom)
 		if candidate < 1.0 and candidate < distance:
 			nearest = id
 			is_entrance = false
@@ -344,10 +344,12 @@ func _draw() -> void:
 		var c := screen(expansion_marker(id))
 		if not visible.has_point(c):
 			continue
-		VigilTerrainArt.disk(self, c, 24.0, GOLD if show_expansion else VigilTerrainArt.PAPER, 4.0)
-		draw_line(c - Vector2(7, 0), c + Vector2(7, 0), Color.BLACK, 3.0, true)
-		draw_line(c - Vector2(0, 7), c + Vector2(0, 7), Color.BLACK, 3.0, true)
-		centered(Balance.money(Balance.expansion_cost(state.data.regions.size())) + " g", c + Vector2(0, 43), 13, GOLD)
+		draw_set_transform(c, 0, Vector2.ONE * zoom)
+		VigilTerrainArt.disk(self, Vector2.ZERO, 24.0, GOLD if show_expansion else VigilTerrainArt.PAPER, 4.0)
+		draw_line(-Vector2(7, 0), Vector2(7, 0), Color.BLACK, 3.0, true)
+		draw_line(-Vector2(0, 7), Vector2(0, 7), Color.BLACK, 3.0, true)
+		centered(Balance.money(Balance.expansion_cost(state.data.regions.size())) + " g", Vector2(0, 43), 13, GOLD)
+		draw_set_transform(Vector2.ZERO)
 	draw_core()
 	var range_pos := Vector2.ZERO
 	var range_radius := 0.0

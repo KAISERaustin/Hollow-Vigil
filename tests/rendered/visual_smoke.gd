@@ -109,7 +109,7 @@ static func run(app: Control) -> void:
 		var gate_screen: Vector2 = app.field.screen(portal)
 		var expand_screen: Vector2 = app.field.screen(frontier)
 		var outward := gate_screen.direction_to(expand_screen)
-		var gap: Vector2 = (gate_screen + outward * app.field.entrance_hit_radius() + expand_screen - outward * Battlefield.EXPANSION_HIT_RADIUS) * 0.5
+		var gap: Vector2 = (gate_screen + outward * app.field.entrance_hit_radius() + expand_screen - outward * Battlefield.EXPANSION_HIT_RADIUS * app.field.zoom) * 0.5
 		await tap(app, app.field.global_position + gap)
 		if app.panels.visible:
 			failures.append("Space between rift and expansion opened a panel at zoom %.2f" % scale)
