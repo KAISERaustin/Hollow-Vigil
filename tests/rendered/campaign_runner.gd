@@ -86,7 +86,9 @@ func run() -> void:
 		check(not campaign.run.tower_at(socket.index).is_empty(), "Build action creates a real combat tower")
 		campaign.board.pick(campaign.board.screen(socket.position))
 		await frame()
-		campaign.find_child("CampaignUpgrade_",true,false).pressed.emit()
+		campaign.tower_actions.request_upgrade()
+		check(campaign.run.game.data.towers[campaign.run.tower_at(socket.index)].level == 1, "Shared upgrade requires confirmation")
+		campaign.tower_actions.request_upgrade()
 		await frame()
 		check(campaign.run.game.data.towers[campaign.run.tower_at(socket.index)].level == 2, "Upgrade uses actual campaign gold")
 		await Harness.capture(app,"campaign-tower-"+str(viewport.x))
@@ -142,9 +144,10 @@ func run() -> void:
 	tuned_build.pressed.emit()
 	campaign.show_socket(6)
 	await frame()
-	var tuned_upgrade: Button = campaign.find_child("CampaignUpgrade_", true, false)
-	check(tuned_upgrade.text.contains("35 gold"), "Campaign upgrade quote reflects mission tuning")
+	var tuned_upgrade: Button = campaign.tower_actions.buttons.upgrade
+	check(tuned_upgrade.tooltip_text.contains("35 gold"), "Campaign upgrade quote reflects mission tuning")
 	var gold: float = campaign.run.game.data.balance
+	tuned_upgrade.pressed.emit()
 	tuned_upgrade.pressed.emit()
 	await frame()
 	check(campaign.run.game.data.balance == gold - 35.0, "Campaign upgrade charge matches the displayed tuned price")

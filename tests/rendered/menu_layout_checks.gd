@@ -52,10 +52,24 @@ func run() -> void:
 		await settle()
 		var choices := app.panels.sheet_content.get_child(0)
 		check(choices.get_child_count() == Balance.TOWERS.size(), "missing build choices")
+		var build_close := app.panels.find_child("CloseSheet", true, false)
+		var build_revision := app.panels.sheet_revision
 		for choice in choices.get_children():
 			app.panels.content_scroll.ensure_control_visible(choice)
 			await settle()
 			check(app.panels.content_scroll.get_global_rect().grow(1).encloses(choice.get_global_rect()), "build choice unreachable at " + str(viewport))
+			var select := choice.get_child(-1) as Button
+			select.grab_focus()
+			for repeat in range(2):
+				select.button_pressed = not select.button_pressed
+				select.pressed.emit()
+				await settle()
+				check(app.panels.sheet_revision == build_revision and app.panels.find_child("CloseSheet", true, false) == build_close, "tower selection rebuilt the close button")
+				check(root.gui_get_focus_owner() == select, "tower selection moved focus to close")
+				check(select.button_pressed and select.text == "Selected", "reselecting tower lost selection")
+				var kind: String = select.get_meta("tower_kind")
+				var definition := Balance.definition("towers", kind, app.game.tuning)
+				check(app.field.preview_kind == kind and app.panels.action_cost == definition.cost and app.panels.action_button.text.begins_with("Build " + definition.name), "tower selection did not update build action")
 		app.panels.show_expansion("1,0")
 		await settle()
 		check(app.panels.size.y < 170, "expansion contains unused space")

@@ -281,8 +281,9 @@ func add_board(interactive: bool) -> void:
 	board.custom_minimum_size.y = 140
 	board.socket_picked.connect(show_socket)
 	board.empty_picked.connect(func():
+		selected = -1
+		board.tower_selection_changed.emit()
 		if socket_dialog:
-			selected = -1
 			dialog.hide()
 	)
 	layout.add_child(board)
@@ -318,6 +319,8 @@ func refresh() -> void:
 	if run.phase in ["victory", "defeat"]:
 		wave_button.text = "Sanctuary restored" if run.phase == "victory" else "The flame went out"
 	board.selected_tower = run.tower_at(selected) if selected >= 0 else ""
+	if is_instance_valid(tower_dialog):
+		tower_dialog.refresh()
 	board.simulation_rate = speed
 	board.update_view(0, accumulator)
 
@@ -371,52 +374,33 @@ func show_socket(socket: int) -> void:
 	board.selected_pad = Catalog.socket(socket).pad
 	board.selected_tower = run.tower_at(socket)
 	var id: String = run.tower_at(socket)
-	open_dialog("Build a tower" if id.is_empty() else "Manage tower", true)
-	if id.is_empty():
-		for kind in Balance.TOWERS:
-			var stats := Balance.definition("towers", kind, run.game.tuning)
-			var button := TowerChoice.create(kind, stats.name, stats.cost, func():
-				if run.build(socket, kind):
-					dialog.hide()
-			)
-			button.name = "CampaignBuild_" + kind
-			button.disabled = run.game.data.balance < stats.cost
-			dialog_body.add_child(button)
+	board.tower_selection_changed.emit()
+	if board.moving_tower != "":
+		var destination := Catalog.socket(socket)
+		tower_move.place(destination.region, destination.pad)
 		return
-	var tower: Dictionary = run.game.data.towers[id]
-	var stats := Balance.tower_stats(tower, run.game.tuning)
-	var title: String = stats.name
-	dialog_body.add_child(UI.heading("%s · Level %d" % [title,tower.level], 20))
-	dialog_body.add_child(UI.paragraph("%s damage · %ss between attacks · %s reach" % [String.num(stats.damage,1),String.num(stats.period,2),String.num(stats.range,0)], 14))
-	if tower.level < Balance.MAX_TOWER_LEVEL:
-		var branches: Array = Balance.BRANCHES[tower.kind].keys() if tower.level == 3 else [""]
-		for branch in branches:
-			var cost := Balance.upgrade_cost(tower, run.game.tuning, branch)
-			var caption: String = Balance.BRANCHES[tower.kind][branch].name if branch != "" else "Upgrade to level %d" % (tower.level + 1)
-			var button := UI.button("%s · %d gold" % [caption,cost], func():
-				if run.upgrade(socket,branch):
-					show_socket(socket)
-			,48)
-			button.name = "CampaignUpgrade_" + branch
-			button.disabled = run.game.data.balance < cost
-			dialog_body.add_child(button)
-	dialog_body.add_child(UI.heading("Target priority",16))
-	var targets := OptionButton.new()
-	targets.name = "CampaignTarget"
-	targets.custom_minimum_size.y = 48
-	for mode in Balance.TARGET_MODES:
-		targets.add_item(Balance.TARGET_MODES[mode])
-	targets.select(Balance.TARGET_MODES.keys().find(tower.target_mode))
-	targets.item_selected.connect(func(index): run.target(socket,Balance.TARGET_MODES.keys()[index]))
-	dialog_body.add_child(targets)
-	var sell := UI.button("Sell · refund %d gold" % Balance.sell_refund(tower, run.game.tuning), func():
-		if run.sell(socket):
-			dialog.hide()
-	,48)
-	sell.name = "CampaignSell"
-	dialog_body.add_child(sell)
+	if not id.is_empty():
+		dialog.hide()
+		tower_actions.blocked = false
+		tower_actions.refresh()
+		return
+	open_dialog("Build a tower", true)
+	for kind in Balance.TOWERS:
+		var stats := Balance.definition("towers", kind, run.game.tuning)
+		var button := TowerChoice.create(kind, stats.name, stats.cost, func():
+			if run.build(socket, kind):
+				dialog.hide()
+		)
+		button.name = "CampaignBuild_" + kind
+		button.disabled = run.game.data.balance < stats.cost
+		dialog_body.add_child(button)
 
 func show_result() -> void:
+	if is_instance_valid(tower_dialog):
+		tower_dialog.dismiss(false)
+		tower_move.cancel()
+		board.selected_tower = ""
+		selected = -1
 	save_progress()
 	var won: bool = run.phase == "victory"
 	open_dialog("Sanctuary restored" if won else "The flame went out")
@@ -513,7 +497,11 @@ func _notification(what: int) -> void:
 		save_progress()
 
 func go_back() -> void:
-	if dialog.visible:
+	if is_instance_valid(tower_dialog) and tower_dialog.visible:
+		tower_dialog.dismiss()
+	elif is_instance_valid(tower_move) and tower_move.visible:
+		tower_move.cancel()
+	elif dialog.visible:
 		dialog.hide()
 	elif page != "map":
 		show_map()
