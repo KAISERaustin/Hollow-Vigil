@@ -19,7 +19,7 @@ static func test_world(suite: SceneTree) -> void:
 		directions[r.side] = true
 		var path: Array = g.paths[id]
 		suite.check(path[0] == VigilWorld.center(id), "Expansion %d rift starts at its tile center" % i)
-		for kind in Balance.ENEMIES:
+		for kind in (Balance.DUNGEON_KINDS if r.style == "castle_ruin" else Balance.NORMAL_KINDS):
 			var spawned := g.combat.spawn(id, kind)
 			suite.check(spawned.pos == VigilWorld.center(id), "Expansion %d spawns %s at its tile center" % [i, kind])
 		suite.check(path.size() > 2 and path[-1] == Vector2.ZERO, "Expansion %d reaches the central core" % i)
@@ -51,9 +51,9 @@ static func test_territory_styles(suite: SceneTree) -> void:
 		var id: String = VigilWorld.frontier(g.data.regions, int(g.data.seed)).keys()[i % VigilWorld.frontier(g.data.regions, int(g.data.seed)).size()]
 		suite.check(g.expand(id), "Styled territory can be claimed")
 		var style: String = g.data.regions[id].style
-		suite.check(style in VigilWorld.STYLES, "New territory selects a supported theme")
+		suite.check(style in VigilWorld.STYLES or style == "castle_ruin", "New territory selects a supported theme")
 		seen[style] = true
-	suite.check(seen.has("forest") and seen.size() == 4, "Purchased territories include forest and all three other themes")
+	suite.check(seen.has("forest") and seen.has("castle_ruin") and seen.size() == 5, "Purchased territories include all four biomes and castle ruins")
 	var before: Dictionary = g.data.regions.duplicate(true)
 	suite.check(not g.expand("0,0") and g.data.regions == before, "Failed claim cannot reroll existing styles")
 	g.save_path = "user://territory-style-test.save"

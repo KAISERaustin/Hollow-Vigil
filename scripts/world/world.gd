@@ -7,7 +7,13 @@ const CORE_POSITION := Vector2.ZERO
 const STYLES := ["forest", "ashen_forge", "drowned_crypt", "bloodmoon_sanctuary"]
 const NEW_STYLES := ["ashen_forge", "drowned_crypt", "bloodmoon_sanctuary"]
 
+static func is_ruin(id: String, seed_value: int) -> bool:
+	var areas = preload("res://scripts/world/hidden_areas.gd")
+	return areas.cluster(areas.sector_for(coord(id)), seed_value).has(coord(id))
+
 static func region_style(id: String, seed_value: int) -> String:
+	if is_ruin(id, seed_value):
+		return "castle_ruin"
 	return STYLES[preload("res://scripts/world/terrain_clusters.gd").style_index(coord(id), seed_value)]
 
 static func key(p: Vector2i) -> String:
@@ -139,8 +145,6 @@ static func frontier(regions: Dictionary, seed_value: int = -1) -> Dictionary:
 		for d in DIRS:
 			var candidate := key(coord(id) + d)
 			if not regions.has(candidate) and not result.has(candidate):
-				if seed_value >= 0 and preload("res://scripts/world/hidden_areas.gd").reserved(coord(candidate), seed_value, regions):
-					continue
 				result[candidate] = id
 	return result
 

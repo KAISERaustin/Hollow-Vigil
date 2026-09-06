@@ -111,7 +111,7 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 			return false
 		if r.has("boss") and not valid_boss(r.boss, id, d):
 			return false
-		if r.has("style") and (not r.style is String or (r.style != "forest" and not r.style in VigilWorld.NEW_STYLES)):
+		if r.has("style") and (not r.style is String or (r.style not in ["forest", "castle_ruin"] and not r.style in VigilWorld.NEW_STYLES)):
 			return false
 		if r.has("road_version") and not number(r.road_version, 1, 2, true):
 			return false
@@ -141,7 +141,7 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 			return false
 		var sector := Areas.sector_for(VigilWorld.coord(id))
 		var g := Areas.gate(sector, int(d.seed))
-		if g.id != id or Areas.preserved(sector, int(d.seed), d.regions) or not d.regions.has(g.neighbor):
+		if g.id != id or not d.regions.has(g.neighbor):
 			return false
 		var boss: Variant = d.castles[id].get("boss")
 		if not valid_boss(boss, id, d):
@@ -209,7 +209,7 @@ func valid_coordinate(value: Variant) -> bool:
 
 func valid_boss(b: Variant, id: String, d: Dictionary) -> bool:
 	const Bosses = preload("res://scripts/model/bosses.gd")
-	var kind := Bosses.kind_at(id, int(d.seed)) if d.regions.has(id) else Bosses.castle_kind(Bosses.Areas.sector_for(VigilWorld.coord(id)), int(d.seed))
+	var kind := Bosses.kind_at(id, int(d.seed)) if not d.get("castles", {}).has(id) else Bosses.castle_kind(Bosses.Areas.sector_for(VigilWorld.coord(id)), int(d.seed))
 	if not b is Dictionary or not b.get("kind") is String or b.kind != kind or b.kind == "":
 		return false
 	if b.get("status") in ["defeated", "escaped"]:
@@ -240,7 +240,9 @@ func valid_boss(b: Variant, id: String, d: Dictionary) -> bool:
 func valid_boss_road(b: Dictionary, regions: Dictionary, seed_value: int = -1) -> bool:
 	var side := VigilWorld.DIRS.find(VigilWorld.coord(b.tile) - VigilWorld.coord(b.previous))
 	var expected: Array[Vector2] = []
-	if not regions.has(b.previous):
+	# A purchased gate may still have its boss on the original 3-point
+	# threshold plus the 24-point incoming spoke. Preserve that live route.
+	if not regions.has(b.previous) or (seed_value >= 0 and b.steps == 1 and b.path.size() == 27):
 		const Areas = preload("res://scripts/world/hidden_areas.gd")
 		var g := Areas.gate(Areas.sector_for(VigilWorld.coord(b.previous)), seed_value)
 		if b.previous != g.id or b.tile != g.neighbor:

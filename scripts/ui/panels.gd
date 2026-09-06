@@ -242,7 +242,9 @@ func show_expansion(id: String) -> void:
 		return
 	mode = "expand"
 	field.show_expansion = true
-	clear_sheet("Expand")
+	clear_sheet("Claim Castle Ruin" if VigilWorld.is_ruin(id, int(game.data.seed)) else "Expand")
+	if VigilWorld.is_ruin(id, int(game.data.seed)):
+		sheet_content.add_child(UI.paragraph("Four tower sockets surround a dark dungeon portal. " + Balance.rift_description("castle_ruin", game.tuning), 14))
 	action_cost = Balance.expansion_cost(game.data.regions.size())
 	var revision := sheet_revision
 	action_button = UI.gold_button("Claim territory  ·  " + UI.exact_money(action_cost) + " gold", func():
@@ -265,7 +267,7 @@ func show_entrance(id: String) -> void:
 	var r: Dictionary = game.data.regions[id]
 	var style: String = r.get("style", "forest")
 	clear_sheet(Balance.rift_name(style))
-	sheet_content.add_child(UI.paragraph(Balance.rift_description(style, game.tuning) + " Applies to every enemy from this rift for its entire journey.", 14))
+	sheet_content.add_child(UI.paragraph(Balance.rift_description(style, game.tuning) + ("" if style == "castle_ruin" else " Applies to every enemy from this rift for its entire journey."), 14))
 	var revision := sheet_revision
 	var traffic := UI.button("Increase traffic  ·  " + UI.exact_money(game.economy.traffic_cost(id)) + " gold", func():
 		if revision == sheet_revision and game.economy.buy_traffic(id, int(r.traffic)):
@@ -274,6 +276,8 @@ func show_entrance(id: String) -> void:
 	)
 	price_button(traffic, game.economy.traffic_cost(id), r.traffic >= Balance.MAX_TRAFFIC_LEVEL)
 	sheet_content.add_child(traffic)
+	if style == "castle_ruin":
+		return
 	for kind in Balance.UNLOCK_COSTS:
 		var s: Dictionary = Balance.ENEMIES[kind]
 		var unlocked: bool = kind in r.unlocks

@@ -16,6 +16,7 @@ static func test_all_territories(suite: SceneTree) -> void:
 		for i in range(1, 17):
 			var id := "%d,0" % (side * i)
 			g.data.regions[id] = VigilWorld.make_region(id, "%d,0" % (side * (i-1)), int(g.data.seed))
+			g.data.regions[id].style = "forest" # Legacy basic-mob income fixture, including castle coordinates.
 			g.refresh_paths() # Preserve the full legacy road fixture through ruins.
 			# Center spawns travel inward; defend the road toward the core.
 			suite.check(g.economy.build("rapid", id, 1 if side < 0 else 0) != "", "Can defend rift " + id)

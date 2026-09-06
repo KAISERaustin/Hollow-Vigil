@@ -85,6 +85,10 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), VigilTerrainArt.ground_color(region.get("style", "forest")))
 	draw_set_transform(Vector2.ONE * Balance.TILE * 0.5)
 	var style: String = region.get("style", "forest")
+	if style == "castle_ruin":
+		for y in range(-140, 150, 30):
+			for x in range(-140, 150, 35):
+				draw_rect(Rect2(Vector2(x, y), Vector2(31, 26)), Color("85858e"), false, 1.0)
 	for detail in ground_details:
 		VigilTerrainArt.ground_detail(self, style, detail.pos, detail.variant, detail.scale)
 	# All outlines first, then all fills keep the four road spokes connected.
@@ -96,5 +100,7 @@ func _draw() -> void:
 		VigilTerrainArt.road_detail(self, road)
 	for pad in VigilWorld.PADS:
 		VigilTerrainArt.socket(self, pad)
+	if style == "castle_ruin":
+		return
 	for prop in scenery:
 		VigilTerrainArt.scenery(self, region.get("style", "forest"), prop.pos, prop.extent)

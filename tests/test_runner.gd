@@ -24,7 +24,7 @@ func fixture_enemy(g: VigilState, kind: String = "basic") -> Dictionary:
 		g.expand("-1,0")
 		g.data.balance = balance
 	# Base combat fixtures intentionally exclude biome bonuses.
-	g.data.regions["-1,0"].style = "forest"
+	g.data.regions["-1,0"].style = "castle_ruin" if kind in Balance.DUNGEON_KINDS else "forest"
 	return g.combat.spawn("-1,0", kind)
 
 func legacy_core_fixture(seed_value: int) -> VigilState:

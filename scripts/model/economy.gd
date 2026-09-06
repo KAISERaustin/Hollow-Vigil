@@ -137,6 +137,8 @@ func buy_traffic(id: String, expected_level: int = -1) -> bool:
 func unlock(id: String, kind: String) -> bool:
 	if not VigilWorld.has_rift(id) or not data.regions.has(id) or not Balance.UNLOCK_COSTS.has(kind) or kind in data.regions[id].unlocks:
 		return false
+	if data.regions[id].get("style", "forest") == "castle_ruin":
+		return false
 	if not spend(Balance.UNLOCK_COSTS[kind]):
 		return false
 	data.regions[id].unlocks.append(kind)

@@ -24,11 +24,15 @@ const REBUILD_SECONDS_PER_LEVEL := 15.0
 const MIN_PRODUCTION_SAMPLE := 60.0
 const UNLOCK_COSTS := {"fast": 90.0, "heavy": 180.0, "lantern": 140.0}
 const ENEMY_SHARES := {"fast": 0.30, "heavy": 0.18, "lantern": 0.16}
+const NORMAL_KINDS := ["basic", "fast", "heavy", "lantern"]
+const DUNGEON_KINDS := ["shade", "sentinel"]
 const ENEMIES := {
 	"basic": {"name": "Hollow", "role": "COMMON", "description": "A steady traveler from every rift. Its sturdy body rewards upgrading your sentinels.", "hp": 45.0, "speed": 39.0, "payout": 5.0, "color": "e8ddbd"},
 	"fast": {"name": "Wraith", "role": "FAST", "description": "A swift spirit with less health than other foes. Its speed gives your towers less time to strike before it reaches the core.", "hp": 36.0, "speed": 74.0, "payout": 8.0, "color": "93c9bc"},
 	"heavy": {"name": "Revenant", "role": "DURABLE", "description": "A slow, resilient foe with a rich bounty. High-damage towers help cut through its large health pool.", "hp": 340.0, "speed": 25.0, "payout": 24.0, "color": "db8d73"},
-	"lantern": {"name": "Lantern Keeper", "role": "STEADFAST", "description": "A hooded pilgrim carrying a stolen ember through the rifts. Tougher than a Hollow and quicker than a Revenant, it rewards sustained fire with a generous bounty.", "hp": 120.0, "speed": 46.0, "payout": 14.0, "color": "b49dcc"}
+	"lantern": {"name": "Lantern Keeper", "role": "STEADFAST", "description": "A hooded pilgrim carrying a stolen ember through the rifts. Tougher than a Hollow and quicker than a Revenant, it rewards sustained fire with a generous bounty.", "hp": 120.0, "speed": 46.0, "payout": 14.0, "color": "b49dcc"},
+	"shade": {"name": "Abyss Shade", "role": "DUNGEON · SWIFT", "description": "A swift shadow born only in castle ruin portals. Its dense shroud withstands sustained fire.", "hp": 240.0, "speed": 56.0, "payout": 30.0, "color": "9182ad"},
+	"sentinel": {"name": "Crypt Sentinel", "role": "DUNGEON · ARMORED", "description": "A dark iron guardian summoned only by castle ruin portals. A deep health pool guards a rich bounty.", "hp": 680.0, "speed": 28.0, "payout": 55.0, "color": "74798c"}
 }
 const BOSSES := {
 	"warden": {"name": "Briarbound Warden", "hp": 3200.0, "speed": 27.0, "payout": 450.0, "color": "95aa83", "weakness": "Cinderfield: burns roots; blocks regrowth", "shield": 600.0, "regen_period": 10.0, "fire_multiplier": 2.0, "regrowth_suppression": 100.0},
@@ -102,11 +106,14 @@ static func rift_strength(style: String, tuning: Dictionary = {}) -> float:
 	return tuned_value("rifts", style, "strength", tuning) if RIFTS.has(style) else 0.0
 
 static func rift_name(style: String) -> String:
+	if style == "castle_ruin":
+		return "Castle Ruin Portal"
 	return RIFTS[style].name if RIFTS.has(style) else "Wild Rift"
 
 static func rift_description(style: String, tuning: Dictionary = {}) -> String:
 	var amount := String.num(rift_strength(style, tuning), 2)
 	match style:
+		"castle_ruin": return "Dungeon portal · Summons only Abyss Shades (%s HP, %s gold) and Crypt Sentinels (%s HP, %s gold)." % [String.num(tuned_value("enemies", "shade", "hp", tuning)), String.num(tuned_value("enemies", "shade", "payout", tuning)), String.num(tuned_value("enemies", "sentinel", "hp", tuning)), String.num(tuned_value("enemies", "sentinel", "payout", tuning))]
 		"ashen_forge": return "Hardened · +" + amount + "% maximum health."
 		"drowned_crypt": return "Restless · +" + amount + "% movement speed."
 		"bloodmoon_sanctuary": return "Regeneration · Restores " + amount + "% of maximum health each second."

@@ -40,7 +40,9 @@ The preset uses the local templates in `exports/android-tools/` and the existing
 - Drag to pan and use the mouse wheel or pinch to zoom the map. The HUD keeps a fixed screen size. Tower action buttons stay attached to their towers with a fixed map-space size and spacing, scaling together with the map. Gold badges sit above their towers in map space: their text, borders, spacing, and touch padding scale together with the tower, without independent enlargement. Settings include developer controls, reset, and return to the core. The game uses a fixed 60 FPS cap, standard text size, and normal motion.
 - Offline rewards use 80% of demonstrated production, capped at seven days. Rewards never purchase anything or inflate lifetime kill counts.
 
-Stone clusters now hide one boss each. Buying its assigned tile awakens it;
+Castle ruin tiles can be purchased through connected expansion at the normal territory price. Each becomes a paved tile with four tower sockets and a dark central dungeon portal. Only these portals spawn **Abyss Shades** (240 HP, 56 speed, 30 gold) and **Crypt Sentinels** (680 HP, 28 speed, 55 gold), both available immediately. Traffic upgrades increase their spawn rate. Existing boss encounters keep their progress when a ruin is claimed.
+
+Stone clusters hide one boss each. Buying its assigned tile awakens it;
 it patrols owned roads while avoiding the core, escaping only if the core is
 its sole exit. Health and encounter
 progress survive reloads, and each boss has a level-four tower weakness and

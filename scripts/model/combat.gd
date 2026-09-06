@@ -93,8 +93,11 @@ func spawn(id: String, forced_kind: String = "") -> Dictionary:
 		return {}
 	var r: Dictionary = data.regions[id]
 	var kind := forced_kind
+	var dungeon: bool = r.get("style", "forest") == "castle_ruin"
 	if kind == "":
-		kind = Balance.enemy_kind(r.unlocks, rng.randf())
+		kind = Balance.DUNGEON_KINDS[rng.randi_range(0, 1)] if dungeon else Balance.enemy_kind(r.unlocks, rng.randf())
+	if (kind in Balance.DUNGEON_KINDS) != dungeon:
+		return {}
 	if not Balance.ENEMIES.has(kind):
 		return {}
 	var s := Balance.definition("enemies", kind, tuning)

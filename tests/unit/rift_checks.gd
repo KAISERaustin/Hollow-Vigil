@@ -9,7 +9,7 @@ static func run(suite: SceneTree) -> void:
 		region.timer = 1000.0
 	for style in VigilWorld.STYLES:
 		game.data.regions["2,0"].style = style
-		for kind in Balance.ENEMIES:
+		for kind in Balance.NORMAL_KINDS:
 			game.combat.enemies.clear()
 			var enemy := game.combat.spawn("2,0", kind)
 			var base: Dictionary = Balance.ENEMIES[kind]
