@@ -49,7 +49,7 @@ static func moon(canvas: CanvasItem, at: Vector2, zoom: float) -> void:
 
 static func enemy_mark(canvas: CanvasItem, style: String, at: Vector2, zoom: float) -> void:
 	# Center overhead, leaving room below for the health bar and silhouette.
-	var badge := at + Vector2(0, -40) * zoom
+	var badge := at + Vector2(0, -33) * zoom
 	match style:
 		"ashen_forge": shield(canvas, badge, zoom * 0.7)
 		"drowned_crypt": current(canvas, badge, zoom * 0.7)
