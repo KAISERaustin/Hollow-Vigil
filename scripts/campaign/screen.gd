@@ -117,8 +117,8 @@ func fit() -> void:
 	layout.offset_bottom = safe.end.y - size.y
 	if is_instance_valid(dialog_card):
 		if not socket_dialog:
-			dialog_card.size = Vector2(minf(470, safe.size.x), minf(490, safe.size.y))
-		if waves_dialog:
+			dialog_card.size.x = minf(470, safe.size.x)
+			# Fit every modal to its wrapped content; overflow stays scrollable.
 			dialog_card.size.y = minf(safe.size.y, dialog_card.get_combined_minimum_size().y + dialog_body.get_combined_minimum_size().y)
 		if socket_dialog:
 			var bounds := safe
@@ -459,7 +459,7 @@ func _build_dialog() -> void:
 	dialog_body.add_theme_constant_override("separation",12)
 	scroll.add_child(dialog_body)
 	dialog_body.minimum_size_changed.connect(func():
-		if waves_dialog:
+		if dialog.visible:
 			fit.call_deferred()
 	)
 	dialog.hide()

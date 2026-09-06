@@ -60,7 +60,7 @@ func _ready() -> void:
 	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	identity.add_child(heading)
-	header_close = UI.button("×", func():
+	header_close = UI.close_button(func():
 		if mode == "equipment_detail": open_action("equipment")
 		else: dismiss()
 	, 44)

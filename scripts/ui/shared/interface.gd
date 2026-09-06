@@ -215,7 +215,7 @@ static func value(text: String, pixels: int = 24) -> Label:
 	l.add_theme_font_override("font", font(700))
 	return l
 
-static func button(text: String, action: Callable, height: float = 48) -> Button:
+static func button(text: String, action: Callable, height: float = 48, inner_ring: bool = true) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.custom_minimum_size.y = maxf(TARGET, height)
@@ -228,13 +228,18 @@ static func button(text: String, action: Callable, height: float = 48) -> Button
 	pressed.content_margin_top += 1
 	pressed.content_margin_bottom -= 1
 	b.add_theme_stylebox_override("pressed", pressed)
+	if not inner_ring:
+		b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	b.draw.connect(func():
-		if not b.disabled and (b.is_hovered() or b.button_pressed):
+		if inner_ring and not b.disabled and (b.is_hovered() or b.button_pressed):
 			b.draw_rect(Rect2(Vector2(6, 6), b.size - Vector2(12, 12)), BORDER, false, 2)
 		if b.toggle_mode and b.button_pressed:
 			b.draw_line(Vector2(12, b.size.y - 8), Vector2(b.size.x - 12, b.size.y - 8), BORDER, 2)
 	)
 	return b
+
+static func close_button(action: Callable, height: float = 48) -> Button:
+	return button("×", action, height, false)
 
 static func toggle_button(enabled: bool, action: Callable) -> Button:
 	var control := button("On" if enabled else "Off", func(): pass)

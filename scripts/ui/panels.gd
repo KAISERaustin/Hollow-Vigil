@@ -97,7 +97,7 @@ func clear_sheet(title: String, subtitle: String = "") -> void:
 	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(heading)
-	var close := UI.button("×", close_sheet, 48)
+	var close := UI.close_button(close_sheet, 48)
 	close.name = "CloseSheet"
 	close.size_flags_horizontal = Control.SIZE_SHRINK_END
 	close.custom_minimum_size.x = 48

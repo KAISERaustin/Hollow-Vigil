@@ -136,6 +136,16 @@ func run() -> void:
 		campaign.start_mission(0)
 		check(campaign.run.phase == "planning" and campaign.run.game.data.towers.is_empty(), "Leaving an unfinished level restarts it without saved towers")
 		await frame()
+		for result in ["victory", "defeat"]:
+			campaign.run.phase = result
+			campaign.show_result()
+			await frame()
+			await frame()
+			var result_scroll := campaign.dialog_body.get_parent() as ScrollContainer
+			check(absf(result_scroll.size.y - campaign.dialog_body.size.y) <= 2.0, result + " has no unused body height at " + str(viewport))
+			check(campaign.dialog_card.size.y < 400, result + " fits its short content at " + str(viewport))
+			check(campaign.dialog_card.get_global_rect().encloses(campaign.dialog_body.get_child(-1).get_global_rect()), result + " world map button fits at " + str(viewport))
+			await Harness.capture(app, "campaign-" + result + "-" + str(viewport.x))
 	# Mission tuning must reach both menu quotes and the shared transactions.
 	campaign.start_mission(0)
 	campaign.run.game.data.settings.developer_balance = {"towers": {"rapid": {"cost": 70.0, "damage": 12.0}, "rapid:2": {"cost": 35.0}}}
