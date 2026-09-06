@@ -7,18 +7,19 @@ const Art = preload("res://scripts/rendering/actors/relic_art.gd")
 static func build(dialog) -> void:
 	var data: Dictionary = dialog.app.game.data
 	var equipped_kind := Relics.kind(data, data.towers[dialog.tower_id])
+	dialog.equipment_summary.add_child(UI.label("Currently equipped", 14, UI.TEXT))
 	var summary := PanelContainer.new()
 	summary.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	summary.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, 2, 10))
 	dialog.equipment_summary.add_child(summary)
 	var summary_stack := UI.margin(summary, 12)
-	summary_stack.add_child(UI.label("Currently equipped", 14, UI.TEXT))
 	var summary_row := HBoxContainer.new()
 	summary_row.add_theme_constant_override("separation", 10)
 	summary_stack.add_child(summary_row)
 	if equipped_kind != "":
 		var equipped_icon := Control.new()
 		equipped_icon.custom_minimum_size = Vector2(32, 32)
+		equipped_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		equipped_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		equipped_icon.draw.connect(func(): Art.draw(equipped_icon, equipped_kind, Vector2(16, 16)))
 		summary_row.add_child(equipped_icon)
@@ -26,6 +27,7 @@ static func build(dialog) -> void:
 	equipped_name.name = "EquippedRelicName"
 	equipped_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	equipped_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	equipped_name.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	summary_row.add_child(equipped_name)
 	if equipped_kind != "":
 		var remove := UI.button("×", dialog.request_equipment_removal, 44)
@@ -33,6 +35,7 @@ static func build(dialog) -> void:
 		remove.tooltip_text = "Remove equipment"
 		remove.custom_minimum_size.x = 44
 		remove.size_flags_horizontal = Control.SIZE_SHRINK_END
+		remove.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		summary_row.add_child(remove)
 	dialog.body.add_child(UI.heading("Your equipment", 18))
 	dialog.body.add_child(UI.paragraph("Choose equipment for this tower. Replaced equipment returns to your inventory.", 14))
