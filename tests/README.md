@@ -21,6 +21,7 @@ Use the root `launch.ps1` commands documented in the README. `-Check` runs headl
 - `unit/input_checks.gd`: headless mouse/touch gesture and map hit-target checks.
 - `unit/simulation_checks.gd`: all-territory simulation, thousands of enemies and one simulated hour. Timing is reported without a hardware-specific pass threshold.
 - `rendered/visual_runner.gd`: launches a disposable application and runs the full UI harness, including tower dialogs and camera-independent combat comparisons.
+- `offscreen_portal_runner.gd`: focused rendered regression, run with `Godot --path . --script tests/offscreen_portal_runner.gd`. Keeps all 32 portals outside the camera for a simulated minute, hides the battlefield halfway through, and checks sustained spawning, arrivals at the core, and exact enemy/timer agreement with a simulation-only reference.
 - `rendered/terrain_palette_checks.gd`: all ordered biome pairs, four directions and four zooms; calls boundary/grid checks.
 - `rendered/artwork_smoke.gd`: native artwork interactions and layouts at 540x960 and 360x640.
 
