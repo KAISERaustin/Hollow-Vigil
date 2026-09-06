@@ -92,7 +92,9 @@ func definitions(category: String) -> Dictionary:
 	return result
 
 static func tower(kind: String) -> TowerNode:
-	return catalog().find("towers", kind) as TowerNode
+	var node := catalog().find("towers", kind) as TowerNode
+	# Tier definitions are available through find(), but are never build kinds.
+	return node if node != null and node.rule("base_kind", "").is_empty() else null
 
 static func enemy(kind: String, boss: bool = false) -> EnemyNode:
 	return catalog().find("bosses" if boss else "enemies", kind) as EnemyNode

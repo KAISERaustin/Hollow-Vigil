@@ -6,6 +6,8 @@ Use the root `launch.ps1` commands documented in the README. `-Check` runs headl
 
 ## Coverage
 
+- `content_node_runner.gd` / `unit/content_node_checks.gd`: content inheritance, subtype overrides, immutable catalogs, duplicate registration guards, fresh instance state, placement/equipment rules, pooled enemies, boss defenses, gear counters and campaign wave order. Included in the main headless suite. See `docs/NODE_SYSTEM.md` for the extension guide.
+
 - `unit/enemy_checks.gd`: Lantern Keeper attunement pricing and guards, every unlock combination, normal spawning, movement, lethal damage, once-only bounty and save reload. Mixed-traffic balance and crowded-world tests include all four enemies.
 - `rendered/enemy_art_checks.gd`: nine distinct native portraits, transparent export padding and visibility at four gameplay zooms; regenerates `assets/enemies/` and `artifacts/enemy-lineup.png` through `-ArtSmoke` or `-Check`.
 - `unit/relocation_checks.gd`: move pricing and time caps, destination and balance guards, tower identity and earnings, construction combat restrictions, historical production cleanup, old saves, offline countdowns and clock replay protection.

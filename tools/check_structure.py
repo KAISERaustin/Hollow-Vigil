@@ -35,6 +35,10 @@ def main():
                     ("scripts/rendering/", "scripts/ui/", "scripts/app/")
                 ):
                     failures.append(f"Gameplay imports presentation in {relative}: {resource}")
+                if relative.startswith("scripts/content/") and resource.startswith(
+                    ("scripts/gameplay/", "scripts/rendering/", "scripts/ui/", "scripts/app/", "scripts/persistence/", "scripts/cloud/", "scripts/campaign/")
+                ):
+                    failures.append(f"Content imports an owning service in {relative}: {resource}")
     for failure in failures:
         print(failure, file=sys.stderr)
     print(f"Structure checks: {len(failures)} failures")

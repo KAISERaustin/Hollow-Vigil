@@ -2,6 +2,8 @@
 
 ## Ownership
 
+Reusable content definitions and family behavior live in the [content node hierarchy](NODE_SYSTEM.md). Services own mutable instances and transactions.
+
 `VigilState` owns one shared data dictionary and coordinates `VigilEconomy`, `VigilCombat`, world routes and `VigilSaveStore`. The state/economy/combat services can run without an active scene or GPU. `VigilApp` connects those services to the interface and owns timing, notifications and save calls. `VigilHUD` builds and updates the persistent header/footer and emits user intent through signals.
 
 UI panels and tower dialogs have typed `VigilApp` references. That dependency is deliberate for this small application. When adding an independent screen, pass its model and use signals for user actions rather than adding more access through the scene tree. Keep purchases in the economy service, never inside draw functions or animation callbacks.
@@ -12,7 +14,8 @@ Cosmetic attack effects track enemy centers by serial ID, refreshing their posit
 
 ## Source boundaries
 
-- `gameplay/game_state.gd` coordinates the shared snapshot, live services and storage lifecycle. `gameplay/balance.gd` is the existing balance API and content catalog.
+- `content/catalogs/` owns authored definitions and tuning schemas; `content/nodes/` owns inherited rules, constructors and specialized boss/gear behavior. `content/registry.gd` builds the content tree without importing simulation, persistence or presentation.
+- `gameplay/game_state.gd` coordinates the shared snapshot, live services and storage lifecycle. `gameplay/balance.gd` preserves the balance API and source-table aliases while resolving runtime definitions and tower stats through content nodes.
 - `gameplay/combat/combat.gd` owns the simulation clock, enemy pool, pending shots, effects, target locks and transient ability/relic state. Its public methods remain stable for callers and tests.
 - `gameplay/combat/targeting.gd` ranks supplied candidates using path distance, health and deterministic spawn-order ties; it needs no scene or game-state reference.
 - `gameplay/combat/projectiles.gd` handles launch, flight, impact, fragments and ballistic arrows. `tower_abilities.gd` handles on-hit branch effects, displacement and persistent fire. These stateless helpers receive the owning combat service explicitly; they do not store a second copy of its state or retain it in a reference cycle.
@@ -57,13 +60,13 @@ Optional `castles` save records retain active, defeated and escaped encounters i
 
 Developer balance is stored as sparse `settings.developer_balance` overrides per enemy/tower type. `Balance.TUNING_FIELDS` defines editable fields and finite bounds for both sliders and save validation; `Balance.definition`, `tuned_value`, and `stats` resolve values with defaults. Runtime consumers must pass the owning game's tuning instead of changing shared constants. `VigilState` applies edits, preserving live health and cooldown fractions and clearing stale production samples. `scripts/ui/developer/developer_controls.gd` owns the editor; the app debounces saves and flushes when leaving it. Saves without overrides keep the defaults.
 
-- **Tower:** add its level-one definition, two `TOWER_UPGRADES` rows and two level-four `BRANCHES` entries in `scripts/gameplay/balance.gd`. Each upgrade row contains its purchase cost and complete combat stats; branch ability parameters live in `ABILITIES` and tier multipliers in `BRANCH_STAT_MULTIPLIERS`. Projectile muzzle, speed and timing live in `PROJECTILES`; ordinary shots and branch volleys both use `ShotFactory`. `Balance.stats()` caps levels and applies developer overrides in proportion to the tier's base values. The build menu reads the definitions and upgrade prices. Add its artwork in `scripts/rendering/terrain/terrain_art.gd`. Implement new projectile mechanics in `gameplay/combat/projectiles.gd` and on-hit or persistent effects in `tower_abilities.gd`, with behavior tests; adding a display field alone does not implement behavior.
-- **Enemy:** add its definition, unlock cost and spawn share in `Balance`. Unlock validation, spawning and rift text read those tables. Shares must leave room for the basic enemy. Add artwork and test distribution, movement and rewards.
+- **Tower:** add its level-one definition, two `TOWER_UPGRADES` rows and two level-four `BRANCHES` entries in `scripts/content/catalogs/towers.gd`. Each upgrade row contains its purchase cost and complete combat stats; branch ability parameters live in `ABILITIES` and tier multipliers in `BRANCH_STAT_MULTIPLIERS`. Projectile muzzle, speed and timing live in `PROJECTILES`; ordinary shots and branch volleys both use `ShotFactory`. `Balance.stats()` caps levels and applies developer overrides in proportion to the tier's base values. The build menu reads the definitions and upgrade prices. Add its artwork in `scripts/rendering/terrain/terrain_art.gd`. Implement new projectile mechanics in `gameplay/combat/projectiles.gd` and on-hit or persistent effects in `tower_abilities.gd`, with behavior tests; adding a display field alone does not implement behavior.
+- **Enemy:** add its definition, unlock cost and spawn share in `scripts/content/catalogs/actors.gd`. Unlock validation, spawning and rift text read those tables. Shares must leave room for the basic enemy. Add artwork and test distribution, movement and rewards.
 - **Biome:** update world style lists and its drawing palette/scenery. Save validation and GPU tests use the same world style names. Existing territories must keep their saved appearance.
 - **Shared tower consumers:** resolve an existing tower with `Balance.tower_stats(tower, game.tuning)`, build definitions with `Balance.definition("towers", kind, game.tuning)`, and upgrade/sell quotes with the balance cost helpers and the same tuning. Campaign and open-world menus must use these APIs just as their shared economy and combat do. Change targeting through `VigilState.set_tower_target()` so validation and lock invalidation remain identical. Ability handlers consume resolved stats; do not copy numeric fallback defaults from the catalog into handlers.
 - **Displayed statistic:** resolve tower prose through `Balance.tower_description(stats)`; templates interpolate actual ability values instead of repeating balance numbers. Keep string formatting out of combat ticks. Preserve fractional values. Use balance data for text instead of copying gameplay numbers into panels.
 - **Progression limit:** use the shared constants, including `MAX_TOWER_LEVEL`, in gameplay, validation and UI.
-- **New feature:** add a focused module with a clear owner. Avoid a general framework until multiple concrete features need it. Keep public service methods typed and add boundary tests for state-changing behavior.
+- **New feature:** add a focused module with a clear owner. Reuse the content node family when a feature shares its rules; add a new family only for distinct reusable behavior. Keep public service methods typed and add boundary tests for state-changing behavior.
 
 ## Sweep decisions
 
