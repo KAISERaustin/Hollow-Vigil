@@ -24,6 +24,8 @@ var tick_count := 0
 var enemy_pool: Array[Dictionary] = []
 var burning_ground: Array[Dictionary] = []
 var curses: Dictionary = {}
+# Runtime IDs avoid retaining pooled enemy dictionaries or saving stale locks.
+var target_locks: Dictionary = {}
 var enemy_index := preload("res://scripts/model/enemy_index.gd").new()
 var spatial_ready := false
 var indexed_enemy_count := -1
@@ -198,6 +200,22 @@ func tick(delta: float) -> void:
 	# Resolve arrivals at the same centers used by targeting and drawing.
 	advance_shots(delta)
 	advance_fire(delta)
+	var live_targets := {}
+	for enemy in enemies:
+		if not enemy.dead:
+			live_targets[enemy.id] = enemy
+	for tower_id in target_locks.keys():
+		var locked: Dictionary = live_targets.get(target_locks[tower_id], {})
+		if not data.towers.has(tower_id) or locked.is_empty():
+			target_locks.erase(tower_id)
+			continue
+		var tower: Dictionary = data.towers[tower_id]
+		if tower.get("target_mode", "first") != "most_hp":
+			target_locks.erase(tower_id)
+			continue
+		var radius: float = Balance.tower_stats(tower, tuning).range
+		if VigilWorld.pad_position(tower.region, tower.pad).distance_squared_to(locked.pos) > radius * radius:
+			target_locks.erase(tower_id)
 	for t in data.towers.values():
 		if t.get("rebuild_remaining", 0.0) > 0.0:
 			t.rebuild_remaining = maxf(0.0, t.rebuild_remaining - delta)
@@ -212,13 +230,18 @@ func tick(delta: float) -> void:
 		var stats := Balance.tower_stats(t, tuning)
 		var pos := VigilWorld.pad_position(t.region, t.pad)
 		var candidates := nearby_enemies(pos, stats.range)
-		var target := select_target(candidates, pos, stats.range, t.get("target_mode", "first"))
+		var target: Dictionary = live_targets.get(target_locks.get(t.id, -1), {})
+		# Earlier towers can defeat a locked enemy during this same tick.
+		if target.is_empty() or target.dead or pos.distance_squared_to(target.pos) > stats.range * stats.range:
+			target = select_target(candidates, pos, stats.range, t.get("target_mode", "first"))
 		if target.is_empty():
 			continue
 		var voice: String = t.get("branch", "")
 		if voice.is_empty():
 			voice = t.kind
 		sound_requested.emit("shot_" + voice, pos)
+		if t.get("target_mode", "first") == "most_hp":
+			target_locks[t.id] = target.id
 		t.cooldown = stats.period
 		t.angle = pos.angle_to_point(target.pos)
 		if t.kind == "electric":
