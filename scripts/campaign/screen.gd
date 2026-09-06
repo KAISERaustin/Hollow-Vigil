@@ -266,6 +266,7 @@ func save_progress() -> void:
 func show_waves() -> void:
 	open_dialog("Waves")
 	waves_dialog = true
+	dialog.z_index = 101
 	fit()
 	var preview := VBoxContainer.new()
 	preview.add_theme_constant_override("separation", 4)
@@ -404,6 +405,7 @@ func _build_dialog() -> void:
 
 func open_dialog(title: String, for_socket: bool = false) -> void:
 	waves_dialog = false
+	dialog.z_index = 0
 	socket_dialog = for_socket
 	dialog_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 3, 0 if for_socket else 16))
 	dialog_body.add_theme_constant_override("separation", 6 if for_socket else 12)

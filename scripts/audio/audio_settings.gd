@@ -54,7 +54,7 @@ func category_art(category: String) -> Control:
 		var center := art.size * 0.5
 		match category:
 			"towers":
-				VigilTerrainArt.sentinel(art, "rapid", center + Vector2(0, 17), 0.65)
+				VigilTerrainArt.sentinel(art, "rapid", center + Vector2(0, 10), 0.65)
 			"menu":
 				art.draw_rect(Rect2(center - Vector2(17, 16), Vector2(34, 32)), UI.TEXT, false, 3)
 				for y in [-8, 0, 8]:
