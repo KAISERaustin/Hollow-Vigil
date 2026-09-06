@@ -51,9 +51,9 @@ static func test_territory_styles(suite: SceneTree) -> void:
 		var id := "%d,0" % i
 		suite.check(g.expand(id), "Styled territory can be claimed")
 		var style: String = g.data.regions[id].style
-		suite.check(style in VigilWorld.NEW_STYLES, "New territory selects only a new theme")
+		suite.check(style in VigilWorld.STYLES, "New territory selects a supported theme")
 		seen[style] = true
-	suite.check(seen.size() == 3, "Seeded sample includes all three themes")
+	suite.check(seen.has("forest") and seen.size() == 4, "Purchased territories include forest and all three other themes")
 	var before: Dictionary = g.data.regions.duplicate(true)
 	suite.check(not g.expand("1,0") and g.data.regions == before, "Failed claim cannot reroll existing styles")
 	g.save_path = "user://territory-style-test.save"

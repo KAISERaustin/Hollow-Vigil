@@ -11,7 +11,7 @@ static func region_style(id: String, seed_value: int) -> String:
 	# Separate seeded stream keeps appearance independent of roads and combat.
 	var scenery := RandomNumberGenerator.new()
 	scenery.seed = absi(("territory-style:" + id + ":" + str(seed_value)).hash())
-	return NEW_STYLES[scenery.randi_range(0, NEW_STYLES.size() - 1)]
+	return STYLES[scenery.randi_range(0, STYLES.size() - 1)]
 
 static func key(p: Vector2i) -> String:
 	return "%d,%d" % [p.x, p.y]

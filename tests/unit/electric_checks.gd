@@ -6,6 +6,7 @@ static func run(suite: SceneTree) -> void:
 			var game := VigilState.new(719)
 			game.data.balance = 10000.0
 			game.expand("1,0")
+			game.data.regions["1,0"].style = "forest" # Measure lightning without biome effects.
 			game.data.regions["1,0"].timer = 9.0
 			var id := game.economy.build("electric", "0,0", 0)
 			for current in range(1, level):
