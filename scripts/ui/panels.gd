@@ -3,6 +3,7 @@ extends PanelContainer
 
 const UI = preload("res://scripts/ui/interface.gd")
 const FieldGuide = preload("res://scripts/ui/field_guide.gd")
+const DeveloperControls = preload("res://scripts/ui/developer_controls.gd")
 var app: VigilApp
 var game: VigilState:
 	get: return app.game
@@ -22,7 +23,6 @@ var content_scroll: ScrollContainer
 var guide: FieldGuide
 var header_content: VBoxContainer
 var action_footer: VBoxContainer
-var affordability: Label
 var opener: Control
 
 func _ready() -> void:
@@ -31,7 +31,12 @@ func _ready() -> void:
 	header_content = UI.margin(layout, 16)
 	action_footer = UI.margin(layout, 16)
 	content_scroll = ScrollContainer.new()
+	var scroll_inset := StyleBoxEmpty.new()
+	scroll_inset.content_margin_right = 8
+	content_scroll.add_theme_stylebox_override("panel", scroll_inset)
 	content_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	content_scroll.follow_focus = true
+	UI.keyboard_scroll(content_scroll, "Menu contents")
 	content_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	layout.add_child(content_scroll)
@@ -43,6 +48,7 @@ func _ready() -> void:
 			call_deferred("fit_sheet")
 	)
 	guide = FieldGuide.new()
+	guide.game = game
 	guide.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	guide.close_requested.connect(close_sheet)
 	layout.add_child(guide)
@@ -51,6 +57,7 @@ func _ready() -> void:
 	hide()
 
 func clear_sheet(title: String, subtitle: String = "") -> void:
+	app.tower_move.cancel()
 	# Opening another panel leaves tower management and restores the gold badges.
 	field.selected_tower = ""
 	if mode != "build":
@@ -66,9 +73,9 @@ func clear_sheet(title: String, subtitle: String = "") -> void:
 		for child in container.get_children():
 			container.remove_child(child)
 			child.queue_free()
-	affordability = null
 	guide.hide()
 	content_scroll.show()
+	content_scroll.scroll_vertical = 0
 	sheet_revision += 1
 	prices.clear()
 	for node in sheet_content.get_children():
@@ -100,18 +107,22 @@ func fit_sheet() -> void:
 		return
 	if mode == "reset":
 		self.size.x = minf(460.0, UI.safe_rect(app).size.x - 32.0)
-		var content_height: float = sheet_content.get_parent().get_combined_minimum_size().y + header_content.get_parent().get_combined_minimum_size().y + action_footer.get_parent().get_combined_minimum_size().y
+		var content_height := sheet_height()
 		self.size.y = minf(content_height, app.size.y - 32.0)
 		self.position = (app.size - self.size) * 0.5
 		UI.trap_focus(self)
 		return
 	self.size.x = minf(460.0, UI.safe_rect(app).size.x - 24.0)
 	self.position.x = UI.safe_rect(app).position.x + (UI.safe_rect(app).size.x - self.size.x) * 0.5
-	var heights := {"info": 580.0, "build": 500.0, "expand": 290.0, "rift": 470.0, "core": 310.0, "settings": 520.0}
+	var heights := {"info": 580.0, "build": 500.0, "expand": 290.0, "rift": 470.0, "core": 310.0, "settings": 520.0, "developer": 660.0}
 	var desired_height: float = heights.get(mode, 340.0)
+	if mode in ["build", "expand", "rift"]:
+		# Keep gameplay panels as small as their controls allow.
+		desired_height = sheet_height()
+		# sheet_height already includes the visible layout gaps and panel border.
 	if mode == "core":
 		# Include the shared inner margins and panel padding, without unused space.
-		desired_height = sheet_content.get_parent().get_combined_minimum_size().y + header_content.get_parent().get_combined_minimum_size().y + action_footer.get_parent().get_combined_minimum_size().y
+		desired_height = sheet_height()
 	var bottom := field.get_global_rect().end.y - 12.0
 	var top := field.global_position.y + 12.0
 	if app.size.y >= 700.0:
@@ -120,7 +131,21 @@ func fit_sheet() -> void:
 	self.position.y = bottom - self.size.y
 	UI.trap_focus(self)
 
+func sheet_height() -> float:
+	var layout := header_content.get_parent().get_parent() as VBoxContainer
+	var height := get_theme_stylebox("panel").get_minimum_size().y
+	var sections := 0
+	for section in [header_content.get_parent(), content_scroll, action_footer.get_parent()]:
+		if section.visible:
+			sections += 1
+			height += sheet_content.get_parent().get_combined_minimum_size().y if section == content_scroll else section.get_combined_minimum_size().y
+	return height + maxi(0, sections - 1) * layout.get_theme_constant("separation")
+
 func close_sheet() -> void:
+	if is_instance_valid(app.tower_move):
+		app.tower_move.cancel()
+	if mode == "developer":
+		app.persist()
 	sheet_revision += 1
 	action_button = null
 	prices.clear()
@@ -138,7 +163,9 @@ func close_sheet() -> void:
 	app.tower_actions.refresh()
 
 func show_info() -> void:
+	var guide_opener := get_viewport().gui_get_focus_owner()
 	close_sheet()
+	opener = guide_opener
 	# Retire any pending purchase callback before opening the read-only guide.
 	sheet_revision += 1
 	prices.clear()
@@ -148,6 +175,7 @@ func show_info() -> void:
 	header_content.get_parent().hide()
 	action_footer.get_parent().hide()
 	guide.show()
+	guide.game = game
 	guide.show_category("towers")
 	show()
 	guide.tabs.towers.grab_focus()
@@ -170,13 +198,13 @@ func select_pad(region: String, pad: int) -> void:
 func show_build() -> void:
 	mode = "build"
 	field.preview_kind = selection_kind
-	clear_sheet("Raise a sentinel", "Choose a tower. The ring shows its reach. Tap Build to raise it.")
+	clear_sheet("Build")
 	var row := VBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 	sheet_content.add_child(row)
 	for kind in Balance.TOWERS:
-		var definition: Dictionary = Balance.TOWERS[kind]
-		var b := UI.button(definition.name + " · " + definition.role + " · " + UI.exact_money(definition.cost) + " gold", func(): selection_kind = kind; show_build(), 48)
+		var definition := Balance.definition("towers", kind, game.tuning)
+		var b := UI.button(definition.name + " · " + UI.exact_money(definition.cost) + " gold", func(): selection_kind = kind; show_build(), 48)
 		b.add_theme_font_size_override("font_size", UI.type_size(14))
 		for state in ["normal", "hover", "pressed", "disabled"]:
 			var style := UI.box(UI.SURFACE)
@@ -194,9 +222,7 @@ func show_build() -> void:
 			b.add_theme_stylebox_override("pressed", selected)
 			b.add_theme_stylebox_override("hover_pressed", selected)
 		row.add_child(b)
-	var s: Dictionary = Balance.TOWERS[selection_kind]
-	sheet_content.add_child(UI.paragraph(s.description))
-	sheet_content.add_child(UI.paragraph("%s damage   ·   %.2fs attack   ·   %d reach" % [Balance.money(s.damage), s.period, s.range], 13))
+	var s := Balance.definition("towers", selection_kind, game.tuning)
 	action_cost = s.cost
 	var revision := sheet_revision
 	action_button = UI.gold_button("Build " + s.name + "  ·  " + UI.exact_money(s.cost) + " gold", func():
@@ -207,15 +233,12 @@ func show_build() -> void:
 			selection_tower = id
 			field.selected_tower = id
 			app.persist()
-			app.toast(s.name + " joins the vigil.")
 			show_tower()
 		else:
 			app.toast("Not enough gold, or this socket is already occupied.")
 	)
 	action_footer.add_child(action_button)
 	action_footer.get_parent().show()
-	affordability = UI.paragraph("")
-	action_footer.add_child(affordability)
 	app.update_hud()
 
 func show_tower() -> void:
@@ -235,8 +258,7 @@ func show_expansion(id: String) -> void:
 		return
 	mode = "expand"
 	field.show_expansion = true
-	clear_sheet("Beyond the mist", "Claim territory " + id + " to uncover a rift, four tower sockets, and a road to the core.")
-	sheet_content.add_child(UI.paragraph("Defeat enemies from the new rift to earn more gold.", 14))
+	clear_sheet("Expand")
 	action_cost = Balance.expansion_cost(game.data.regions.size())
 	var revision := sheet_revision
 	action_button = UI.gold_button("Claim territory  ·  " + UI.exact_money(action_cost) + " gold", func():
@@ -245,12 +267,9 @@ func show_expansion(id: String) -> void:
 			selection_region = id
 			app.persist()
 			close_sheet()
-			app.toast("A new rift opens. Raise sentinels along its roads.")
 	)
 	action_footer.add_child(action_button)
 	action_footer.get_parent().show()
-	affordability = UI.paragraph("")
-	action_footer.add_child(affordability)
 	app.update_hud()
 
 func show_entrance(id: String) -> void:
@@ -260,12 +279,7 @@ func show_entrance(id: String) -> void:
 	selection_region = id
 	mode = "rift"
 	var r: Dictionary = game.data.regions[id]
-	clear_sheet("Rift  /  " + id, "Enemies pour from the rift. Increase their numbers or attune the rift to new foes.")
-	var rate := 60.0 / game.economy.spawn_period(id)
-	sheet_content.add_child(UI.paragraph("%.0f enemies/min  →  %.0f with next traffic upgrade" % [rate, 60.0 / Balance.traffic_period(r.traffic + 1)], 13))
-	var basic: Dictionary = Balance.ENEMIES.basic
-	var minimum_basic: float = Balance.enemy_mix(Balance.UNLOCK_COSTS.keys()).basic
-	sheet_content.add_child(UI.paragraph("%s: at least %.0f%% of enemies · %s HP · %s gold per defeat." % [basic.name, minimum_basic * 100.0, String.num(basic.hp, 2), String.num(basic.payout, 2)], 13))
+	clear_sheet("Rift")
 	var revision := sheet_revision
 	var traffic := UI.button("Increase traffic  ·  " + UI.exact_money(game.economy.traffic_cost(id)) + " gold", func():
 		if revision == sheet_revision and game.economy.buy_traffic(id, int(r.traffic)):
@@ -278,8 +292,7 @@ func show_entrance(id: String) -> void:
 		var s: Dictionary = Balance.ENEMIES[kind]
 		var unlocked: bool = kind in r.unlocks
 		var price: float = Balance.UNLOCK_COSTS[kind]
-		var description := "%s: %.0f%% of traffic · %s HP\n%s · %s gold" % [s.name, Balance.ENEMY_SHARES[kind] * 100.0, String.num(s.hp, 2), s.role.to_lower(), String.num(s.payout, 2)]
-		var b := UI.button(description + ("\nAlready attuned" if unlocked else "\nAttune  ·  " + UI.exact_money(price) + " gold"), func():
+		var b := UI.button(s.name + (" · Attuned" if unlocked else " · Attune · " + UI.exact_money(price) + " gold"), func():
 			if revision == sheet_revision and game.economy.unlock(id, kind):
 				app.persist()
 				show_entrance(id)
@@ -291,10 +304,8 @@ func show_entrance(id: String) -> void:
 func show_core() -> void:
 	close_sheet()
 	mode = "core"
-	clear_sheet("The core", "The core is the portal at the center of the map. All enemy routes end here.")
-	sheet_content.add_child(UI.paragraph("Build sentinels in nearby stone sockets to defeat enemies and earn gold. Expand your territory to add more defenses along the roads.", 14))
-	sheet_content.add_child(UI.paragraph("Enemies that reach the core escape. They cause no damage and take no gold, but you earn nothing from them.", 13))
-	sheet_content.add_child(UI.paragraph("Escaped through the core  " + Balance.money(game.data.escapes), 13))
+	clear_sheet("Core")
+	sheet_content.add_child(UI.button("Info", show_info))
 
 func return_to_core() -> void:
 	field.camera = VigilWorld.CORE_POSITION
@@ -304,6 +315,8 @@ func return_to_core() -> void:
 	app.persist()
 
 func show_settings() -> void:
+	if mode == "developer":
+		app.persist()
 	mode = "settings"
 	clear_sheet("Settings", "Raise sentinels, gather gold, and expand your vigil beyond the mist.")
 	sheet_content.add_child(UI.button("Power saving: " + ("On · 30 FPS" if game.data.settings.low_power else "Off · 60 FPS"), func():
@@ -325,6 +338,9 @@ func show_settings() -> void:
 		app.persist()
 		show_settings()
 	))
+	var developer := UI.button("Developer Controls", show_developer_controls)
+	developer.name = "OpenDeveloperControls"
+	sheet_content.add_child(developer)
 	var stats := HBoxContainer.new()
 	stats.add_theme_constant_override("separation", 12)
 	sheet_content.add_child(stats)
@@ -343,6 +359,19 @@ func show_settings() -> void:
 	sheet_content.add_child(UI.accent_button("Reset progress", show_reset_confirmation, UI.DANGER))
 	sheet_content.add_child(UI.button("Return to the core", return_to_core))
 
+func show_developer_controls() -> void:
+	mode = "developer"
+	clear_sheet("Developer Controls")
+	var controls := DeveloperControls.new()
+	controls.game = game
+	controls.changed.connect(app.balance_changed)
+	controls.layout_changed.connect(func(): call_deferred("fit_sheet"))
+	sheet_content.add_child(controls)
+	var back := UI.button("Back to settings", show_settings)
+	back.name = "BackToSettings"
+	action_footer.add_child(back)
+	action_footer.get_parent().show()
+
 func show_reset_confirmation() -> void:
 	mode = "reset"
 	clear_sheet("Reset all progress?", "This permanently removes claimed territories, purchases, upgrades, and earned gold. You will start again with the core territory, empty tower slots, and starting gold.")
@@ -353,15 +382,13 @@ func show_reset_confirmation() -> void:
 func refresh_affordability() -> void:
 	if is_instance_valid(action_button):
 		action_button.disabled = game.data.balance < action_cost
-		if is_instance_valid(affordability):
-			affordability.text = "Need " + UI.exact_money(action_cost - game.data.balance) + " more gold" if action_button.disabled else "Cost: " + UI.exact_money(action_cost) + " gold"
 	for item in prices:
 		if is_instance_valid(item.button):
 			item.button.disabled = item.locked or game.data.balance < item.cost
-			item.button.text = item.label + ("\nNeed " + UI.exact_money(item.cost - game.data.balance) + " more gold" if not item.locked and game.data.balance < item.cost else "")
+			item.button.tooltip_text = "Need " + UI.exact_money(item.cost - game.data.balance) + " more gold" if not item.locked and game.data.balance < item.cost else ""
 
 func price_button(button: Button, cost: float, locked: bool = false) -> void:
-	prices.append({"button": button, "cost": cost, "locked": locked, "label": button.text})
+	prices.append({"button": button, "cost": cost, "locked": locked})
 	button.disabled = locked or game.data.balance < cost
 
 func _unhandled_key_input(event: InputEvent) -> void:

@@ -2,6 +2,8 @@ class_name VigilSaveStore
 extends RefCounted
 
 var last_error := ""
+const LEGACY_MAX_TOWER_LEVEL := 10000
+const LEGACY_TOWER_COSTS := {"rapid": 60.0, "splash": 120.0, "heavy": 160.0}
 
 func write(path: String, data: Dictionary) -> bool:
 	# Validate before opening .tmp: it may be the only recoverable snapshot.
@@ -41,15 +43,42 @@ func read_candidate(path: String) -> Dictionary:
 	if parser.parse(envelope.payload) != OK:
 		return {}
 	var parsed = parser.data
-	if not parsed is Dictionary or not valid_data(parsed):
+	if not parsed is Dictionary:
 		return {}
-	return parsed
+	if parsed.get("version") == 1:
+		if not _valid_data(parsed, 1, LEGACY_MAX_TOWER_LEVEL):
+			return {}
+		parsed = _migrate_v1(parsed)
+	return parsed if valid_data(parsed) else {}
+
+func _migrate_v1(legacy: Dictionary) -> Dictionary:
+	var migrated := legacy.duplicate(true)
+	migrated.version = Balance.VERSION
+	for tower in migrated.towers.values():
+		if tower.level <= Balance.MAX_TOWER_LEVEL:
+			continue
+		var base_cost: float = legacy.settings.get("developer_balance", {}).get("towers", {}).get(tower.kind, {}).get("cost", LEGACY_TOWER_COSTS[tower.kind])
+		# Return the full, individually rounded prices paid for levels 4+.
+		# These constants deliberately retain the version-one economy.
+		for level in range(Balance.MAX_TOWER_LEVEL, int(tower.level)):
+			var refund := ceil(minf(Balance.MAX_MONEY, base_cost * 0.7 * pow(1.55, mini(level - 1, 700))))
+			migrated.balance = minf(Balance.MAX_MONEY, migrated.balance + refund)
+		tower.level = Balance.MAX_TOWER_LEVEL
+		tower.cooldown = minf(tower.cooldown, Balance.stats(tower.kind, tower.level, migrated.settings.get("developer_balance", {})).period)
+		# Relearn production for capped towers; old high-level income must not
+		# continue generating offline gold. Already stored earnings stay owned.
+		for region in migrated.regions.values():
+			region.history.erase(tower.id)
+	return migrated
 
 func valid_data(d: Dictionary) -> bool:
+	return _valid_data(d, Balance.VERSION, Balance.MAX_TOWER_LEVEL)
+
+func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 	for field in ["version", "sequence", "seed", "balance", "reserve", "lifetime_earnings", "kills", "escapes", "regions", "towers", "next_tower", "automation", "last_accounted", "active_seconds", "settings", "camera"]:
 		if not d.has(field):
 			return false
-	if d.version != Balance.VERSION or not d.regions is Dictionary or not d.towers is Dictionary or not d.regions.has("0,0"):
+	if d.version != version or not d.regions is Dictionary or not d.towers is Dictionary or not d.regions.has("0,0"):
 		return false
 	for field in ["balance", "reserve", "lifetime_earnings", "kills", "escapes", "last_accounted", "active_seconds"]:
 		if not number(d[field]):
@@ -63,6 +92,8 @@ func valid_data(d: Dictionary) -> bool:
 	if d.settings.has("text_scale") and (not number(d.settings.text_scale, 1.0, 1.5) or not d.settings.text_scale in [1.0, 1.25, 1.5]):
 		return false
 	if d.settings.has("reduced_motion") and not d.settings.reduced_motion is bool:
+		return false
+	if d.settings.has("developer_balance") and not Balance.valid_tuning(d.settings.developer_balance):
 		return false
 	if not number(d.camera[0], -1.0e12, 1.0e12) or not number(d.camera[1], -1.0e12, 1.0e12) or not number(d.camera[2], 0.42, 1.65):
 		return false
@@ -109,9 +140,13 @@ func valid_data(d: Dictionary) -> bool:
 				return false
 		if t.id != id or int(id) >= d.next_tower or not Balance.TOWERS.has(t.kind) or not d.regions.has(t.region):
 			return false
-		if not number(t.pad, 0, 3, true) or not number(t.level, 1, Balance.MAX_TOWER_LEVEL, true) or not number(t.earnings) or not number(t.cooldown, 0, 10) or not number(t.angle, -TAU, TAU):
+		if not number(t.pad, 0, 3, true) or not number(t.level, 1, max_tower_level, true) or not number(t.earnings) or not number(t.cooldown, 0, 10) or not number(t.angle, -TAU, TAU):
 			return false
 		var socket := str(t.region) + "/" + str(int(t.pad))
+		if not t.get("target_mode", "first") is String or not Balance.TARGET_MODES.has(t.get("target_mode", "first")):
+			return false
+		if t.has("rebuild_remaining") and not number(t.rebuild_remaining, 0, Balance.MAX_REBUILD_SECONDS):
+			return false
 		if occupied.has(socket):
 			return false
 		occupied[socket] = true

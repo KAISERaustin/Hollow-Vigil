@@ -84,8 +84,27 @@ static func trap_focus(root: Control) -> void:
 		controls[i].focus_next = after
 		controls[i].focus_neighbor_top = before
 		controls[i].focus_neighbor_bottom = after
-		controls[i].focus_neighbor_left = before
-		controls[i].focus_neighbor_right = after
+		# Sliders consume left/right for precise value changes.
+		controls[i].focus_neighbor_left = controls[i].get_path() if controls[i] is Slider else before
+		controls[i].focus_neighbor_right = controls[i].get_path() if controls[i] is Slider else after
+
+static func keyboard_scroll(scroll: ScrollContainer, description: String) -> void:
+	scroll.focus_mode = Control.FOCUS_ALL
+	scroll.add_theme_stylebox_override("focus", focus_box())
+	scroll.accessibility_name = description + ". Use arrow keys or Page Up and Page Down to scroll."
+	scroll.gui_input.connect(func(event: InputEvent):
+		if not event is InputEventKey or not event.pressed:
+			return
+		match event.keycode:
+			KEY_DOWN: scroll.scroll_vertical += 48
+			KEY_UP: scroll.scroll_vertical -= 48
+			KEY_PAGEDOWN: scroll.scroll_vertical += roundi(scroll.size.y * 0.9)
+			KEY_PAGEUP: scroll.scroll_vertical -= roundi(scroll.size.y * 0.9)
+			KEY_HOME: scroll.scroll_vertical = 0
+			KEY_END: scroll.scroll_vertical = roundi(scroll.get_v_scroll_bar().max_value)
+			_: return
+		scroll.accept_event()
+	)
 
 static func theme() -> Theme:
 	var t := Theme.new()
@@ -102,6 +121,15 @@ static func theme() -> Theme:
 	t.set_stylebox("hover_pressed", "Button", box(SURFACE))
 	t.set_stylebox("disabled", "Button", box(SURFACE))
 	t.set_stylebox("focus", "Button", focus_box())
+	# OptionButton popups are separate windows and need their own theme roles.
+	t.set_stylebox("panel", "PopupMenu", surface(PANEL, OUTLINE, 8))
+	t.set_stylebox("hover", "PopupMenu", box(GOLD))
+	t.set_font("font", "PopupMenu", font(600))
+	t.set_font_size("font_size", "PopupMenu", type_size(BODY))
+	for state in ["font_color", "font_hover_color", "font_accelerator_color"]:
+		t.set_color(state, "PopupMenu", TEXT)
+	t.set_color("font_disabled_color", "PopupMenu", MUTED)
+	t.set_constant("v_separation", "PopupMenu", maxi(12, TARGET - ceili(font(600).get_height(type_size(BODY)))))
 	t.set_stylebox("panel", "PanelContainer", surface(PANEL, OUTLINE, 0))
 	t.set_stylebox("panel", "TooltipPanel", surface(PANEL, 2, 12))
 	t.set_color("font_color", "TooltipLabel", TEXT)

@@ -9,7 +9,6 @@ const UI = preload("res://scripts/ui/interface.gd")
 var gold_label: Label
 var rate_label: Label
 var kills_label: Label
-var territories_label: Label
 var collect_button: Button
 var unclaimed_label: Label
 var header_margin: MarginContainer
@@ -46,33 +45,27 @@ func build_header() -> void:
 	toolbar.name = "HeaderToolbar"
 	toolbar.add_theme_constant_override("separation", 12)
 	header.add_child(toolbar)
-	var settings := UI.button("···", func(): settings_requested.emit(), 50)
+	var settings := UI.button("", func(): settings_requested.emit(), 50)
 	settings.name = "SettingsButton"
 	settings.tooltip_text = "Settings"
 	settings.accessibility_name = "Settings"
-	settings.text = ""
 	settings.draw.connect(func():
-		for x in [-8, 0, 8]:
-			settings.draw_circle(settings.size * 0.5 + Vector2(x, 0), 2.5, UI.TEXT)
+		var center := settings.size * 0.5
+		var outline := PackedVector2Array()
+		for point in range(32):
+			var angle := TAU * float(point) / 32.0 - PI / 32.0
+			var radius := 12.0 if point % 4 < 2 else 9.0
+			outline.append(center + Vector2.from_angle(angle) * radius)
+		outline.append(outline[0])
+		settings.draw_polyline(outline, UI.TEXT, 2.0, true)
+		settings.draw_arc(center, 4.0, 0.0, TAU, 24, UI.TEXT, 2.0, true)
 	)
 	settings.custom_minimum_size.x = 50
 	settings.size_flags_horizontal = Control.SIZE_FILL
 	toolbar.add_child(settings)
-	var territory := PanelContainer.new()
+	var territory := Control.new()
 	territory.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	territory.add_theme_stylebox_override("panel", UI.plain())
 	toolbar.add_child(territory)
-	var territory_stack := VBoxContainer.new()
-	territory_stack.add_theme_constant_override("separation", 4)
-	territory_stack.alignment = BoxContainer.ALIGNMENT_CENTER
-	territory.add_child(territory_stack)
-	var territory_name := UI.heading("The Ashen March", 18)
-	territory_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	territory_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	territory_stack.add_child(territory_name)
-	territories_label = UI.label("", 12, UI.MUTED)
-	territories_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	territory_stack.add_child(territories_label)
 	var info := UI.button("", func(): info_requested.emit(), 50)
 	info.name = "InfoButton"
 	info.tooltip_text = "Field guide"
@@ -133,7 +126,6 @@ func build_footer() -> void:
 	earning_row.add_child(collect_button)
 
 func update_values(game: VigilState) -> void:
-	territories_label.text = "%d territories" % game.data.regions.size()
 	gold_label.text = Balance.money(game.data.balance)
 	var gold_per_second := game.combat.income_rate()
 	rate_label.text = "%.2f" % gold_per_second if gold_per_second < 1000.0 else Balance.money(gold_per_second)
@@ -143,7 +135,7 @@ func update_values(game: VigilState) -> void:
 	collect_button.disabled = game.economy.unclaimed() < 0.01
 	unclaimed_label.tooltip_text = "No earnings yet" if collect_button.disabled else "Gold ready to collect"
 	var caption := unclaimed_label.get_parent().get_child(0) as Label
-	caption.text = "No earnings yet" if collect_button.disabled else "Unclaimed earnings"
+	caption.text = "Unclaimed earnings"
 
 func stat_block(parent: Node, title: String, value: String, color: Color) -> Label:
 	var panel := PanelContainer.new()

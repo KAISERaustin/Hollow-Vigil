@@ -20,7 +20,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 	var rapid := g.economy.build("rapid", "0,0", 0)
 	var splash := g.economy.build("splash", "0,0", 1)
 	var heavy := g.economy.build("heavy", "0,0", 2)
-	g.data.towers[rapid].level = 6
+	g.data.towers[rapid].level = 2
 	app.game = g
 	app.field.state = g
 	app.field.camera = Vector2.ZERO
@@ -32,14 +32,14 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 	var dialog = app.tower_dialog
 	for touch in [false, true]:
 		g.data.balance = 10.0
-		g.data.towers[rapid].level = 6
+		g.data.towers[rapid].level = 2
 		g.data.towers[splash].earnings = 73.0
 		g.data.reserve = 13.0
 		g.economy.credit(rapid, 400.0)
 		app.update_hud()
 		var location: Vector2 = app.field.global_position + app.field.screen(VigilWorld.pad_position("0,0", 0))
 		await harness.tap(app, location, touch)
-		check(not app.panels.visible and app.tower_actions.visible and not dialog.visible, "Tower click should reveal only the three in-world controls", failures)
+		check(not app.panels.visible and app.tower_actions.visible and not dialog.visible, "Tower click should reveal the five in-world controls", failures)
 		check(g.data.balance == 410.0 and g.data.towers[rapid].earnings == 0.0, "Tower click did not collect its stored gold exactly once", failures)
 		check(g.data.towers[splash].earnings == 73.0 and g.data.reserve == 13.0, "Tower click collected another source's gold", failures)
 		await harness.tap(app, location, touch)
@@ -49,7 +49,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 			check(not app.field.earnings_badge_visible(tower), "Tower selection left an earnings badge visible", failures)
 		if not touch:
 			await harness.capture(app, "tower-badges-hidden")
-		for action in ["info", "upgrade", "sell"]:
+		for action in ["info", "sell", "move", "target"]:
 			var before: Dictionary = g.data.duplicate(true)
 			await harness.tap(app, app.tower_actions.buttons[action].get_global_rect().get_center(), touch)
 			check(dialog.visible and dialog.mode == action and not app.tower_actions.visible, "Action icon did not open the correct modal", failures)
@@ -67,15 +67,48 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 		var before_info: Dictionary = g.data.duplicate(true)
 		await harness.tap(app, dialog.confirm.get_global_rect().get_center(), touch)
 		check(g.data == before_info and not dialog.visible, "Confirming Info changed the tower", failures)
-		await harness.tap(app, app.tower_actions.buttons.upgrade.get_global_rect().get_center(), touch)
-		check(not dialog.confirm.disabled, "Collected gold did not make the upgrade affordable", failures)
-		var upgrade: Callable = dialog.confirm.pressed.get_connections()[0].callable
+		for target_mode in Balance.TARGET_MODES:
+			await harness.tap(app, app.tower_actions.buttons.target.get_global_rect().get_center(), touch)
+			check(dialog.find_child("Target_" + g.data.towers[rapid].target_mode, true, false).button_pressed, "Targeting dialog did not show the saved choice", failures)
+			var before_targeting := g.data.duplicate(true)
+			await harness.tap(app, dialog.find_child("Target_" + target_mode, true, false).get_global_rect().get_center(), touch)
+			for key in Balance.TARGET_MODES:
+				var choice: Button = dialog.find_child("Target_" + key, true, false)
+				check(choice.button_pressed == (key == target_mode), "Only the selected targeting mode should be highlighted", failures)
+				check(choice.get_theme_stylebox("pressed").bg_color == Color(VigilTowerDialog.UI.GOLD) and choice.get_theme_stylebox("hover_pressed").bg_color == Color(VigilTowerDialog.UI.GOLD), "Selected targeting mode should remain yellow on hover", failures)
+			check(g.data == before_targeting, "Target choice changed state before Apply", failures)
+			await harness.tap(app, dialog.confirm.get_global_rect().get_center(), touch)
+			check(g.data.towers[rapid].target_mode == target_mode and g.data.towers[splash].target_mode == "first", "Targeting did not apply independently", failures)
+			var target_save: Dictionary = g.storage.read_candidate(g.save_path)
+			check(not target_save.is_empty() and target_save.towers[rapid].target_mode == target_mode, "Target choice was not saved", failures)
+		var upgrade_button: Button = app.tower_actions.buttons.upgrade
+		var upgrade_rect := upgrade_button.get_global_rect()
+		await harness.tap(app, upgrade_rect.get_center(), touch)
+		await harness.tap(app, app.tower_actions.buttons.info.get_global_rect().get_center(), touch)
+		check(app.tower_actions.pending_tower == "", "Another action retained upgrade confirmation", failures)
 		await harness.tap(app, dialog.confirm.get_global_rect().get_center(), touch)
-		upgrade.call()
-		check(g.data.towers[rapid].level == 7 and g.data.balance == 34.0 and g.data.towers[rapid].earnings == 25.0, "Upgrade double-spent or recollected stored earnings", failures)
-		await harness.tap(app, app.tower_actions.buttons.upgrade.get_global_rect().get_center(), touch)
-		check(dialog.confirm.disabled, "Unaffordable upgrade confirmation remained enabled", failures)
-		await harness.tap(app, dialog.cancel.get_global_rect().get_center(), touch)
+		await harness.tap(app, upgrade_rect.get_center(), touch)
+		app.field.selected_tower = splash
+		app.field.selected_tower = rapid
+		check(app.tower_actions.pending_tower == "", "Changing towers retained upgrade confirmation", failures)
+		await harness.tap(app, upgrade_rect.get_center(), touch)
+		check(not dialog.visible and app.tower_actions.pending_tower == rapid and g.data.towers[rapid].level == 2, "First click must only arm inline confirmation", failures)
+		check(upgrade_button.get_global_rect() == upgrade_rect, "Confirmation moved the button", failures)
+		g.data.balance = 99.0
+		app.tower_actions.refresh()
+		check(upgrade_button.disabled, "Unaffordable confirmation enabled", failures)
+		g.data.balance = 410.0
+		app.tower_actions.refresh()
+		check(not upgrade_button.disabled, "Affordable confirmation disabled", failures)
+		await harness.capture(app, "tower-inline-confirm-" + str(touch))
+		await harness.tap(app, upgrade_rect.get_center(), touch)
+		check(g.data.towers[rapid].level == 3 and g.data.balance == 310.0 and g.data.towers[rapid].earnings == 25.0, "Inline upgrade charged incorrectly", failures)
+		check(app.tower_actions.pending_tower == "" and upgrade_button.disabled, "Max level did not clear confirmation", failures)
+		var capped := g.data.duplicate(true)
+		upgrade_button.pressed.emit()
+		check(g.data == capped and not dialog.visible, "Forced max-level click changed state", failures)
+		var upgrade_save: Dictionary = g.storage.read_candidate(g.save_path)
+		check(not upgrade_save.is_empty() and upgrade_save.towers[rapid].level == 3, "Upgrade was not saved", failures)
 		# A hidden badge must act like the ground beneath it, not collect gold.
 		var hidden_badge: Rect2 = app.field.earnings_rect(g.data.towers[splash])
 		await harness.tap(app, app.field.global_position + hidden_badge.get_center(), touch)
@@ -94,7 +127,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 	app.panels.close_sheet()
 	g.economy.collect()
 	g.data.balance = 2000.0
-	g.data.towers[rapid].level = 6
+	g.data.towers[rapid].level = 2
 	app.field.camera = VigilWorld.pad_position("0,0", 0)
 	app.panels.select_pad("0,0", 0)
 	var reference_layout := {}
@@ -111,7 +144,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 			app.field.camera = VigilWorld.pad_position("0,0", int(g.data.towers[id].pad))
 			app.panels.select_pad("0,0", int(g.data.towers[id].pad))
 			await harness.capture(app, "tower-actions-%s-%d" % [g.data.towers[id].kind, viewport.x])
-			for action in ["info", "upgrade", "sell"]:
+			for action in ["info", "sell", "move", "target"]:
 				await harness.tap(app, app.tower_actions.buttons[action].get_global_rect().get_center(), true)
 				await harness.capture(app, "tower-%s-%s-%d" % [action, g.data.towers[id].kind, viewport.x])
 				check(dialog.visible, "Tower icon inaccessible at %s" % viewport, failures)
@@ -121,13 +154,10 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 				check(dialog.body.size.x <= dialog.scroll.size.x, "Dialog text overflows horizontally", failures)
 				for control in dialog.find_children("*", "Control", true, false):
 					check(control.tooltip_text.is_empty(), "Tower dialog contains unwanted hover text", failures)
-				if id == rapid and action == "upgrade":
-					var stats: GridContainer = dialog.find_child("TowerStats", true, false)
-					check(stats.get_child(0).get_child(1).text == "19.5 → 22.2", "Damage preview is wrong", failures)
-					check(stats.get_child(1).get_child(1).text == "3.33 → 3.58", "Fire rate is not shots per second", failures)
-					check(stats.get_child(2).get_child(1).text == "65.0 → 79.6", "DPS preview is wrong", failures)
+				if action == "upgrade":
+					check(dialog.find_child("TowerStats", true, false) == null, "Upgrade should show compact controls; stats belong in Info", failures)
 				await harness.tap(app, (dialog.confirm if action == "info" else dialog.cancel).get_global_rect().get_center(), true)
-		# Controls retain their proportions relative to the tower at every zoom and edge.
+		# Controls retain their map size and tower-relative offsets, even at edges.
 		for zoom in [0.42, 0.65, 1.0, 1.65]:
 			app.field.zoom = zoom
 			for id in [rapid, splash, heavy]:
@@ -155,12 +185,12 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 					check(g.data.towers[rapid].earnings == 0.0 and g.data.balance == before_collection + 1900.0, "Tower-relative earnings badge did not collect at zoom %.2f" % zoom, failures)
 					app.panels.select_pad("0,0", 0)
 					for touch in [false, true]:
-						for action in ["info", "upgrade", "sell"]:
+						for action in ["info", "sell", "move", "target"]:
 							await harness.tap(app, app.tower_actions.buttons[action].get_global_rect().get_center(), touch)
 							check(dialog.visible and dialog.mode == action, "Tower-relative action failed at zoom %.2f" % zoom, failures)
 							await harness.tap(app, (dialog.confirm if action == "info" else dialog.cancel).get_global_rect().get_center(), touch)
 		app.field.zoom = 1.0
-	# Real zoom changes tower controls proportionally while the HUD stays put.
+	# Real zoom scales tower controls with the map while the HUD stays fixed.
 	app.field.camera = VigilWorld.pad_position("0,0", 0)
 	app.panels.select_pad("0,0", 0)
 	var hud_rects := {}
@@ -208,5 +238,5 @@ static func check_layout(app: Control, reference_layout: Dictionary, failures: A
 	var center: Vector2 = app.field.global_position + app.field.screen(VigilWorld.pad_position(tower.region, tower.pad))
 	for action in reference_layout:
 		var rect: Rect2 = app.tower_actions.buttons[action].get_global_rect()
-		check(rect.size.x >= 48 and rect.size.y >= 48, "World zoom shrank the " + action + " touch target", failures)
-		check(app.field.get_global_rect().encloses(rect), "Tower action escaped the battlefield at the screen edge", failures)
+		check((rect.size / app.field.zoom).is_equal_approx(reference_layout[action].size), "World zoom changed the map size of the " + action + " button", failures)
+		check(((rect.position - center) / app.field.zoom).is_equal_approx(reference_layout[action].position), "Pan or zoom detached the " + action + " button from its tower", failures)

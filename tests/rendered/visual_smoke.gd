@@ -69,7 +69,9 @@ static func run(app: Control) -> void:
 	app.toast_timer = 0
 	await capture(app, "battlefield")
 	await test_info_guide(app, failures)
+	await preload("res://tests/rendered/developer_controls_checks.gd").run(app, load("res://tests/rendered/visual_smoke.gd"), failures)
 	await preload("res://tests/rendered/tower_panel_checks.gd").run(app, load("res://tests/rendered/visual_smoke.gd"), failures)
+	await preload("res://tests/rendered/relocation_ui_checks.gd").run(app, load("res://tests/rendered/visual_smoke.gd"), failures)
 	# Exercise the neighboring map controls through real mouse and touch events.
 	for scale in [1.0, 0.65, 0.42, 1.65]:
 		app.field.zoom = scale
@@ -109,14 +111,14 @@ static func run(app: Control) -> void:
 	await capture(app, "upgrade")
 	var earned := game.economy.unclaimed()
 	var before: float = game.data.balance
-	# Confirmation dialogs block the footer; collect before opening the upgrade.
-	app.tower_dialog.dismiss()
+	# Collect through the HUD before confirming the inline upgrade.
+	app.tower_actions.cancel_upgrade()
 	await tap(app, app.hud.collect_button.global_position + app.hud.collect_button.size * 0.5, true)
 	if game.data.balance < before + earned:
 		failures.append("Physical touch did not collect through the live HUD")
 	var level: int = game.data.towers["1"].level
 	await tap(app, app.tower_actions.buttons.upgrade.get_global_rect().get_center(), true)
-	await tap(app, app.tower_dialog.confirm.get_global_rect().get_center(), true)
+	await tap(app, app.tower_actions.buttons.upgrade.get_global_rect().get_center(), true)
 	if game.data.towers["1"].level != level + 1:
 		failures.append("Physical touch did not buy upgrade while collection animated")
 	app.panels.select_pad("0,0", 3)
@@ -248,7 +250,7 @@ static func run(app: Control) -> void:
 		f.store_line(failure)
 		push_error(failure)
 	f.store_line("Info guide: all catalog entries, mouse/touch tabs and scrolling, 540x960 and 420x800 layouts, read-only state, stale purchase protection, close and map socket access.")
-	f.store_line("Tower controls: Info/Upgrade/Sell icons and earnings badges retain fixed proportions relative to their tower at every zoom and screen edge, no selection camera movement, stable HUD, centered confirmations, mouse/touch actions at four zooms and three viewport sizes, collection, cancel, upgrade, sale and persistence.")
+	f.store_line("Tower controls: map-anchored Info/Upgrade/Sell icons and earnings badges that scale with their towers, no selection camera movement, stable HUD, centered confirmations, mouse/touch actions at four zooms and three viewport sizes, collection, cancel, upgrade, sale and persistence.")
 	f.store_line("Map cleanup: no core/rift labels or tower level dots; all gold badges and their click targets hide during tower management and restore on click-away or another panel.")
 	f.store_line("World simulation: 33 territories, repeated camera moves and zooms, return to core, distant upgrades/unlocks, identical enemies and per-tower income against a stationary reference.")
 	f.close()

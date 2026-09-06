@@ -6,17 +6,63 @@ const BUTTON_SIZE := Vector2(48, 48)
 const ACTION_OFFSETS := {
 	"info": Vector2(-78, 0),
 	"upgrade": Vector2(0, 78),
-	"sell": Vector2(78, 0)
+	"sell": Vector2(78, 0),
+	"move": Vector2(0, -78),
+	"target": Vector2(64, -64)
 }
 signal action_requested(action: String)
+signal upgraded
 var field: Battlefield
 var buttons: Dictionary = {}
 var blocked := false
+var pending_tower := ""
+var pending_level := -1
+var pending_cost := 0.0
+var upgrade_quote: Label
+
+func cancel_upgrade() -> void:
+	pending_tower = ""
+	pending_level = -1
+	if is_instance_valid(upgrade_quote):
+		upgrade_quote.hide()
+	if buttons.has("upgrade"):
+		buttons.upgrade.queue_redraw()
+
+func request_upgrade() -> void:
+	refresh()
+	if not visible or buttons.upgrade.disabled:
+		return
+	var id := field.selected_tower
+	var tower: Dictionary = field.state.data.towers[id]
+	if pending_tower == id:
+		var level := pending_level
+		cancel_upgrade()
+		if field.state.economy.upgrade(id, level):
+			upgraded.emit()
+	else:
+		pending_tower = id
+		pending_level = int(tower.level)
+		pending_cost = Balance.upgrade_cost(tower, field.state.tuning)
+	refresh()
+	buttons.upgrade.queue_redraw()
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if pending_tower != "" and event.is_action_pressed("ui_cancel"):
+		cancel_upgrade()
+		refresh()
+		get_viewport().set_input_as_handled()
 
 func _ready() -> void:
+	field.tower_selection_changed.connect(cancel_upgrade)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	for action in ["info", "upgrade", "sell"]:
+	upgrade_quote = UI.paragraph("", 14)
+	upgrade_quote.name = "UpgradeQuote"
+	upgrade_quote.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	upgrade_quote.add_theme_stylebox_override("normal", UI.surface(UI.PANEL, 2, 12))
+	add_child(upgrade_quote)
+	upgrade_quote.hide()
+	for action in ACTION_OFFSETS:
 		var button := UI.accent_button("", func(): action_requested.emit(action), UI.GOLD if action == "upgrade" else UI.SURFACE)
 		button.size = BUTTON_SIZE
 		button.tooltip_text = action.capitalize()
@@ -40,18 +86,35 @@ func _process(_delta: float) -> void:
 func refresh() -> void:
 	visible = not blocked and field.state.data.towers.has(field.selected_tower)
 	if not visible:
+		cancel_upgrade()
 		return
 	var tower: Dictionary = field.state.data.towers[field.selected_tower]
+	var cost := Balance.upgrade_cost(tower, field.state.tuning)
+	if pending_tower != "" and (pending_tower != field.selected_tower or pending_level != int(tower.level) or pending_cost != cost):
+		cancel_upgrade()
+	var upgrade: Button = buttons.upgrade
+	upgrade.disabled = tower.level >= Balance.MAX_TOWER_LEVEL or tower.get("rebuild_remaining", 0.0) > 0.0 or field.state.data.balance < cost
+	upgrade.tooltip_text = ("Confirm upgrade" if pending_tower != "" else "Upgrade") + " · " + UI.exact_money(cost) + " gold"
+	if tower.level >= Balance.MAX_TOWER_LEVEL:
+		upgrade.tooltip_text = "Max level"
+	elif tower.get("rebuild_remaining", 0.0) > 0.0:
+		upgrade.tooltip_text = "Rebuilding"
+	upgrade.accessibility_name = upgrade.tooltip_text
+	upgrade_quote.visible = pending_tower != ""
+	if upgrade_quote.visible:
+		upgrade_quote.text = "Upgrade to level %d · %s gold\nTap the checkmark to confirm." % [pending_level + 1, UI.exact_money(pending_cost)]
+		upgrade_quote.size.x = maxf(1.0, field.size.x - 24.0)
+		upgrade_quote.size.y = upgrade_quote.get_combined_minimum_size().y
+		upgrade_quote.position = Vector2(12, field.size.y - upgrade_quote.size.y - 12)
 	var center := field.screen(VigilWorld.pad_position(tower.region, tower.pad))
 	if not Rect2(Vector2.ZERO, field.size).has_point(center):
 		hide()
 		return
-	# Keep touch targets independent of world zoom and inside the battlefield.
-	var origin := Vector2(clampf(center.x, 110, field.size.x - 110), clampf(center.y, 32, field.size.y - 110))
+	# Keep the entire control cluster fixed to the tower in map space.
 	for action in ACTION_OFFSETS:
 		var button: Button = buttons[action]
-		button.scale = Vector2.ONE
-		button.position = origin + ACTION_OFFSETS[action] - BUTTON_SIZE * 0.5
+		button.scale = Vector2.ONE * field.zoom
+		button.position = center + (ACTION_OFFSETS[action] - BUTTON_SIZE * 0.5) * field.zoom
 
 func draw_icon(button: Button, action: String) -> void:
 	var center := button.size * 0.5
@@ -61,8 +124,22 @@ func draw_icon(button: Button, action: String) -> void:
 		button.draw_circle(center + Vector2(0, -5), 2, color)
 		button.draw_line(center + Vector2(0, -1), center + Vector2(0, 6), color, 3, true)
 	elif action == "upgrade":
+		if pending_tower != "":
+			button.draw_polyline(PackedVector2Array([center + Vector2(-10, 0), center + Vector2(-3, 7), center + Vector2(11, -8)]), color, 3, true)
+			return
 		for y in [-3, 5]:
 			button.draw_polyline(PackedVector2Array([center + Vector2(-9, y + 3), center + Vector2(0, y - 5), center + Vector2(9, y + 3)]), color, 3, true)
+	elif action == "target":
+		button.draw_arc(center, 10, 0, TAU, 40, color, 2, true)
+		button.draw_circle(center, 3, color)
+		for direction in [Vector2.UP, Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT]:
+			button.draw_line(center + direction * 7, center + direction * 15, color, 2, true)
+	elif action == "move":
+		for direction in [Vector2.UP, Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT]:
+			var tip: Vector2 = center + direction * 12
+			var side: Vector2 = direction.orthogonal() * 4
+			button.draw_line(center, tip, color, 2, true)
+			button.draw_polyline(PackedVector2Array([tip - direction * 5 + side, tip, tip - direction * 5 - side]), color, 2, true)
 	else:
 		button.draw_arc(center, 11, 0, TAU, 40, color, 3, true)
 		button.draw_line(center + Vector2(-5, 0), center + Vector2(5, 0), color, 3, true)

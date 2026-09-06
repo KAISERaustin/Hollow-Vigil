@@ -1,7 +1,8 @@
 extends RefCounted
 
-# Cosmetic snapshots only: no enemy references, damage, or delayed transactions.
-static func shot(kind: String, origin: Vector2, target: Vector2, stats: Dictionary) -> Dictionary:
+# Cosmetic only: an identity tracks the center without retaining pooled enemies.
+# Damage and payouts still resolve synchronously in combat.
+static func shot(kind: String, origin: Vector2, target: Vector2, stats: Dictionary, target_id: int = -1) -> Dictionary:
 	var muzzle := origin + Vector2(0, -25)
 	var speed := 760.0
 	var min_flight := 0.10
@@ -21,7 +22,7 @@ static func shot(kind: String, origin: Vector2, target: Vector2, stats: Dictiona
 			max_flight = 0.30
 			impact_time = 0.24
 	var flight := clampf(muzzle.distance_to(target) / speed, min_flight, max_flight)
-	return {"kind": "shot", "tower_kind": kind, "from": muzzle, "pos": target,
+	return {"kind": "shot", "tower_kind": kind, "from": muzzle, "pos": target, "target_id": target_id,
 		"flight": flight, "life": flight + impact_time, "max_life": flight + impact_time,
 		"color": stats.color, "radius": stats.splash}
 

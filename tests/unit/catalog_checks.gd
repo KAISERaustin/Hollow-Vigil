@@ -22,4 +22,8 @@ static func test_info_catalog(suite: SceneTree) -> void:
 		var enemy: Dictionary = suite.fixture_enemy(g, entry.id)
 		suite.check({"label": "Health", "value": String.num(enemy.max_hp, 2).trim_suffix(".0") + " HP"} in entry.stats, "Guide health matches spawned " + entry.name)
 	suite.check(catalog.entries("towers").size() == Balance.TOWERS.size() and catalog.entries("enemies").size() == Balance.ENEMIES.size(), "Guide includes every defined tower and enemy, regardless of unlock state")
+	for entry in catalog.entries("towers"):
+		for level in [1, 2]:
+			var cost := Balance.upgrade_cost({"kind": entry.id, "level": level})
+			suite.check({"label": "Level %d upgrade" % (level + 1), "value": String.num(cost, 0) + " gold"} in entry.stats, "Guide quotes each purchasable upgrade for " + entry.name)
 	print("PASS GROUP: reusable info catalog and live gameplay stats")

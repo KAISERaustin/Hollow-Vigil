@@ -32,7 +32,7 @@ static func test_all_territories(suite: SceneTree) -> void:
 	suite.check(is_equal_approx(g.combat.income_rate(), g.economy.unclaimed() / g.combat.simulation_time), "Gold per second includes all actual territory earnings once")
 	var tower_id := g.economy.tower_at("16,0", 0)
 	var before: float = g.data.towers[tower_id].earnings
-	for i in range(6):
+	for i in range(Balance.MAX_TOWER_LEVEL - 1):
 		g.economy.upgrade(tower_id)
 	for i in range(Balance.MAX_TRAFFIC_LEVEL):
 		g.economy.buy_traffic("16,0")

@@ -5,7 +5,7 @@ extends RefCounted
 const SECTIONS := {
 	"towers": {
 		"title": "Towers", "definitions": Balance.TOWERS,
-		"intro": "Level 1 stats. Upgrades improve damage, attack speed and reach.",
+		"intro": "Level 1 stats. Every tower upgrades twice, to a maximum of level 3.",
 		"hint": "To build, tap an empty stone socket on the map.",
 		"stats": [
 			{"key": "damage", "label": "Damage per hit"},
@@ -27,9 +27,18 @@ const SECTIONS := {
 	}
 }
 
-static func entries(category: String) -> Array[Dictionary]:
+static func entries(category: String, tuning: Dictionary = {}) -> Array[Dictionary]:
 	var section: Dictionary = SECTIONS[category]
-	return build_entries(section.definitions, section.stats)
+	var definitions := {}
+	for kind in section.definitions:
+		definitions[kind] = Balance.definition(category, kind, tuning)
+	var result := build_entries(definitions, section.stats)
+	if category == "towers":
+		for entry in result:
+			for level in range(1, Balance.MAX_TOWER_LEVEL):
+				var cost := Balance.upgrade_cost({"kind": entry.id, "level": level}, tuning)
+				entry.stats.append({"label": "Level %d upgrade" % (level + 1), "value": String.num(cost, 0) + " gold"})
+	return result
 
 static func build_entries(definitions: Dictionary, stat_fields: Array) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []

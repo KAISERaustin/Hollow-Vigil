@@ -14,8 +14,6 @@ var portrait: Control
 var tower_kind := "rapid"
 var confirm: Button
 var cancel: Button
-var balance_preview: Label
-var earnings_preview: Label
 var opener: Control
 var mode := ""
 var tower_id := ""
@@ -23,6 +21,9 @@ var tower_level := 0
 var revision := 0
 var cost := 0.0
 var refund := 0.0
+var rebuild_seconds := 0.0
+var rebuild_status: Label
+var target_choice := "first"
 
 func _ready() -> void:
 	name = "TowerDialog"
@@ -48,6 +49,8 @@ func _ready() -> void:
 	identity.add_child(heading)
 	scroll = ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus = true
+	UI.keyboard_scroll(scroll, "Tower details")
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	layout.add_child(scroll)
 	body = VBoxContainer.new()
@@ -62,8 +65,12 @@ func _ready() -> void:
 	hide()
 
 func open_action(action: String) -> void:
+	if action == "upgrade":
+		app.tower_actions.request_upgrade()
+		return
+	app.tower_actions.cancel_upgrade()
 	var id: String = app.field.selected_tower
-	if not action in ["info", "upgrade", "sell"] or not app.game.data.towers.has(id):
+	if not action in ["info", "upgrade", "sell", "move", "target"] or not app.game.data.towers.has(id):
 		return
 	opener = get_viewport().gui_get_focus_owner()
 	revision += 1
@@ -71,32 +78,49 @@ func open_action(action: String) -> void:
 	tower_id = id
 	var tower: Dictionary = app.game.data.towers[id]
 	tower_kind = tower.kind
+	target_choice = tower.get("target_mode", "first")
 	portrait.queue_redraw()
 	tower_level = int(tower.level)
-	cost = Balance.upgrade_cost(tower) if action == "upgrade" else 0.0
-	refund = Balance.sell_refund(tower) if action == "sell" else 0.0
-	balance_preview = null
-	earnings_preview = null
+	cost = Balance.upgrade_cost(tower, app.game.tuning) if action == "upgrade" else 0.0
+	refund = Balance.sell_refund(tower, app.game.tuning) if action == "sell" else 0.0
+	if action == "move":
+		cost = Balance.move_cost(tower, app.game.tuning)
+	rebuild_seconds = Balance.rebuild_seconds(tower, app.game.tuning)
 	for parent in [body, footer]:
 		for child in parent.get_children():
 			parent.remove_child(child)
 			child.queue_free()
-	var stats := Balance.stats(tower.kind, tower_level)
+	var stats := Balance.stats(tower.kind, tower_level, app.game.tuning)
 	heading.text = stats.name
-	var label := {"info": "Tower information · Level %d", "upgrade": "Upgrade · Level %d", "sell": "Sell tower · Level %d"}
+	var label := {"info": "Tower information · Level %d", "upgrade": "Upgrade · Level %d", "sell": "Sell tower · Level %d", "move": "Move tower · Level %d", "target": "Targeting · Level %d"}
 	body.add_child(UI.label(label[action] % tower_level, 14))
-	if action == "sell":
-		body.add_child(UI.paragraph("Remove this tower and free its socket for a new defense.", 14))
-		body.add_child(UI.heading("Sale refund   +" + UI.exact_money(refund) + " gold", 18))
-		body.add_child(UI.paragraph("50% of its build and upgrade costs. All stored gold is collected when you confirm.", 13))
-		earnings_preview = UI.paragraph("", 14)
-		body.add_child(earnings_preview)
-	else:
-		if action == "info":
-			body.add_child(UI.paragraph(stats.description, 14))
-		else:
-			body.add_child(UI.label("Current → Next · Level " + str(mini(tower_level + 1, Balance.MAX_TOWER_LEVEL)), 14, UI.MUTED))
-		var next := Balance.stats(tower.kind, mini(tower_level + 1, Balance.MAX_TOWER_LEVEL))
+	rebuild_status = UI.label("", 14, UI.TEXT)
+	body.add_child(rebuild_status)
+	if action == "target":
+		body.add_child(UI.paragraph("Choose which enemy this tower attacks within its range. First and Last use the remaining road distance to the core.", 14))
+		var group := ButtonGroup.new()
+		var descriptions := {"first": "Closest to the core", "last": "Farthest from the core", "most_hp": "Highest current health"}
+		for key in Balance.TARGET_MODES:
+			var choice := UI.button(Balance.TARGET_MODES[key] + "\n" + descriptions[key], func(): target_choice = key, 64)
+			choice.add_theme_font_size_override("font_size", UI.type_size(14))
+			choice.name = "Target_" + key
+			choice.toggle_mode = true
+			choice.button_group = group
+			choice.add_theme_stylebox_override("pressed", UI.box(UI.GOLD))
+			choice.add_theme_stylebox_override("hover_pressed", UI.box(UI.GOLD))
+			choice.button_pressed = key == target_choice
+			body.add_child(choice)
+	if action == "move":
+		var quote := UI.value("%s gold · Rebuild %s" % [UI.exact_money(cost), Balance.rebuild_time_text(rebuild_seconds)], 18)
+		quote.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		body.add_child(quote)
+		body.add_child(UI.paragraph("Choose an empty socket in any owned territory. Tapping it pays the cost and starts rebuilding. Your tower keeps its level and stored gold, but cannot fire, upgrade, or move again until ready. Rebuilding continues while you are away.", 14))
+	if action == "upgrade":
+		var progression := "Maximum level reached · %d / %d" % [tower_level, Balance.MAX_TOWER_LEVEL] if tower_level >= Balance.MAX_TOWER_LEVEL else "Level %d → %d / %d" % [tower_level, tower_level + 1, Balance.MAX_TOWER_LEVEL]
+		body.add_child(UI.label(progression, 14))
+	if action == "info":
+		body.add_child(UI.paragraph(stats.description, 14))
+		var next := Balance.stats(tower.kind, mini(tower_level + 1, Balance.MAX_TOWER_LEVEL), app.game.tuning)
 		var grid := GridContainer.new()
 		grid.name = "TowerStats"
 		grid.columns = 2
@@ -111,19 +135,14 @@ func open_action(action: String) -> void:
 		stat(grid, "Attack interval", stats.period, next.period, 2, "s")
 		if stats.splash > 0:
 			stat(grid, "Blast radius", stats.splash, next.splash, 0)
-	if action == "info":
-		body.add_child(UI.paragraph("Close returns to the tower controls. No gold is spent.", 13))
-	else:
-		balance_preview = UI.paragraph("", 14)
-		body.add_child(balance_preview)
-		body.add_child(UI.paragraph("Cancel keeps your tower and gold unchanged.", 13))
 	var opened_revision := revision
+	scroll.scroll_vertical = 0
 	cancel = UI.button("Cancel", dismiss, 48)
 	cancel.name = "CancelTowerAction"
 	cancel.custom_minimum_size.x = 92
 	cancel.size_flags_horizontal = Control.SIZE_FILL
 	footer.add_child(cancel)
-	var text: String = {"info": "Close", "upgrade": "Upgrade · " + UI.exact_money(cost) + " gold", "sell": "Sell tower"}[action]
+	var text: String = {"info": "Close", "upgrade": "Upgrade · " + UI.exact_money(cost) + " gold", "sell": "Sell · +" + UI.exact_money(refund) + " gold", "move": "Choose destination", "target": "Apply targeting"}[action]
 	confirm = UI.accent_button(text, func(): commit(opened_revision), UI.DANGER if action == "sell" else (UI.SURFACE if action == "info" else UI.GOLD), 48)
 	confirm.name = "ConfirmTowerAction"
 	confirm.add_theme_font_size_override("font_size", UI.type_size(16))
@@ -168,31 +187,33 @@ func refresh() -> void:
 	if not app.game.data.towers.has(tower_id) or app.game.data.towers[tower_id].level != tower_level:
 		dismiss()
 		return
-	var disabled: bool = mode == "upgrade" and (app.game.data.balance < cost or tower_level >= Balance.MAX_TOWER_LEVEL)
+	var tower: Dictionary = app.game.data.towers[tower_id]
+	var remaining: float = tower.get("rebuild_remaining", 0.0)
+	rebuild_status.visible = remaining > 0.0
+	rebuild_status.text = "Rebuilding · " + Balance.rebuild_time_text(remaining)
+	var disabled: bool = (mode in ["upgrade", "move"] and (app.game.data.balance < cost or remaining > 0.0)) or (mode == "upgrade" and tower_level >= Balance.MAX_TOWER_LEVEL)
 	if disabled != confirm.disabled:
 		confirm.disabled = disabled
 		UI.trap_focus(card)
-	if mode == "upgrade":
-		balance_preview.text = "Gold after upgrade: " + Balance.money(maxf(0, app.game.data.balance - cost))
-		if tower_level >= Balance.MAX_TOWER_LEVEL:
-			balance_preview.text = "This tower is at its maximum level."
-		elif app.game.data.balance < cost:
-			balance_preview.text = "You need " + Balance.money(cost - app.game.data.balance) + " more gold for this upgrade."
+	if mode == "upgrade" and tower_level >= Balance.MAX_TOWER_LEVEL:
+		confirm.text = "Max level"
 	elif mode == "sell":
-		var earnings: float = app.game.data.towers[tower_id].earnings
-		earnings_preview.text = "Stored gold   +" + Balance.money(earnings) + " gold"
-		balance_preview.text = "Gold after sale: " + Balance.money(minf(Balance.MAX_MONEY, app.game.data.balance + refund + earnings))
+		confirm.text = "Sell · +" + UI.exact_money(refund + app.game.data.towers[tower_id].earnings) + " gold"
 
 func commit(opened_revision: int) -> void:
 	if not visible or opened_revision != revision:
 		return
 	if mode == "info":
 		dismiss()
+	elif mode == "target":
+		if app.game.data.towers.has(tower_id) and Balance.TARGET_MODES.has(target_choice):
+			app.game.data.towers[tower_id].target_mode = target_choice
+			dismiss()
+			app.persist()
 	elif mode == "upgrade":
 		if app.game.economy.upgrade(tower_id, tower_level):
 			dismiss()
 			app.persist()
-			app.toast("Tower upgraded to level " + str(tower_level + 1) + ".")
 	elif mode == "sell":
 		var result: Dictionary = app.game.economy.sell(tower_id, tower_level)
 		if not result.is_empty():
@@ -200,7 +221,12 @@ func commit(opened_revision: int) -> void:
 			app.panels.close_sheet()
 			app.persist()
 			app.collection_effect(result.total)
-			app.toast("Tower sold. Its socket is ready to build again.")
+	elif mode == "move":
+		refresh()
+		if not visible or confirm.disabled:
+			return
+		dismiss()
+		app.tower_move.begin(tower_id, tower_level, cost, rebuild_seconds)
 
 func dismiss(restore_actions: bool = true) -> void:
 	revision += 1

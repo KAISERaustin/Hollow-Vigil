@@ -4,6 +4,8 @@ extends RefCounted
 const AttackEffects = preload("res://scripts/rendering/attack_effects.gd")
 
 var data: Dictionary
+var tuning: Dictionary:
+	get: return data.settings.get("developer_balance", {})
 var economy: VigilEconomy
 var paths: Dictionary
 var route_exits: Dictionary = {}
@@ -40,7 +42,7 @@ func hit(enemy: Dictionary, damage: float, tower_id: String) -> bool:
 		return false
 	# Mark dead synchronously before any credit, so splash and simultaneous shots are safe.
 	enemy.dead = true
-	var reward: float = Balance.ENEMIES[enemy.kind].payout
+	var reward := Balance.tuned_value("enemies", enemy.kind, "payout", tuning)
 	economy.credit(tower_id, reward)
 	data.kills += 1.0
 	var r: Dictionary = data.regions[enemy.source]
@@ -62,7 +64,7 @@ func spawn(id: String, forced_kind: String = "") -> Dictionary:
 		kind = Balance.enemy_kind(r.unlocks, rng.randf())
 	if not Balance.ENEMIES.has(kind):
 		return {}
-	var s: Dictionary = Balance.ENEMIES[kind]
+	var s := Balance.definition("enemies", kind, tuning)
 	enemy_serial += 1
 	var e: Dictionary = enemy_pool.pop_back() if not enemy_pool.is_empty() else {}
 	e.id = enemy_serial
@@ -106,7 +108,7 @@ func tick(delta: float) -> void:
 	for e in enemies:
 		if e.dead:
 			continue
-		var move: float = Balance.ENEMIES[e.kind].speed * delta
+		var move := Balance.tuned_value("enemies", e.kind, "speed", tuning) * delta
 		var p: Array = e.path
 		while move > 0.0 and not e.dead:
 			var dist: float = e.pos.distance_to(p[e.segment])
@@ -125,23 +127,25 @@ func tick(delta: float) -> void:
 	var buckets := {}
 	for e in enemies:
 		if not e.dead:
+			# Compute road distance lazily for in-range candidates, once per tick.
+			e.distance_remaining = -1.0
 			var bucket := Vector2i(floor(e.pos.x / 128.0), floor(e.pos.y / 128.0))
 			if not buckets.has(bucket):
 				buckets[bucket] = []
 			buckets[bucket].append(e)
 	for t in data.towers.values():
-		t.cooldown = maxf(0.0, t.cooldown - delta)
-		if t.cooldown > 0.0:
+		if t.get("rebuild_remaining", 0.0) > 0.0:
+			t.rebuild_remaining = maxf(0.0, t.rebuild_remaining - delta)
 			continue
-		var stats := Balance.stats(t.kind, t.level)
+		t.cooldown = maxf(0.0, t.cooldown - delta)
+		# Decimal tier intervals can leave tiny positive floating-point residue.
+		# Do not turn a 0.40-second attack into a 0.45-second attack.
+		if t.cooldown > 0.000001:
+			continue
+		var stats := Balance.stats(t.kind, t.level, tuning)
 		var pos := VigilWorld.pad_position(t.region, t.pad)
 		var candidates := nearby(buckets, pos, stats.range)
-		var target: Dictionary = {}
-		# Consistent oldest-in-range policy, independent of render frame rate.
-		for e in candidates:
-			if not e.dead and pos.distance_squared_to(e.pos) <= stats.range * stats.range:
-				if target.is_empty() or e.id < target.id:
-					target = e
+		var target := select_target(candidates, pos, stats.range, t.get("target_mode", "first"))
 		if target.is_empty():
 			continue
 		t.cooldown = stats.period
@@ -153,12 +157,38 @@ func tick(delta: float) -> void:
 					hit(e, stats.damage, t.id)
 		else:
 			hit(target, stats.damage, t.id)
-		add_effect(AttackEffects.shot(t.kind, pos, impact, stats))
+		add_effect(AttackEffects.shot(t.kind, pos, impact, stats, target.id))
 	recycle_dead_enemies()
 	while not income_events.is_empty() and simulation_time - income_events[0].x > 60.0:
 		income_events.pop_front()
 	if data.automation:
 		economy.collect()
+
+func distance_remaining(enemy: Dictionary) -> float:
+	var path: Array = enemy.path
+	var segment: int = enemy.segment
+	var remaining: float = enemy.pos.distance_to(path[segment])
+	for i in range(segment, path.size() - 1):
+		remaining += path[i].distance_to(path[i + 1])
+	return remaining
+
+func select_target(candidates: Array, pos: Vector2, radius: float, mode: String) -> Dictionary:
+	var target: Dictionary = {}
+	var best_score := 0.0
+	var best_distance := 0.0
+	for enemy in candidates:
+		if enemy.dead or pos.distance_squared_to(enemy.pos) > radius * radius:
+			continue
+		if enemy.distance_remaining < 0.0:
+			enemy.distance_remaining = distance_remaining(enemy)
+		var remaining: float = enemy.distance_remaining
+		var score: float = enemy.hp if mode == "most_hp" else (remaining if mode == "last" else -remaining)
+		# Equal HP prefers First; exact ties use spawn ID, never bucket order.
+		if target.is_empty() or score > best_score or (score == best_score and (remaining < best_distance or (remaining == best_distance and enemy.id < target.id))):
+			target = enemy
+			best_score = score
+			best_distance = remaining
+	return target
 
 func nearby(buckets: Dictionary, pos: Vector2, radius: float) -> Array:
 	var result: Array = []
@@ -170,6 +200,19 @@ func nearby(buckets: Dictionary, pos: Vector2, radius: float) -> Array:
 	return result
 
 func recycle_dead_enemies() -> void:
+	# Refresh after movement and attacks, before a dead dictionary can be reused.
+	# Rendering uses these same enemy centers, so shots and impacts stay aligned.
+	var targets := {}
+	for e in enemies:
+		targets[e.id] = e
+	for fx in effects:
+		if fx.kind != "shot" or not fx.has("target_id"):
+			continue
+		var target: Dictionary = targets.get(fx.target_id, {})
+		if not target.is_empty():
+			fx.pos = target.pos
+		if target.is_empty() or target.dead:
+			fx.erase("target_id")
 	var live: Array[Dictionary] = []
 	for e in enemies:
 		if not e.dead:

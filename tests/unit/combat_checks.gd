@@ -4,6 +4,58 @@ static func run(suite: SceneTree) -> void:
 	test_roles_and_escapes(suite)
 	test_core(suite)
 	test_road_junctions(suite)
+	test_targeting(suite)
+
+static func test_targeting(suite: SceneTree) -> void:
+	for kind in Balance.TOWERS:
+		for mode in Balance.TARGET_MODES:
+			var g := VigilState.new(852)
+			g.data.balance = 10000.0
+			var id := g.economy.build(kind, "0,0", 0)
+			suite.check(g.data.towers[id].target_mode == "first", "New towers default to First")
+			g.data.towers[id].target_mode = mode
+			# Oldest is Last, newest is First; highest current HP is in between.
+			for i in range(3):
+				var e: Dictionary = suite.fixture_enemy(g, "heavy")
+				e.pos = Vector2(-100 + i * 35, 0)
+				e.path = [e.pos, Vector2.ZERO]
+				e.segment = 1
+				e.hp = 10000.0 if i == 1 else 5000.0
+			for region in g.data.regions.values():
+				region.timer = 1000.0
+			var expected: int = g.combat.enemies[{"first": 2, "last": 0, "most_hp": 1}[mode]].id
+			g.combat.tick(Balance.STEP)
+			suite.check(g.combat.effects.back().target_id == expected, "%s obeys %s targeting during combat" % [kind, mode])
+	var g := VigilState.new(853)
+	var a := {"id": 1, "pos": Vector2(10, 0), "hp": 50.0, "dead": false, "distance_remaining": 100.0}
+	var b := {"id": 2, "pos": Vector2(20, 0), "hp": 50.0, "dead": false, "distance_remaining": 50.0}
+	suite.check(g.combat.select_target([a, b], Vector2.ZERO, 100, "first").id == 2, "First uses remaining road distance rather than straight-line distance")
+	suite.check(g.combat.select_target([a, b], Vector2.ZERO, 100, "most_hp").id == 2, "Equal HP prefers the enemy closest along its route")
+	a.distance_remaining = 50.0
+	for mode in Balance.TARGET_MODES:
+		suite.check(g.combat.select_target([b, a], Vector2.ZERO, 100, mode).id == 1, "Exact ties use stable spawn ID for " + mode)
+	a.dead = true
+	suite.check(g.combat.select_target([a, b], Vector2.ZERO, 100, "last").id == 2, "Dead enemies are excluded")
+	suite.check(g.combat.select_target([a, b], Vector2.ZERO, 15, "most_hp").is_empty(), "Out-of-range enemies are excluded")
+	var route := {"path": [Vector2(10, 0), Vector2(10, 20), Vector2.ZERO], "segment": 1, "pos": Vector2(10, 5)}
+	suite.check(is_equal_approx(g.combat.distance_remaining(route), 15.0 + sqrt(500.0)), "Remaining distance includes every road segment")
+	g.data.balance = 10000.0
+	var first := g.economy.build("rapid", "0,0", 0)
+	var second := g.economy.build("heavy", "0,0", 1)
+	g.data.towers[first].target_mode = "last"
+	g.save_path = "user://targeting-test.save"
+	suite.clean_test_save(g.save_path)
+	suite.check(g.save(1000.0), "Target modes can be saved")
+	var loaded := VigilState.new(1)
+	loaded.save_path = g.save_path
+	suite.check(loaded.load_save(1000.0) and loaded.data.towers[first].target_mode == "last" and loaded.data.towers[second].target_mode == "first", "Target mode persists independently for every tower")
+	var legacy := g.snapshot(1000.0)
+	legacy.towers[first].erase("target_mode")
+	suite.clean_test_save(g.save_path)
+	suite.check(g.storage.write(g.save_path, legacy) and loaded.load_save(1000.0) and loaded.data.towers[first].target_mode == "first", "Old saves default to First")
+	legacy.towers[first].target_mode = "invalid"
+	suite.check(not g.storage.valid_data(legacy), "Invalid targeting modes are rejected")
+	suite.clean_test_save(g.save_path)
 
 static func test_roles_and_escapes(suite: SceneTree) -> void:
 	var g := VigilState.new(456)

@@ -33,9 +33,13 @@ func clean_test_save(path: String) -> void:
 func run() -> void:
 	preload("res://tests/unit/economy_checks.gd").run(self)
 	preload("res://tests/unit/tower_economy_checks.gd").run(self)
+	preload("res://tests/unit/relocation_checks.gd").run(self)
+	preload("res://tests/unit/tower_progression_checks.gd").run(self)
+	preload("res://tests/unit/tower_balance_checks.gd").run(self)
 	preload("res://tests/unit/combat_checks.gd").run(self)
 	preload("res://tests/unit/attack_effect_checks.gd").run(self)
 	preload("res://tests/unit/catalog_checks.gd").run(self)
+	preload("res://tests/unit/developer_balance_checks.gd").run(self)
 	preload("res://tests/unit/world_checks.gd").run(self)
 	preload("res://tests/unit/routing_checks.gd").run(self)
 	preload("res://tests/unit/terrain_checks.gd").run(self)

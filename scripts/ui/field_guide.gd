@@ -6,6 +6,7 @@ const UI = preload("res://scripts/ui/interface.gd")
 const Catalog = preload("res://scripts/ui/info_catalog.gd")
 
 var category := "towers"
+var game: VigilState
 var tabs: Dictionary = {}
 var intro: Label
 var hint: Label
@@ -48,6 +49,7 @@ func _ready() -> void:
 	# Only cards scroll: navigation and close remain reachable as the catalog grows.
 	scroll = ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	UI.keyboard_scroll(scroll, "Field guide entries")
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	layout.add_child(scroll)
 	cards = VBoxContainer.new()
@@ -67,7 +69,7 @@ func show_category(id: String) -> void:
 	for child in cards.get_children():
 		cards.remove_child(child)
 		child.queue_free()
-	var entries := Catalog.entries(category)
+	var entries := Catalog.entries(category, game.tuning if game != null else {})
 	intro.text = "%d %s · %s" % [entries.size(), Catalog.SECTIONS[id].title.to_lower(), Catalog.SECTIONS[id].intro]
 	hint.text = Catalog.SECTIONS[id].hint
 	for entry in entries:

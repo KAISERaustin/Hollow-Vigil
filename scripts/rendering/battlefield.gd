@@ -4,21 +4,27 @@ extends Control
 const AttackEffects = preload("res://scripts/rendering/attack_effects.gd")
 
 signal picked(region: String, pad: int)
+signal relocation_picked(region: String, pad: int)
 signal expansion_picked(region: String)
 signal entrance_picked(region: String)
 signal earnings_picked(tower_id: String)
 signal core_picked
 signal empty_picked
 signal camera_changed
+signal tower_selection_changed
 
 var state: VigilState
 var camera := Vector2.ZERO
 var zoom := 1.0
 var selected_tower := "":
 	set(value):
+		var changed := selected_tower != value
 		selected_tower = value
+		if changed:
+			tower_selection_changed.emit()
 		queue_redraw()
 var selected_pad := -1
+var moving_tower := ""
 var selected_region := "0,0"
 var preview_kind := "rapid"
 var show_expansion := false
@@ -138,6 +144,14 @@ func _input(event: InputEvent) -> void:
 			gesture_consumed = true
 
 func tap(pos: Vector2) -> void:
+	if moving_tower != "":
+		var destination := world(pos)
+		for id in state.data.regions:
+			for pad in range(4):
+				if destination.distance_to(VigilWorld.pad_position(id, pad)) < maxf(26.0, 25.0 / zoom):
+					relocation_picked.emit(id, pad)
+					return
+		return
 	for t in state.data.towers.values():
 		if earnings_badge_visible(t) and earnings_rect(t).has_point(pos):
 			earnings_picked.emit(t.id)
@@ -200,6 +214,7 @@ func earnings_badge_visible(t: Dictionary) -> bool:
 	return t.earnings >= 1.0 and not state.data.towers.has(selected_tower)
 
 func earnings_local_rect(t: Dictionary) -> Rect2:
+	# Fixed map-space placement above the tower; never compensate for camera zoom.
 	var text := "+" + Balance.money(t.earnings)
 	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 18.0
 	return Rect2(Vector2(-width / 2.0, -68), Vector2(width, 23))
@@ -252,10 +267,10 @@ func _draw() -> void:
 	if state.data.towers.has(selected_tower):
 		var t: Dictionary = state.data.towers[selected_tower]
 		range_pos = VigilWorld.pad_position(t.region, t.pad)
-		range_radius = Balance.stats(t.kind, t.level).range
+		range_radius = Balance.stats(t.kind, t.level, state.tuning).range
 	elif selected_pad >= 0:
 		range_pos = VigilWorld.pad_position(selected_region, selected_pad)
-		range_radius = Balance.TOWERS[preview_kind].range
+		range_radius = Balance.tuned_value("towers", preview_kind, "range", state.tuning)
 	if range_radius > 0.0:
 		# A single outline keeps the range preview uncluttered.
 		draw_arc(screen(range_pos), range_radius * zoom, 0, TAU, 72, GOLD, 1.5, true)
@@ -284,6 +299,9 @@ func draw_region(region: Dictionary) -> void:
 		if state.economy.tower_at(region.id, pad) != "":
 			continue
 		var p := screen(VigilWorld.pad_position(region.id, pad))
+		if moving_tower != "":
+			draw_circle(p, 22.0 * zoom, Color(GOLD, 0.22))
+			draw_arc(p, 22.0 * zoom, 0, TAU, 32, GOLD, 2, true)
 		var radius := 5.0
 		var width := 2.5
 		draw_line(p - Vector2(radius, 0), p + Vector2(radius, 0), Color.BLACK, width, true)
@@ -304,12 +322,23 @@ func draw_tower(t: Dictionary) -> void:
 	var p := screen(VigilWorld.pad_position(t.region, t.pad))
 	var z := zoom
 	VigilTerrainArt.sentinel(self, t.kind, p, z)
-	if t.id == selected_tower:
-		draw_arc(p, 28, 0, TAU, 40, GOLD, 1.5, true)
+	if t.get("rebuild_remaining", 0.0) > 0.0:
+		# Scaffolding and a persistent timer distinguish an inactive tower.
+		draw_set_transform(p, 0, Vector2.ONE * zoom)
+		for x in [-24.0, 24.0]:
+			draw_line(Vector2(x, 4), Vector2(x, -44), GOLD, 3, true)
+		for y in [-12.0, -36.0]:
+			draw_line(Vector2(-27, y), Vector2(27, y), GOLD, 3, true)
+		draw_line(Vector2(-24, 4), Vector2(24, -36), GOLD, 2, true)
+		var label := "Rebuild " + Balance.rebuild_time_text(t.rebuild_remaining)
+		var width := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 16
+		draw_style_box(pill(GOLD, Color.BLACK, 3), Rect2(Vector2(-width * 0.5, 12), Vector2(width, 24)))
+		centered(label, Vector2(0, 29), 12, Color.BLACK)
+		draw_set_transform(Vector2.ZERO)
 	if earnings_badge_visible(t):
 		var label := "+" + Balance.money(t.earnings)
 		var rect := earnings_local_rect(t)
-		# Scale the entire badge, including text and border, with the tower artwork.
+		# Apply the same map transform as the tower, including its overhead spacing.
 		draw_set_transform(p, 0, Vector2.ONE * zoom)
 		draw_style_box(pill(GOLD, Color.BLACK, 3), rect)
 		centered(label, Vector2(rect.get_center().x, rect.position.y + 16), 12, Color.BLACK)

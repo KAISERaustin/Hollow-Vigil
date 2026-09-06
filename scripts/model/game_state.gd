@@ -13,6 +13,8 @@ var save_blocked := false
 var offline_award := 0.0
 var suspended := false
 var save_path := "user://vigil.save"
+var tuning: Dictionary:
+	get: return data.settings.get("developer_balance", {})
 
 func _init(seed_value: int = 0) -> void:
 	rng.randomize()
@@ -33,6 +35,59 @@ func refresh_paths() -> void:
 	combat.rebuild_routes()
 	terrain_revision += 1
 
+func set_balance_stat(category: String, kind: String, stat: String, value: float) -> bool:
+	var candidate := tuning.duplicate(true)
+	if not candidate.has(category):
+		candidate[category] = {}
+	if not candidate[category].has(kind):
+		candidate[category][kind] = {}
+	candidate[category][kind][stat] = value
+	if not Balance.valid_tuning(candidate):
+		return false
+	# Store only differences so future defaults remain the source of truth.
+	if is_equal_approx(value, Balance.definitions(category)[kind][stat]):
+		candidate[category][kind].erase(stat)
+		if candidate[category][kind].is_empty():
+			candidate[category].erase(kind)
+		if candidate[category].is_empty():
+			candidate.erase(category)
+	return apply_balance(candidate)
+
+func reset_developer_balance(category: String = "", kind: String = "") -> bool:
+	var candidate := tuning.duplicate(true)
+	if category == "":
+		candidate.clear()
+	elif candidate.has(category):
+		candidate[category].erase(kind)
+		if candidate[category].is_empty():
+			candidate.erase(category)
+	return apply_balance(candidate)
+
+func apply_balance(candidate: Dictionary) -> bool:
+	if not Balance.valid_tuning(candidate):
+		return false
+	if candidate == tuning:
+		return true
+	var previous := tuning
+	data.settings.developer_balance = candidate.duplicate(true)
+	# Preserve damage already taken and progress toward the next shot.
+	for enemy in combat.enemies:
+		if enemy.dead:
+			continue
+		var health := Balance.tuned_value("enemies", enemy.kind, "hp", tuning)
+		enemy.hp = health * clampf(enemy.hp / enemy.max_hp, 0.0, 1.0)
+		enemy.max_hp = health
+	for tower in data.towers.values():
+		var before := Balance.stats(tower.kind, tower.level, previous)
+		var after := Balance.stats(tower.kind, tower.level, tuning)
+		tower.cooldown = after.period * clampf(tower.cooldown / before.period, 0.0, 1.0)
+	# Relearn production under this balance; already earned gold stays owned.
+	for region in data.regions.values():
+		region.history.clear()
+		region.history_time = 0.0
+	combat.income_events.clear()
+	return true
+
 func expand(id: String) -> bool:
 	var options := VigilWorld.frontier(data.regions)
 	if not options.has(id) or not economy.spend(Balance.expansion_cost(data.regions.size())):
@@ -50,11 +105,18 @@ func apply_offline(now: float) -> float:
 	# Keep a high-water timestamp through backward clock changes.
 	data.last_accounted = maxf(now, data.last_accounted)
 	var total := 0.0
+	var rebuilding := {}
+	for tower in data.towers.values():
+		var remaining: float = tower.get("rebuild_remaining", 0.0)
+		if remaining > 0.0:
+			rebuilding[tower.id] = minf(elapsed, remaining)
+			tower.rebuild_remaining = maxf(0.0, remaining - elapsed)
 	if elapsed < 2.0:
 		return total
 	for r in data.regions.values():
 		for id in r.history:
-			var amount: float = r.history[id] / maxf(Balance.MIN_PRODUCTION_SAMPLE, r.history_time) * Balance.OFFLINE_FACTOR * elapsed
+			var earning_seconds: float = elapsed - rebuilding.get(id, 0.0)
+			var amount: float = r.history[id] / maxf(Balance.MIN_PRODUCTION_SAMPLE, r.history_time) * Balance.OFFLINE_FACTOR * earning_seconds
 			economy.credit(id, amount)
 			total += amount
 	# Lifetime kills counts only actual simulated defeats, never estimated offline kills.
@@ -133,8 +195,10 @@ func load_save(now: float = -1.0) -> bool:
 		r.side = int(r.side)
 		r.traffic = int(r.traffic)
 	for t in data.towers.values():
+		t.target_mode = t.get("target_mode", "first")
 		t.pad = int(t.pad)
 		t.level = int(t.level)
+		t.rebuild_remaining = float(t.get("rebuild_remaining", 0.0))
 	refresh_paths()
 	combat.enemies.clear()
 	apply_offline(Time.get_unix_time_from_system() if now < 0.0 else now)

@@ -156,7 +156,7 @@ static func test_portal_controls(suite: SceneTree) -> void:
 		field.set_zoom(scale, field.size * 0.5)
 		field.camera += Vector2(12, -8)
 		var current := field.earnings_rect(g.data.towers[tower])
-		suite.check((current.size / scale).is_equal_approx(badge.size) and ((current.position - field.screen(anchor)) / scale).is_equal_approx(badge_offset), "Earnings badge keeps the same proportions relative to its tower at zoom %.2f" % scale)
+		suite.check((current.size / scale).is_equal_approx(badge.size) and ((current.position - field.screen(anchor)) / scale).is_equal_approx(badge_offset), "Earnings badge stays fixed above its tower in map space at zoom %.2f" % scale)
 		field.selected_tower = tower
 		for point in [current.get_center(), Vector2(current.end.x + 4.0 * scale, current.get_center().y)]:
 			chosen.kind = ""

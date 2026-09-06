@@ -2,6 +2,8 @@ class_name VigilEconomy
 extends RefCounted
 
 var data: Dictionary
+var tuning: Dictionary:
+	get: return data.settings.get("developer_balance", {})
 
 func _init(shared_data: Dictionary) -> void:
 	data = shared_data
@@ -21,7 +23,7 @@ func spend(cost: float) -> bool:
 func _add_tower(kind: String, region: String, pad: int) -> String:
 	var id := str(data.next_tower)
 	data.next_tower += 1
-	data.towers[id] = {"id": id, "kind": kind, "region": region, "pad": pad, "level": 1, "earnings": 0.0, "cooldown": 0.0, "angle": 0.0}
+	data.towers[id] = {"id": id, "kind": kind, "region": region, "pad": pad, "level": 1, "earnings": 0.0, "cooldown": 0.0, "angle": 0.0, "rebuild_remaining": 0.0, "target_mode": "first"}
 	return id
 
 func tower_at(region: String, pad: int) -> String:
@@ -34,7 +36,7 @@ func tower_at(region: String, pad: int) -> String:
 func build(kind: String, region: String, pad: int) -> String:
 	if not Balance.TOWERS.has(kind) or not data.regions.has(region) or pad < 0 or pad >= 4 or tower_at(region, pad) != "":
 		return ""
-	if not spend(Balance.TOWERS[kind].cost):
+	if not spend(Balance.tuned_value("towers", kind, "cost", tuning)):
 		return ""
 	return _add_tower(kind, region, pad)
 
@@ -44,9 +46,26 @@ func upgrade(id: String, expected_level: int = -1) -> bool:
 	var t: Dictionary = data.towers[id]
 	if expected_level != -1 and t.level != expected_level:
 		return false
-	if t.level >= Balance.MAX_TOWER_LEVEL or not spend(Balance.upgrade_cost(t)):
+	if t.get("rebuild_remaining", 0.0) > 0.0 or t.level >= Balance.MAX_TOWER_LEVEL or not spend(Balance.upgrade_cost(t, tuning)):
 		return false
 	t.level += 1
+	return true
+
+func relocate(id: String, region: String, pad: int, expected_level: int = -1) -> bool:
+	if not data.towers.has(id) or not data.regions.has(region) or pad < 0 or pad >= 4 or tower_at(region, pad) != "":
+		return false
+	var tower: Dictionary = data.towers[id]
+	if tower.get("rebuild_remaining", 0.0) > 0.0 or (expected_level != -1 and tower.level != expected_level):
+		return false
+	if not spend(Balance.move_cost(tower, tuning)):
+		return false
+	tower.region = region
+	tower.pad = pad
+	tower.rebuild_remaining = Balance.rebuild_seconds(tower, tuning)
+	tower.cooldown = 0.0
+	# Old firing positions cannot demonstrate production at the new socket.
+	for source in data.regions.values():
+		source.history.erase(id)
 	return true
 
 func traffic_cost(id: String) -> float:
@@ -58,7 +77,7 @@ func sell(id: String, expected_level: int = -1) -> Dictionary:
 	var tower: Dictionary = data.towers[id]
 	if expected_level != -1 and tower.level != expected_level:
 		return {}
-	var refund := Balance.sell_refund(tower)
+	var refund := Balance.sell_refund(tower, tuning)
 	var earnings: float = tower.earnings
 	# Remove ownership and historical production before issuing the one-time payout.
 	data.towers.erase(id)

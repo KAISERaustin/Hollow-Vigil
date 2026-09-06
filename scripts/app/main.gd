@@ -4,12 +4,14 @@ extends Control
 const UI = preload("res://scripts/ui/interface.gd")
 const TowerActions = preload("res://scripts/ui/tower_actions.gd")
 const TowerDialog = preload("res://scripts/ui/tower_dialog.gd")
+const TowerMove = preload("res://scripts/ui/tower_move.gd")
 var hud: VigilHUD
 var game := VigilState.new()
 var field: Battlefield
 var panels: VigilPanels
 var tower_actions: TowerActions
 var tower_dialog: TowerDialog
+var tower_move: TowerMove
 var toast_label: Label
 var toast_timer := 0.0
 var return_overlay: ColorRect
@@ -22,6 +24,7 @@ var return_opener: Control
 var accumulator := 0.0
 var save_timer := 0.0
 var hud_timer := 0.0
+var balance_save_timer := -1.0
 @export var load_saved_progress := true
 
 func _ready() -> void:
@@ -40,10 +43,6 @@ func _ready() -> void:
 	build_interface()
 	if game.offline_award >= 1.0:
 		show_return_earnings(game.offline_award)
-	elif game.data.regions.size() == 1:
-		toast("Tap a + to claim your first territory for 100 gold and open a rift.", 8.0)
-	else:
-		toast("Tap an empty tower slot to buy your first sentinel. Claim a territory to open a rift.", 6.0)
 	if not game.save_error.is_empty():
 		toast(game.save_error, 12.0)
 
@@ -94,6 +93,11 @@ func build_interface() -> void:
 	tower_actions.field = field
 	field.add_child(tower_actions)
 	tower_actions.action_requested.connect(func(action): tower_dialog.open_action(action))
+	tower_actions.upgraded.connect(persist)
+	tower_move = TowerMove.new()
+	tower_move.app = self
+	field.add_child(tower_move)
+	field.relocation_picked.connect(tower_move.place)
 	hud.build_footer()
 	panels.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	panels.offset_left = 12
@@ -285,14 +289,25 @@ func reset_progress() -> void:
 	toast("Progress reset. Your new vigil begins." if game.save_error.is_empty() else game.save_error, 6.0)
 
 func persist() -> void:
+	balance_save_timer = -1.0
 	game.data.camera = [field.camera.x, field.camera.y, field.zoom]
 	if not game.save():
 		toast(game.save_error, 8.0)
 	update_hud()
 
+func balance_changed() -> void:
+	# Coalesce slider drags into one save; closing or suspending also flushes it.
+	balance_save_timer = 0.35
+	field.queue_redraw()
+	update_hud()
+
 func _process(delta: float) -> void:
 	if game.suspended:
 		return
+	if balance_save_timer >= 0.0:
+		balance_save_timer -= delta
+		if balance_save_timer <= 0.0:
+			persist()
 	# A large stall is accounted as offline time, never as a burst of active ticks.
 	if delta > 2.0:
 		game.apply_offline(Time.get_unix_time_from_system())
@@ -341,8 +356,13 @@ func _notification(what: int) -> void:
 			close_return_popup()
 		elif tower_dialog.visible:
 			tower_dialog.dismiss()
+		elif tower_move.visible:
+			tower_move.cancel()
 		elif panels.visible:
-			panels.close_sheet()
+			if panels.mode in ["reset", "developer"]:
+				panels.show_settings()
+			else:
+				panels.close_sheet()
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
@@ -350,8 +370,10 @@ func _input(event: InputEvent) -> void:
 			close_return_popup()
 		elif tower_dialog.visible:
 			tower_dialog.dismiss()
+		elif tower_move.visible:
+			tower_move.cancel()
 		elif panels.visible:
-			if panels.mode == "reset":
+			if panels.mode in ["reset", "developer"]:
 				panels.show_settings()
 			else:
 				panels.close_sheet()

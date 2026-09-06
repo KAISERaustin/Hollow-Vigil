@@ -23,11 +23,22 @@ static func run(suite: SceneTree) -> void:
 			continue
 		var fx: Dictionary = shots[0]
 		suite.check(fx.tower_kind == kind and fx.life == fx.max_life and fx.flight > Balance.STEP, kind + " launches its own traveling effect from age zero")
+		var launch_center: Vector2 = fx.pos
+		game.combat.tick(Balance.STEP)
+		suite.check(fx.pos == target.pos and fx.pos != launch_center, kind + " follows the moving target center during flight")
+		# Cross a corner on the next tick; tracking must use the route's actual position.
+		var corner: Vector2 = target.pos + Vector2(0.1, 0)
+		target.path = [target.pos, corner, corner + Vector2(0, 1000)]
+		target.segment = 1
+		game.combat.tick(Balance.STEP)
+		suite.check(fx.pos == target.pos and fx.pos.y > corner.y, kind + " follows the target through a route turn")
 		var impact: Vector2 = fx.pos
 		game.combat.hit(target, 1000.0, id)
 		game.combat.recycle_dead_enemies()
-		game.combat.spawn("1,0", "basic")
-		suite.check(fx.pos == impact, kind + " keeps a stable destination when the enemy pool reuses a defeated target")
+		var replacement := game.combat.spawn("1,0", "basic")
+		replacement.pos = impact + Vector2(300, 0)
+		game.combat.tick(Balance.STEP)
+		suite.check(fx.pos == impact and not fx.has("target_id"), kind + " keeps a stable destination when the enemy pool reuses a defeated target")
 		game.combat.enemies.clear()
 		var credited: float = game.data.towers[id].earnings
 		for i in range(20):
