@@ -366,7 +366,7 @@ func show_waves() -> void:
 				preview.add_child(UI.paragraph("%s: %s." % [enemy.name, str(enemy.get("description", enemy.get("weakness", "Boss"))).get_slice(".", 0)], 14))
 
 func show_socket(socket: int) -> void:
-	if not run.editable():
+	if not run.editable() or not Balance.Content.level(run.mission.index).allows_socket(socket):
 		return
 	selected = socket
 	board.selected = socket

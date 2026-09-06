@@ -86,6 +86,8 @@ func run() -> void:
 		check(not campaign.run.tower_at(socket.index).is_empty(), "Build action creates a real combat tower")
 		campaign.board.pick(campaign.board.screen(socket.position))
 		await frame()
+		check(not campaign.dialog.visible and campaign.tower_actions.visible, "Campaign uses shared tower controls without the old manage menu")
+		check(campaign.tower_actions.get_script() == preload("res://scripts/ui/towers/tower_actions.gd"), "Campaign instantiates Infinite Worlds tower actions")
 		campaign.tower_actions.request_upgrade()
 		check(campaign.run.game.data.towers[campaign.run.tower_at(socket.index)].level == 1, "Shared upgrade requires confirmation")
 		campaign.tower_actions.request_upgrade()
@@ -153,6 +155,40 @@ func run() -> void:
 	check(campaign.run.game.data.balance == gold - 35.0, "Campaign upgrade charge matches the displayed tuned price")
 	var tuned_tower: Dictionary = campaign.run.game.data.towers[campaign.run.tower_at(6)]
 	check(Balance.tower_stats(tuned_tower, campaign.run.game.tuning).damage == 20.0, "Campaign combat resolves tuned tier damage")
+	var infinite_balance: float = app.game.data.balance
+	campaign.game.data.balance = 10000.0
+	campaign.tower_actions.request_upgrade()
+	campaign.tower_actions.request_upgrade()
+	check(tuned_tower.level == 3, "Shared campaign upgrade reaches specialization tier")
+	campaign.tower_actions.choose_branch(0)
+	check(tuned_tower.level == 3, "Specialization waits for confirmation")
+	campaign.tower_actions.choose_branch(0)
+	check(tuned_tower.level == 4 and tuned_tower.branch == "frostneedle", "Shared branch purchase applies to campaign tower")
+	campaign.tower_dialog.open_action("target")
+	campaign.tower_dialog.target_choice = "last"
+	campaign.tower_dialog.confirm.pressed.emit()
+	check(tuned_tower.target_mode == "last", "Shared targeting applies to campaign tower")
+	campaign.game.data.relics["campaign-test"] = "warden"
+	campaign.tower_dialog.open_action("equipment")
+	campaign.tower_dialog.show_equipment_details("campaign-test")
+	campaign.tower_dialog.confirm.pressed.emit()
+	check(tuned_tower.relic == "campaign-test", "Shared equipment picker equips campaign inventory")
+	await frame()
+	await Harness.capture(app, "campaign-shared-equipment")
+	campaign.tower_dialog.request_equipment_removal()
+	campaign.tower_dialog.confirm.pressed.emit()
+	check(tuned_tower.get("relic", "") == "", "Shared equipment removal returns relic to campaign inventory")
+	campaign.tower_dialog.dismiss()
+	campaign.tower_dialog.open_action("move")
+	campaign.tower_dialog.confirm.pressed.emit()
+	var destination: Dictionary = campaign.run.mission.sockets[0]
+	campaign.show_socket(destination.index)
+	check(campaign.run.tower_at(destination.index) == tuned_tower.id and campaign.run.tower_at(6) == "", "Shared relocation moves to authored campaign socket")
+	check(tuned_tower.rebuild_remaining > 0.0, "Campaign move uses shared rebuilding state")
+	campaign.tower_dialog.open_action("sell")
+	campaign.tower_dialog.confirm.pressed.emit()
+	check(campaign.game.data.towers.is_empty(), "Shared sell removes campaign tower")
+	check(app.game.data.balance == infinite_balance and not app.game.data.relics.has("campaign-test"), "Campaign tower actions leave Infinite Worlds state unchanged")
 	# Inspect a later-region briefing and the final completion UI independently
 	# of the full legal-combat playthrough covered by campaign_balance_runner.
 	campaign.progress.data.completed_levels = 19

@@ -109,6 +109,8 @@ func _ready() -> void:
 		show_fields()
 	)
 	editor.add_child(selector)
+	limit_dropdown(selector)
+	selector.get_popup().shrink_width = false
 	tier_selector = selector.duplicate(0)
 	tier_selector.name = "BalanceTier"
 	tier_selector.get_popup().about_to_popup.connect(limit_dropdown.bind(tier_selector))
@@ -120,6 +122,8 @@ func _ready() -> void:
 		show_fields()
 	)
 	editor.add_child(tier_selector)
+	limit_dropdown(tier_selector)
+	tier_selector.get_popup().shrink_width = false
 	hint = UI.paragraph("", 12)
 	editor.add_child(hint)
 	fields = VBoxContainer.new()
@@ -146,7 +150,8 @@ func _ready() -> void:
 	show_categories()
 
 func limit_dropdown(option: OptionButton) -> void:
-	# Both dimensions must be nonzero for the embedded popup to honor its cap.
+	# Set this before the first popup layout; about_to_popup alone runs too late
+	# to constrain its initial minimum height and screen placement.
 	var viewport_size := get_viewport_rect().size
 	option.get_popup().max_size = Vector2i(int(viewport_size.x), mini(UI.TARGET * 6, int(viewport_size.y)))
 
