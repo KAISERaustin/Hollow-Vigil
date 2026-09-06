@@ -29,6 +29,7 @@ var dialog_body: VBoxContainer
 var dialog_title: Label
 var save_notice: Label
 var socket_dialog := false
+var waves_dialog := false
 
 func _ready() -> void:
 	name = "Campaign"
@@ -57,8 +58,10 @@ func fit() -> void:
 	layout.offset_bottom = safe.end.y - size.y
 	if is_instance_valid(dialog_card):
 		dialog_card.size = Vector2(minf(470, safe.size.x), minf(490, safe.size.y))
+		if waves_dialog:
+			dialog_card.size.y = safe.size.y
 		if socket_dialog:
-			dialog_card.size.y = minf(340, safe.size.y * 0.44)
+			dialog_card.size.y = minf(340, safe.size.y)
 			dialog_card.position = Vector2(safe.get_center().x - dialog_card.size.x * 0.5, safe.end.y - dialog_card.size.y)
 		else:
 			dialog_card.position = safe.position + (safe.size - dialog_card.size) * 0.5
@@ -262,9 +265,33 @@ func save_progress() -> void:
 
 func show_waves() -> void:
 	open_dialog("Waves")
+	waves_dialog = true
+	fit()
+	var preview := VBoxContainer.new()
+	preview.add_theme_constant_override("separation", 4)
+	dialog_body.add_child(preview)
+	preview.add_child(UI.paragraph("A, B and C mark entrances. Enemies follow their road to your flame.", 14))
 	for index in range(run.mission.waves.size()):
-		dialog_body.add_child(UI.heading("Wave %d%s" % [index+1, " · Cleared" if index < run.wave else ""], 18))
-		dialog_body.add_child(UI.paragraph(Catalog.wave_text(run.mission, index), 14))
+		var section := VBoxContainer.new()
+		section.add_theme_constant_override("separation", 2)
+		preview.add_child(section)
+		section.add_child(UI.heading("Wave %d%s" % [index+1, " · Cleared" if index < run.wave else ""], 16))
+		for group in run.mission.waves[index]:
+			var definitions: Dictionary = Balance.BOSSES if Balance.BOSSES.has(group[0]) else Balance.ENEMIES
+			var enemy: Dictionary = definitions[group[0]]
+			var role: String = str(enemy.get("role", "Boss")).split(" · ")[-1].capitalize()
+			section.add_child(UI.paragraph("%d %s · %s · via %s" % [group[1], enemy.name, role, String.chr(65 + int(group[2]))], 14))
+	if run.mission.waves.size() <= 3:
+		preview.add_child(UI.rule())
+		var described: Array[String] = []
+		for wave in run.mission.waves:
+			for group in wave:
+				if group[0] in described:
+					continue
+				described.append(group[0])
+				var definitions: Dictionary = Balance.BOSSES if Balance.BOSSES.has(group[0]) else Balance.ENEMIES
+				var enemy: Dictionary = definitions[group[0]]
+				preview.add_child(UI.paragraph("%s: %s." % [enemy.name, str(enemy.get("description", enemy.get("weakness", "Boss"))).get_slice(".", 0)], 14))
 
 func show_socket(socket: int) -> void:
 	if not run.editable():
@@ -341,6 +368,7 @@ func show_result() -> void:
 
 func _build_dialog() -> void:
 	dialog = ColorRect.new()
+	dialog.z_index = 101
 	dialog.color = Color(0.03,0.04,0.05,0.8)
 	dialog.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(dialog)
@@ -375,7 +403,10 @@ func _build_dialog() -> void:
 	dialog.hide()
 
 func open_dialog(title: String, for_socket: bool = false) -> void:
+	waves_dialog = false
 	socket_dialog = for_socket
+	dialog_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 3, 0 if for_socket else 16))
+	dialog_body.add_theme_constant_override("separation", 6 if for_socket else 12)
 	dialog.color = Color(0, 0, 0, 0) if for_socket else Color(0.03, 0.04, 0.05, 0.8)
 	dialog.mouse_filter = Control.MOUSE_FILTER_IGNORE if for_socket else Control.MOUSE_FILTER_STOP
 	for child in dialog_body.get_children():
@@ -424,3 +455,4 @@ func close() -> void:
 		save_progress()
 	closed.emit()
 	queue_free()
+

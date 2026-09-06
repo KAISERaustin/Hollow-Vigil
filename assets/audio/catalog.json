@@ -279,6 +279,16 @@
     "cooldown": 0.28,
     "description": "orb; 150 Hz; 0.13s; pitch sweep -0.5"
   },
+  "death_ruin_knight": {
+    "category": "enemies",
+    "cooldown": 0.28,
+    "description": "chime; 125 Hz; 0.13s; pitch sweep -0.5"
+  },
+  "death_sepulcher": {
+    "category": "enemies",
+    "cooldown": 0.28,
+    "description": "wood; 58 Hz; 0.13s; pitch sweep -0.5"
+  },
   "death_briarling": {
     "category": "enemies",
     "cooldown": 0.28,
