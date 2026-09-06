@@ -58,6 +58,12 @@ Only one tile in the patch has a portal. It summons **Briarlings** (85 HP, 86 sp
 
 All three appear in Developer Controls with editable health, movement speed, bounty and knockback resistance. Their edits persist in local saves, cloud backups, exported configurations, Public Builds and Survival imports. Existing purchased terrain keeps its saved appearance; new terrain is generated when claimed. An older world that already owns the seeded portal location keeps its original portal; start a new world to guarantee the complete Orchard.
 
+## Campaign: The Last Procession
+
+Open **Campaign · The Last Procession** from Saved games, or play it from Settings. Twenty handcrafted levels cross four regions in a separate campaign world, with predefined roads, planned waves and a boss every fifth level. Each mission starts with fresh gold and 20 flame; enemies reaching the sanctuary consume flame, and an escaped boss ends the mission. Gold is collected automatically. Build and upgrade between or during waves, preview the next threats, and start each wave when ready.
+
+Victories unlock the next level. Earn up to three medals by protecting the flame, and replay levels to improve your best result. Campaign checkpoints and medals save locally, separately from sandbox games. Interrupted waves resume from their preparation checkpoint. See [the campaign guide](docs/CAMPAIGN.md) for all 20 missions, controls and save behavior.
+
 ## Developer Controls
 
 Open **Settings → Developer Controls**, choose **Bosses**, **Rifts**, **Enemies**, **Towers**, or **Gear** from the category list, then select a type in its editor. Use **Back to categories** to choose another group. Enemy controls include all six types, including Abyss Shades and Crypt Sentinels, with health, speed, gold reward and knockback resistance. Bosses also expose their defenses, counter strengths, timers, and summon settings.

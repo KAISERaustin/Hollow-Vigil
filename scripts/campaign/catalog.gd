@@ -48,7 +48,7 @@ const MISSIONS := [
 	 "roads": [[[-150,-610],[-150,-450],[0,-450],[0,-300],[150,-300],[150,0],[0,0],[0,80]]],
 	 "waves": [[["fast",24,0,0,0.8]], [["lantern",18,0,0,1.2]], [["shade",8,0,0,2]], [["heavy",8,0,0,2.5],["fast",20,0,5,0.8]], [["shade",14,0,0,1.5],["lantern",12,0,3,1.4]]]},
 	{"name": "Tombwater Crossing", "brief": "Two routes cross without changing lanes. Towers at the crossing reach both.", "gold": 650, "pads": [0,1,2,3,4,5,6,7,9,10,13,14],
-	 "roads": [[[-150,-610],[-150,-450],[150,-150],[150,0],[0,0],[0,80]],[[150,-610],[150,-450],[-150,-150],[-150,0],[0,0],[0,80]]],
+	 "roads": [[[-150,-610],[-150,-450],[0,-450],[0,-150],[150,-150],[150,0],[0,0],[0,80]],[[150,-610],[150,-300],[-150,-300],[-150,0],[0,0],[0,80]]],
 	 "waves": [[["basic",24,0,0,0.6],["fast",12,1,3,1]], [["shade",8,1,0,2],["lantern",14,0,0,1.3]], [["fast",24,0,0,0.7],["fast",24,1,0,0.7]], [["sentinel",4,0,0,4],["shade",12,1,2,1.8]], [["shade",14,0,0,1.4],["lantern",20,1,0,1]]]},
 	{"name": "The Long Descent", "brief": "Crypt Sentinels endure light fire. Invest in heavy towers and long sightlines.", "gold": 720, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
 	 "roads": [[[270,-610],[-150,-610],[-150,-450],[150,-450],[150,-150],[-150,-150],[-150,0],[0,0],[0,80]]],
@@ -71,7 +71,7 @@ const MISSIONS := [
 	{"name": "Nightfall Bastion", "brief": "The final approach mixes crowds with armored escorts. Save a reserve for the last wave.", "gold": 1050, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
 	 "roads": [[[0,-610],[-150,-610],[-150,-450],[150,-450],[150,-300],[-150,-300],[-150,0],[0,0],[0,80]],[[270,-600],[150,-600],[150,-150],[0,-150],[0,80]]],
 	 "waves": [[["basic",40,0,0,0.4],["lantern",20,1,0,1]], [["sentinel",10,0,0,2.5]], [["shade",22,1,0,1.1],["fast",30,0,0,0.6]], [["heavy",16,0,0,1.6],["lantern",24,1,0,1]], [["sentinel",10,0,0,2.5],["shade",20,1,0,1.2]], [["sentinel",8,1,0,3],["shade",26,0,3,1]]]},
-	{"name": "The Last Vigil", "brief": "Defeat the Eclipse Prior and relight the capital. Doomstone pierces its renewing wards.", "gold": 1250, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
+	{"name": "The Last Vigil", "brief": "Defeat the Eclipse Prior and relight the capital. Doomstone pierces its renewing wards.", "gold": 1500, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
 	 "roads": [[[-270,-610],[150,-610],[150,-450],[-150,-450],[-150,-150],[150,-150],[150,0],[0,0],[0,80]],[[270,-450],[150,-450],[150,-300],[0,-300],[0,80]],[[0,-610],[0,-450],[-150,-450],[-150,0],[0,0],[0,80]]],
 	 "waves": [[["lantern",24,0,0,0.9],["basic",36,2,0,0.5]], [["sentinel",10,0,0,2.5],["fast",24,1,4,0.8]], [["shade",20,1,0,1.3],["shade",20,2,0,1.3]], [["heavy",16,0,0,1.8],["sentinel",8,2,0,3]], [["lantern",24,1,0,1],["shade",24,0,0,1.1]], [["prior",1,0,0,1],["sentinel",8,2,5,3.5],["shade",18,1,8,1.5]]]}
 ]
@@ -84,6 +84,8 @@ static func level(index: int) -> Dictionary:
 	result.chapter = index / 5
 	result.style = CHAPTERS[index / 5].style
 	result.reward = 35 + index * 4
+	# The first chapter introduces shield counters with a gentler boss budget.
+	result.tuning = {"bosses": {"warden": {"hp": 1800.0, "shield": 300.0, "regen_period": 12.0}}} if index == 4 else {}
 	result.routes = []
 	for road in result.roads:
 		var path: Array[Vector2] = []

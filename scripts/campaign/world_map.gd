@@ -45,7 +45,11 @@ func _draw() -> void:
 			if index > 0:
 				var previous := point(index-1)
 				var color := UI.GOLD if progress.data.medals[index-1] > 0 else palette.darkened(0.3)
-				draw_polyline(PackedVector2Array([previous, Vector2(previous.x, (previous.y+at.y)*0.5), Vector2(at.x,(previous.y+at.y)*0.5), at]), color, 5, true)
+				var road := PackedVector2Array([previous, Vector2(previous.x, (previous.y+at.y)*0.5), Vector2(at.x,(previous.y+at.y)*0.5), at])
+				if i == 0:
+					# Pass around the chapter heading, leaving its text unobstructed.
+					road = PackedVector2Array([previous, Vector2(previous.x,previous.y+32), Vector2(size.x-10,previous.y+32), Vector2(size.x-10,at.y-34), Vector2(at.x,at.y-34), at])
+				draw_polyline(road, color, 5, true)
 			if progress.data.medals[index] > 0:
 				draw_circle(at, 31, Color(0.88,0.71,0.4,0.15))
 			var right := at.x < size.x*0.5

@@ -80,3 +80,11 @@ The QA launcher is an authentication convenience for local testing, not an authe
 `--path . --audio-driver Dummy --script tests/rendered/orchard_runner.gd` opens the real portal using mouse/touch, checks all three Developer Controls entries and typed edits at 360×640, 390×844 and 540×960, captures terrain/portal/editor screenshots, and runs the existing complete developer input harness. The enemy artwork runner exports nine transparent portraits and checks four gameplay zooms. Terrain palette and edge checks include all six terrain styles.
 
 `python3 tools/cloud_qa.py --headless --runner tools/orchard_live_runner.gd` uses the existing normal QA account to upload an Orchard save, sync a later stat edit, publish/read a configuration and import it into Survival. It writes the exact created IDs to `artifacts/orchard-live-evidence.json`. Verify the corresponding `regions`, `world_rules` and `public_builds` rows, then remove only these temporary QA records via SQL. This is opt-in because it creates a cloud world and a public test configuration.
+
+## Campaign
+
+- `--headless --path . --script tests/campaign_runner.gd`: authored layouts and waves, finite mission rules, real tower transactions, boss routing and escorts, checkpoint restoration, medals, unlocks and corrupt-save recovery.
+- `--headless --path . --script tests/campaign_balance_runner.gd`: legal reference defenses across all 20 levels, spending only starting gold and actual rewards. Writes `artifacts/campaign-balance.csv`.
+- `--path . --audio-driver Dummy --script tests/rendered/campaign_runner.gd`: campaign navigation, construction, upgrades, wave starts, checkpoint resume and sandbox isolation at three mobile viewport sizes. Captures `artifacts/campaign-*.png`.
+
+Campaign test saves use unique disposable paths. The campaign save is a separate local format and does not consume a sandbox slot.

@@ -18,6 +18,7 @@ func _init(index: int = 0) -> void:
 	mission = Catalog.level(index)
 	game = VigilState.new(81000 + index, "survival")
 	game.data.balance = float(mission.gold)
+	game.data.settings.developer_balance = mission.tuning.duplicate(true)
 	game.data.first_property_required = false
 	game.data.automation = true
 	# These regions only anchor tower sockets. Campaign roads are independent of
