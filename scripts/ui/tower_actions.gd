@@ -15,6 +15,7 @@ signal upgraded
 var field: Battlefield
 var buttons: Dictionary = {}
 var blocked := false
+var upgrade_maxed := false
 var pending_tower := ""
 var pending_level := -1
 var pending_cost := 0.0
@@ -93,6 +94,11 @@ func refresh() -> void:
 	if pending_tower != "" and (pending_tower != field.selected_tower or pending_level != int(tower.level) or pending_cost != cost):
 		cancel_upgrade()
 	var upgrade: Button = buttons.upgrade
+	var maxed: bool = tower.level >= Balance.MAX_TOWER_LEVEL
+	if upgrade_maxed != maxed:
+		upgrade_maxed = maxed
+		upgrade.queue_redraw()
+	upgrade.mouse_default_cursor_shape = Control.CURSOR_ARROW if maxed else Control.CURSOR_POINTING_HAND
 	upgrade.disabled = tower.level >= Balance.MAX_TOWER_LEVEL or tower.get("rebuild_remaining", 0.0) > 0.0 or field.state.data.balance < cost
 	upgrade.tooltip_text = ("Confirm upgrade" if pending_tower != "" else "Upgrade") + " · " + UI.exact_money(cost) + " gold"
 	if tower.level >= Balance.MAX_TOWER_LEVEL:
@@ -124,6 +130,12 @@ func draw_icon(button: Button, action: String) -> void:
 		button.draw_circle(center + Vector2(0, -5), 2, color)
 		button.draw_line(center + Vector2(0, -1), center + Vector2(0, 6), color, 3, true)
 	elif action == "upgrade":
+		if upgrade_maxed:
+			button.draw_arc(center + Vector2(0, -4), 7, PI, TAU, 24, UI.MUTED, 3, true)
+			button.draw_rect(Rect2(center + Vector2(-10, -4), Vector2(20, 17)), UI.MUTED)
+			button.draw_circle(center + Vector2(0, 2), 2, UI.PANEL)
+			button.draw_line(center + Vector2(0, 3), center + Vector2(0, 7), UI.PANEL, 2, true)
+			return
 		if pending_tower != "":
 			button.draw_polyline(PackedVector2Array([center + Vector2(-10, 0), center + Vector2(-3, 7), center + Vector2(11, -8)]), color, 3, true)
 			return
