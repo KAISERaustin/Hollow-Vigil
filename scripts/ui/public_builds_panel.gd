@@ -21,7 +21,7 @@ func show_page(slot: int = -1, page: int = 0) -> void:
 	menu.clear("Public Builds", refresh)
 	var revision: int = menu.view_revision
 	menu.content.add_child(UI.paragraph("Worlds and rules shared by other players. Choose a build for a new Creative or Survival playthrough.", 14))
-	menu.add_action(UI.button("Back to world options" if slot >= 0 else "Back to saves", func():
+	menu.add_back(UI.button("Back to world options" if slot >= 0 else "Back to saves", func():
 		if slot >= 0: menu.show_creation(slot, false)
 		else: menu.show_slots()
 	))
@@ -71,5 +71,5 @@ func select_build(id: String, slot: int, revision: int) -> void:
 			menu.add_action(UI.button("Create in save %d" % (index + 1), menu.show_creation.bind(index, false)))
 	if not available:
 		menu.content.add_child(UI.paragraph("All three saves are occupied. Archive a save from Your saves to free a slot, then choose this build again.", 14))
-	menu.add_action(UI.button("Back to public builds", show_page.bind(-1, 0)))
+	menu.add_back(UI.button("Back to public builds", show_page.bind(-1, 0)))
 	menu.add_action(UI.button("Your saves", menu.show_slots))

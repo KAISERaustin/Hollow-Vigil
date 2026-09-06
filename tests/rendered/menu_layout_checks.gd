@@ -60,9 +60,8 @@ func run() -> void:
 			await settle()
 			check(app.panels.get_global_rect().is_equal_approx(settings_rect), "restoring sound defaults moved panel")
 			var sound_back := app.panels.find_child("BackToSettings", true, false) as Button
-			app.panels.content_scroll.ensure_control_visible(sound_back)
 			await settle()
-			check(app.panels.content_scroll.get_global_rect().grow(1).encloses(sound_back.get_global_rect()), "sound back action unreachable at " + str(viewport))
+			check(app.panels.header_content.get_global_rect().grow(1).encloses(sound_back.get_global_rect()), "sound back action unreachable at " + str(viewport))
 			sound_back.pressed.emit()
 			await settle()
 			check(app.panels.mode == "settings" and app.panels.get_global_rect().is_equal_approx(settings_rect), "return from sound moved settings")
@@ -72,7 +71,7 @@ func run() -> void:
 			app.cloud.changed.emit()
 			await settle()
 			check(app.panels.get_global_rect().is_equal_approx(settings_rect), "rebuilding account menu moved panel")
-			var cloud_back := app.panels.action_footer.get_child(0) as Button
+			var cloud_back := app.panels.header_content.find_child("BackToSettings", true, false) as Button
 			check(app.panels.get_global_rect().encloses(cloud_back.get_global_rect()), "account back action clipped at " + str(viewport))
 			cloud_back.pressed.emit()
 			await settle()
@@ -94,7 +93,7 @@ func run() -> void:
 					check(app.panels.content_scroll.get_global_rect().grow(1).encloses(number.get_global_rect()), category + " number clipped at " + str(viewport))
 					check(number.size.x >= 100, category + " number too narrow")
 				check(not app.panels.content_scroll.get_v_scroll_bar().visible, category + " shows a scrollbar")
-				var back := app.panels.find_child("BackToSettings", true, false) as Control
+				var back := app.panels.find_child("BackToCategories", true, false) as Control
 				check(app.field.get_global_rect().encloses(back.get_global_rect()), "developer back action clipped")
 		app.panels.close_sheet()
 	for failure in failures:

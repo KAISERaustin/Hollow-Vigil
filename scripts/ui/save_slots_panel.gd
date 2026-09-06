@@ -3,6 +3,7 @@ extends ColorRect
 const UI = preload("res://scripts/ui/shared/interface.gd")
 var app: VigilApp
 var slots := VigilSaveSlots.new()
+var header: HBoxContainer
 var content: VBoxContainer
 var card: PanelContainer
 var scroll: ScrollContainer
@@ -26,11 +27,18 @@ func _ready() -> void:
 	card = PanelContainer.new()
 	card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 4, 16))
 	add_child(card)
+	var layout := VBoxContainer.new()
+	layout.add_theme_constant_override("separation", UI.GAP)
+	card.add_child(layout)
+	header = HBoxContainer.new()
+	header.add_theme_constant_override("separation", UI.GAP)
+	layout.add_child(header)
 	scroll = ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.follow_focus = true
 	UI.keyboard_scroll(scroll, "Save slots and setup")
-	card.add_child(scroll)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	layout.add_child(scroll)
 	content = VBoxContainer.new()
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation", 14)
@@ -45,21 +53,18 @@ func fit() -> void:
 
 func clear(title: String, header_action: Button = null) -> void:
 	view_revision += 1
-	for child in content.get_children():
-		content.remove_child(child)
-		child.queue_free()
+	for container in [header, content]:
+		for child in container.get_children():
+			container.remove_child(child)
+			child.queue_free()
 	scroll.set_deferred("scroll_vertical", 0)
 	var heading := UI.heading(title, 28)
-	if header_action == null:
-		content.add_child(heading)
-	else:
-		var header := HBoxContainer.new()
-		header.add_theme_constant_override("separation", UI.GAP)
-		heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		heading.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		header.add_child(heading)
+	heading.name = "ScreenTitle"
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	heading.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	header.add_child(heading)
+	if header_action != null:
 		header.add_child(header_action)
-		content.add_child(header)
 	message = UI.paragraph("", 13)
 	content.add_child(message)
 	call_deferred("fit")
@@ -90,7 +95,7 @@ func show_slots() -> void:
 		content.add_child(UI.rule())
 	add_action(UI.button("Public Builds", show_public_builds))
 	if app.slot_active:
-		add_action(UI.button("Back to game", close))
+		add_back(UI.button("Back to game", close))
 
 func show_creation(slot: int, reset: bool = true) -> void:
 	if reset:
@@ -127,7 +132,7 @@ func show_creation(slot: int, reset: bool = true) -> void:
 	modes.item_selected.connect(update_mode)
 	update_mode.call(modes.selected)
 	content.add_child(UI.rule())
-	add_action(UI.button("Back to saves", show_slots))
+	add_back(UI.button("Back to saves", show_slots))
 	var create := UI.button("Create save", func():
 		var game := slots.create(slot, creation_mode, selected_configuration.get("code", ""))
 		if game == null:
@@ -141,7 +146,7 @@ func show_creation(slot: int, reset: bool = true) -> void:
 func show_configurations(slot: int) -> void:
 	clear("Saved configurations")
 	content.add_child(UI.paragraph("Choose a configuration to use its world, towers, resources and rules. Your original save stays available.", 14))
-	add_action(UI.button("Back to world options", show_creation.bind(slot, false)))
+	add_back(UI.button("Back to world options", show_creation.bind(slot, false)))
 	add_action(UI.button("Public Builds", show_public_builds.bind(slot)))
 	var saved := slots.configurations()
 	if saved.is_empty():
@@ -179,7 +184,7 @@ func show_export() -> void:
 	description.custom_minimum_size.y = 140
 	style_entry(description)
 	content.add_child(description)
-	add_action(UI.button("Back to game", close))
+	add_back(UI.button("Back to game", close))
 	var save := UI.button("Save configuration", func():
 		if title.text.strip_edges().is_empty() or description.text.length() > 4000:
 			message.text = "Enter a name and keep the description under 4,001 characters."
@@ -196,7 +201,7 @@ func show_export() -> void:
 		upload_revision = view_revision
 		content.add_child(UI.paragraph("“%s” is in your configuration library. To use it, open an empty save and choose Saved configuration." % title.text.strip_edges(), 16))
 		add_action(UI.button("Your saves", show_slots))
-		add_action(UI.button("Back to game", close))
+		add_back(UI.button("Back to game", close))
 	)
 	save.name = "SaveConfiguration"
 	add_action(save)
@@ -234,11 +239,21 @@ func style_entry(entry: Control) -> void:
 	entry.add_theme_color_override("caret_color", UI.TEXT)
 	entry.add_theme_font_size_override("font_size", UI.type_size(14))
 
+func add_back(back: Button) -> void:
+	back.accessibility_name = back.text
+	back.tooltip_text = back.text
+	back.text = "←"
+	back.name = "BackButton"
+	back.custom_minimum_size.x = UI.TARGET
+	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	header.add_child(back)
+	header.move_child(back, 0)
+
 func add_action(button: Button) -> void:
 	var caption := button.text
 	if caption.begins_with("Archive"): caption = "Archive"
 	elif caption.begins_with("Create"): caption = "Create"
-	elif caption.begins_with("Back"): caption = "Back"
 	elif caption.begins_with("Paste"): caption = "Paste"
 	elif caption.begins_with("Load"): caption = "Load"
 	elif caption.begins_with("Copy"): caption = "Copy"

@@ -215,6 +215,16 @@ static func button(text: String, action: Callable, height: float = 48) -> Button
 	)
 	return b
 
+static func back_button(label: String, action: Callable) -> Button:
+	var back := button("←", action)
+	back.name = "BackButton"
+	back.accessibility_name = label
+	back.tooltip_text = label
+	back.custom_minimum_size.x = TARGET
+	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return back
+
 static func gold_button(text: String, action: Callable, height: float = 50) -> Button:
 	return accent_button(text, action, GOLD, height)
 

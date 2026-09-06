@@ -20,6 +20,7 @@ var sheet_revision := 0
 var prices: Array[Dictionary] = []
 var content_scroll: ScrollContainer
 var header_content: VBoxContainer
+var header_divider: ColorRect
 var action_footer: VBoxContainer
 var opener: Control
 var settings_sheet_height := 520.0
@@ -29,6 +30,13 @@ func _ready() -> void:
 	layout.add_theme_constant_override("separation", 8)
 	add_child(layout)
 	header_content = UI.margin(layout, 16)
+	header_divider = ColorRect.new()
+	header_divider.name = "SettingsHeaderDivider"
+	header_divider.color = UI.BORDER
+	header_divider.custom_minimum_size.y = UI.OUTLINE
+	header_divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header_divider.hide()
+	layout.add_child(header_divider)
 	action_footer = UI.margin(layout, 16)
 	header_content.get_parent().add_theme_constant_override("margin_top", 12)
 	header_content.get_parent().add_theme_constant_override("margin_bottom", 0)
@@ -64,6 +72,7 @@ func clear_sheet(title: String, subtitle: String = "") -> void:
 	app.tower_actions.refresh()
 	sheet_content.add_theme_constant_override("separation", 12)
 	header_content.get_parent().show()
+	header_divider.visible = mode == "settings"
 	action_footer.get_parent().hide()
 	if not visible:
 		opener = get_viewport().gui_get_focus_owner()
@@ -140,7 +149,7 @@ func sheet_height() -> float:
 	var layout := header_content.get_parent().get_parent() as VBoxContainer
 	var height := get_theme_stylebox("panel").get_minimum_size().y
 	var sections := 0
-	for section in [header_content.get_parent(), content_scroll, action_footer.get_parent()]:
+	for section in [header_content.get_parent(), header_divider, content_scroll, action_footer.get_parent()]:
 		if section.visible:
 			sections += 1
 			height += sheet_content.get_parent().get_combined_minimum_size().y if section == content_scroll else section.get_combined_minimum_size().y
@@ -406,7 +415,6 @@ func show_settings() -> void:
 	sheet_content.add_child(UI.rule())
 	sheet_content.add_child(UI.heading("Progress", 18))
 	sheet_content.add_child(UI.action_row("Reset progress", UI.accent_button("Reset progress", show_reset_confirmation, UI.DANGER), "Reset"))
-	sheet_content.add_child(UI.action_row("Return to the core", UI.button("Return to the core", return_to_core), "Return"))
 
 func show_sound_settings() -> void:
 	mode = "sound"
@@ -414,9 +422,15 @@ func show_sound_settings() -> void:
 	var sound := preload("res://scripts/audio/audio_settings.gd").new()
 	sound.app = app
 	sheet_content.add_child(sound)
-	var back := UI.button("Back to settings", show_settings)
+	add_header_back("Back to settings", show_settings)
+
+func add_header_back(label: String, action: Callable) -> Button:
+	var back := UI.back_button(label, action)
 	back.name = "BackToSettings"
-	sheet_content.add_child(UI.action_row(back.text, back, "Back"))
+	var header := header_content.get_child(0)
+	header.add_child(back)
+	header.move_child(back, 0)
+	return back
 
 func show_developer_controls() -> void:
 	if not game.is_creative():
@@ -427,18 +441,13 @@ func show_developer_controls() -> void:
 	controls.game = game
 	controls.field = field
 	controls.changed.connect(app.balance_changed)
-	var back := UI.button("←", func():
+	var back := add_header_back("Back to settings", func():
 		if controls.editor.visible:
 			controls.show_categories()
 			content_scroll.scroll_vertical = 0
 		else:
 			show_settings()
 	)
-	back.custom_minimum_size.x = UI.TARGET
-	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	var header := header_content.get_child(0)
-	header.add_child(back)
-	header.move_child(back, 0)
 	controls.layout_changed.connect(func():
 		back.name = "BackToCategories" if controls.editor.visible else "BackToSettings"
 		back.accessibility_name = "Back to categories" if controls.editor.visible else "Back to settings"
@@ -481,5 +490,4 @@ func show_cloud_saves() -> void:
 	var controls := preload("res://scripts/cloud/cloud_panel.gd").new()
 	controls.app = app
 	sheet_content.add_child(controls)
-	action_footer.add_child(UI.button("Back to settings", show_settings))
-	action_footer.get_parent().show()
+	add_header_back("Back to settings", show_settings)

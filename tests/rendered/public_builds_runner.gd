@@ -44,6 +44,13 @@ func run() -> void:
 		await frame()
 		check(Rect2(Vector2.ZERO, Vector2(viewport)).encloses(menu.card.get_global_rect()), "Public browser fits " + str(viewport))
 		check(menu.find_child("SelectPublicBuild0", true, false) != null, "Public selection available")
+		var back: Button = menu.header.get_child(0)
+		check(back.text == "←" and back.accessibility_name == "Back to world options", "Public browser uses accessible header back arrow")
+		var header_position: Vector2 = back.global_position
+		menu.scroll.scroll_vertical = 100
+		await frame()
+		check(back.global_position == header_position, "Back arrow stays visible while builds scroll")
+		menu.scroll.scroll_vertical = 0
 		if not DisplayServer.get_name() == "headless":
 			await RenderingServer.frame_post_draw
 			root.get_texture().get_image().save_png("res://artifacts/public-builds-%d.png" % viewport.x)
@@ -65,7 +72,7 @@ func run() -> void:
 	await frame()
 	menu.find_child("SelectPublicBuild0", true, false).pressed.emit()
 	await frame()
-	check(menu.content.get_child(0).text == "Choose a save for this build", "Global browser offers empty save slots")
+	check(menu.header.find_child("ScreenTitle", true, false).text == "Choose a save for this build", "Global browser offers empty save slots")
 	for slot in range(3):
 		for suffix in ["", ".bak", ".tmp"]:
 			DirAccess.remove_absolute(menu.slots.path_for(slot) + suffix)
