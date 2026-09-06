@@ -70,6 +70,7 @@ static func test_large_world(suite: SceneTree) -> void:
 		for i in range(1, 41):
 			var id := "%d,0" % (side * i)
 			g.data.regions[id] = VigilWorld.make_region(id, "%d,0" % (side * (i-1)), int(g.data.seed))
+			g.data.regions[id].style = "forest" # This stress fixture deliberately exercises 80 active portals.
 			g.refresh_paths()
 	for r in g.data.regions.values():
 		r.traffic = Balance.MAX_TRAFFIC_LEVEL

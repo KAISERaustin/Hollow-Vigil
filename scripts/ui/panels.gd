@@ -244,7 +244,10 @@ func show_expansion(id: String) -> void:
 	field.show_expansion = true
 	clear_sheet("Claim Castle Ruin" if VigilWorld.is_ruin(id, int(game.data.seed)) else "Expand")
 	if VigilWorld.is_ruin(id, int(game.data.seed)):
-		sheet_content.add_child(UI.paragraph("Four tower sockets surround a dark dungeon portal. " + Balance.rift_description("castle_ruin", game.tuning), 14))
+		var description := "Open dungeon ground with connecting paths and four tower sockets. This territory has no portal; the other ruin territories remain available to claim."
+		if VigilWorld.is_dungeon_portal(id, int(game.data.seed)):
+			description = "Four tower sockets surround this dungeon’s only portal. Other ruin territories remain available to claim. " + Balance.rift_description("castle_ruin", game.tuning)
+		sheet_content.add_child(UI.paragraph(description, 14))
 	action_cost = Balance.expansion_cost(game.data.regions.size())
 	var revision := sheet_revision
 	action_button = UI.gold_button("Claim territory  ·  " + UI.exact_money(action_cost) + " gold", func():
@@ -259,7 +262,7 @@ func show_expansion(id: String) -> void:
 	app.update_hud()
 
 func show_entrance(id: String) -> void:
-	if not VigilWorld.has_rift(id) or not game.data.regions.has(id):
+	if not VigilWorld.has_rift(id, game.data.regions, int(game.data.seed)) or not game.data.regions.has(id):
 		show_core()
 		return
 	selection_region = id

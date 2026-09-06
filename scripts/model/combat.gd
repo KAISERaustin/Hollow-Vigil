@@ -97,7 +97,7 @@ func add_effect(fx: Dictionary) -> void:
 		effects.append(fx)
 
 func spawn(id: String, forced_kind: String = "", escort: bool = false) -> Dictionary:
-	if not VigilWorld.has_rift(id) or not data.regions.has(id):
+	if not VigilWorld.has_rift(id, data.regions, int(data.seed)) or not data.regions.has(id):
 		return {}
 	var r: Dictionary = data.regions[id]
 	var kind := forced_kind
@@ -145,7 +145,7 @@ func tick(delta: float) -> void:
 	tick_count += 1
 	# Every rift advances on the same clock. Camera visibility only affects drawing.
 	for r in data.regions.values():
-		if not VigilWorld.has_rift(r.id):
+		if not VigilWorld.has_rift(r.id, data.regions, int(data.seed)):
 			continue
 		r.history_time = minf(Balance.HISTORY_SECONDS, r.history_time + delta)
 		# Offline estimates include time with escapes / no kills across the whole world.

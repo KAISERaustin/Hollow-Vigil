@@ -21,6 +21,9 @@ static func test_world(suite: SceneTree) -> void:
 		suite.check(path[0] == VigilWorld.center(id), "Expansion %d rift starts at its tile center" % i)
 		for kind in (Balance.DUNGEON_KINDS if r.style == "castle_ruin" else Balance.NORMAL_KINDS):
 			var spawned := g.combat.spawn(id, kind)
+			if not VigilWorld.has_rift(id, g.data.regions, int(g.data.seed)):
+				suite.check(spawned.is_empty(), "Path-only dungeon territory does not spawn")
+				continue
 			suite.check(spawned.pos == VigilWorld.center(id), "Expansion %d spawns %s at its tile center" % [i, kind])
 		suite.check(path.size() > 2 and path[-1] == Vector2.ZERO, "Expansion %d reaches the central core" % i)
 		var connected := true

@@ -141,6 +141,26 @@ static func run(suite: SceneTree) -> void:
 		suite.check(claimed.data.towers[towers[0]].earnings == stored + Balance.ENEMIES[kind].payout, "Dungeon bounty is credited exactly")
 		suite.check(not claimed.combat.hit(mob, 10000, towers[0]), "Dungeon bounty cannot be collected twice")
 	suite.check(claimed.combat.spawn(claim_gate.id, "basic").is_empty() and not claimed.economy.unlock(claim_gate.id, "fast"), "Dungeon portals reject ordinary mobs and attunements")
+	var remaining := Areas.cluster(Vector2i.ZERO, 879).duplicate()
+	remaining.erase(VigilWorld.coord(claim_gate.id))
+	for cell in remaining:
+		suite.check(Areas.reserved(cell, 879, claimed.data.regions), "Buying the portal preserves every unclaimed dungeon square")
+	while not remaining.is_empty():
+		var bought := false
+		for cell in remaining.duplicate():
+			var id := VigilWorld.key(cell)
+			if not VigilWorld.frontier(claimed.data.regions).has(id):
+				continue
+			suite.check(claimed.expand(id), "Remaining dungeon territory can be purchased individually")
+			suite.check(not VigilWorld.has_rift(id, claimed.data.regions, 879), "Only the fixed gate tile has a dungeon portal")
+			suite.check(claimed.combat.spawn(id).is_empty(), "Open dungeon territory never spawns enemies")
+			suite.check(not claimed.economy.buy_traffic(id), "Open dungeon territory rejects portal upgrades")
+			suite.check(claimed.paths[id][-1] == VigilWorld.CORE_POSITION, "Open dungeon territory keeps a connected path")
+			remaining.erase(cell)
+			bought = true
+		if not bought:
+			suite.check(false, "Every remaining ruin is reachable")
+			break
 	claimed.save_path = "user://claimed-castle.save"
 	suite.clean_test_save(claimed.save_path)
 	suite.check(claimed.save(1000), "Purchased castle saves during existing boss emergence")
@@ -149,5 +169,12 @@ static func run(suite: SceneTree) -> void:
 	suite.check(reloaded.load_save(1000), "Purchased castle restores")
 	suite.check(reloaded.data.regions.has(claim_gate.id) and reloaded.data.towers.size() == claimed.data.towers.size(), "Ruin and towers survive reload")
 	suite.check(reloaded.combat.enemies.filter(func(e): return e.get("boss", false) and e.source == claim_gate.id).size() == 1, "Purchasing and reloading never duplicate existing castle boss")
+	var portals := 0
+	for cell in Areas.cluster(Vector2i.ZERO, 879):
+		var id := VigilWorld.key(cell)
+		suite.check(reloaded.data.regions.has(id), "All purchased dungeon territories survive reload")
+		if VigilWorld.has_rift(id, reloaded.data.regions, 879):
+			portals += 1
+	suite.check(portals == 1, "Reload preserves exactly one dungeon portal")
 	suite.clean_test_save(claimed.save_path)
 	print("PASS GROUP: castle outlines, seed architecture, reservations, reachable gates, physical emergence and saves")

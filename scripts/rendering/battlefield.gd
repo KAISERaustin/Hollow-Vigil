@@ -254,7 +254,7 @@ func tap(pos: Vector2) -> void:
 	var is_entrance := false
 	var distance := INF
 	for id in state.data.regions:
-		if not VigilWorld.has_rift(id):
+		if not VigilWorld.has_rift(id, state.data.regions, int(state.data.seed)):
 			continue
 		var gate: Vector2 = screen(state.paths[id][0])
 		var candidate := pos.distance_to(gate) / entrance_hit_radius()
@@ -338,7 +338,7 @@ func _draw() -> void:
 		draw_region(state.data.regions[id])
 	# Draw portals after every tile, so newly purchased terrain cannot cover them.
 	for id in visible_regions:
-		if VigilWorld.has_rift(id) and visible.has_point(screen(state.paths[id][0])):
+		if VigilWorld.has_rift(id, state.data.regions, int(state.data.seed)) and visible.has_point(screen(state.paths[id][0])):
 			draw_entrance(id)
 	for id in RegionQuery.in_view(expansion_frontier(), world_view):
 		var c := screen(expansion_marker(id))

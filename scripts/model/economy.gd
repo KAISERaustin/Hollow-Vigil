@@ -133,7 +133,7 @@ func spawn_period(id: String) -> float:
 	return Balance.traffic_period(data.regions[id].traffic)
 
 func buy_traffic(id: String, expected_level: int = -1) -> bool:
-	if not VigilWorld.has_rift(id) or not data.regions.has(id):
+	if not VigilWorld.has_rift(id, data.regions, int(data.seed)) or not data.regions.has(id):
 		return false
 	var r: Dictionary = data.regions[id]
 	if (expected_level != -1 and r.traffic != expected_level) or r.traffic >= Balance.MAX_TRAFFIC_LEVEL or not spend(traffic_cost(id)):
@@ -143,7 +143,7 @@ func buy_traffic(id: String, expected_level: int = -1) -> bool:
 	return true
 
 func unlock(id: String, kind: String) -> bool:
-	if not VigilWorld.has_rift(id) or not data.regions.has(id) or not Balance.UNLOCK_COSTS.has(kind) or kind in data.regions[id].unlocks:
+	if not VigilWorld.has_rift(id, data.regions, int(data.seed)) or not data.regions.has(id) or not Balance.UNLOCK_COSTS.has(kind) or kind in data.regions[id].unlocks:
 		return false
 	if data.regions[id].get("style", "forest") == "castle_ruin":
 		return false

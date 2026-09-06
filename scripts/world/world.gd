@@ -26,8 +26,17 @@ static func coord(id: String) -> Vector2i:
 static func center(id: String) -> Vector2:
 	return Vector2(coord(id)) * Balance.TILE
 
-static func has_rift(id: String) -> bool:
-	return id != "0,0"
+static func has_rift(id: String, regions: Dictionary = {}, seed_value: int = -1) -> bool:
+	if id == "0,0":
+		return false
+	# Derive this from the seed for old saves as well as newly claimed land.
+	if seed_value >= 0 and regions.get(id, {}).get("style", "forest") == "castle_ruin" and is_ruin(id, seed_value):
+		return is_dungeon_portal(id, seed_value)
+	return true
+
+static func is_dungeon_portal(id: String, seed_value: int) -> bool:
+	var areas = preload("res://scripts/world/hidden_areas.gd")
+	return areas.gate(areas.sector_for(coord(id)), seed_value).id == id
 
 static func make_region(id: String, parent: String, seed_value: int) -> Dictionary:
 	var h := absi((id + str(seed_value)).hash())

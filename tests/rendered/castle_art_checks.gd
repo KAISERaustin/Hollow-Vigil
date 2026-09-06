@@ -67,6 +67,28 @@ func run() -> void:
 				await frame()
 				if img.get_data() != root.get_texture().get_image().get_data():
 					failures += 1
+			field.zoom = 1.0
+			field.camera = plan.anchor + plan.bounds.get_center()
+			if not game.expand(plan.gate.id):
+				failures += 1
+			field.queue_redraw()
+			await frame()
+			for cell in plan.cells:
+				if field.terrain_layer.hidden_areas.cells.has(cell) == game.data.regions.has(VigilWorld.key(cell)):
+					failures += 1
+			root.get_texture().get_image().save_png("res://artifacts/castle-%d-partial.png" % plan.variant)
+			for cell in plan.cells:
+				var id := VigilWorld.key(cell)
+				if id == plan.gate.id or not VigilWorld.frontier(game.data.regions).has(id):
+					continue
+				if not game.expand(id):
+					failures += 1
+				field.queue_redraw()
+				await frame()
+				if field.terrain_layer.hidden_areas.cells.has(cell) or VigilWorld.has_rift(id, game.data.regions, 879):
+					failures += 1
+				root.get_texture().get_image().save_png("res://artifacts/castle-%d-path-only.png" % plan.variant)
+				break
 			field.free()
 	print("CASTLE_ART: four plans, three zooms, offscreen return; %d failures" % failures)
 	quit(0 if failures == 0 else 1)

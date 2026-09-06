@@ -53,14 +53,14 @@ static func build(sector: Vector2i, seed_value: int) -> Dictionary:
 			var straight := occupied.has(p + Vector2i(tangent)) and occupied.has(p - Vector2i(tangent)) and not occupied.has(p + d + Vector2i(tangent)) and not occupied.has(p + d - Vector2i(tangent))
 			var broken := not is_gate and straight and rng.randf() < 0.18
 			if is_gate:
-				walls.append({"a": a, "b": a.lerp(b, 0.1), "outer": true})
-				walls.append({"a": a.lerp(b, 0.9), "b": b, "outer": true})
+				walls.append({"a": a, "b": a.lerp(b, 0.1), "outer": true, "cell": cells[0] + Vector2i(floori(float(p.x) / 5), floori(float(p.y) / 5))})
+				walls.append({"a": a.lerp(b, 0.9), "b": b, "outer": true, "cell": cells[0] + Vector2i(floori(float(p.x) / 5), floori(float(p.y) / 5))})
 			elif broken:
-				walls.append({"a": a, "b": a.lerp(b, 0.23), "outer": true})
-				walls.append({"a": a.lerp(b, 0.73), "b": b, "outer": true})
+				walls.append({"a": a, "b": a.lerp(b, 0.23), "outer": true, "cell": cells[0] + Vector2i(floori(float(p.x) / 5), floori(float(p.y) / 5))})
+				walls.append({"a": a.lerp(b, 0.73), "b": b, "outer": true, "cell": cells[0] + Vector2i(floori(float(p.x) / 5), floori(float(p.y) / 5))})
 				rubble.append(mid)
 			else:
-				walls.append({"a": a, "b": b, "outer": true})
+				walls.append({"a": a, "b": b, "outer": true, "cell": cells[0] + Vector2i(floori(float(p.x) / 5), floori(float(p.y) / 5))})
 			# Corner foundations share the same silhouette anchors.
 			if not occupied.has(p + Vector2i(tangent)) and rng.randf() < 0.6 and a.distance_to(gate_point) > 90:
 				towers.append(a - n * 17.0 + tangent * 17.0)
@@ -85,9 +85,9 @@ static func build(sector: Vector2i, seed_value: int) -> Dictionary:
 					partition = posmod(p.x + 1 + floori(float(p.y) / 3), 4) == 0 if side == 2 else posmod(p.y + 1, 3) == 0
 			# Protect the whole gate corridor, including the interior spawn.
 			var near_gate := Geometry2D.get_closest_point_to_segment(mid, gate_point, gate_point - Vector2(VigilWorld.DIRS[g.side]) * 100.0).distance_to(mid) < 80.0
-			if partition and not near_gate:
+			if partition and not near_gate and rng.randf() < 0.3:
 				if rng.randf() < 0.28:
 					rubble.append(mid)
 				else:
-					walls.append({"a": mid - tangent * 30.0, "b": mid + tangent * rng.randf_range(6, 30), "outer": false})
+					walls.append({"a": mid - tangent * 30.0, "b": mid + tangent * rng.randf_range(6, 30), "outer": false, "cell": cells[0] + Vector2i(floori(float(p.x) / 5), floori(float(p.y) / 5))})
 	return {"cells": cells, "anchor": anchor, "variant": variant, "floors": floors, "walls": walls, "rubble": rubble, "towers": towers, "beams": beams, "edges": edges, "gate": g, "gate_point": gate_point, "bounds": bounds}

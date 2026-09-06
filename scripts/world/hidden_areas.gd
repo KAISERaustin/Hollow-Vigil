@@ -46,7 +46,7 @@ static func preserved(sector: Vector2i, seed_value: int, regions: Dictionary) ->
 
 static func reserved(cell: Vector2i, seed_value: int, regions: Dictionary) -> bool:
 	var sector := sector_for(cell)
-	return cluster(sector, seed_value).has(cell) and not preserved(sector, seed_value, regions)
+	return cluster(sector, seed_value).has(cell) and not regions.has(VigilWorld.key(cell))
 
 static func gate(sector: Vector2i, seed_value: int) -> Dictionary:
 	var cells := cluster(sector, seed_value)
