@@ -214,6 +214,13 @@ func add_board(interactive: bool) -> void:
 			dialog.hide()
 	)
 	layout.add_child(board)
+	var frame := Panel.new()
+	frame.name = "CampaignMapBorder"
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	frame.add_theme_stylebox_override("panel", UI.surface(Color.TRANSPARENT, 3, 0))
+	frame.z_index = 100
+	board.add_child(frame)
 
 func begin_wave() -> void:
 	if run.start_wave():

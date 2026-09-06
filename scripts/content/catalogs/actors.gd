@@ -21,6 +21,8 @@ const BOSSES := {
 
 const UNLOCK_COSTS := {"fast": 90.0, "heavy": 180.0, "lantern": 140.0}
 
+const DUNGEON_UNLOCK_COSTS := {"sentinel": 550.0}
+
 const ENEMY_SHARES := {"fast": 0.30, "heavy": 0.18, "lantern": 0.16}
 
 const NORMAL_KINDS := ["basic", "fast", "heavy", "lantern"]

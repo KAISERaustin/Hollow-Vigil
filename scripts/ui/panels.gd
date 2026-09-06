@@ -311,10 +311,10 @@ func show_entrance(id: String) -> void:
 	var style: String = r.get("style", "forest")
 	var traffic_maxed: bool = r.traffic >= Balance.MAX_TRAFFIC_LEVEL
 	var rift_maxed := traffic_maxed
-	if not Balance.exclusive_portal(style):
-		for kind in Balance.UNLOCK_COSTS:
-			if kind not in r.unlocks:
-				rift_maxed = false
+	var unlock_costs := Balance.portal_unlock_costs(style)
+	for kind in unlock_costs:
+		if kind not in r.unlocks:
+			rift_maxed = false
 	clear_sheet(Balance.rift_name(style))
 	if rift_maxed:
 		var status := UI.paragraph("MAX · Rift maxed out", 16)
@@ -329,12 +329,10 @@ func show_entrance(id: String) -> void:
 	)
 	price_button(traffic, game.economy.traffic_cost(id), traffic_maxed)
 	sheet_content.add_child(UI.action_row(traffic.text, traffic, "MAX" if traffic_maxed else "Increase"))
-	if Balance.exclusive_portal(style):
-		return
-	for kind in Balance.UNLOCK_COSTS:
+	for kind in unlock_costs:
 		var s: Dictionary = Balance.ENEMIES[kind]
 		var unlocked: bool = kind in r.unlocks
-		var price: float = Balance.UNLOCK_COSTS[kind]
+		var price: float = unlock_costs[kind]
 		var b := UI.button(s.name + ("" if unlocked else " · " + UI.exact_money(price) + " gold"), func():
 			if revision == sheet_revision and game.economy.unlock(id, kind):
 				app.persist()

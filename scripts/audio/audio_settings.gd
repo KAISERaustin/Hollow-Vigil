@@ -5,16 +5,12 @@ var app: Control
 func _ready() -> void:
 	add_theme_constant_override("separation", 10)
 	add_child(UI.paragraph("Type a percentage or use − / +. Set a category to 0% to silence it.", 13))
-	var mute := CheckButton.new()
-	mute.name = "MuteAudio"
-	mute.text = "Mute all sound"
-	mute.custom_minimum_size.y = 48
-	mute.button_pressed = app.audio.preferences().get("muted", false)
-	mute.toggled.connect(func(value):
+	var mute := UI.toggle_button(app.audio.preferences().get("muted", false), func(value):
 		app.audio.set_muted(value)
 		app.balance_changed()
 	)
-	add_child(UI.action_row("Mute all sound", mute))
+	mute.name = "MuteAudio"
+	add_child(UI.action_row("Mute all sound", mute, mute.text))
 	for category in app.audio.DEFAULTS:
 		var number := SpinBox.new()
 		number.name = "Audio_" + category

@@ -119,7 +119,10 @@ func spawn(id: String, forced_kind: String = "", escort: bool = false) -> Dictio
 	var style: String = r.get("style", "forest")
 	var allowed := Balance.portal_kinds(style)
 	if kind == "":
-		kind = allowed[rng.randi_range(0, allowed.size() - 1)] if Balance.exclusive_portal(style) else Balance.enemy_kind(r.unlocks, rng.randf())
+		var available := Balance.portal_available_kinds(style, r.unlocks)
+		if available.is_empty():
+			return {}
+		kind = available[rng.randi_range(0, available.size() - 1)] if Balance.exclusive_portal(style) else Balance.enemy_kind(r.unlocks, rng.randf())
 	# Orchard inhabitants can never be summoned by bosses or another portal.
 	if style == "mourning_orchard" and (kind not in Balance.ORCHARD_KINDS or escort):
 		return {}

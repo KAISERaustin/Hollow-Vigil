@@ -149,7 +149,7 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 			return false
 		var seen_unlocks := {}
 		for kind in r.unlocks:
-			if not kind is String or not Balance.UNLOCK_COSTS.has(kind) or seen_unlocks.has(kind):
+			if not kind is String or not Balance.portal_unlock_costs(r.get("style", "forest")).has(kind) or seen_unlocks.has(kind):
 				return false
 			seen_unlocks[kind] = true
 		for value in r.history.values():

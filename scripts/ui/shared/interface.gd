@@ -215,6 +215,16 @@ static func button(text: String, action: Callable, height: float = 48) -> Button
 	)
 	return b
 
+static func toggle_button(enabled: bool, action: Callable) -> Button:
+	var control := button("On" if enabled else "Off", func(): pass)
+	control.toggle_mode = true
+	control.button_pressed = enabled
+	control.toggled.connect(func(active: bool):
+		control.text = "On" if active else "Off"
+		action.call(active)
+	)
+	return control
+
 static func playback_button(action: Callable, fast_forward: bool = false) -> Button:
 	var control := button("", action, 32)
 	control.custom_minimum_size = Vector2(32, 32)

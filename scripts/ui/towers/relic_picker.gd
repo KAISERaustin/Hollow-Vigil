@@ -37,55 +37,26 @@ static func build(dialog) -> void:
 		remove.size_flags_horizontal = Control.SIZE_SHRINK_END
 		remove.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		summary_row.add_child(remove)
-	dialog.body.add_child(UI.heading("Your equipment", 18))
-	dialog.body.add_child(UI.paragraph("Choose equipment for this tower. Replaced equipment returns to your inventory.", 14))
-	var group := ButtonGroup.new()
-	for kind in Relics.DEFINITIONS:
-		var definition: Dictionary = Relics.DEFINITIONS[kind]
-		var card := PanelContainer.new()
-		card.mouse_filter = Control.MOUSE_FILTER_PASS
-		card.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, 2, 10))
-		dialog.body.add_child(card)
-		var stack := UI.margin(card, 12)
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 10)
-		stack.add_child(row)
-		var icon := Control.new()
-		icon.custom_minimum_size = Vector2(32, 32)
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		icon.draw.connect(func(): Art.draw(icon, kind, Vector2(16,16)))
-		row.add_child(icon)
-		var title := UI.heading(definition.name, 18)
-		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(title)
-		stack.add_child(UI.paragraph(Relics.description(kind, dialog.app.game.tuning), 14))
-		var found := false
-		for relic_id in data.get("relics", {}):
-			if data.relics[relic_id] != kind:
-				continue
-			found = true
-			var owner := Relics.owner(data, relic_id)
-			var text: String = "Equipment available"
-			if owner == dialog.tower_id:
-				text = "Currently equipped"
-			elif owner != "":
-				text = "Transfer from " + Balance.tower_stats(data.towers[owner], dialog.app.game.tuning).name
-			add_choice(dialog, group, relic_id, text, owner, stack)
-		if not found:
-			stack.add_child(UI.paragraph("Defeat " + Balance.BOSSES[kind].name + " to discover this relic.", 14))
-
-static func add_choice(dialog, group: ButtonGroup, relic_id: String, text: String, owner: String, parent: Node = null) -> void:
-	var button := UI.button(text, func():
-		dialog.relic_choice = relic_id
-		dialog.relic_owner = owner
-		dialog.refresh()
-	, 52)
-	button.name = "Relic_" + ("empty" if relic_id == "" else relic_id)
-	button.add_theme_font_size_override("font_size", UI.type_size(14))
-	button.toggle_mode = true
-	button.button_group = group
-	button.add_theme_stylebox_override("pressed", UI.box(UI.GOLD))
-	button.add_theme_stylebox_override("hover_pressed", UI.box(UI.GOLD))
-	button.button_pressed = dialog.relic_choice == relic_id
-	(parent if parent != null else dialog.body).add_child(UI.action_row(text, button, "Select"))
+	dialog.body.add_child(UI.heading("Inventory", 18))
+	var grid := GridContainer.new()
+	grid.name = "EquipmentGrid"
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	dialog.body.add_child(grid)
+	var inventory: Dictionary = data.get("relics", {})
+	for relic_id in inventory:
+		var kind: String = inventory[relic_id]
+		var button := UI.button("", func(): dialog.show_equipment_details(relic_id), 48)
+		button.name = "Relic_" + relic_id
+		button.tooltip_text = Relics.DEFINITIONS[kind].name
+		button.accessibility_name = Relics.DEFINITIONS[kind].name
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.draw.connect(func(): Art.draw(button, kind, button.size * 0.5))
+		grid.add_child(button)
+	for index in range(maxi(16, ceili(inventory.size() / 4.0) * 4) - inventory.size()):
+		var slot := PanelContainer.new()
+		slot.custom_minimum_size = Vector2(48, 48)
+		slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		slot.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, 2, 4))
+		grid.add_child(slot)

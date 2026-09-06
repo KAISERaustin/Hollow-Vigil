@@ -44,7 +44,8 @@ func run() -> void:
 	await Harness.tap(app, app.tower_actions.buttons.equipment.get_global_rect().get_center())
 	check(app.tower_dialog.visible and app.tower_dialog.mode == "equipment", "Equipment action opens collection with no drops")
 	check(app.tower_dialog.find_child("Relic_empty", true, false) == null and app.tower_dialog.find_child("RemoveEquipment", true, false) == null, "Empty slot offers no removal action")
-	check(app.tower_dialog.confirm.disabled, "Apply disabled until equipment changes")
+	check(not app.tower_dialog.confirm.visible, "Inventory has no redundant apply button")
+	check(app.tower_dialog.find_child("EquipmentGrid", true, false).get_child_count() == 16, "Empty inventory displays sixteen blank slots")
 	check(app.tower_dialog.find_child("EquippedRelicName", true, false).text == "No equipment equipped", "Empty slot is explicit at the top of the menu")
 	await Harness.capture(app, "relic-empty-collection")
 	app.tower_dialog.dismiss()
@@ -57,7 +58,7 @@ func run() -> void:
 		var dialog := app.tower_dialog
 		var before := app.game.data.duplicate(true)
 		var choice := dialog.find_child("Relic_90,90", true, false) as Button
-		check(choice.get_parent().get_child(0).text == "Equipment available", "Available equipment hides discovery coordinates")
+		check(choice.text == "" and choice.tooltip_text == "Warden’s Rootheart", "Inventory uses named icons without descriptions")
 		dialog.scroll.ensure_control_visible(choice)
 		await frame()
 		await Harness.tap(app, choice.get_global_rect().get_center(), touch)
@@ -69,10 +70,10 @@ func run() -> void:
 		await frame()
 		await Harness.tap(app, app.tower_actions.buttons.equipment.get_global_rect().get_center(), touch)
 		choice = dialog.find_child("Relic_90,90", true, false)
-		check(choice.get_parent().get_child(0).text.begins_with("Transfer from"), "Owned piece identifies its transfer source")
 		dialog.scroll.ensure_control_visible(choice)
 		await frame()
 		await Harness.tap(app, choice.get_global_rect().get_center(), touch)
+		check(dialog.confirm.text == "Transfer equipment", "Details offer transfer for an owned piece")
 		await Harness.tap(app, dialog.confirm.get_global_rect().get_center(), touch)
 		check(not app.game.data.towers[towers[0]].has("relic") and app.game.data.towers[towers[1]].relic == "90,90", "Transfer moves one piece without duplication")
 		dialog.open_action("equipment")
@@ -110,6 +111,7 @@ func run() -> void:
 		var equipped_name := app.tower_dialog.find_child("EquippedRelicName", true, false) as Label
 		check(equipped_name.text == "Eclipse Shard", "Header identifies the equipped Eclipse Shard")
 		check(equipped_name.get_global_rect().end.y <= app.tower_dialog.scroll.get_global_rect().position.y, "Equipped summary stays above the scrolling collection")
+		await Harness.capture(app, "relic-grid-" + str(dimensions.x))
 		var replacement := app.tower_dialog.find_child("Relic_90,90", true, false) as Button
 		app.tower_dialog.scroll.ensure_control_visible(replacement)
 		await frame()
@@ -117,7 +119,7 @@ func run() -> void:
 		check(app.tower_dialog.relic_choice == "90,90" and equipped_name.text == "Eclipse Shard", "Pending replacement does not change the currently equipped summary")
 		app.tower_dialog.scroll.scroll_vertical = 0
 		await frame()
-		check(app.tower_dialog.scroll.get_v_scroll_bar().max_value > app.tower_dialog.scroll.size.y, "Relic collection scrolls")
+		check(app.tower_dialog.mode == "equipment_detail", "Clicking an inventory icon opens its explanation")
 		await Harness.capture(app, "relic-picker-" + str(dimensions.x))
 		app.tower_dialog.dismiss()
 		await Harness.capture(app, "relic-actions-" + str(dimensions.x))

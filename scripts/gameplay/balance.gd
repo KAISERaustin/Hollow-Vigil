@@ -78,6 +78,14 @@ static func exclusive_portal(style: String) -> bool:
 	var node := Content.portal(style)
 	return node != null and node.is_exclusive()
 
+static func portal_unlock_costs(style: String) -> Dictionary:
+	var node := Content.portal(style)
+	return node.unlock_costs() if node != null else UNLOCK_COSTS.duplicate()
+
+static func portal_available_kinds(style: String, unlocks: Array) -> Array:
+	var node := Content.portal(style)
+	return node.available_kinds(unlocks) if node != null else NORMAL_KINDS.duplicate()
+
 static func rift_name(style: String) -> String:
 	var node := Content.portal(style)
 	return node.attribute("name") if node != null else "Wild Rift"
@@ -90,7 +98,7 @@ static func rift_description(style: String, tuning: Dictionary = {}) -> String:
 			for kind in ORCHARD_KINDS:
 				inhabitants.append("%s (%s HP, %s gold)" % [ENEMIES[kind].name, String.num(tuned_value("enemies", kind, "hp", tuning)), String.num(tuned_value("enemies", kind, "payout", tuning))])
 			return "One portal in the world’s Mourning Orchard. Summons only " + ", ".join(inhabitants) + ", with equal chances. All three are active immediately."
-		"castle_ruin": return "Dungeon portal · Summons only Abyss Shades (%s HP, %s gold) and Crypt Sentinels (%s HP, %s gold)." % [String.num(tuned_value("enemies", "shade", "hp", tuning)), String.num(tuned_value("enemies", "shade", "payout", tuning)), String.num(tuned_value("enemies", "sentinel", "hp", tuning)), String.num(tuned_value("enemies", "sentinel", "payout", tuning))]
+		"castle_ruin": return "Dungeon portal · Summons Abyss Shades. Attune Crypt Sentinels to add them to this portal’s spawns."
 		"ashen_forge": return "Hardened · +" + amount + "% maximum health."
 		"drowned_crypt": return "Restless · +" + amount + "% movement speed."
 		"bloodmoon_sanctuary": return "Regeneration · Restores " + amount + "% of maximum health each second."

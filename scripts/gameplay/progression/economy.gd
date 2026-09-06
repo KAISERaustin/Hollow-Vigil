@@ -149,11 +149,12 @@ func buy_traffic(id: String, expected_level: int = -1) -> bool:
 	return true
 
 func unlock(id: String, kind: String) -> bool:
-	if not VigilWorld.has_rift(id, data.regions, int(data.seed)) or not data.regions.has(id) or not Balance.UNLOCK_COSTS.has(kind) or kind in data.regions[id].unlocks:
+	if not VigilWorld.has_rift(id, data.regions, int(data.seed)) or not data.regions.has(id) or kind in data.regions[id].unlocks:
 		return false
-	if Balance.exclusive_portal(data.regions[id].get("style", "forest")):
+	var costs := Balance.portal_unlock_costs(data.regions[id].get("style", "forest"))
+	if not costs.has(kind):
 		return false
-	if not spend(Balance.UNLOCK_COSTS[kind]):
+	if not spend(costs[kind]):
 		return false
 	data.regions[id].unlocks.append(kind)
 	sound_requested.emit("menu_unlock", Vector2.INF)

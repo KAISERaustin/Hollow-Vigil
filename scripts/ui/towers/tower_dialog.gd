@@ -106,7 +106,8 @@ func open_action(action: String) -> void:
 	var stats := Balance.tower_stats(tower, app.game.tuning)
 	heading.text = stats.name
 	var label := {"info": "Tower information · Level %d", "upgrade": "Upgrade · Level %d", "sell": "Sell tower · Level %d", "move": "Move tower · Level %d", "target": "Targeting · Level %d", "equipment": "Equipment · Level %d"}
-	body.add_child(UI.label(label[action] % tower_level, 14))
+	if action != "equipment":
+		body.add_child(UI.label(label[action] % tower_level, 14))
 	rebuild_status = UI.label("", 14, UI.TEXT)
 	body.add_child(rebuild_status)
 	if action == "equipment":
@@ -174,6 +175,9 @@ func open_action(action: String) -> void:
 	confirm.name = "ConfirmTowerAction"
 	confirm.add_theme_font_size_override("font_size", UI.type_size(16))
 	footer.add_child(confirm)
+	if action == "equipment":
+		confirm.hide()
+		cancel.text = "Close"
 	app.tower_actions.blocked = true
 	app.tower_actions.refresh()
 	show()
@@ -183,8 +187,35 @@ func open_action(action: String) -> void:
 	(confirm if action == "info" else cancel).grab_focus()
 	UI.trap_focus(card)
 
+func show_equipment_details(relic_id: String) -> void:
+	const Relics = preload("res://scripts/gameplay/progression/relics.gd")
+	if mode != "equipment" or not app.game.data.relics.has(relic_id):
+		return
+	mode = "equipment_detail"
+	relic_choice = relic_id
+	relic_owner = Relics.owner(app.game.data, relic_id)
+	for child in body.get_children():
+		body.remove_child(child)
+		child.queue_free()
+	rebuild_status = UI.label("", 14)
+	body.add_child(rebuild_status)
+	var kind: String = app.game.data.relics[relic_id]
+	body.add_child(UI.heading(Relics.DEFINITIONS[kind].name, 20))
+	body.add_child(UI.paragraph(Relics.description(kind, app.game.tuning), 16))
+	if relic_owner != "" and relic_owner != tower_id:
+		body.add_child(UI.paragraph("Equipped on " + Balance.tower_stats(app.game.data.towers[relic_owner], app.game.tuning).name, 14))
+	confirm.text = "Equipped" if relic_choice == relic_original else ("Transfer equipment" if relic_owner != "" else "Equip")
+	confirm.show()
+	cancel.text = "Back"
+	cancel.pressed.disconnect(dismiss)
+	cancel.pressed.connect(func(): open_action("equipment"))
+	refresh()
+	cancel.grab_focus()
+	call_deferred("fit_dialog")
+	UI.trap_focus(card)
+
 func request_equipment_removal() -> void:
-	if mode != "equipment" or relic_original == "":
+	if mode not in ["equipment", "equipment_detail"] or relic_original == "":
 		return
 	mode = "equipment_remove"
 	for child in body.get_children():
@@ -196,7 +227,10 @@ func request_equipment_removal() -> void:
 	body.add_child(UI.paragraph("Are you sure you want to remove this equipment? It will return to your inventory.", 16))
 	equipment_summary.find_child("RemoveEquipment", true, false).hide()
 	confirm.text = "Remove equipment"
-	cancel.pressed.disconnect(dismiss)
+	confirm.show()
+	cancel.text = "Cancel"
+	for connection in cancel.pressed.get_connections():
+		cancel.pressed.disconnect(connection.callable)
 	cancel.pressed.connect(func(): open_action("equipment"))
 	cancel.grab_focus()
 	refresh()
@@ -241,7 +275,7 @@ func refresh() -> void:
 	rebuild_status.visible = remaining > 0.0
 	rebuild_status.text = "Rebuilding · " + Balance.rebuild_time_text(remaining)
 	var disabled: bool = (mode in ["upgrade", "move"] and (app.game.data.balance < cost or remaining > 0.0)) or (mode == "upgrade" and tower_level >= Balance.MAX_TOWER_LEVEL)
-	if mode == "equipment":
+	if mode in ["equipment", "equipment_detail"]:
 		disabled = relic_choice == relic_original
 	if disabled != confirm.disabled:
 		confirm.disabled = disabled
@@ -256,7 +290,7 @@ func commit(opened_revision: int) -> void:
 		return
 	if mode == "info":
 		dismiss()
-	elif mode in ["equipment", "equipment_remove"]:
+	elif mode in ["equipment", "equipment_detail", "equipment_remove"]:
 		var removing := mode == "equipment_remove"
 		if app.game.economy.equip_relic(tower_id, "" if removing else relic_choice, relic_original, "" if removing else relic_owner):
 			dismiss()

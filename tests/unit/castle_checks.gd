@@ -127,12 +127,22 @@ static func run(suite: SceneTree) -> void:
 		towers.append(claimed.economy.build("heavy", claim_gate.id, pad))
 		suite.check(towers[-1] != "", "Every ruin tower socket supports building")
 	var seen := {}
+	for i in range(20):
+		suite.check(claimed.combat.spawn(claim_gate.id).kind == "shade", "Unattuned ruin spawns only its starting enemy")
+	var saved_gold: float = claimed.data.balance
+	claimed.data.balance = 549.0
+	suite.check(not claimed.economy.unlock(claim_gate.id, "sentinel") and claimed.data.balance == 549.0, "Sentinel purchase rejects insufficient gold")
+	claimed.data.balance = saved_gold
+	suite.check(claimed.economy.unlock(claim_gate.id, "sentinel") and claimed.data.balance == saved_gold - 550.0, "Sentinel purchase costs 550 gold")
+	suite.check(not claimed.economy.unlock(claim_gate.id, "sentinel") and claimed.data.balance == saved_gold - 550.0, "Duplicate Sentinel purchase cannot charge")
+	suite.check(fixture().data.regions.values().all(func(r): return r.unlocks.is_empty()), "Purchases do not alter another game")
+	suite.check(not claimed.economy.unlock(claim_gate.neighbor, "sentinel"), "Ordinary rifts cannot buy dungeon enemies")
 	for i in range(80):
 		var mob := claimed.combat.spawn(claim_gate.id)
 		seen[mob.kind] = true
 		suite.check(mob.kind in Balance.DUNGEON_KINDS and mob.pos == VigilWorld.center(claim_gate.id), "Dungeon mobs emerge only at central ruin portal")
 		suite.check(mob.path[-1] == VigilWorld.CORE_POSITION, "Dungeon route reaches the core")
-	suite.check(seen.size() == 2, "Both exclusive dungeon mobs spawn without attunement")
+	suite.check(seen.size() == 2, "Both exclusive dungeon mobs spawn after attunement")
 	for kind in Balance.DUNGEON_KINDS:
 		suite.check(claimed.combat.spawn(claim_gate.neighbor, kind).is_empty(), "Normal rifts reject dungeon mobs")
 		var mob := claimed.combat.spawn(claim_gate.id, kind)
@@ -167,6 +177,7 @@ static func run(suite: SceneTree) -> void:
 	var reloaded := VigilState.new()
 	reloaded.save_path = claimed.save_path
 	suite.check(reloaded.load_save(1000), "Purchased castle restores")
+	suite.check(reloaded.data.regions[claim_gate.id].unlocks.has("sentinel"), "Dungeon attunement survives save and reload")
 	suite.check(reloaded.data.regions.has(claim_gate.id) and reloaded.data.towers.size() == claimed.data.towers.size(), "Ruin and towers survive reload")
 	suite.check(reloaded.combat.enemies.filter(func(e): return e.get("boss", false) and e.source == claim_gate.id).size() == 1, "Purchasing and reloading never duplicate existing castle boss")
 	var portals := 0

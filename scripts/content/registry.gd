@@ -181,7 +181,7 @@ func _populate_actors() -> void:
 func _populate_world(root: ContentNode) -> void:
 	var world := _add(ContentNode.new("world", root))
 	_add(RegionNode.new("region", world, {}, {}, World.REGION_DEFAULTS))
-	_add(PortalNode.new("portal", world, {}, {"tuning_category": "rifts", "exclusive": false, "enemy_kinds": Actors.NORMAL_KINDS}))
+	_add(PortalNode.new("portal", world, {}, {"tuning_category": "rifts", "exclusive": false, "enemy_kinds": Actors.NORMAL_KINDS, "unlock_costs": Actors.UNLOCK_COSTS}))
 	var socket := _add(ContentNode.new("socket", world, {}, {"occupants": ["tower"], "capacity": 1}))
 	_add(ContentNode.new("socket/plus", socket, {"name": "Tower socket", "positions": World.PADS}, {"kind": "plus"}))
 	var landmark := _add(ContentNode.new("landmark", world))
@@ -192,7 +192,8 @@ func _populate_world(root: ContentNode) -> void:
 		var exclusive: bool = style in ["castle_ruin", "mourning_orchard"]
 		var attributes: Dictionary = World.RIFTS.get(style, {"name": "Mourning Orchard Portal" if style == "mourning_orchard" else ("Castle Ruin Portal" if style == "castle_ruin" else "Wild Rift")})
 		var kinds: Array = Actors.ORCHARD_KINDS if style == "mourning_orchard" else (Actors.DUNGEON_KINDS if style == "castle_ruin" else Actors.NORMAL_KINDS)
-		_add(PortalNode.new("portal/" + style, get_node("portal"), attributes, {"kind": style, "exclusive": exclusive, "enemy_kinds": kinds}), "rifts" if World.RIFTS.has(style) else "portals", style)
+		var costs: Dictionary = Actors.DUNGEON_UNLOCK_COSTS if style == "castle_ruin" else Actors.UNLOCK_COSTS
+		_add(PortalNode.new("portal/" + style, get_node("portal"), attributes, {"kind": style, "exclusive": exclusive, "enemy_kinds": kinds, "unlock_costs": costs}), "rifts" if World.RIFTS.has(style) else "portals", style)
 
 func _populate_levels(root: ContentNode) -> void:
 	var level_root := _add(LevelNode.new("level", root))
