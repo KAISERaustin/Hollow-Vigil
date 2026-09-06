@@ -410,7 +410,6 @@ func show_settings() -> void:
 		var developer := UI.button("Developer Controls", show_developer_controls)
 		developer.name = "OpenDeveloperControls"
 		sheet_content.add_child(UI.action_row("Creative rules", developer, "Edit"))
-	sheet_content.add_child(UI.rule())
 	sheet_content.add_child(UI.heading("Preferences & community", 18))
 	var sound_button := UI.button("Sound", show_sound_settings)
 	sound_button.name = "OpenSoundSettings"
