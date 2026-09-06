@@ -21,6 +21,8 @@ static func test_first_loop(suite: SceneTree) -> void:
 	suite.check(g.combat.spawn("0,0").is_empty(), "Core cannot spawn enemies even when requested directly")
 	suite.check(not g.economy.buy_traffic("0,0") and not g.economy.unlock("0,0", "fast"), "Core has no purchasable rift upgrades")
 	suite.check(g.expand("-1,0"), "Starting gold purchases the first territory")
+	# This payout fixture measures base enemies independently of seeded biomes.
+	g.data.regions["-1,0"].style = "forest"
 	suite.check(g.economy.build("rapid", "0,0", 0) == "1", "Player buys their first tower after purchasing property")
 	suite.check(g.data.balance == Balance.STARTING_GOLD - Balance.expansion_cost(1) - Balance.TOWERS.rapid.cost, "Property and first tower charge full price")
 	suite.check(g.paths["-1,0"][0] == VigilWorld.center("-1,0"), "First purchased rift spawns at its tile center")

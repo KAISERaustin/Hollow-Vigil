@@ -1,6 +1,7 @@
 extends RefCounted
 
 static func run(suite: SceneTree) -> void:
+	preload("res://tests/unit/terrain_cluster_checks.gd").run(suite)
 	var g := VigilState.new(879)
 	var before := VigilWorld.spoke(g.data.regions["0,0"], 2)
 	g.data.balance = 1e12

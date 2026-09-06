@@ -55,6 +55,8 @@ static func test_attack_intervals(suite: SceneTree) -> void:
 			var g := VigilState.new(314)
 			g.data.balance = 10000.0
 			g.expand("-1,0")
+			# Regeneration and other biome bonuses are covered by rift checks.
+			g.data.regions["-1,0"].style = "forest"
 			g.data.regions["-1,0"].timer = 10.0
 			var id := g.economy.build(kind, "0,0", 0)
 			g.data.towers[id].level = level

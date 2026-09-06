@@ -8,10 +8,7 @@ const STYLES := ["forest", "ashen_forge", "drowned_crypt", "bloodmoon_sanctuary"
 const NEW_STYLES := ["ashen_forge", "drowned_crypt", "bloodmoon_sanctuary"]
 
 static func region_style(id: String, seed_value: int) -> String:
-	# Separate seeded stream keeps appearance independent of roads and combat.
-	var scenery := RandomNumberGenerator.new()
-	scenery.seed = absi(("territory-style:" + id + ":" + str(seed_value)).hash())
-	return STYLES[scenery.randi_range(0, STYLES.size() - 1)]
+	return STYLES[preload("res://scripts/world/terrain_clusters.gd").style_index(coord(id), seed_value)]
 
 static func key(p: Vector2i) -> String:
 	return "%d,%d" % [p.x, p.y]
