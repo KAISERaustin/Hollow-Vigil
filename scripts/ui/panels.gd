@@ -378,13 +378,9 @@ func _player_card() -> PanelContainer:
 	player_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	player_name.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	stack.add_child(player_name)
-	var hint := UI.paragraph("", 12)
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stack.add_child(hint)
 	var refresh := func():
 		var signed_in: bool = app.cloud.signed_in()
 		player_name.text = app.cloud.display_name if signed_in and not app.cloud.display_name.is_empty() else ("Choose your name" if signed_in else "Guest")
-		hint.text = "Manage your name in Account & cloud backups" if signed_in else "Sign in to give your account a name"
 	refresh.call()
 	app.cloud.changed.connect(refresh)
 	card.tree_exiting.connect(func():
@@ -401,21 +397,19 @@ func show_settings() -> void:
 	sheet_content.add_child(_player_card())
 	var campaign_button := UI.button("Campaign", app.show_campaign)
 	campaign_button.name = "OpenCampaign"
-	sheet_content.add_child(UI.action_row("The Last Procession\n20 tactical campaign levels", campaign_button, "Play"))
+	sheet_content.add_child(UI.action_row("The Last Procession", campaign_button, "Play"))
 	sheet_content.add_child(UI.heading("Current game · Slot %d" % (app.active_slot + 1), 18))
-	sheet_content.add_child(UI.paragraph(str(game.data.get("mode", "creative")).capitalize() + " · Progress saves automatically on this device", 14))
+	sheet_content.add_child(UI.paragraph(str(game.data.get("mode", "creative")).capitalize(), 14))
 	if game.data.has("setup"):
 		sheet_content.add_child(UI.paragraph(game.data.setup.name, 16))
-	sheet_content.add_child(UI.action_row("Saved games\nContinue a game or start a new one", UI.button("Saved games", app.show_save_slots), "Open"))
+	sheet_content.add_child(UI.action_row("Saved games", UI.button("Saved games", app.show_save_slots), "Open"))
 	var cloud_button := UI.button("Account & cloud backups", show_cloud_saves)
 	cloud_button.name = "OpenCloudSaves"
-	sheet_content.add_child(UI.action_row("Account & cloud backups\nKeep a private copy of your progress online", cloud_button, "Open"))
+	sheet_content.add_child(UI.action_row("Account & cloud backups", cloud_button, "Open"))
 	if game.is_creative():
 		var developer := UI.button("Developer Controls", show_developer_controls)
 		developer.name = "OpenDeveloperControls"
-		sheet_content.add_child(UI.action_row("Creative rules\nAdjust enemies, towers and starting resources", developer, "Edit"))
-	else:
-		sheet_content.add_child(UI.paragraph("Survival rules are locked for this game. Start a Creative game to edit rules and make builds.", 12))
+		sheet_content.add_child(UI.action_row("Creative rules", developer, "Edit"))
 	sheet_content.add_child(UI.rule())
 	sheet_content.add_child(UI.heading("Preferences & community", 18))
 	var sound_button := UI.button("Sound", show_sound_settings)
@@ -423,7 +417,7 @@ func show_settings() -> void:
 	sheet_content.add_child(UI.action_row("Sound", sound_button, "Open"))
 	var public_button := UI.button("Community builds", app.show_public_builds)
 	public_button.name = "OpenPublicBuilds"
-	sheet_content.add_child(UI.action_row("Community builds\nFind a starting world shared by another player", public_button, "Browse"))
+	sheet_content.add_child(UI.action_row("Community builds", public_button, "Browse"))
 	var stats := HBoxContainer.new()
 	stats.add_theme_constant_override("separation", 12)
 	sheet_content.add_child(stats)
@@ -444,9 +438,7 @@ func show_settings() -> void:
 	var upload := UI.button("Upload build", app.show_save_slots.bind(true))
 	upload.name = "UploadBuild"
 	upload.disabled = not game.is_creative()
-	sheet_content.add_child(UI.action_row("Upload build\nSave a reusable copy privately or share it publicly", upload, "Open"))
-	if not game.is_creative():
-		sheet_content.add_child(UI.paragraph("Public builds are shared from Creative saves. Use Account & cloud backups to upload this Survival save.", 12))
+	sheet_content.add_child(UI.action_row("Upload build", upload, "Open"))
 
 func show_sound_settings() -> void:
 	mode = "sound"

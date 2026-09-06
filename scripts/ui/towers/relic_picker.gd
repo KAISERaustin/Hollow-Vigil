@@ -76,6 +76,7 @@ static func add_choice(dialog, group: ButtonGroup, relic_id: String, text: Strin
 	var button := UI.button(text, func():
 		dialog.relic_choice = relic_id
 		dialog.relic_owner = owner
+		dialog.refresh()
 	, 52)
 	button.name = "Relic_" + ("empty" if relic_id == "" else relic_id)
 	button.add_theme_font_size_override("font_size", UI.type_size(14))
