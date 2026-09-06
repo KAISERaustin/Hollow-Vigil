@@ -92,12 +92,12 @@
   "shot_rapid": {
     "category": "towers",
     "cooldown": 0.11,
-    "description": "wood; 1250 Hz; 0.09s; pitch sweep -0.65"
+    "description": "bow; 260 Hz; 0.16s; pitch sweep -0.18"
   },
   "impact_rapid": {
     "category": "towers",
     "cooldown": 0.16,
-    "description": "wood; 787.5 Hz; 0.11699999999999999s; pitch sweep 0.65"
+    "description": "arrow_impact; 170 Hz; 0.1s; pitch sweep -0.12"
   },
   "shot_splash": {
     "category": "towers",
