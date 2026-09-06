@@ -25,7 +25,7 @@ static func test_targeting(suite: SceneTree) -> void:
 				region.timer = 1000.0
 			var expected: int = g.combat.enemies[{"first": 2, "last": 0, "most_hp": 1}[mode]].id
 			g.combat.tick(Balance.STEP)
-			suite.check(g.combat.effects.back().target_id == expected, "%s obeys %s targeting during combat" % [kind, mode])
+			suite.check(g.combat.effects.filter(func(fx): return fx.kind == "shot")[0].target_id == expected, "%s obeys %s targeting during combat" % [kind, mode])
 	var g := VigilState.new(853)
 	var a := {"id": 1, "pos": Vector2(10, 0), "hp": 50.0, "dead": false, "distance_remaining": 100.0}
 	var b := {"id": 2, "pos": Vector2(20, 0), "hp": 50.0, "dead": false, "distance_remaining": 50.0}
@@ -75,7 +75,7 @@ static func test_roles_and_escapes(suite: SceneTree) -> void:
 	before = g.data.balance
 	suite.advance(g, 60)
 	suite.check(g.data.escapes > 10 and g.data.balance == before and g.data.lifetime_earnings == 0, "Escapes are harmless and never create income")
-	suite.check(g.combat.enemy_serial > 1020, "Empty battlefield continues spawning indefinitely")
+	suite.check(g.combat.enemy_serial >= 1000 + int(floor(60.0 / Balance.traffic_period(0))), "Empty battlefield continues spawning indefinitely")
 	var period := g.economy.spawn_period("-1,0")
 	suite.check(g.economy.buy_traffic("-1,0", 0) and g.economy.spawn_period("-1,0") < period, "Traffic upgrade increases opportunity")
 	suite.check(not g.economy.buy_traffic("-1,0", 0), "Stale traffic action cannot apply twice")
@@ -87,7 +87,9 @@ static func test_roles_and_escapes(suite: SceneTree) -> void:
 	for i in range(4):
 		var target: Dictionary = suite.fixture_enemy(blast, "basic")
 		target.pos = Vector2(-76 + i * 4, 0)
+		target.hp = Balance.stats("splash", 1).damage # Isolate lethal splash behavior from enemy balance.
 	blast.combat.tick(Balance.STEP)
+	suite.advance(blast, 0.35)
 	suite.check(blast.data.kills >= 4 and blast.data.towers[id].earnings >= 20, "Splash damages multiple nearby enemies")
 	print("PASS GROUP: enemy roles, splash, and harmless escapes")
 
@@ -126,8 +128,9 @@ static func test_core(suite: SceneTree) -> void:
 		var tower := defense.economy.build("rapid", "0,0", pad)
 		var target: Dictionary = suite.fixture_enemy(defense)
 		target.hp = Balance.stats("rapid", 1).damage
-		target.pos = Vector2(-8, 0)
+		target.pos = Vector2(-15, 0)
 		defense.combat.tick(Balance.STEP)
+		suite.advance(defense, 0.25)
 		suite.check(tower != "" and defense.data.kills == 1 and defense.data.escapes == 0 and defense.data.towers[tower].earnings == 5, "Socket %d can intercept enemies near the core" % pad)
 	print("PASS GROUP: central core, all approach directions, surrounding defenses, and exact escapes")
 
@@ -148,7 +151,7 @@ static func test_road_junctions(suite: SceneTree) -> void:
 			suite.check(segment > 0, "Route from %s reaches the road junction with bend %s" % [child_id, bend])
 			if segment <= 0:
 				continue
-			for kind in ["basic", "fast", "heavy"]:
+			for kind in Balance.ENEMIES.keys():
 				g.combat.enemies.clear()
 				var enemy := g.combat.spawn(child_id, kind)
 				var half_step: float = Balance.ENEMIES[kind].speed * Balance.STEP * 0.5

@@ -93,10 +93,10 @@ static func make_card(entry: Dictionary, section: String = "towers") -> PanelCon
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.add_child(portrait)
 	portrait.draw.connect(func():
-		if section == "towers" and entry.id in ["rapid", "splash", "heavy"]:
+		if section == "towers" and Balance.TOWERS.has(entry.id):
 			VigilTerrainArt.sentinel(portrait, entry.id, Vector2(22, 41), 0.9)
-		elif section == "enemies" and entry.id in ["basic", "fast", "heavy"]:
-			VigilTerrainArt.enemy(portrait, entry.id, Vector2(22, 30), 1.5)
+		elif section == "enemies" and Balance.ENEMIES.has(entry.id):
+			VigilTerrainArt.enemy(portrait, entry.id, Vector2(22, 28), 1.1)
 		else:
 			VigilTerrainArt.disk(portrait, Vector2(22, 28), 12, Color(entry.color), 3)
 	)

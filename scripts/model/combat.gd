@@ -12,6 +12,7 @@ var route_exits: Dictionary = {}
 var branching_routes: Dictionary = {}
 var enemies: Array[Dictionary] = []
 var effects: Array[Dictionary] = []
+var pending_shots: Array[Dictionary] = []
 var rng := RandomNumberGenerator.new()
 var simulation_time := 0.0
 var income_events: Array[Vector2] = []
@@ -123,6 +124,8 @@ func tick(delta: float) -> void:
 			else:
 				e.pos = e.pos.move_toward(p[e.segment], move)
 				move = 0.0
+	# Resolve arrivals after movement, at the same center used by the visuals.
+	advance_shots(delta)
 	# Spatial buckets keep targeting local as the battlefield grows.
 	var buckets := {}
 	for e in enemies:
@@ -150,19 +153,68 @@ func tick(delta: float) -> void:
 			continue
 		t.cooldown = stats.period
 		t.angle = pos.angle_to_point(target.pos)
-		var impact: Vector2 = target.pos
-		if stats.splash > 0.0:
-			for e in nearby(buckets, impact, stats.splash):
-				if not e.dead and impact.distance_squared_to(e.pos) <= stats.splash * stats.splash:
-					hit(e, stats.damage, t.id)
-		else:
-			hit(target, stats.damage, t.id)
-		add_effect(AttackEffects.shot(t.kind, pos, impact, stats, target.id))
+		if t.kind == "electric":
+			# A new pulse replaces this tower's previous connections, even when
+			# developer tuning makes attacks faster than the lightning fade.
+			effects = effects.filter(func(fx): return not (fx.kind == "shot" and fx.get("tower_id", "") == t.id and fx.tower_kind == "electric"))
+		if stats.get("targets", 1) > 1:
+			# Pick distinct enemies in priority order before damage changes HP scores.
+			var victims: Array[Dictionary] = [target]
+			candidates.erase(target)
+			for index in range(1, int(stats.targets)):
+				var extra := select_target(candidates, pos, stats.range, t.get("target_mode", "first"))
+				if extra.is_empty():
+					break
+				victims.append(extra)
+				candidates.erase(extra)
+			for victim in victims:
+				launch_shot(t, pos, victim, stats)
+			continue
+		launch_shot(t, pos, target, stats)
 	recycle_dead_enemies()
 	while not income_events.is_empty() and simulation_time - income_events[0].x > 60.0:
 		income_events.pop_front()
 	if data.automation:
 		economy.collect()
+
+func launch_shot(tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary) -> void:
+	var fx := AttackEffects.shot(tower.kind, origin, target.pos, stats, target.id)
+	fx.tower_id = tower.id
+	add_effect(fx)
+	var shot := {"fx": fx, "remaining": fx.flight, "target_id": target.id,
+		"tower_id": tower.id, "damage": stats.damage, "radius": 0.0 if stats.get("targets", 1) > 1 else stats.splash}
+	if fx.flight <= 0.0:
+		resolve_shot(shot, target)
+	else:
+		# Gameplay must not depend on whether the cosmetic effect pool is full.
+		pending_shots.append(shot)
+
+func advance_shots(delta: float) -> void:
+	var targets := {}
+	for enemy in enemies:
+		targets[enemy.id] = enemy
+	var flying: Array[Dictionary] = []
+	for shot in pending_shots:
+		var target: Dictionary = targets.get(shot.target_id, {})
+		if not target.is_empty():
+			shot.fx.pos = target.pos
+		shot.remaining -= delta
+		if shot.remaining <= 0.000001:
+			resolve_shot(shot, target)
+		else:
+			flying.append(shot)
+	pending_shots = flying
+
+func resolve_shot(shot: Dictionary, target: Dictionary) -> void:
+	if shot.radius > 0.0:
+		for enemy in enemies:
+			if not enemy.dead and shot.fx.pos.distance_squared_to(enemy.pos) <= shot.radius * shot.radius:
+				hit(enemy, shot.damage, shot.tower_id)
+	elif not target.is_empty() and not target.dead:
+		hit(target, shot.damage, shot.tower_id)
+	# Traveling impacts stay at the arrival point instead of following survivors.
+	if shot.fx.flight > 0.0:
+		shot.fx.erase("target_id")
 
 func distance_remaining(enemy: Dictionary) -> float:
 	var path: Array = enemy.path

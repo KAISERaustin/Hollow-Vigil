@@ -9,6 +9,7 @@ const SECTIONS := {
 		"hint": "To build, tap an empty stone socket on the map.",
 		"stats": [
 			{"key": "damage", "label": "Damage per hit"},
+			{"key": "targets", "label": "Targets per pulse"},
 			{"key": "period", "label": "Attack interval", "suffix": " s"},
 			{"key": "range", "label": "Reach", "suffix": " units"},
 			{"key": "cost", "label": "Build cost", "suffix": " gold"},

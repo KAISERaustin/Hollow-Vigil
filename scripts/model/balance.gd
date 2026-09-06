@@ -10,7 +10,7 @@ const HISTORY_SECONDS := 180.0
 const OFFLINE_FACTOR := 0.8
 const MAX_OFFLINE_SECONDS := 604800.0 # Seven-day guard against large forward clock jumps.
 const STARTING_GOLD := 280.0 # First territory costs 100, leaving 180 for defenses.
-const BASE_SPAWN_PERIOD := 1.7
+const BASE_SPAWN_PERIOD := 4.25 # 40% of the former 1.7-second spawn rate at every traffic tier.
 const TRAFFIC_INCREMENT := 0.25
 const MAX_TRAFFIC_LEVEL := 12
 const MAX_TOWER_LEVEL := 3
@@ -22,17 +22,19 @@ const MOVE_COST_RATIO := 0.2
 const MAX_REBUILD_SECONDS := 180.0
 const REBUILD_SECONDS_PER_LEVEL := 15.0
 const MIN_PRODUCTION_SAMPLE := 60.0
-const UNLOCK_COSTS := {"fast": 90.0, "heavy": 180.0}
-const ENEMY_SHARES := {"fast": 0.30, "heavy": 0.18}
+const UNLOCK_COSTS := {"fast": 90.0, "heavy": 180.0, "lantern": 140.0}
+const ENEMY_SHARES := {"fast": 0.30, "heavy": 0.18, "lantern": 0.16}
 const ENEMIES := {
-	"basic": {"name": "Hollow", "role": "COMMON", "description": "A steady traveler from every rift. Low health makes it easy prey for your sentinels.", "hp": 15.0, "speed": 39.0, "payout": 5.0, "color": "e8ddbd"},
-	"fast": {"name": "Wraith", "role": "FAST", "description": "A fragile, swift spirit. Its speed gives your towers less time to strike before it reaches the core.", "hp": 12.0, "speed": 74.0, "payout": 8.0, "color": "93c9bc"},
-	"heavy": {"name": "Revenant", "role": "DURABLE", "description": "A slow, resilient foe with a rich bounty. High-damage towers help cut through its large health pool.", "hp": 85.0, "speed": 25.0, "payout": 24.0, "color": "db8d73"}
+	"basic": {"name": "Hollow", "role": "COMMON", "description": "A steady traveler from every rift. Its sturdy body rewards upgrading your sentinels.", "hp": 45.0, "speed": 39.0, "payout": 5.0, "color": "e8ddbd"},
+	"fast": {"name": "Wraith", "role": "FAST", "description": "A swift spirit with less health than other foes. Its speed gives your towers less time to strike before it reaches the core.", "hp": 36.0, "speed": 74.0, "payout": 8.0, "color": "93c9bc"},
+	"heavy": {"name": "Revenant", "role": "DURABLE", "description": "A slow, resilient foe with a rich bounty. High-damage towers help cut through its large health pool.", "hp": 340.0, "speed": 25.0, "payout": 24.0, "color": "db8d73"},
+	"lantern": {"name": "Lantern Keeper", "role": "STEADFAST", "description": "A hooded pilgrim carrying a stolen ember through the rifts. Tougher than a Hollow and quicker than a Revenant, it rewards sustained fire with a generous bounty.", "hp": 120.0, "speed": 46.0, "payout": 14.0, "color": "b49dcc"}
 }
 const TOWERS := {
 	"rapid": {"name": "Ashneedle", "role": "RAPID", "cost": 60.0, "damage": 6.0, "period": 0.48, "range": 132.0, "splash": 0.0, "color": "e0b568", "description": "Swift pointed darts cut through hollows and wraiths."},
 	"splash": {"name": "Pyre", "role": "SPLASH", "cost": 120.0, "damage": 15.0, "period": 1.5, "range": 126.0, "splash": 46.0, "color": "db8d73", "description": "Flame waves burst on impact, striking every enemy within the blast radius."},
-	"heavy": {"name": "Obelisk", "role": "HEAVY", "cost": 160.0, "damage": 40.0, "period": 1.8, "range": 157.0, "splash": 0.0, "color": "b49dcc", "description": "Large magic orbs reach distant foes and deal heavy damage to resilient enemies."}
+	"heavy": {"name": "Obelisk", "role": "HEAVY", "cost": 160.0, "damage": 40.0, "period": 1.8, "range": 157.0, "splash": 0.0, "color": "b49dcc", "description": "Large magic orbs reach distant foes and deal heavy damage to resilient enemies."},
+	"electric": {"name": "Stormspire", "role": "MULTI-TARGET", "cost": 140.0, "damage": 3.0, "period": 0.4, "range": 145.0, "splash": 0.0, "targets": 5, "color": "91bbff", "description": "Forked lightning zaps up to five enemies at a time within reach, of any troop type. The five-target limit stays the same at every level."}
 }
 
 # Each row buys the next level (1 -> 2, then 2 -> 3). Fixed tiers preserve
@@ -49,6 +51,10 @@ const TOWER_UPGRADES := {
 	"heavy": [
 		{"cost": 140.0, "damage": 60.0, "period": 1.35, "range": 173.0, "splash": 0.0},
 		{"cost": 220.0, "damage": 90.0, "period": 0.9, "range": 189.0, "splash": 0.0}
+	],
+	"electric": [
+		{"cost": 120.0, "damage": 5.0, "period": 0.35, "range": 159.0, "splash": 0.0, "targets": 5},
+		{"cost": 200.0, "damage": 7.0, "period": 0.3, "range": 173.0, "splash": 0.0, "targets": 5}
 	]
 }
 
@@ -124,6 +130,8 @@ static func stats(kind: String, level: int, tuning: Dictionary = {}) -> Dictiona
 	if tier == 1:
 		return s
 	var upgrade: Dictionary = TOWER_UPGRADES[kind][tier - 2]
+	if upgrade.has("targets"):
+		s.targets = upgrade.targets
 	for field in ["damage", "period", "range", "splash"]:
 		var base: float = TOWERS[kind][field]
 		# Developer controls still edit the base stats and carry the same tier

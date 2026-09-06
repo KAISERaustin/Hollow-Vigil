@@ -82,6 +82,8 @@ try {
         }
         if ($ArtSmoke -or $Check) {
             Invoke-Godot -Name 'artwork' -EngineArguments @('--script', 'res://tests/rendered/artwork_smoke.gd')
+            Invoke-Godot -Name 'tower-upgrade-art' -EngineArguments @('--script', 'res://tests/rendered/tower_upgrade_art_checks.gd')
+            Invoke-Godot -Name 'enemy-art' -EngineArguments @('--script', 'res://tests/rendered/enemy_art_checks.gd')
         }
         if ($TerrainPreview) {
             Invoke-Godot -Name 'preview' -EngineArguments @('--script', 'res://tests/previews/terrain_preview.gd')

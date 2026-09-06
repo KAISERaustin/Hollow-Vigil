@@ -68,7 +68,7 @@ static func test_large_world(suite: SceneTree) -> void:
 			g.expand("%d,0" % (side * i))
 	for r in g.data.regions.values():
 		r.traffic = Balance.MAX_TRAFFIC_LEVEL
-		r.unlocks = ["fast", "heavy"]
+		r.unlocks = Balance.UNLOCK_COSTS.keys()
 	var started := Time.get_ticks_usec()
 	var slowest := 0
 	for i in range(600):
@@ -76,8 +76,9 @@ static func test_large_world(suite: SceneTree) -> void:
 		g.combat.tick(Balance.STEP)
 		slowest = maxi(slowest, Time.get_ticks_usec() - tick_start)
 	var elapsed := Time.get_ticks_usec() - started
-	suite.check(g.data.regions.size() == 81 and g.combat.enemy_serial > 5000, "All 81 high-traffic rifts keep spawning throughout the stress run")
-	suite.check(g.combat.enemies.size() > 4000, "Large worlds keep thousands of simultaneous enemies alive")
+	var expected_minimum := 80 * int(floor(30.0 / Balance.traffic_period(Balance.MAX_TRAFFIC_LEVEL)))
+	suite.check(g.data.regions.size() == 81 and g.combat.enemy_serial >= expected_minimum, "All 80 rifts surrounding the core sustain the configured spawn rate")
+	suite.check(g.combat.enemies.size() > 2000, "Large worlds keep thousands of simultaneous enemies alive")
 	suite.check(g.combat.enemy_serial == g.data.escapes + g.combat.enemies.size(), "Every spawned enemy is still alive or actually escaped; none are silently retired")
 	suite.check(g.data.kills == 0.0 and g.economy.unclaimed() == 0.0, "Undefended high-traffic territory earns no estimated gold")
 	print("PASS GROUP: 81 max-traffic rifts; %d live enemies; mean %.2f ms, slowest %.2f ms per 50 ms tick" % [g.combat.enemies.size(), elapsed / 600000.0, slowest / 1000.0])
@@ -98,7 +99,7 @@ static func test_long_idle(suite: SceneTree) -> void:
 		g.combat.tick(Balance.STEP)
 		max_live = maxi(max_live, g.combat.enemies.size())
 		max_effects = maxi(max_effects, g.combat.effects.size())
-	suite.check(g.data.kills > 1000, "One unattended hour produces sustained kills")
+	suite.check(g.data.kills > 500, "One unattended hour produces sustained kills with slower, tougher traffic")
 	suite.check(g.economy.unclaimed() == g.data.lifetime_earnings, "One-hour earnings reconcile exactly")
 	suite.check(max_live < 100 and max_effects <= 100, "One-hour live objects and effects stay bounded")
 	suite.check(g.combat.income_events.size() < 300, "Production event history stays bounded")

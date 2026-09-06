@@ -22,6 +22,8 @@ static func ground_color(style: String) -> Color:
 
 static func polygon(canvas: CanvasItem, points: PackedVector2Array, fill: Color, width: float = 2.0) -> void:
 	canvas.draw_colored_polygon(points, fill)
+	if width <= 0.0:
+		return
 	var edge := points.duplicate()
 	edge.append(points[0])
 	canvas.draw_polyline(edge, INK, width, true)
@@ -43,7 +45,12 @@ static func ellipse(canvas: CanvasItem, at: Vector2, radius: Vector2, fill: Colo
 	polygon(canvas, points, fill, width)
 
 static func socket(canvas: CanvasItem, at: Vector2) -> void:
+	# A shallow stone rim leaves the center clear for the build affordance.
+	disk(canvas, at + Vector2(0, 3), 20.0, Color("a4977d"))
 	disk(canvas, at, 19.0, PAPER)
+	canvas.draw_arc(at, 14.5, 0.15, PI - 0.15, 18, Color("a4977d"), 1.2, true)
+	for angle in [0.65, 2.5, 4.2]:
+		canvas.draw_line(at + Vector2.from_angle(angle) * 15, at + Vector2.from_angle(angle) * 19, INK, 1.2, true)
 
 static func portal(canvas: CanvasItem, at: Vector2, zoom: float, core: bool) -> void:
 	var accent := MINT if core else LILAC
@@ -52,7 +59,7 @@ static func portal(canvas: CanvasItem, at: Vector2, zoom: float, core: bool) -> 
 	ellipse(canvas, center, Vector2(14, 20) * zoom, INK, 2.0 * zoom)
 	canvas.draw_line(center + Vector2(-17, -9) * zoom, center + Vector2(-17, 4) * zoom, PAPER, 2.5 * zoom, true)
 
-static func sentinel(canvas: CanvasItem, kind: String, at: Vector2, zoom: float) -> void:
+static func sentinel(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, level: int = 1) -> void:
 	var z := Vector2.ONE * zoom
 	var w := 2.5 * zoom
 	match kind:
@@ -64,33 +71,93 @@ static func sentinel(canvas: CanvasItem, kind: String, at: Vector2, zoom: float)
 			shape(canvas, [Vector2(-10, 7), Vector2(-7, -10), Vector2(7, -10), Vector2(10, 7)], at, z, CORAL, w)
 			shape(canvas, [Vector2(-18, -18), Vector2(18, -18), Vector2(12, -5), Vector2(-12, -5)], at, z, CORAL, w)
 			shape(canvas, [Vector2(-9, -22), Vector2(-7, -30), Vector2(-1, -25), Vector2(4, -40), Vector2(10, -25), Vector2(7, -18), Vector2(-5, -18)], at, z, GOLD, w)
+		"electric":
+			var blue := Color("91bbff")
+			shape(canvas, [Vector2(-12, 7), Vector2(-8, -21), Vector2(8, -21), Vector2(12, 7)], at, z, LILAC, w)
+			for side in [-1, 1]:
+				shape(canvas, [Vector2(side * 7, -15), Vector2(side * 18, -25), Vector2(side * 14, -40), Vector2(side * 10, -28), Vector2(side * 4, -23)], at, z, blue, w)
+			disk(canvas, at + Vector2(0, -29) * z, 7 * zoom, blue, w)
+			shape(canvas, [Vector2(2, -38), Vector2(-5, -27), Vector2(0, -27), Vector2(-2, -19), Vector2(6, -31), Vector2(1, -31)], at, z, PAPER, zoom)
 		_:
 			shape(canvas, [Vector2(-13, 7), Vector2(-10, -29), Vector2(0, -43), Vector2(10, -29), Vector2(13, 7)], at, z, LILAC, w)
 			shape(canvas, [Vector2(0, -25), Vector2(5, -18), Vector2(0, -11), Vector2(-5, -18)], at, z, INK, zoom)
 	shape(canvas, [Vector2(-17, 6), Vector2(17, 6), Vector2(17, 12), Vector2(-17, 12)], at, z, PAPER, w)
+	if level >= 2:
+		preload("res://scripts/rendering/tower_tiers.gd").details(canvas, kind, at, zoom, clampi(level, 1, 3))
 
 static func scenery(canvas: CanvasItem, style: String, at: Vector2, extent: float) -> void:
 	var z := Vector2.ONE * extent / 30.0
 	match style:
 		"forest":
-			canvas.draw_line(at + Vector2(0, 5) * z, at + Vector2(0, 13) * z, INK, 2.0)
-			shape(canvas, [Vector2(0, -15), Vector2(12, 7), Vector2(-12, 7)], at, z, Color("567456"))
+			shape(canvas, [Vector2(-2, 4), Vector2(3, 4), Vector2(3, 13), Vector2(-2, 13)], at, z, Color("a4977d"), 1.5)
+			shape(canvas, [Vector2(0, -16), Vector2(8, -3), Vector2(5, -3), Vector2(13, 8), Vector2(-12, 8), Vector2(-5, -3), Vector2(-8, -3)], at, z, Color("567456"))
+			shape(canvas, [Vector2(0, -12), Vector2(0, 5), Vector2(-8, 5), Vector2(-2, -3), Vector2(-5, -3)], at, z, Color("799269"), 0.0)
+			canvas.draw_line(at + Vector2(-4, 1) * z, at + Vector2(4, 1) * z, INK, 1.2, true)
 		"ashen_forge":
 			shape(canvas, [Vector2(-13, 8), Vector2(-9, -5), Vector2(1, -10), Vector2(12, -2), Vector2(14, 8)], at, z, Color("80685d"))
+			shape(canvas, [Vector2(-9, -4), Vector2(1, -9), Vector2(11, -2), Vector2(2, 1)], at, z, Color("a18b75"), 1.0)
+			canvas.draw_polyline(PackedVector2Array([at + Vector2(1, -7) * z, at + Vector2(-2, 0) * z, at + Vector2(3, 3) * z, at + Vector2(1, 7) * z]), INK, 2.6, true)
+			canvas.draw_polyline(PackedVector2Array([at + Vector2(1, -6) * z, at + Vector2(-1, 0) * z, at + Vector2(3, 3) * z]), GOLD, 1.1, true)
 		"drowned_crypt":
+			ellipse(canvas, at + Vector2(0, 11) * z, Vector2(15, 4) * z, Color("668c94"), 1.0)
 			shape(canvas, [Vector2(-9, 11), Vector2(-9, -8), Vector2(-4, -12), Vector2(4, -12), Vector2(9, -8), Vector2(9, 11)], at, z, PAPER)
+			canvas.draw_line(at + Vector2(5, -7) * z, at + Vector2(5, 8) * z, Color("a4977d"), 2.0, true)
 			canvas.draw_line(at + Vector2(-4, -2) * z, at + Vector2(4, -2) * z, INK, 2.0)
+			canvas.draw_line(at + Vector2(0, -6) * z, at + Vector2(0, 3) * z, INK, 1.5)
+			canvas.draw_polyline(PackedVector2Array([at + Vector2(-8, 5) * z, at + Vector2(-3, 7) * z, at + Vector2(-5, 10) * z]), INK, 1.0, true)
 		"bloodmoon_sanctuary":
 			shape(canvas, [Vector2(0, -15), Vector2(9, -3), Vector2(6, 10), Vector2(-6, 10), Vector2(-9, -3)], at, z, Color("79556f"))
+			shape(canvas, [Vector2(0, -12), Vector2(6, -3), Vector2(0, 7)], at, z, LILAC, 1.0)
+			canvas.draw_line(at + Vector2(0, -12) * z, at + Vector2(0, 8) * z, INK, 1.0, true)
+			shape(canvas, [Vector2(-10, 10), Vector2(-14, 3), Vector2(-9, 0), Vector2(-6, 10)], at, z, Color("79556f"), 1.3)
+
+static func ground_detail(canvas: CanvasItem, style: String, at: Vector2, variant: int, scale_value: float) -> void:
+	# Small two-tone marks: texture at play scale, subordinate to actor outlines.
+	var z := Vector2.ONE * scale_value
+	var shade := ground_color(style).darkened(0.14)
+	var light := ground_color(style).lightened(0.12)
+	match style:
+		"forest":
+			if variant % 3 == 0:
+				shape(canvas, [Vector2(-6, 1), Vector2(-1, -3), Vector2(6, 0), Vector2(1, 3)], at, z, light, 1.0)
+				canvas.draw_line(at + Vector2(-3, 1) * z, at + Vector2(3, 0) * z, shade, 1.0, true)
+			else:
+				for tip in [Vector2(-5, -3), Vector2(-1, -6), Vector2(4, -3)]:
+					canvas.draw_line(at + Vector2(0, 2) * z, at + tip * z, shade, 1.5, true)
+		"ashen_forge":
+			if variant % 3 == 0:
+				shape(canvas, [Vector2(-5, 2), Vector2(-3, -3), Vector2(2, -4), Vector2(6, 1), Vector2(2, 3)], at, z, shade, 1.0)
+				canvas.draw_line(at + Vector2(-2, -2) * z, at + Vector2(2, -2) * z, light, 1.2, true)
+			else:
+				canvas.draw_polyline(PackedVector2Array([at + Vector2(-7, -2) * z, at + Vector2(-2, 0) * z, at + Vector2(0, 4) * z, at + Vector2(5, 5) * z]), shade, 1.2, true)
+				canvas.draw_line(at + Vector2(-2, 0) * z, at + Vector2(2, -3) * z, shade, 1.2, true)
+		"drowned_crypt":
+			canvas.draw_line(at + Vector2(-7, 1) * z, at + Vector2(6, 1) * z, shade, 1.4, true)
+			canvas.draw_line(at + Vector2(-3, 4) * z, at + Vector2(3, 4) * z, light, 1.2, true)
+			if variant % 3 == 0:
+				for tip in [Vector2(-3, -5), Vector2(0, -7), Vector2(3, -4)]:
+					canvas.draw_line(at, at + tip * z, shade, 1.2, true)
+		"bloodmoon_sanctuary":
+			if variant % 3 == 0:
+				shape(canvas, [Vector2(-4, 1), Vector2(0, -5), Vector2(4, 1), Vector2(0, 3)], at, z, light, 1.0)
+			else:
+				canvas.draw_polyline(PackedVector2Array([at + Vector2(-6, 3) * z, at + Vector2(-2, 0) * z, at + Vector2(2, 0) * z, at + Vector2(6, -3) * z]), shade, 1.4, true)
+				canvas.draw_line(at + Vector2(-2, 0) * z, at + Vector2(-3, -4) * z, shade, 1.2, true)
+
+static func road_detail(canvas: CanvasItem, road: PackedVector2Array) -> void:
+	# Broken inset edging keeps the central lane and exact joining mouths clear.
+	for i in range(5, road.size() - 5, 6):
+		var p := road[i]
+		if p.length() < 40:
+			continue
+		var direction := (road[i + 1] - road[i - 1]).normalized()
+		var normal := Vector2(-direction.y, direction.x)
+		for side in [-1, 1]:
+			var at: Vector2 = p + normal * side * 7.5
+			canvas.draw_line(at - direction * 3.5, at + direction * 3.5, Color("b9a783"), 1.3, true)
+		if i % 12 == 5:
+			var at := p + normal * 5.0
+			canvas.draw_line(at, at + normal * 4.0 + direction * 1.5, Color("a4977d"), 1.0, true)
 
 static func enemy(canvas: CanvasItem, kind: String, at: Vector2, zoom: float) -> void:
-	var z := Vector2.ONE * zoom
-	match kind:
-		"basic":
-			disk(canvas, at + Vector2(0, -2) * z, 8.0 * zoom, PAPER, 2.0 * zoom)
-		"fast":
-			shape(canvas, [Vector2(0, -12), Vector2(8, -3), Vector2(8, 7), Vector2(0, 3), Vector2(-8, 7), Vector2(-8, -3)], at, z, MINT, 2.0 * zoom)
-		_:
-			shape(canvas, [Vector2(-10, -6), Vector2(-5, -11), Vector2(5, -11), Vector2(10, -6), Vector2(10, 8), Vector2(-10, 8)], at, z, CORAL, 2.0 * zoom)
-	for x in [-3, 3]:
-		canvas.draw_circle(at + Vector2(x, -3) * z, 1.3 * zoom, INK)
+	preload("res://scripts/rendering/enemy_art.gd").draw(canvas, kind, at, zoom)

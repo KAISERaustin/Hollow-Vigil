@@ -29,6 +29,8 @@ var selected_region := "0,0"
 var preview_kind := "rapid"
 var show_expansion := false
 var effect_offset := 0.0
+var upgrade_poofs: Array[Dictionary] = []
+var observed_economy: VigilEconomy
 var mouse_down := false
 var dragged := false
 var start := Vector2.ZERO
@@ -42,6 +44,7 @@ const TEXT := VigilTerrainArt.PAPER
 const EXPANSION_HIT_RADIUS := 38.0
 
 func _ready() -> void:
+	bind_upgrade_effects()
 	clip_contents = true
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	font = VigilInterface.font(600)
@@ -56,6 +59,42 @@ func _ready() -> void:
 	terrain_layer = VigilTerrainLayer.new()
 	terrain_layer.show_behind_parent = true
 	add_child(terrain_layer)
+
+func bind_upgrade_effects() -> void:
+	if state == null or observed_economy == state.economy:
+		return
+	if observed_economy != null:
+		observed_economy.tower_upgraded.disconnect(on_tower_upgraded)
+	observed_economy = state.economy
+	observed_economy.tower_upgraded.connect(on_tower_upgraded)
+	upgrade_poofs.clear()
+
+func on_tower_upgraded(region: String, pad: int, kind: String) -> void:
+	upgrade_poofs.append({"pos": VigilWorld.pad_position(region, pad), "age": 0.0, "color": Color(Balance.TOWERS[kind].color)})
+	queue_redraw()
+
+func _process(delta: float) -> void:
+	bind_upgrade_effects()
+	if upgrade_poofs.is_empty():
+		return
+	for i in range(upgrade_poofs.size() - 1, -1, -1):
+		upgrade_poofs[i].age += delta
+		if upgrade_poofs[i].age >= 0.65:
+			upgrade_poofs.remove_at(i)
+	queue_redraw()
+
+func draw_upgrade_poofs() -> void:
+	for fx in upgrade_poofs:
+		var progress: float = fx.age / 0.65
+		var opacity := 1.0 - smoothstep(0.25, 1.0, progress)
+		var center := screen(fx.pos + Vector2(0, -17))
+		for i in range(9):
+			var direction := Vector2.from_angle(TAU * i / 9.0)
+			var offset := direction * (9.0 + progress * 28.0) + Vector2(0, -progress * 13.0)
+			var radius := (8.0 + sin(progress * PI) * 5.0) * zoom
+			draw_circle(center + offset * zoom, radius, Color(VigilTerrainArt.PAPER, opacity * 0.85))
+			if i % 2 == 0:
+				draw_circle(center + offset * zoom, 2.0 * zoom, Color(fx.color, opacity))
 
 func screen(pos: Vector2) -> Vector2:
 	return (pos - camera) * zoom + size * 0.5
@@ -280,6 +319,7 @@ func _draw() -> void:
 	for t in state.data.towers.values():
 		if visible.has_point(screen(VigilWorld.pad_position(t.region, t.pad))):
 			draw_tower(t)
+	draw_upgrade_poofs()
 	for fx in state.combat.effects:
 		var fade: float = fx.life / fx.max_life
 		var color := Color(fx.color)
@@ -321,7 +361,7 @@ func draw_core() -> void:
 func draw_tower(t: Dictionary) -> void:
 	var p := screen(VigilWorld.pad_position(t.region, t.pad))
 	var z := zoom
-	VigilTerrainArt.sentinel(self, t.kind, p, z)
+	VigilTerrainArt.sentinel(self, t.kind, p, z, int(t.level))
 	if t.get("rebuild_remaining", 0.0) > 0.0:
 		# Scaffolding and a persistent timer distinguish an inactive tower.
 		draw_set_transform(p, 0, Vector2.ONE * zoom)
@@ -357,6 +397,6 @@ func draw_enemy(e: Dictionary) -> void:
 	var z := zoom
 	VigilTerrainArt.enemy(self, e.kind, p, z)
 	if e.hp < e.max_hp:
-		var from := p + Vector2(-9, -17)
+		var from := p + Vector2(-9, -23 * z)
 		draw_line(from, from + Vector2(18, 0), Color.BLACK, 4)
 		draw_line(from, from + Vector2(18 * e.hp / e.max_hp, 0), VigilTerrainArt.MINT, 2)

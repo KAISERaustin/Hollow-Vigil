@@ -23,7 +23,7 @@ static func test_first_loop(suite: SceneTree) -> void:
 	suite.check(g.expand("-1,0"), "Starting gold purchases the first territory")
 	suite.check(g.paths["-1,0"][0] == VigilWorld.center("-1,0"), "First purchased rift spawns at its tile center")
 	suite.advance(g, 45)
-	suite.check(g.data.kills > 10, "Starter tower earns many kills unattended in 45 seconds")
+	suite.check(g.data.kills >= 5, "Starter tower earns gold against tougher enemies in 45 seconds")
 	suite.check(g.economy.unclaimed() == g.data.kills * 5.0, "Every basic kill pays exactly five gold")
 	suite.check(g.data.balance == 120.0, "Defeats accumulate rather than silently auto-collect")
 	var earned := g.economy.unclaimed()
@@ -36,7 +36,7 @@ static func test_first_loop(suite: SceneTree) -> void:
 	suite.check(not g.economy.upgrade("1", 1), "Repeated stale upgrade action does not charge again")
 	var born := g.combat.enemy_serial
 	suite.advance(g, 30)
-	suite.check(g.combat.enemy_serial > born + 12, "Spawns continue with no wave break")
+	suite.check(g.combat.enemy_serial >= born + int(floor(30.0 / Balance.traffic_period(0))), "Spawns continue with no wave break")
 	suite.check(g.data.kills > earned / 5.0, "Combat keeps earning after an upgrade")
 	print("PASS GROUP: first playable loop")
 
@@ -44,8 +44,8 @@ static func test_transactions(suite: SceneTree) -> void:
 	var g := VigilState.new(77)
 	g.economy.build("rapid", "0,0", 0)
 	var e: Dictionary = suite.fixture_enemy(g, "heavy")
-	suite.check(g.combat.hit(e, 100.0, "1"), "Lethal hit confirms death")
-	suite.check(not g.combat.hit(e, 100.0, "1"), "Simultaneous lethal hit sees dead flag")
+	suite.check(g.combat.hit(e, Balance.ENEMIES.heavy.hp, "1"), "Lethal hit confirms death")
+	suite.check(not g.combat.hit(e, Balance.ENEMIES.heavy.hp, "1"), "Simultaneous lethal hit sees dead flag")
 	suite.check(g.data.kills == 1 and g.economy.unclaimed() == 24, "Duplicate hits award only one payout")
 	var balance: float = g.data.balance
 	suite.check(g.economy.collect("1") == 24 and g.economy.collect() == 0, "Individual then collect-all cannot duplicate")

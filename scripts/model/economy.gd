@@ -1,6 +1,8 @@
 class_name VigilEconomy
 extends RefCounted
 
+signal tower_upgraded(region: String, pad: int, kind: String)
+
 var data: Dictionary
 var tuning: Dictionary:
 	get: return data.settings.get("developer_balance", {})
@@ -49,6 +51,7 @@ func upgrade(id: String, expected_level: int = -1) -> bool:
 	if t.get("rebuild_remaining", 0.0) > 0.0 or t.level >= Balance.MAX_TOWER_LEVEL or not spend(Balance.upgrade_cost(t, tuning)):
 		return false
 	t.level += 1
+	tower_upgraded.emit(t.region, int(t.pad), t.kind)
 	return true
 
 func relocate(id: String, region: String, pad: int, expected_level: int = -1) -> bool:

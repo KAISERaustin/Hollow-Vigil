@@ -9,7 +9,7 @@ static func run(suite: SceneTree) -> void:
 	print("PASS GROUP: three tower levels, investment limits, attack cadence, legacy refunds and migration recovery")
 
 static func test_progression(suite: SceneTree) -> void:
-	var prices := {"rapid": [60.0, 60.0, 100.0], "splash": [120.0, 120.0, 200.0], "heavy": [160.0, 140.0, 220.0]}
+	var prices := {"rapid": [60.0, 60.0, 100.0], "splash": [120.0, 120.0, 200.0], "heavy": [160.0, 140.0, 220.0], "electric": [140.0, 120.0, 200.0]}
 	suite.check(Balance.MAX_TOWER_LEVEL == 3, "Every tower has exactly three total levels")
 	for kind in Balance.TOWERS:
 		var g := VigilState.new(314)
@@ -45,9 +45,9 @@ static func test_progression(suite: SceneTree) -> void:
 		suite.check(not g.storage.valid_data(g.data), "Current saves reject a fourth %s level" % kind)
 	var heavy_hp: float = Balance.ENEMIES.heavy.hp
 	for level in [1, 2, 3]:
-		suite.check(int(ceil(heavy_hp / Balance.stats("heavy", level).damage)) == 4 - level, "Obelisk upgrades reduce Revenant hits from three to two to one")
-	suite.check(Balance.stats("rapid", 3).damage >= Balance.ENEMIES.basic.hp and Balance.stats("rapid", 2).damage < Balance.ENEMIES.basic.hp, "Ashneedle's final tier gains one-hit common-enemy clearing")
-	suite.check(int(ceil(heavy_hp / Balance.stats("splash", 3).damage)) == 3, "Maximum Pyre still needs three blasts per Revenant, preserving Obelisk's burst role")
+		suite.check(int(ceil(heavy_hp / Balance.stats("heavy", level).damage)) == [9, 6, 4][level - 1], "Obelisk upgrades reduce Revenant hits from nine to six to four")
+	suite.check(int(ceil(Balance.ENEMIES.basic.hp / Balance.stats("rapid", 1).damage)) == 8 and int(ceil(Balance.ENEMIES.basic.hp / Balance.stats("rapid", 3).damage)) == 3, "Ashneedle upgrades reduce Hollow hits from eight to three")
+	suite.check(int(ceil(heavy_hp / Balance.stats("splash", 3).damage)) == 10, "Maximum Pyre needs ten blasts per Revenant, preserving Obelisk's burst role")
 
 static func test_attack_intervals(suite: SceneTree) -> void:
 	for kind in Balance.TOWERS:
@@ -65,14 +65,16 @@ static func test_attack_intervals(suite: SceneTree) -> void:
 			enemy.pos = pos
 			var stats := Balance.stats(kind, level)
 			g.combat.tick(Balance.STEP)
-			var health: float = enemy.hp
-			suite.check(is_equal_approx(health, 10000.0 - stats.damage), "First %s level %d shot uses its tier damage" % [kind, level])
+			suite.check(is_equal_approx(enemy.hp, 10000.0 - (stats.damage if kind == "electric" else 0.0)), "First %s level %d shot respects flight timing" % [kind, level])
 			var ticks := int(ceil(stats.period / Balance.STEP - 0.000001))
 			for tick in range(ticks - 1):
 				g.combat.tick(Balance.STEP)
-			suite.check(is_equal_approx(enemy.hp, health), "%s level %d does not shoot before its interval" % [kind, level])
+			suite.check(is_equal_approx(enemy.hp, 10000.0 - stats.damage) and g.data.towers[id].cooldown > 0.000001, "%s level %d lands its first shot without firing early" % [kind, level])
 			g.combat.tick(Balance.STEP)
-			suite.check(is_equal_approx(enemy.hp, health - stats.damage), "%s level %d fires without an extra tick from floating-point residue" % [kind, level])
+			suite.check(is_equal_approx(g.data.towers[id].cooldown, stats.period), "%s level %d fires without an extra tick from floating-point residue" % [kind, level])
+			if kind != "electric":
+				g.combat.tick(g.combat.pending_shots[0].remaining)
+			suite.check(is_equal_approx(enemy.hp, 10000.0 - 2.0 * stats.damage), "%s level %d lands its second tier-damage shot" % [kind, level])
 
 static func test_legacy_migration(suite: SceneTree) -> void:
 	var path := "user://tower-migration-test.save"

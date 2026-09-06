@@ -61,8 +61,8 @@ func run() -> void:
 	check(not app.field.selected_tower.is_empty(), "Redesigned tower remains selectable")
 	app.panels.close_sheet()
 	for id in ["1,0", "0,1", "1,1"]:
-		for pad in range(3):
-			app.game.economy.build(["rapid", "splash", "heavy"][pad], id, pad)
+		for pad in range(4):
+			app.game.economy.build(["rapid", "splash", "heavy", "electric"][pad], id, pad)
 	app.game.data.balance = 280
 	app.toast_label.modulate.a = 0.0
 	app.update_hud()
@@ -83,7 +83,29 @@ func run() -> void:
 		var close: Button = app.panels.guide.find_child("CloseGuide", true, false)
 		await InputChecks.tap(app, close.get_global_rect().get_center())
 		check(not app.panels.visible, "Field guide closes at " + str(viewport))
-	var report := "ARTWORK SMOKE: socket build, tower selection, core touch, rift controls, guide open/close and HUD at 540x960 and 360x640; %d failures\n" % failures.size()
+	# A frozen real combat tick exposes all simultaneous lightning branches.
+	app.game.data.towers.clear()
+	app.game.data.balance = 10000.0
+	var electric: String = app.game.economy.build("electric", "0,0", 0)
+	app.game.economy.upgrade(electric)
+	app.game.economy.upgrade(electric)
+	var source := VigilWorld.pad_position("0,0", 0)
+	for index in range(5):
+		var enemy: Dictionary = app.game.combat.spawn("1,0", "heavy")
+		enemy.pos = source + Vector2.from_angle(-2.8 + index * 0.7) * 105.0
+		enemy.path = [enemy.pos, enemy.pos + Vector2(1000, 0)]
+	app.game.combat.tick(Balance.STEP)
+	check(app.game.combat.effects.filter(func(fx): return fx.kind == "shot" and fx.tower_kind == "electric").size() == 5, "Stormspire renders five simultaneous arcs")
+	for viewport in [Vector2i(540, 960), Vector2i(360, 640)]:
+		root.content_scale_size = viewport
+		root.size = viewport
+		await process_frame
+		await process_frame
+		app.field.camera = source
+		app.field.zoom = 1.0
+		app.field.queue_redraw()
+		await InputChecks.capture(app, "electric-lightning-" + str(viewport.x))
+	var report := "ARTWORK SMOKE: socket build, tower selection, core touch, rift controls, guide and five lightning arcs at 540x960 and 360x640; %d failures\n" % failures.size()
 	for failure in failures:
 		report += failure + "\n"
 	print(report)

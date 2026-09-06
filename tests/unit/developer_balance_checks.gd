@@ -96,7 +96,9 @@ static func test_towers(suite: SceneTree) -> void:
 		game.data.regions["-1,0"].timer = 9.0
 		tower.cooldown = 0.0
 		game.combat.tick(Balance.STEP)
-		suite.check(first.hp == 5.0 and second.hp == 5.0 and tower.cooldown == 2.0, "Adjusted damage, range, blast and interval drive actual " + kind + " attacks")
+		suite.check(tower.cooldown == 2.0, "Adjusted interval drives actual " + kind + " attacks")
+		suite.advance(game, 0.40)
+		suite.check(first.hp == Balance.ENEMIES.basic.hp - 10.0 and second.hp == Balance.ENEMIES.basic.hp - 10.0, "Adjusted damage, range and blast apply at " + kind + " impact")
 		var custom := Balance.stats(kind, 2, game.tuning)
 		var baseline := Balance.stats(kind, 2)
 		suite.check(is_equal_approx(custom.damage / baseline.damage, 10.0 / Balance.TOWERS[kind].damage), "Upgraded damage scales from the custom base for " + kind)

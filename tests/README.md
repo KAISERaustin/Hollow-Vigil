@@ -6,6 +6,8 @@ Use the root `launch.ps1` commands documented in the README. `-Check` runs headl
 
 ## Coverage
 
+- `unit/enemy_checks.gd`: Lantern Keeper attunement pricing and guards, every unlock combination, normal spawning, movement, lethal damage, once-only bounty and save reload. Mixed-traffic balance and crowded-world tests include all four enemies.
+- `rendered/enemy_art_checks.gd`: four distinct native portraits, transparent export padding and visibility at four gameplay zooms; regenerates `assets/enemies/` and `artifacts/enemy-lineup.png` through `-ArtSmoke` or `-Check`.
 - `unit/relocation_checks.gd`: move pricing and time caps, destination and balance guards, tower identity and earnings, construction combat restrictions, historical production cleanup, old saves, offline countdowns and clock replay protection.
 - `rendered/relocation_ui_checks.gd`: all tower types using mouse and touch at small and large viewports; quote/cancel/place flow, duplicate callbacks, scaffold screenshots, rebuild restrictions, saved destinations, Escape and navigation cleanup. Tower menu checks exercise all five actions at four zooms; style checks include both the move quote and destination prompt.
 - `unit/economy_checks.gd`, `tower_economy_checks.gd`: starter loop, collections, purchase guards, upgrade/sale integrity and production cleanup.

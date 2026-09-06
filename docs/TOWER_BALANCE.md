@@ -16,6 +16,8 @@ The first territory leaves 180 of the starting 280 gold, so every tower remains 
 
 ## Combat stats
 
+Stormspire targets up to five distinct troops per pulse at every level, regardless of troop type. Each tower has its own five-target limit, and a new pulse replaces its previous lightning connections. Upgrades improve damage, attack interval, and reach without increasing the target count.
+
 | Tower | Level | Damage per hit | Attack interval (s) | Reach | Blast radius |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Ashneedle | 1 | 6 | 0.48 | 132 | — |
@@ -32,15 +34,17 @@ Reach and blast radius use world units. Combat advances every 0.05 seconds, so i
 
 ## Roles and pricing rationale
 
-- **Ashneedle:** the inexpensive generalist. The final tier defeats a 15-HP Hollow or 12-HP Wraith in one hit and fires more than three times per second. It still needs six hits for an 85-HP Revenant, so durable enemies can occupy its targeting time.
-- **Pyre:** dense-traffic coverage. Increasing blast radius lets one attack serve several enemies. Its final tier needs three blasts per Revenant; its single-target damage rate remains below the other maximum-level towers. Its higher upgrade investment pays off when enemies cluster.
-- **Obelisk:** long reach and heavy-enemy interception. Revenants take three hits at level 1, two at level 2, and one at level 3. Faster attacks at the final tier make the 520-gold total investment useful, while its single-target shots still sacrifice crowd throughput.
+- **Ashneedle:** the inexpensive generalist. The final tier defeats a 45-HP Hollow or 36-HP Wraith in three hits and fires more than three times per second. It still needs 23 hits for a 340-HP Revenant, so durable enemies can occupy its targeting time.
+- **Pyre:** dense-traffic coverage. Increasing blast radius lets one attack serve several enemies. Its final tier needs ten blasts per Revenant; its single-target damage rate remains below the other maximum-level towers. Its higher upgrade investment pays off when enemies cluster.
+- **Obelisk:** long reach and heavy-enemy interception. Revenants take nine hits at level 1, six at level 2, and four at level 3. Faster attacks at the final tier make the 520-gold total investment useful, while its single-target shots still sacrifice crowd throughput.
 
-Enemies keep their existing health, speed, reward, and spawn proportions. A mixed maximum-traffic rift produces about 2.35 enemies per second with about 62.8 combined HP per second on average. Damage per second alone does not predict earnings: overkill, firing opportunities, target priority, range, and clustered targets all matter. Further growth uses additional defenses, territory, and rift traffic once a tower reaches level 3.
+Rifts now spawn at 40% of their former rate at every traffic level. The base interval is 4.25 seconds, falling to 1.0625 seconds at maximum traffic. Hollow health rises from 15 to 45, Wraith health from 12 to 36, and Revenant health from 85 to 340. Speed, rewards, and spawn proportions stay the same. A mixed maximum-traffic rift produces about 0.94 enemies per second with about 89.8 combined HP per second on average. Damage per second alone does not predict earnings: overkill, firing opportunities, target priority, range, and clustered targets all matter. Further growth uses additional defenses, territory, and rift traffic once a tower reaches level 3.
+
+At base mixed traffic, the original three towers clear 49-68% at level one and 87-100% at level three in the benchmark. Basic-only opening traffic remains earnable so players can fund upgrades. Tougher enemies make upgraded damage, attack speed, and reach matter without making every starting placement equally effective.
 
 ## Validation and saves
 
-`tests/unit/tower_balance_checks.gd` runs 264 deterministic scenarios: three world/random seeds, four approach directions, every tower and level, opening Hollow traffic, mixed traffic at base/max density, and a combined level-three defense. Each scenario spawns for two minutes, then drains the cohort for 30 seconds. The generated `artifacts/tower-balance.csv` reports clear percentage and gold per minute; its income divides by the two-minute spawning window and includes later kills from that cohort. This is a repeatable balance benchmark, not a forecast for every placement or world layout.
+`tests/unit/tower_balance_checks.gd` runs deterministic scenarios: three world/random seeds, four approach directions, every tower and level, opening Hollow traffic, mixed traffic at base/max density, and a combined level-three defense. Each scenario spawns for two minutes, then drains the cohort for 30 seconds. The generated `artifacts/tower-balance.csv` reports clear percentage and gold per minute; its income divides by the two-minute spawning window and includes later kills from that cohort. This is a repeatable balance benchmark, not a forecast for every placement or world layout.
 
 The progression checks cover exact affordability boundaries, two successful upgrades, repeated and stale actions, the level-three cap, sale totals, hit thresholds and actual firing cadence. Rendered checks exercise the upgrade and maximum-level dialogs with mouse/touch and compact layouts.
 

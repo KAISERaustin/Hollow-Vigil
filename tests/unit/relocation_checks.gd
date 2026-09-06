@@ -14,8 +14,8 @@ static func test_transactions(suite: SceneTree) -> void:
 	var other := g.economy.build("heavy", "1,0", 1)
 	for kind in Balance.TOWERS:
 		var tower := {"kind": kind, "level": 1}
-		suite.check(Balance.move_cost(tower) == {"rapid": 12.0, "splash": 24.0, "heavy": 32.0}[kind], "Base move price for " + kind)
-		suite.check(Balance.rebuild_seconds(tower) == {"rapid": 30.0, "splash": 60.0, "heavy": 80.0}[kind], "Distinct base rebuild timer for " + kind)
+		suite.check(Balance.move_cost(tower) == {"rapid": 12.0, "splash": 24.0, "heavy": 32.0, "electric": 28.0}[kind], "Base move price for " + kind)
+		suite.check(Balance.rebuild_seconds(tower) == {"rapid": 30.0, "splash": 60.0, "heavy": 80.0, "electric": 70.0}[kind], "Distinct base rebuild timer for " + kind)
 		var previous_cost := Balance.move_cost(tower)
 		var previous_time := Balance.rebuild_seconds(tower)
 		for level in range(2, Balance.MAX_TOWER_LEVEL + 1):
@@ -68,7 +68,7 @@ static func test_rebuild_combat(suite: SceneTree) -> void:
 	g.combat.tick(Balance.STEP)
 	suite.check(enemy.hp == 1000.0 and g.data.towers[id].rebuild_remaining == 0.0, "Final construction tick cannot fire early")
 	g.combat.tick(Balance.STEP)
-	suite.check(enemy.hp < 1000.0, "Completed tower resumes firing from the new position")
+	suite.check(not g.combat.pending_shots.is_empty(), "Completed tower resumes firing from the new position")
 	suite.check(g.economy.upgrade(id, 1), "Upgrades unlock after construction completes")
 
 static func test_saved_timers(suite: SceneTree) -> void:

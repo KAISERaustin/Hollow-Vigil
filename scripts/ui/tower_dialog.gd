@@ -41,7 +41,7 @@ func _ready() -> void:
 	portrait = Control.new()
 	portrait.custom_minimum_size = Vector2(48, 64)
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	portrait.draw.connect(func(): VigilTerrainArt.sentinel(portrait, tower_kind, Vector2(24, 46), 0.9))
+	portrait.draw.connect(func(): VigilTerrainArt.sentinel(portrait, tower_kind, Vector2(24, 51), 0.85, tower_level))
 	identity.add_child(portrait)
 	heading = UI.heading("", 24)
 	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -132,6 +132,8 @@ func open_action(action: String) -> void:
 		stat(grid, "Fire rate / sec", 1.0 / stats.period, 1.0 / next.period, 2)
 		stat(grid, "Base DPS / target", stats.damage / stats.period, next.damage / next.period)
 		stat(grid, "Range", stats.range, next.range, 0)
+		if stats.has("targets"):
+			stat(grid, "Targets per pulse", stats.targets, next.targets, 0)
 		stat(grid, "Attack interval", stats.period, next.period, 2, "s")
 		if stats.splash > 0:
 			stat(grid, "Blast radius", stats.splash, next.splash, 0)
