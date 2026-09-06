@@ -116,7 +116,8 @@ func run() -> void:
 	for kind in Balance.ENEMIES:
 		events.clear()
 		g.data.regions["-1,0"].style = "castle_ruin" if kind in Balance.DUNGEON_KINDS else "forest"
-		var enemy := g.combat.spawn("-1,0", kind)
+		var source := preload("res://tests/support/orchard_fixture.gd").populate(g) if kind in Balance.ORCHARD_KINDS else "-1,0"
+		var enemy := g.combat.spawn(source, kind)
 		g.combat.hit(enemy, 100000.0, id)
 		g.combat.hit(enemy, 100000.0, id)
 		check(events.count("death_" + kind) == 1, "Exactly one death cue: " + kind)

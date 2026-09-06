@@ -144,7 +144,7 @@ static func run(suite: SceneTree) -> void:
 		suite.check(mob.path[-1] == VigilWorld.CORE_POSITION, "Dungeon route reaches the core")
 	suite.check(seen.size() == 2, "Both exclusive dungeon mobs spawn after attunement")
 	for kind in ["ruin_knight", "sepulcher"]:
-		var cost: float = Balance.DUNGEON_UNLOCK_COSTS[kind]
+		var cost: float = Balance.portal_unlock_costs("castle_ruin")[kind]
 		var gold: float = claimed.data.balance
 		claimed.data.balance = cost - 1.0
 		suite.check(not claimed.economy.unlock(claim_gate.id, kind) and claimed.data.balance == cost - 1.0, "Elite attunement rejects insufficient gold")
