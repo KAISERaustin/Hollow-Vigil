@@ -273,6 +273,8 @@ func show_expansion(id: String) -> void:
 		if VigilWorld.is_dungeon_portal(id, int(game.data.seed)):
 			description = "Four tower sockets surround this dungeon’s only portal. Other ruin territories remain available to claim. " + Balance.rift_description("castle_ruin", game.tuning)
 		sheet_content.add_child(UI.paragraph(description, 14))
+	if VigilWorld.region_style(id, int(game.data.seed)) == "mourning_orchard":
+		sheet_content.add_child(UI.paragraph("Mourning Orchard · Pale thorn trees grow around a single root-bound portal. " + (Balance.rift_description("mourning_orchard", game.tuning) if id == VigilWorld.Orchard.gate(int(game.data.seed)) else "This tile has roads and four tower sockets. The portal lies elsewhere in this same patch."), 14))
 	action_cost = Balance.expansion_cost(game.data.regions.size())
 	var revision := sheet_revision
 	action_button = UI.gold_button("Claim territory  ·  " + UI.exact_money(action_cost) + " gold", func():
@@ -296,7 +298,7 @@ func show_entrance(id: String) -> void:
 	var style: String = r.get("style", "forest")
 	var traffic_maxed: bool = r.traffic >= Balance.MAX_TRAFFIC_LEVEL
 	var rift_maxed := traffic_maxed
-	if style != "castle_ruin":
+	if not Balance.exclusive_portal(style):
 		for kind in Balance.UNLOCK_COSTS:
 			if kind not in r.unlocks:
 				rift_maxed = false
@@ -305,7 +307,7 @@ func show_entrance(id: String) -> void:
 		var status := UI.paragraph("MAX · Rift maxed out", 16)
 		status.add_theme_color_override("font_color", UI.GOLD)
 		sheet_content.add_child(status)
-	sheet_content.add_child(UI.paragraph(Balance.rift_description(style, game.tuning) + ("" if style == "castle_ruin" else " Applies to every enemy from this rift for its entire journey."), 14))
+	sheet_content.add_child(UI.paragraph(Balance.rift_description(style, game.tuning) + ("" if Balance.exclusive_portal(style) else " Applies to every enemy from this rift for its entire journey."), 14))
 	var revision := sheet_revision
 	var traffic := UI.button("Traffic · MAX" if traffic_maxed else "Increase traffic  ·  " + UI.exact_money(game.economy.traffic_cost(id)) + " gold", func():
 		if revision == sheet_revision and game.economy.buy_traffic(id, int(r.traffic)):
@@ -314,7 +316,7 @@ func show_entrance(id: String) -> void:
 	)
 	price_button(traffic, game.economy.traffic_cost(id), traffic_maxed)
 	sheet_content.add_child(UI.action_row(traffic.text, traffic, "MAX" if traffic_maxed else "Increase"))
-	if style == "castle_ruin":
+	if Balance.exclusive_portal(style):
 		return
 	for kind in Balance.UNLOCK_COSTS:
 		var s: Dictionary = Balance.ENEMIES[kind]
@@ -369,7 +371,7 @@ func _player_card() -> PanelContainer:
 	var refresh := func():
 		var signed_in: bool = app.cloud.signed_in()
 		player_name.text = app.cloud.display_name if signed_in and not app.cloud.display_name.is_empty() else ("Choose your name" if signed_in else "Guest")
-		hint.text = "Manage your name in Account & cloud saves" if signed_in else "Sign in to give your account a name"
+		hint.text = "Manage your name in Account & cloud backups" if signed_in else "Sign in to give your account a name"
 	refresh.call()
 	app.cloud.changed.connect(refresh)
 	card.tree_exiting.connect(func():
@@ -384,23 +386,31 @@ func show_settings() -> void:
 	mode = "settings"
 	clear_sheet("Settings")
 	sheet_content.add_child(_player_card())
-	var sound_button := UI.button("Sound", show_sound_settings)
-	sound_button.name = "OpenSoundSettings"
-	sheet_content.add_child(UI.action_row("Sound", sound_button, "Open"))
-	var cloud_button := UI.button("Account & cloud saves", show_cloud_saves)
-	cloud_button.name = "OpenCloudSaves"
-	sheet_content.add_child(UI.action_row(cloud_button.text, cloud_button, "Open"))
-	sheet_content.add_child(UI.paragraph("Save %d · %s" % [app.active_slot + 1, str(game.data.get("mode", "creative")).capitalize()], 14))
-	sheet_content.add_child(UI.action_row("Your saves", UI.button("Your saves", app.show_save_slots), "Open"))
-	var public_button := UI.button("Public Builds", app.show_public_builds)
-	public_button.name = "OpenPublicBuilds"
-	sheet_content.add_child(UI.action_row(public_button.text, public_button, "Open"))
+	var campaign_button := UI.button("Campaign", app.show_campaign)
+	campaign_button.name = "OpenCampaign"
+	sheet_content.add_child(UI.action_row("The Last Procession\n20 tactical campaign levels", campaign_button, "Play"))
+	sheet_content.add_child(UI.heading("Current game · Slot %d" % (app.active_slot + 1), 18))
+	sheet_content.add_child(UI.paragraph(str(game.data.get("mode", "creative")).capitalize() + " · Progress saves automatically on this device", 14))
 	if game.data.has("setup"):
-		sheet_content.add_child(UI.paragraph(game.data.setup.name + "\n" + game.data.setup.description, 14))
+		sheet_content.add_child(UI.paragraph(game.data.setup.name, 16))
+	sheet_content.add_child(UI.action_row("Saved games\nContinue a game or start a new one", UI.button("Saved games", app.show_save_slots), "Open"))
+	var cloud_button := UI.button("Account & cloud backups", show_cloud_saves)
+	cloud_button.name = "OpenCloudSaves"
+	sheet_content.add_child(UI.action_row("Account & cloud backups\nKeep a private copy of your progress online", cloud_button, "Open"))
 	if game.is_creative():
 		var developer := UI.button("Developer Controls", show_developer_controls)
 		developer.name = "OpenDeveloperControls"
-		sheet_content.add_child(UI.action_row(developer.text, developer, "Open"))
+		sheet_content.add_child(UI.action_row("Creative rules\nAdjust enemies, towers and starting resources", developer, "Edit"))
+	else:
+		sheet_content.add_child(UI.paragraph("Survival rules are locked for this game. Start a Creative game to edit rules and make builds.", 12))
+	sheet_content.add_child(UI.rule())
+	sheet_content.add_child(UI.heading("Preferences & community", 18))
+	var sound_button := UI.button("Sound", show_sound_settings)
+	sound_button.name = "OpenSoundSettings"
+	sheet_content.add_child(UI.action_row("Sound", sound_button, "Open"))
+	var public_button := UI.button("Community builds", app.show_public_builds)
+	public_button.name = "OpenPublicBuilds"
+	sheet_content.add_child(UI.action_row("Community builds\nFind a starting world shared by another player", public_button, "Browse"))
 	var stats := HBoxContainer.new()
 	stats.add_theme_constant_override("separation", 12)
 	sheet_content.add_child(stats)
@@ -415,15 +425,15 @@ func show_settings() -> void:
 		contents.add_child(UI.label(stat[0], 12, UI.MUTED))
 		contents.add_child(UI.heading(Balance.money(stat[1]), 18))
 	sheet_content.add_child(UI.rule())
-	sheet_content.add_child(UI.heading("Progress", 18))
+	sheet_content.add_child(UI.heading("Reset this game", 18))
 	sheet_content.add_child(UI.action_row("Reset progress", UI.accent_button("Reset progress", show_reset_confirmation, UI.DANGER), "Reset"))
 	sheet_content.add_child(UI.rule())
 	var upload := UI.button("Upload build", app.show_save_slots.bind(true))
 	upload.name = "UploadBuild"
 	upload.disabled = not game.is_creative()
-	sheet_content.add_child(UI.action_row("Upload build", upload, "Upload"))
+	sheet_content.add_child(UI.action_row("Upload build\nSave a reusable copy privately or share it publicly", upload, "Open"))
 	if not game.is_creative():
-		sheet_content.add_child(UI.paragraph("Public builds are shared from Creative saves. Use Account & cloud saves to sync this Survival save.", 12))
+		sheet_content.add_child(UI.paragraph("Public builds are shared from Creative saves. Use Account & cloud backups to sync this Survival save.", 12))
 
 func show_sound_settings() -> void:
 	mode = "sound"
@@ -495,7 +505,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func show_cloud_saves() -> void:
 	mode = "cloud"
-	clear_sheet("Account & cloud saves")
+	clear_sheet("Account & cloud backups")
 	var controls := preload("res://scripts/cloud/cloud_panel.gd").new()
 	controls.app = app
 	sheet_content.add_child(controls)

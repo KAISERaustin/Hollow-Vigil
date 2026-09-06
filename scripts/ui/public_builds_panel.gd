@@ -18,10 +18,10 @@ func show_page(slot: int = -1, page: int = 0) -> void:
 			center + Vector2(5, -13), center + Vector2(5, -5), center + Vector2(-2, -9)
 		]), UI.TEXT)
 	)
-	menu.clear("Public Builds", refresh)
+	menu.clear("Community builds", refresh)
 	var revision: int = menu.view_revision
 	menu.content.add_child(UI.paragraph("Worlds and rules shared by other players. Choose a build for a new Creative or Survival playthrough.", 14))
-	menu.add_back(UI.button("Back to world options" if slot >= 0 else "Back to saves", func():
+	menu.add_back(UI.button("Back to new game" if slot >= 0 else "Back to saved games", func():
 		if slot >= 0: menu.show_creation(slot, false)
 		else: menu.show_slots()
 	))
@@ -50,7 +50,7 @@ func show_page(slot: int = -1, page: int = 0) -> void:
 func select_build(id: String, slot: int, revision: int) -> void:
 	if menu.view_revision != revision:
 		return
-	menu.message.text = "Reading configuration…"
+	menu.message.text = "Loading build…"
 	var configuration: Dictionary = await menu.app.public_builds.read_build(id)
 	if not is_instance_valid(menu) or menu.view_revision != revision:
 		return
@@ -62,14 +62,14 @@ func select_build(id: String, slot: int, revision: int) -> void:
 		menu.show_creation(slot, false)
 		return
 	menu.creation_mode = "creative"
-	menu.clear("Choose a save for this build")
+	menu.clear("Choose a game slot")
 	menu.content.add_child(UI.paragraph(configuration.name, 18))
 	var available := false
 	for index in range(VigilSaveSlots.COUNT):
 		if not menu.slots.occupied(index):
 			available = true
-			menu.add_action(UI.button("Create in save %d" % (index + 1), menu.show_creation.bind(index, false)))
+			menu.add_action(UI.button("Use slot %d" % (index + 1), menu.show_creation.bind(index, false)))
 	if not available:
-		menu.content.add_child(UI.paragraph("All three saves are occupied. Archive a save from Your saves to free a slot, then choose this build again.", 14))
+		menu.content.add_child(UI.paragraph("All three game slots are occupied. Open Saved games and archive a game to free a slot, then choose this build again.", 14))
 	menu.add_back(UI.button("Back to public builds", show_page.bind(-1, 0)))
-	menu.add_action(UI.button("Your saves", menu.show_slots))
+	menu.add_action(UI.button("Saved games", menu.show_slots))

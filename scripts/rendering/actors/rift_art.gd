@@ -5,6 +5,9 @@ const Art = preload("res://scripts/rendering/terrain/terrain_art.gd")
 # The same flat fills, ink edges and cut-stone geometry as sentinels and scenery.
 # No particle nodes or animation: markers remain legible in reduced-motion mode.
 static func draw(canvas: CanvasItem, style: String, at: Vector2, zoom: float) -> void:
+	if style == "mourning_orchard":
+		preload("res://scripts/rendering/actors/orchard_art.gd").portal(canvas, at, zoom)
+		return
 	if style == "castle_ruin":
 		dungeon_portal(canvas, at, zoom)
 		return

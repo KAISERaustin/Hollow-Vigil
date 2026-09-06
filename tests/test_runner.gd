@@ -18,6 +18,9 @@ func advance(g: VigilState, seconds: float) -> void:
 		g.combat.tick(Balance.STEP)
 
 func fixture_enemy(g: VigilState, kind: String = "basic") -> Dictionary:
+	if kind in Balance.ORCHARD_KINDS:
+		var gate := preload("res://tests/support/orchard_fixture.gd").populate(g)
+		return g.combat.spawn(gate, kind)
 	if not g.data.regions.has("-1,0"):
 		var balance: float = g.data.balance
 		g.data.balance += Balance.expansion_cost(g.data.regions.size())
@@ -39,6 +42,7 @@ func clean_test_save(path: String) -> void:
 			DirAccess.remove_absolute(path + suffix)
 
 func run() -> void:
+	preload("res://tests/unit/orchard_checks.gd").run(self)
 	preload("res://tests/unit/rift_checks.gd").run(self)
 	preload("res://tests/unit/economy_checks.gd").run(self)
 	preload("res://tests/unit/tower_economy_checks.gd").run(self)

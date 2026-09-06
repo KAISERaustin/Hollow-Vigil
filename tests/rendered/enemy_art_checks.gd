@@ -1,7 +1,5 @@
-extends SceneTree
+extends "res://tests/test_runner.gd"
 
-var failures: Array[String] = []
-var checks := 0
 
 class EnemyImage extends Node2D:
 	var kind := "basic"
@@ -25,11 +23,11 @@ func frame() -> void:
 	await RenderingServer.frame_post_draw
 
 func run() -> void:
-	root.size = Vector2i(1500, 480)
+	root.size = Vector2i(1500, 960)
 	root.content_scale_size = root.size
 	var background := ColorRect.new()
 	background.color = VigilTerrainArt.ROAD
-	background.size = Vector2(1500,480)
+	background.size = Vector2(1500,960)
 	root.add_child(background)
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(256,256)
@@ -55,11 +53,11 @@ func run() -> void:
 		check(img.save_png("res://assets/enemies/%s.png" % kind) == OK, "Portrait saved")
 		var sprite := Sprite2D.new()
 		sprite.texture = ImageTexture.create_from_image(img)
-		sprite.position = Vector2(125+column*250,155)
+		sprite.position = Vector2(125+(column%6)*250,155+(column/6)*480)
 		root.add_child(sprite)
 		var label := Label.new()
 		label.text = Balance.ENEMIES[kind].name
-		label.position = Vector2(20+column*250,290)
+		label.position = Vector2(20+(column%6)*250,290+(column/6)*480)
 		label.add_theme_color_override("font_color",Color.BLACK)
 		label.add_theme_font_size_override("font_size",24)
 		root.add_child(label)
@@ -71,7 +69,7 @@ func run() -> void:
 			check(not small.is_invisible(), "%s renders at zoom %.2f" % [kind,zoom])
 			var sample := Sprite2D.new()
 			sample.texture = ImageTexture.create_from_image(small)
-			sample.position = Vector2(45+column*250+[0.42,0.65,1.0,1.65].find(zoom)*53,345)
+			sample.position = Vector2(45+(column%6)*250+[0.42,0.65,1.0,1.65].find(zoom)*53,345+(column/6)*480)
 			root.add_child(sample)
 		column += 1
 	await frame()
@@ -85,7 +83,7 @@ func run() -> void:
 		game.economy.upgrade(tower)
 	for kind in Balance.ENEMIES:
 		game.data.regions["1,0"].style = "castle_ruin" if kind in Balance.DUNGEON_KINDS else "forest"
-		var enemy := game.combat.spawn("1,0", kind)
+		var enemy := fixture_enemy(game, kind)
 		enemy.pos = Vector2(85 + Balance.ENEMIES.keys().find(kind) * 43, 0)
 		enemy.hp *= 0.6
 	var field := Battlefield.new()

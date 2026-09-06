@@ -85,10 +85,10 @@ func encode(data: Dictionary, world_id: String, include_audio: bool = false) -> 
 			row.pos_y = b.pos[1] if b.status == "active" else null
 			row.emergence = b.status == "active" and is_castle and b.steps == 1 and b.path.size() == 27
 			out.encounters.append(row)
-	if include_audio and data.settings.has("audio"):
+	if include_audio:
 		var row := {"id": entity_id(world_id, "preferences")}
 		for field in AUDIO:
-			row[field] = data.settings.audio.get(field, false if field == "muted" else preload("res://scripts/audio/audio_director.gd").DEFAULTS[field])
+			row[field] = data.settings.get("audio", {}).get(field, false if field == "muted" else preload("res://scripts/audio/audio_director.gd").DEFAULTS[field])
 		out.preferences.append(row)
 	return out
 

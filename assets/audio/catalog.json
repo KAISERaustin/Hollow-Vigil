@@ -279,6 +279,21 @@
     "cooldown": 0.28,
     "description": "orb; 150 Hz; 0.13s; pitch sweep -0.5"
   },
+  "death_briarling": {
+    "category": "enemies",
+    "cooldown": 0.28,
+    "description": "wood; 460 Hz; 0.13s; pitch sweep -0.5"
+  },
+  "death_veil_widow": {
+    "category": "enemies",
+    "cooldown": 0.28,
+    "description": "air; 510 Hz; 0.13s; pitch sweep -0.5"
+  },
+  "death_coffinbound": {
+    "category": "enemies",
+    "cooldown": 0.28,
+    "description": "wood; 72 Hz; 0.13s; pitch sweep -0.5"
+  },
   "escape": {
     "category": "enemies",
     "cooldown": 0.45,

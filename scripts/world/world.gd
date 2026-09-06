@@ -5,13 +5,17 @@ const DIRS := [Vector2i(-1, 0), Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1)]
 const PADS := [Vector2(-76, -76), Vector2(85, -78), Vector2(-79, 83), Vector2(83, 85)]
 const CORE_POSITION := Vector2.ZERO
 const STYLES := ["forest", "ashen_forge", "drowned_crypt", "bloodmoon_sanctuary"]
-const NEW_STYLES := ["ashen_forge", "drowned_crypt", "bloodmoon_sanctuary"]
+const NEW_STYLES := ["ashen_forge", "drowned_crypt", "bloodmoon_sanctuary", "mourning_orchard"]
+const ALL_STYLES := STYLES + ["castle_ruin", "mourning_orchard"]
+const Orchard = preload("res://scripts/world/mourning_orchard.gd")
 
 static func is_ruin(id: String, seed_value: int) -> bool:
 	var areas = preload("res://scripts/world/hidden_areas.gd")
 	return areas.cluster(areas.sector_for(coord(id)), seed_value).has(coord(id))
 
 static func region_style(id: String, seed_value: int) -> String:
+	if Orchard.cluster(seed_value).has(coord(id)):
+		return Orchard.STYLE
 	if is_ruin(id, seed_value):
 		return "castle_ruin"
 	return STYLES[preload("res://scripts/world/terrain_clusters.gd").style_index(coord(id), seed_value)]
@@ -29,6 +33,8 @@ static func center(id: String) -> Vector2:
 static func has_rift(id: String, regions: Dictionary = {}, seed_value: int = -1) -> bool:
 	if id == "0,0":
 		return false
+	if regions.get(id, {}).get("style", "forest") == Orchard.STYLE:
+		return seed_value >= 0 and id == Orchard.gate(seed_value)
 	# Derive this from the seed for old saves as well as newly claimed land.
 	if seed_value >= 0 and regions.get(id, {}).get("style", "forest") == "castle_ruin" and is_ruin(id, seed_value):
 		return is_dungeon_portal(id, seed_value)

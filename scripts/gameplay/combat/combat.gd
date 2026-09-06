@@ -4,6 +4,7 @@ extends RefCounted
 const ShotFactory = preload("res://scripts/gameplay/combat/shot_factory.gd")
 
 signal sound_requested(cue: String, position: Vector2)
+signal enemy_escaped(enemy: Dictionary)
 
 const Targeting = preload("res://scripts/gameplay/combat/targeting.gd")
 const Projectiles = preload("res://scripts/gameplay/combat/projectiles.gd")
@@ -38,6 +39,8 @@ var enemy_index := preload("res://scripts/gameplay/combat/enemy_index.gd").new()
 var spatial_ready := false
 var indexed_enemy_count := -1
 var ticking := false
+# Authored missions own their spawn schedule; ordinary worlds keep rift timers.
+var scripted_spawns := false
 
 func rebuild_enemy_index() -> void:
 	enemy_index.rebuild(enemies)
@@ -113,13 +116,28 @@ func spawn(id: String, forced_kind: String = "", escort: bool = false) -> Dictio
 		return {}
 	var r: Dictionary = data.regions[id]
 	var kind := forced_kind
-	var dungeon: bool = r.get("style", "forest") == "castle_ruin"
+	var style: String = r.get("style", "forest")
+	var allowed := Balance.portal_kinds(style)
 	if kind == "":
-		kind = Balance.DUNGEON_KINDS[rng.randi_range(0, 1)] if dungeon else Balance.enemy_kind(r.unlocks, rng.randf())
-	if not escort and (kind in Balance.DUNGEON_KINDS) != dungeon:
+		kind = allowed[rng.randi_range(0, allowed.size() - 1)] if Balance.exclusive_portal(style) else Balance.enemy_kind(r.unlocks, rng.randf())
+	# Orchard inhabitants can never be summoned by bosses or another portal.
+	if style == "mourning_orchard" and (kind not in Balance.ORCHARD_KINDS or escort):
 		return {}
-	if not Balance.ENEMIES.has(kind):
+	if kind in Balance.ORCHARD_KINDS and style != "mourning_orchard":
 		return {}
+	if not Balance.ENEMIES.has(kind) or (not escort and kind not in allowed):
+		return {}
+	if not paths.has(id) or paths[id].size() < 2:
+		return {}
+	var route: Array[Vector2] = VigilWorld.route(data.regions, id, route_exits, rng) if branching_routes[id] else paths[id]
+	return _create_enemy(id, kind, route, style)
+
+func spawn_on_path(kind: String, route: Array[Vector2], style: String = "forest") -> Dictionary:
+	if not scripted_spawns or kind not in Balance.NORMAL_KINDS + Balance.DUNGEON_KINDS or route.size() < 2:
+		return {}
+	return _create_enemy("0,0", kind, route, style)
+
+func _create_enemy(id: String, kind: String, route: Array[Vector2], style: String) -> Dictionary:
 	var s := Balance.definition("enemies", kind, tuning)
 	enemy_serial += 1
 	var e: Dictionary = enemy_pool.pop_back() if not enemy_pool.is_empty() else {}
@@ -128,13 +146,13 @@ func spawn(id: String, forced_kind: String = "", escort: bool = false) -> Dictio
 	e.source = id
 	e.kind = kind
 	# Origin is captured once: crossing another biome never changes the effect.
-	e.rift_style = r.get("style", "forest")
+	e.rift_style = style
 	e.hp = s.hp * rift_health_multiplier(e)
 	e.max_hp = e.hp
 	# Keep the chosen route on this enemy. A new purchase only changes future
 	# spawns, never the path or segment index of an enemy already moving.
 	# Linear routes share their cached array instead of copying it per spawn.
-	e.path = VigilWorld.route(data.regions, id, route_exits, rng) if branching_routes[id] else paths[id]
+	e.path = route
 	e.pos = e.path[0]
 	e.segment = 1
 	e.dead = false
@@ -157,6 +175,8 @@ func tick(delta: float) -> void:
 	tick_count += 1
 	# Every rift advances on the same clock. Camera visibility only affects drawing.
 	for r in data.regions.values():
+		if scripted_spawns:
+			break
 		if not VigilWorld.has_rift(r.id, data.regions, int(data.seed)):
 			continue
 		r.history_time = minf(Balance.HISTORY_SECONDS, r.history_time + delta)
@@ -199,6 +219,7 @@ func tick(delta: float) -> void:
 					if e.get("boss", false):
 						Bosses.record(self, e.source).boss = {"status": "escaped", "kind": e.kind}
 					data.escapes += 1.0
+					enemy_escaped.emit(e)
 					add_effect({"kind": "escape", "pos": e.pos, "life": 0.55, "max_life": 0.55, "color": "9bddd8"})
 			else:
 				e.pos = e.pos.move_toward(p[e.segment], move)

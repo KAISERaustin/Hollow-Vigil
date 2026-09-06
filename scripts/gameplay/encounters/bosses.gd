@@ -42,7 +42,7 @@ static func discover_castles(combat: VigilCombat) -> void:
 			combat.data.castles[g.id] = {"boss": {"status": "active", "kind": kind}}
 			create(combat, g.id, kind)
 
-static func create(combat: VigilCombat, id: String, kind: String) -> Dictionary:
+static func create(combat: VigilCombat, id: String, kind: String, authored_path: Array[Vector2] = []) -> Dictionary:
 	var stats := Balance.definition("bosses", kind, combat.tuning)
 	combat.enemy_serial += 1
 	var e := {"id": combat.enemy_serial, "source": id, "kind": kind, "boss": true,
@@ -50,7 +50,12 @@ static func create(combat: VigilCombat, id: String, kind: String) -> Dictionary:
 		"pos": VigilWorld.center(id), "segment": 1, "path": [], "tile": id,
 		"previous": "", "steps": 0, "shield": stats.get("shield", 0.0),
 		"wards": int(stats.get("wards", 0)), "regen": stats.get("regen_period", 10.0), "toll": stats.get("toll_period", 8.0), "toll_delayed": false}
-	if not combat.data.regions.has(id):
+	if not authored_path.is_empty():
+		e.path = authored_path
+		e.pos = authored_path[0]
+		e.tile = "0,0"
+		e.authored_route = true
+	elif not combat.data.regions.has(id):
 		var g := Areas.gate(Areas.sector_for(VigilWorld.coord(id)), int(combat.data.seed))
 		e.path = Areas.emergence(g, combat.data.regions)
 		e.pos = e.path[0]
@@ -87,6 +92,8 @@ static func next_leg(combat: VigilCombat, e: Dictionary) -> void:
 	e.steps += 1
 
 static func avoid_core(combat: VigilCombat, e: Dictionary) -> void:
+	if e.get("authored_route", false):
+		return
 	# An older save or a new purchase may expose a non-core alternative while
 	# the boss is already inbound. Retrace its current road without teleporting.
 	if e.tile != "0,0":
@@ -197,8 +204,11 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 				count += 1
 		var stats := Balance.definition("bosses", "bell", combat.tuning)
 		for index in range(maxi(0, mini(int(stats.escort_count), int(stats.escort_limit) - count))):
-			var kind: String = Balance.ENEMIES.keys()[int(stats.escort_kind)]
-			var escort := combat.spawn(bell.tile, kind, true)
+			var kind: String = Balance.ESCORT_KINDS[int(stats.escort_kind)]
+			var authored: bool = bell.get("authored_route", false)
+			var remaining: Array[Vector2] = [bell.pos]
+			remaining.append_array(bell.path.slice(bell.segment))
+			var escort := combat.spawn_on_path(kind, remaining) if authored else combat.spawn(bell.tile, kind, true)
 			if escort.is_empty():
 				continue
 			escort.summoner = bell.id
@@ -208,7 +218,8 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 			escort.pos = bell.pos
 			escort.path = [bell.pos]
 			escort.path.append_array(bell.path.slice(bell.segment))
-			escort.path.append_array(combat.paths[bell.tile].slice(1))
+			if not authored:
+				escort.path.append_array(combat.paths[bell.tile].slice(1))
 			escort.segment = 1
 
 static func capture(combat: VigilCombat, regions: Dictionary, castles: Dictionary = {}) -> void:

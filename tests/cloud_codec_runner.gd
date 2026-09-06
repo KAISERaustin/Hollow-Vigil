@@ -15,6 +15,8 @@ func _initialize() -> void:
 
 func run() -> void:
 	var c := Codec.new()
+	var defaults := c.encode(VigilState.new(43).snapshot(), Codec.uuid(), true)
+	check(defaults.preferences.size() == 1 and defaults.preferences[0].master == preload("res://scripts/audio/audio_director.gd").DEFAULTS.master, "Opting into sound sync uploads defaults before first sound edit")
 	var g := VigilState.new(42)
 	g.data.balance = 100000.0
 	g.expand("-1,0")

@@ -84,7 +84,7 @@ for name, (f, d, tex, sweep) in weapons.items():
         cue('upgrade_' + name, 'menu', f * 1.2, .55, tex, .8)
 for name, f, d, tex in [('seal', 120, .45, 'arc'), ('fragments', 980, .25, 'chime'), ('ignite', 95, .5, 'fire')]:
     cue('power_' + name, 'towers', f, d, tex, -.3, .3)
-for name, f, tex in [('basic', 240, 'wood'), ('fast', 620, 'air'), ('heavy', 100, 'wood'), ('lantern', 960, 'chime'), ('shade', 380, 'air'), ('sentinel', 150, 'orb')]:
+for name, f, tex in [('basic', 240, 'wood'), ('fast', 620, 'air'), ('heavy', 100, 'wood'), ('lantern', 960, 'chime'), ('shade', 380, 'air'), ('sentinel', 150, 'orb'), ('briarling', 460, 'wood'), ('veil_widow', 510, 'air'), ('coffinbound', 72, 'wood')]:
     cue('death_' + name, 'enemies', f, .13, tex, -.5, .28)
 cue('escape', 'enemies', 170, .19, 'orb', -.5, .45)
 for kind, f, tex in [('warden', 85, 'wood'), ('cindermaw', 65, 'fire'), ('bell', 210, 'chime'), ('prior', 145, 'orb')]:

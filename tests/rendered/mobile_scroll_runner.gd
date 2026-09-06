@@ -8,6 +8,8 @@ var failures: Array[String] = []
 class CloudFixture extends Node:
 	signal changed
 	var status := "Cloud save is up to date."
+	const MAX_NAME_LENGTH := 32
+	var display_name := "QA player"
 	var busy := false
 	var include_audio := false
 	var conflict := {}
@@ -110,8 +112,9 @@ func run() -> void:
 		service.busy = false
 		panel.rebuild()
 		await settle()
-		await RenderingServer.frame_post_draw
-		root.get_texture().get_image().save_png("res://artifacts/mobile-cloud-rows-%d.png" % viewport.x)
+		if DisplayServer.get_name() != "headless":
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png("res://artifacts/mobile-cloud-rows-%d.png" % viewport.x)
 	frame.queue_free()
 	service.queue_free()
 	app.free()
@@ -133,10 +136,14 @@ func check_number_rows() -> void:
 		root.content_scale_size = viewport
 		for screen in ["sound", "developer"]:
 			if screen == "sound": app.panels.show_sound_settings()
-			else: app.panels.show_developer_controls()
+			else:
+				app.panels.show_developer_controls()
+				app.panels.find_child("EnemiesCategory", true, false).pressed.emit()
 			await settle()
 			check(app.panels.find_children("*", "Slider", true, false).is_empty(), screen + " still contains a slider")
 			var number: SpinBox = app.panels.find_child("Audio_master" if screen == "sound" else "hpValue", true, false)
+			check(number != null, screen + " numeric control is missing")
+			if number == null: continue
 			var row := number.get_parent().get_parent()
 			app.panels.content_scroll.ensure_control_visible(row)
 			await settle()
@@ -169,7 +176,8 @@ func check_number_rows() -> void:
 			if screen == "developer": app.panels.content_scroll.ensure_control_visible(row)
 			else: app.panels.content_scroll.scroll_vertical = 0
 			await settle()
-			await RenderingServer.frame_post_draw
-			root.get_texture().get_image().save_png("res://artifacts/mobile-%s-numbers-%d.png" % [screen, viewport.x])
+			if DisplayServer.get_name() != "headless":
+				await RenderingServer.frame_post_draw
+				root.get_texture().get_image().save_png("res://artifacts/mobile-%s-numbers-%d.png" % [screen, viewport.x])
 	app.queue_free()
 	await settle()

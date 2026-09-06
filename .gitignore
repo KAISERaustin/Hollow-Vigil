@@ -21,3 +21,7 @@ Thumbs.db
 *.keystore
 *.jks
 .codex/
+
+# Python tooling bytecode
+__pycache__/
+*.pyc

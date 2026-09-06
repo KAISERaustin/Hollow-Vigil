@@ -139,12 +139,12 @@ static func test_core(suite: SceneTree) -> void:
 		r.timer = 1000.0
 	var before: float = g.data.balance
 	for id in g.paths:
-		if not VigilWorld.has_rift(id):
+		if not VigilWorld.has_rift(id, g.data.regions, int(g.data.seed)):
 			continue
 		var path: Array = g.paths[id]
 		suite.check(path.back() == Vector2.ZERO, "Rift %s terminates at the center" % id)
 		suite.check(path.count(Vector2.ZERO) == 1, "Rift %s does not pass through the core and leave again" % id)
-		for kind in (Balance.DUNGEON_KINDS if g.data.regions[id].style == "castle_ruin" else Balance.NORMAL_KINDS):
+		for kind in Balance.portal_kinds(g.data.regions[id].style):
 			var e := g.combat.spawn(id, kind)
 			e.segment = path.size() - 1
 			var half_step: float = Balance.ENEMIES[kind].speed * Balance.STEP * 0.5

@@ -6,6 +6,9 @@ extends RefCounted
 const Art = preload("res://scripts/rendering/terrain/terrain_art.gd")
 
 static func draw(canvas: CanvasItem, kind: String, at: Vector2, zoom: float) -> void:
+	if kind in Balance.ORCHARD_KINDS:
+		preload("res://scripts/rendering/actors/orchard_art.gd").enemy(canvas, kind, at, zoom)
+		return
 	var z := Vector2.ONE * zoom
 	var w := 1.8 * zoom
 	match kind:

@@ -44,7 +44,7 @@ func rebuild() -> void:
 		add_child(UI.paragraph("No password is needed. Sign in again after restarting the game. Offline play always works.", 12))
 		return
 	if confirmation_world != "":
-		add_child(UI.paragraph("Restore this cloud world on this device? Your current progress will be kept in a local recovery save. Earnings from separate saves will not be combined.", 14))
+		add_child(UI.paragraph("Replace the game in this slot with this cloud backup? This also restores its Creative or Survival mode and rules. Your current game is kept in a local recovery file. Separate progress is not merged.", 14))
 		add_child(_button("Restore cloud progress", func():
 			var selected := confirmation_world
 			confirmation_world = ""
@@ -74,7 +74,8 @@ func rebuild() -> void:
 	add_child(UI.action_row("Name on your account", save_name, "Save"))
 	add_child(UI.paragraph("1–32 characters. Your name follows your account across devices.", 12))
 	add_child(UI.rule())
-	add_child(UI.paragraph("Private cloud backup for Save %d · %s. Refresh lists backups; Sync uploads this save. Public sharing is under Settings → Upload build." % [app.active_slot + 1, str(app.game.data.get("mode", "creative")).capitalize()], 12))
+	add_child(UI.heading("Back up this game", 18))
+	add_child(UI.paragraph("Private cloud backup for Slot %d · %s. Refresh lists backups; Sync uploads this save. Public sharing is under Settings → Upload build." % [app.active_slot + 1, str(app.game.data.get("mode", "creative")).capitalize()], 12))
 	var audio_toggle := CheckButton.new()
 	audio_toggle.text = "Sync sound preferences"
 	audio_toggle.button_pressed = service.include_audio
@@ -91,11 +92,17 @@ func rebuild() -> void:
 		add_child(_button("Use cloud progress…", func(): confirmation_world = service.conflict.world_id; rebuild()))
 	else:
 		add_child(_button("Sync now" if service.linked() else "Sync this save", service.sync_now if service.linked() else service.start_backup))
+	add_child(UI.rule())
+	add_child(UI.heading("Your cloud backups", 18))
+	add_child(UI.paragraph("Restore a backup into the current game slot. Refresh only updates this list; it does not upload progress.", 12))
 	add_child(_button("Refresh cloud saves", service.refresh_worlds))
 	for world in service.worlds:
 		var world_id: String = world.world_id
 		var date: String = str(world.updated_at).substr(0, 16).replace("T", " ")
-		add_child(_button("Restore world %s · %s…" % [str(int(world.seed)), date], func(): confirmation_world = world_id; rebuild()))
+		var title := str(world.get("title", "World %s" % str(int(world.seed))))
+		var mode := str(world.get("mode", "")).capitalize()
+		var detail := "%s · %s UTC" % [mode, date] if not mode.is_empty() else date + " UTC"
+		add_child(_button("Restore %s\n%s" % [title, detail], func(): confirmation_world = world_id; rebuild()))
 	add_child(_button("Sign out", service.sign_out))
 	add_child(UI.paragraph("Your player name is stored on your account. Only progress, world reconstruction, save revisions and reward checkpoints are uploaded. Sound preferences are optional. Game mode, configuration and tuned rules are included. Art, code and camera stay on this device.", 12))
 

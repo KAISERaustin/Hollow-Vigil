@@ -4,6 +4,7 @@ const UI = preload("res://scripts/ui/shared/interface.gd")
 var app: VigilApp
 var slots := VigilSaveSlots.new()
 var header: HBoxContainer
+var footer: VBoxContainer
 var content: VBoxContainer
 var card: PanelContainer
 var scroll: ScrollContainer
@@ -43,6 +44,10 @@ func _ready() -> void:
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation", 14)
 	scroll.add_child(content)
+	footer = VBoxContainer.new()
+	footer.name = "SaveActions"
+	footer.add_theme_constant_override("separation", UI.GAP)
+	layout.add_child(footer)
 	resized.connect(fit)
 	show_slots()
 
@@ -53,7 +58,7 @@ func fit() -> void:
 
 func clear(title: String, header_action: Button = null) -> void:
 	view_revision += 1
-	for container in [header, content]:
+	for container in [header, content, footer]:
 		for child in container.get_children():
 			container.remove_child(child)
 			child.queue_free()
@@ -70,30 +75,40 @@ func clear(title: String, header_action: Button = null) -> void:
 	call_deferred("fit")
 
 func show_slots() -> void:
-	clear("Your saves")
-	content.add_child(UI.paragraph("Three saves on this device. Creative lets you edit the rules. Survival locks developer controls.", 14))
+	clear("Saved games")
+	var campaign_button := UI.gold_button("Campaign · The Last Procession", app.show_campaign, 52)
+	campaign_button.name = "OpenCampaign"
+	content.add_child(campaign_button)
+	content.add_child(UI.paragraph("20 handcrafted tactical battles in a separate world.", 13))
+	content.add_child(UI.paragraph("Three game slots on this device. Progress saves automatically while you play.", 14))
 	for slot in range(VigilSaveSlots.COUNT):
 		var snapshot := slots.summary(slot)
 		var exists := slots.occupied(slot)
-		var title := "Save %d · Empty" % (slot + 1)
+		var title := "Slot %d · New game" % (slot + 1)
 		if exists:
-			title = "Save %d · Unreadable — recovery files preserved" % (slot + 1) if snapshot.is_empty() else "Save %d · %s" % [slot + 1, str(snapshot.get("mode", "creative")).capitalize()]
-		content.add_child(UI.heading(title, 18))
+			title = "Slot %d · Recovery needed" % (slot + 1) if snapshot.is_empty() else "Slot %d · %s" % [slot + 1, str(snapshot.get("mode", "creative")).capitalize()]
+		var body := add_card(title)
 		if not snapshot.is_empty():
-			content.add_child(UI.paragraph(snapshot.get("setup", {}).get("name", "%d territories" % snapshot.regions.size()), 14))
-		var button := UI.button("Continue" if exists else "Create save", func():
-			if exists:
-				app.open_slot(slot)
-			else:
-				show_creation(slot)
+			if snapshot.has("setup"):
+				body.add_child(UI.paragraph(snapshot.setup.name, 16))
+			body.add_child(UI.paragraph("%d territories · %d towers" % [snapshot.regions.size(), snapshot.towers.size()], 13))
+			var synced := int(snapshot.get("cloud", {}).get("revision", 0)) > 0
+			body.add_child(UI.paragraph("Cloud backup linked · Sync in Account & cloud backups" if synced else "On this device · Cloud backup available in Settings", 12))
+		elif exists:
+			body.add_child(UI.paragraph("This game could not be read. Its recovery files are preserved.", 14))
+		else:
+			body.add_child(UI.paragraph("Start fresh, use one of your builds, or try a community build.", 14))
+		var button := UI.button("Continue game" if exists else "New game", func():
+			if exists: app.open_slot(slot)
+			else: show_creation(slot)
 		)
 		button.name = "SaveSlot%d" % (slot + 1)
 		button.disabled = exists and snapshot.is_empty()
-		add_action(button)
+		body.add_child(button)
 		if exists:
-			add_action(UI.button("Archive and free slot", show_archive.bind(slot)))
-		content.add_child(UI.rule())
-	add_action(UI.button("Public Builds", show_public_builds))
+			body.add_child(UI.action_row("Make room for a new game", UI.button("Archive game", show_archive.bind(slot)), "Archive"))
+	content.add_child(UI.rule())
+	add_action(UI.button("Browse community builds", show_public_builds))
 	if app.slot_active:
 		add_back(UI.button("Back to game", close))
 
@@ -101,61 +116,80 @@ func show_creation(slot: int, reset: bool = true) -> void:
 	if reset:
 		creation_mode = "creative"
 		selected_configuration = {}
-	clear("Create save %d" % (slot + 1))
-	content.add_child(UI.paragraph("Choose your world and how you want to play, then create your save.", 14))
-	content.add_child(UI.heading("World configuration", 18))
-	content.add_child(UI.paragraph(selected_configuration.get("name", "Fresh world"), 16))
-	content.add_child(UI.paragraph(selected_configuration.get("description", "Start with the default world, resources and rules."), 14))
-	var choose := UI.button("Choose saved configuration", show_configurations.bind(slot))
+	clear("New game")
+	add_back(UI.button("Back to saved games", show_slots))
+	content.add_child(UI.paragraph("Slot %d · Choose a world and a mode." % (slot + 1), 14))
+	var source := add_card("1. Starting world")
+	source.add_child(UI.paragraph(selected_configuration.get("name", "Fresh world"), 18))
+	if not selected_configuration.get("description", "").is_empty():
+		source.add_child(UI.paragraph(selected_configuration.description, 14))
+	var choose := UI.button("My builds", show_configurations.bind(slot))
 	choose.name = "ChooseConfiguration"
-	add_action(choose)
-	add_action(UI.button("Public Builds", show_public_builds.bind(slot)))
+	var sources := HBoxContainer.new()
+	sources.add_theme_constant_override("separation", 8)
+	source.add_child(sources)
+	choose.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sources.add_child(choose)
+	var community := UI.button("Community", show_public_builds.bind(slot))
+	community.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sources.add_child(community)
 	if not selected_configuration.is_empty():
-		add_action(UI.button("Use a fresh world", func():
+		source.add_child(UI.button("Use a fresh world instead", func():
 			selected_configuration = {}
 			show_creation(slot, false)
 		))
-	content.add_child(UI.rule())
-	content.add_child(UI.heading("Game mode", 18))
-	var modes := OptionButton.new()
-	modes.name = "CreationMode"
-	modes.custom_minimum_size.y = UI.TARGET
-	modes.add_item("Creative")
-	modes.add_item("Survival")
-	modes.select(0 if creation_mode == "creative" else 1)
-	content.add_child(modes)
-	var mode_help := UI.paragraph("", 14)
-	content.add_child(mode_help)
-	var update_mode := func(index: int):
-		creation_mode = "creative" if index == 0 else "survival"
-		mode_help.text = "Adjust world rules and balance with Developer Controls." if index == 0 else "Play with your chosen rules. Developer Controls are locked."
-	modes.item_selected.connect(update_mode)
-	update_mode.call(modes.selected)
-	content.add_child(UI.rule())
-	add_back(UI.button("Back to saves", show_slots))
-	var create := UI.button("Create save", func():
+	content.add_child(UI.heading("2. Choose your mode", 18))
+	var create := UI.button("Start %s game" % creation_mode.capitalize(), func():
 		var game := slots.create(slot, creation_mode, selected_configuration.get("code", ""))
-		if game == null:
-			message.text = slots.error
-		else:
-			app.activate_slot(game, slot)
+		if game == null: message.text = slots.error
+		else: app.activate_slot(game, slot)
 	)
 	create.name = "CreateSave"
-	add_action(create)
+	var group := ButtonGroup.new()
+	var modes := HBoxContainer.new()
+	modes.add_theme_constant_override("separation", 8)
+	content.add_child(modes)
+	var mode_help := UI.paragraph("", 14)
+	var descriptions := {"creative": "Edit the rules, experiment with towers, and make builds to share.", "survival": "Play with the selected rules locked. Developer Controls are unavailable."}
+	mode_help.text = descriptions[creation_mode]
+	for game_mode in ["creative", "survival"]:
+		var button := UI.button(game_mode.capitalize(), func():
+			creation_mode = game_mode
+			create.text = "Start %s game" % game_mode.capitalize()
+			mode_help.text = descriptions[game_mode]
+		)
+		button.name = "Mode" + game_mode.capitalize()
+		button.toggle_mode = true
+		button.button_group = group
+		button.button_pressed = game_mode == creation_mode
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		modes.add_child(button)
+	content.add_child(mode_help)
+	content.add_child(UI.paragraph("Both modes save automatically and support private cloud backups.", 13))
+	footer.add_child(create)
+
+func add_card(title: String) -> VBoxContainer:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", UI.box(UI.SURFACE))
+	content.add_child(panel)
+	var body := UI.margin(panel, 12)
+	body.add_theme_constant_override("separation", 10)
+	body.add_child(UI.heading(title, 18))
+	return body
 
 func show_configurations(slot: int) -> void:
-	clear("Saved configurations")
-	content.add_child(UI.paragraph("Choose a configuration to use its world, towers, resources and rules. Your original save stays available.", 14))
-	add_back(UI.button("Back to world options", show_creation.bind(slot, false)))
-	add_action(UI.button("Public Builds", show_public_builds.bind(slot)))
+	clear("My builds")
+	content.add_child(UI.paragraph("Reusable worlds saved on this device. Choosing a build starts a separate game.", 14))
+	add_back(UI.button("Back to new game", show_creation.bind(slot, false)))
+	add_action(UI.button("Browse community builds", show_public_builds.bind(slot)))
 	var saved := slots.configurations()
 	if saved.is_empty():
-		content.add_child(UI.paragraph("No configurations yet. Open a Creative world and use Settings → Upload build to add one.", 16))
+		content.add_child(UI.paragraph("No builds saved yet. In a Creative game, open Settings → Upload build, then choose Save to My builds.", 16))
 	for configuration in saved:
 		content.add_child(UI.heading(configuration.name, 18))
 		if not configuration.description.is_empty():
 			content.add_child(UI.paragraph(configuration.description, 14))
-		var select := UI.button("Use this configuration", func():
+		var select := UI.button("Use this build", func():
 			selected_configuration = configuration
 			show_creation(slot, false)
 		)
@@ -164,9 +198,10 @@ func show_configurations(slot: int) -> void:
 		content.add_child(UI.rule())
 
 func show_export() -> void:
-	clear("Upload build")
-	content.add_child(UI.paragraph("Save and automatically publish this world, towers, resources and rules to Public Builds. Your account name, title and description will be visible to everyone. Offline exports upload after you sign in.", 14))
-	content.add_child(UI.heading("Configuration name", 18))
+	clear("Save or share a build")
+	add_back(UI.button("Back to game", close))
+	content.add_child(UI.paragraph("A build is a reusable copy of this world's layout, towers, gold and rules. Your current game continues separately.", 14))
+	content.add_child(UI.heading("Build name", 18))
 	var title := LineEdit.new()
 	title.name = "SetupName"
 	title.placeholder_text = "For example, Stronger enemies"
@@ -175,42 +210,54 @@ func show_export() -> void:
 	title.custom_minimum_size.y = UI.TARGET
 	style_entry(title)
 	content.add_child(title)
-	content.add_child(UI.heading("Description", 18))
+	content.add_child(UI.heading("Description · optional", 18))
 	var description := TextEdit.new()
 	description.name = "SetupDescription"
-	description.placeholder_text = "What did you change? (optional)"
+	description.placeholder_text = "What makes this build different?"
 	description.text = app.game.data.get("setup", {}).get("description", "")
 	description.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-	description.custom_minimum_size.y = 140
+	description.custom_minimum_size.y = 120
 	style_entry(description)
 	content.add_child(description)
-	add_back(UI.button("Back to game", close))
-	var save := UI.button("Upload build", func():
-		if title.text.strip_edges().is_empty() or description.text.length() > 4000:
-			message.text = "Enter a name and keep the description under 4,001 characters."
-			return
-		if not slots.save_configuration(app.game, title.text, description.text):
-			message.text = slots.error
-			return
-		var code := slots.export_build(app.game, title.text, description.text)
-		app.public_builds.queue_export(code)
-		app.game.data.setup = {"name": title.text.strip_edges(), "description": description.text}
-		app.persist()
-		clear("Build saved locally")
-		message.text = app.public_builds.status
-		upload_revision = view_revision
-		content.add_child(UI.paragraph("“%s” is in your configuration library. To use it, open an empty save and choose Saved configuration." % title.text.strip_edges(), 16))
-		add_action(UI.button("Public Builds", show_public_builds))
+	content.add_child(UI.rule())
+	content.add_child(UI.paragraph("Save to My builds keeps a private copy on this device. Upload public build shares it with everyone, including your player name and description. Account details and sound settings are excluded.", 13))
+	if not app.cloud.signed_in() or app.cloud.display_name.is_empty():
+		content.add_child(UI.paragraph("Public uploads wait until you sign in and choose a player name. Local builds need no account.", 13))
+	var local := UI.button("Save to My builds", save_build.bind(title, description, false))
+	local.name = "SaveLocalBuild"
+	footer.add_child(local)
+	var upload := UI.accent_button("Upload public build", save_build.bind(title, description, true), UI.GOLD)
+	upload.name = "SaveConfiguration"
+	footer.add_child(upload)
+
+func save_build(title: LineEdit, description: TextEdit, publish: bool) -> void:
+	var build_name := title.text.strip_edges()
+	var details := description.text
+	if build_name.is_empty() or details.length() > 4000:
+		message.text = "Enter a build name and keep the description to 4,000 characters or fewer."
+		scroll.scroll_vertical = 0
+		return
+	if not slots.save_configuration(app.game, build_name, details):
+		message.text = slots.error
+		return
+	if publish:
+		app.public_builds.queue_export(slots.export_build(app.game, build_name, details))
+	app.game.data.setup = {"name": build_name, "description": details}
+	app.persist()
+	clear("Build upload" if publish else "Build saved")
+	message.text = app.public_builds.status if publish else "Saved to My builds on this device. This copy is private."
+	upload_revision = view_revision if publish else -1
+	content.add_child(UI.heading(build_name, 18))
+	content.add_child(UI.paragraph("To play this build, open an empty game slot and choose My builds. You can start it in Creative or Survival.", 14))
+	if publish:
+		add_action(UI.button("View community builds", show_public_builds))
 		if not app.cloud.signed_in() or app.cloud.display_name.is_empty():
-			add_action(UI.button("Account & cloud saves", func():
+			add_action(UI.button("Sign in / choose player name", func():
 				close()
 				app.panels.show_cloud_saves()
 			))
-		add_action(UI.button("Your saves", show_slots))
-		add_back(UI.button("Back to game", close))
-	)
-	save.name = "SaveConfiguration"
-	add_action(save)
+	add_action(UI.button("Saved games", show_slots))
+	add_back(UI.button("Back to game", close))
 
 func show_public_builds(slot: int = -1) -> void:
 	public_browser.show_page(slot)
@@ -223,10 +270,10 @@ func close() -> void:
 	hide()
 
 func show_archive(slot: int) -> void:
-	clear("Free save %d?" % (slot + 1))
-	content.add_child(UI.paragraph("This removes the save from the picker so you can create another. Its files are kept in the local save folder as an archive. Save a configuration of any Creative world you want to reuse first.", 14))
-	add_action(UI.button("Cancel", show_slots))
-	add_action(UI.accent_button("Archive and free slot", func():
+	clear("Archive game %d?" % (slot + 1))
+	content.add_child(UI.paragraph("This frees the slot for a new game. The current game files are kept as a local archive, but archived games are not shown in this menu. Any cloud backup remains available. Save a build first if you want an easy way to start this world again.", 14))
+	add_back(UI.button("Cancel and return to games", show_slots))
+	footer.add_child(UI.accent_button("Archive and free slot", func():
 		if not slots.archive(slot):
 			message.text = slots.error
 			return
@@ -258,7 +305,9 @@ func add_back(back: Button) -> void:
 
 func add_action(button: Button) -> void:
 	var caption := button.text
-	if caption.begins_with("Archive"): caption = "Archive"
+	if caption.begins_with("Browse") or caption.begins_with("View community"): caption = "Browse"
+	elif caption == "Saved games": caption = "Open"
+	elif caption.begins_with("Archive"): caption = "Archive"
 	elif caption.begins_with("Create"): caption = "Create"
 	elif caption.begins_with("Paste"): caption = "Paste"
 	elif caption.begins_with("Load"): caption = "Load"

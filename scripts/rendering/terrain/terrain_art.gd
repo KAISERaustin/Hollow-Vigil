@@ -12,6 +12,7 @@ const LILAC := Color("b49dcc")
 const MINT := Color("93c9bc")
 const BIOME_COLORS := {
 	"castle_ruin": Color("777985"),
+	"mourning_orchard": Color("a5aa73"),
 	"forest": Color("95aa83"),
 	"ashen_forge": Color("bb8c76"),
 	"drowned_crypt": Color("7fa6aa"),
@@ -107,6 +108,9 @@ static func sentinel(canvas: CanvasItem, kind: String, at: Vector2, zoom: float,
 		preload("res://scripts/rendering/actors/tower_tiers.gd").details(canvas, kind, at, zoom, clampi(level, 1, 3))
 
 static func scenery(canvas: CanvasItem, style: String, at: Vector2, extent: float) -> void:
+	if style == "mourning_orchard":
+		preload("res://scripts/rendering/actors/orchard_art.gd").scenery(canvas, at, extent)
+		return
 	var z := Vector2.ONE * extent / 30.0
 	match style:
 		"forest":
@@ -133,6 +137,9 @@ static func scenery(canvas: CanvasItem, style: String, at: Vector2, extent: floa
 			shape(canvas, [Vector2(-10, 10), Vector2(-14, 3), Vector2(-9, 0), Vector2(-6, 10)], at, z, Color("79556f"), 1.3)
 
 static func ground_detail(canvas: CanvasItem, style: String, at: Vector2, variant: int, scale_value: float) -> void:
+	if style == "mourning_orchard":
+		preload("res://scripts/rendering/actors/orchard_art.gd").detail(canvas, at, variant, scale_value)
+		return
 	# Small two-tone marks: texture at play scale, subordinate to actor outlines.
 	var z := Vector2.ONE * scale_value
 	var shade := ground_color(style).darkened(0.14)

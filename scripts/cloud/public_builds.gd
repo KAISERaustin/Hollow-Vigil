@@ -37,7 +37,7 @@ func queue_export(code: String) -> bool:
 		outbox.pop_back()
 		status = "Saved locally, but couldn't queue the public upload. Please export again."
 		return false
-	status = "Queued for Public Builds. Upload will retry automatically." if cloud.signed_in() else "Queued for Public Builds. Sign in and set your account name to upload."
+	status = "Queued for Community builds. Upload will retry automatically." if cloud.signed_in() else "Queued for Community builds. Sign in and set your account name to upload."
 	retry_in = 0.0
 	changed.emit()
 	return true
@@ -74,7 +74,7 @@ func flush() -> void:
 			outbox.append(item)
 			status = "Published; local confirmation will retry safely."
 			break
-		status = "Configuration published to Public Builds."
+		status = "Build published to Community builds."
 	busy = false
 	if cloud.generation == epoch:
 		cloud.busy = false

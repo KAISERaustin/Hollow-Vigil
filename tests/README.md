@@ -7,7 +7,7 @@ Use the root `launch.ps1` commands documented in the README. `-Check` runs headl
 ## Coverage
 
 - `unit/enemy_checks.gd`: Lantern Keeper attunement pricing and guards, every unlock combination, normal spawning, movement, lethal damage, once-only bounty and save reload. Mixed-traffic balance and crowded-world tests include all four enemies.
-- `rendered/enemy_art_checks.gd`: four distinct native portraits, transparent export padding and visibility at four gameplay zooms; regenerates `assets/enemies/` and `artifacts/enemy-lineup.png` through `-ArtSmoke` or `-Check`.
+- `rendered/enemy_art_checks.gd`: nine distinct native portraits, transparent export padding and visibility at four gameplay zooms; regenerates `assets/enemies/` and `artifacts/enemy-lineup.png` through `-ArtSmoke` or `-Check`.
 - `unit/relocation_checks.gd`: move pricing and time caps, destination and balance guards, tower identity and earnings, construction combat restrictions, historical production cleanup, old saves, offline countdowns and clock replay protection.
 - `rendered/relocation_ui_checks.gd`: all tower types using mouse and touch at small and large viewports; quote/cancel/place flow, duplicate callbacks, scaffold screenshots, rebuild restrictions, saved destinations, Escape and navigation cleanup. Tower menu checks exercise all five actions at four zooms; style checks include both the move quote and destination prompt.
 - `unit/economy_checks.gd`, `tower_economy_checks.gd`: starter loop, collections, purchase guards, upgrade/sale integrity and production cleanup.
@@ -63,3 +63,20 @@ Run `--headless --path . --script tests/cloud_service_runner.gd` for account-nam
 ## Public Builds
 
 Run `--headless --path . --script tests/public_builds_runner.gd` for persistent offline uploads, unnamed accounts, account isolation, and stable retry IDs. Run `--path . --audio-driver Dummy --script tests/rendered/public_builds_runner.gd` for three phone sizes, catalog selection, Survival configuration import, and network failures. `supabase/tests/public_builds_contract.sql` checks publication, idempotency, author attribution, public reading, and denied mutations inside a rolled-back transaction.
+
+## Backend acceptance and real gameplay
+
+- Run Godot with `--headless --path . --script tools/cloud_payload_fixtures.gd`, then `python3 tools/backend_table_checks.py`. Execute `artifacts/backend-table-checks.sql` as postgres via Supabase SQL/MCP or psql. It uses eight real durable-save fixtures and checks all 14 application tables, including custom world rules, exact row/RPC readback, revision updates, duplicate retries, conflicts, rejected writes, and account isolation. Fixtures and mutations are rolled back. Run `supabase/tests/cloud_contract.sql`, `player_names_contract.sql`, and `public_builds_contract.sql` for additional constraints and permissions.
+- Run `python3 tools/cloud_qa.py --headless --runner tools/cloud_live_runner.gd` for the real authenticated HTTP workflow. This creates a new QA world and leaves it for inspection; do not run indefinitely because accounts have a ten-world limit. It verifies token refresh, offline retries, restore, conflicts, autosync, and custom Survival rules.
+- Run `python3 tools/cloud_qa.py` for manual play through the real menus. Click **Sign in to QA account** and use the isolated QA slots. After each gameplay change, pause, open Account & cloud saves and Sync. Run `python3 tools/backend_verify_save.py /absolute/path/to/cloud-acceptance.save` (or the QA slot-2/slot-3 file), then execute `artifacts/backend-verify-save.sql`. It compares durable gameplay state with physical backend rows. Pause before syncing so ordinary combat does not make the snapshots differ. The moving clock and cosmetic fields are excluded.
+- Run Godot with `--headless --path . --script tests/cloud_restore_runner.gd` to exercise the actual app restore handler, durable mode/rules restoration, and save-switch status. `tests/cloud_codec_runner.gd` includes default sound preferences and legacy/new cloud formats. `tests/rendered/save_slots_runner.gd` checks that Upload build is at the bottom of Creative settings and explains the Survival restriction.
+
+The QA launcher is an authentication convenience for local testing, not an authentication bypass. It never gives the game an admin key. Existing player saves are separate from QA saves. Public uploads from manual testing remain visible under the QA author; automated SQL public-build fixtures roll back.
+
+## Mourning Orchard
+
+`--headless --path . --script tests/orchard_runner.gd` checks 100 world seeds for one connected 6–9 tile patch, ruin/opening clearance, deterministic regeneration, one portal, exclusive spawns (including escort rejection), traffic, movement, bounty/history, every developer stat, save/config/cloud-codec round trips and all tower/specialization combinations against the new foes. These checks also run in the main headless suite.
+
+`--path . --audio-driver Dummy --script tests/rendered/orchard_runner.gd` opens the real portal using mouse/touch, checks all three Developer Controls entries and typed edits at 360×640, 390×844 and 540×960, captures terrain/portal/editor screenshots, and runs the existing complete developer input harness. The enemy artwork runner exports nine transparent portraits and checks four gameplay zooms. Terrain palette and edge checks include all six terrain styles.
+
+`python3 tools/cloud_qa.py --headless --runner tools/orchard_live_runner.gd` uses the existing normal QA account to upload an Orchard save, sync a later stat edit, publish/read a configuration and import it into Survival. It writes the exact created IDs to `artifacts/orchard-live-evidence.json`. Verify the corresponding `regions`, `world_rules` and `public_builds` rows, then remove only these temporary QA records via SQL. This is opt-in because it creates a cloud world and a public test configuration.

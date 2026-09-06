@@ -27,8 +27,8 @@ func run() -> void:
 	var layer := VigilTerrainLayer.new()
 	root.add_child(layer)
 	var cases := 0
-	for first in VigilWorld.STYLES:
-		for second in VigilWorld.STYLES:
+	for first in VigilWorld.ALL_STYLES:
+		for second in VigilWorld.ALL_STYLES:
 			for direction in VigilWorld.DIRS:
 				var game := VigilState.new(879)
 				game.data.regions.clear()

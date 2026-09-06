@@ -16,11 +16,11 @@ static func run(suite: SceneTree) -> void:
 			suite.check(stats.targets == 5 and stats.damage < Balance.stats("rapid", level).damage, "Stormspire has five targets at every level")
 			var origin := VigilWorld.pad_position("0,0", 0)
 			var victims: Array[Dictionary] = []
-			for index in range(7):
+			for index in range(Balance.ENEMIES.size() + 1):
 				var kind: String = Balance.ENEMIES.keys()[index % Balance.ENEMIES.size()]
 				game.data.regions["1,0"].style = "castle_ruin" if kind in Balance.DUNGEON_KINDS else "forest"
-				var enemy := game.combat.spawn("1,0", kind)
-				enemy.pos = origin + Vector2.from_angle(index * TAU / 6.0) * (80.0 if index < 6 else 500.0)
+				var enemy: Dictionary = suite.fixture_enemy(game, kind)
+				enemy.pos = origin + Vector2.from_angle(index * TAU / Balance.ENEMIES.size()) * (80.0 if index < Balance.ENEMIES.size() else 500.0)
 				enemy.path = [enemy.pos, enemy.pos + Vector2(1000 + index * 100, 0)]
 				enemy.hp = 100.0 + index * 10.0
 				victims.append(enemy)
@@ -30,8 +30,8 @@ static func run(suite: SceneTree) -> void:
 				var damage: float = 100.0 + index * 10.0 - victims[index].hp
 				if damage > 0:
 					count += 1
-					suite.check(damage == stats.damage and index < 6, "Each in-range target takes exactly one zap")
-				var selected: bool = index < stats.targets if mode == "first" else (index < 6 and index >= 6 - stats.targets)
+					suite.check(damage == stats.damage and index < Balance.ENEMIES.size(), "Each in-range target takes exactly one zap")
+				var selected: bool = index < stats.targets if mode == "first" else (index < Balance.ENEMIES.size() and index >= Balance.ENEMIES.size() - stats.targets)
 				suite.check((damage > 0) == selected, "Lightning selects the top targets for " + mode)
 			var shots := game.combat.effects.filter(func(fx): return fx.kind == "shot")
 			suite.check(count == stats.targets and shots.size() == count, "Lightning respects its cap across widely separated enemies")
@@ -42,6 +42,7 @@ static func run(suite: SceneTree) -> void:
 			shots = game.combat.effects.filter(func(fx): return fx.kind == "shot")
 			suite.check(shots.size() == 5, "Retargeting replaces old arcs and keeps five simultaneous connections")
 			game.combat.enemies.clear()
+			game.data.regions["1,0"].style = "forest"
 			for index in range(6):
 				var enemy := game.combat.spawn("1,0", "basic")
 				enemy.pos = origin

@@ -20,7 +20,7 @@ static func run(tree: SceneTree) -> int:
 	var cases := 0
 	var samples := 0
 	var failures := 0
-	for style in VigilWorld.STYLES:
+	for style in VigilWorld.ALL_STYLES:
 		for shape in ["single", "horizontal", "elbow"]:
 			var game := VigilState.new(879)
 			game.data.balance = 1e12

@@ -29,6 +29,7 @@ var reset_scrim: ColorRect
 var return_opener: Control
 var simulation_paused := false
 var simulation_speed := 1.0
+var campaign: Control
 var accumulator := 0.0
 var save_timer := 0.0
 var hud_timer := 0.0
@@ -398,6 +399,8 @@ func _notification(what: int) -> void:
 	if not is_node_ready():
 		return
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if is_instance_valid(campaign) and campaign.page == "battle":
+			campaign.save_progress()
 		persist()
 		get_tree().quit()
 	elif what == NOTIFICATION_APPLICATION_PAUSED:
@@ -406,6 +409,9 @@ func _notification(what: int) -> void:
 		game.suspended = true
 		accumulator = 0.0
 	elif what == NOTIFICATION_APPLICATION_RESUMED:
+		if is_instance_valid(campaign):
+			audio.set_suspended(false)
+			return
 		if not slot_active or (is_instance_valid(slot_menu) and slot_menu.visible):
 			return
 		audio.set_suspended(false)
@@ -421,6 +427,9 @@ func _notification(what: int) -> void:
 	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
 		audio.set_suspended(false)
 	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		if is_instance_valid(campaign):
+			campaign.go_back()
+			return
 		if return_overlay.visible:
 			close_return_popup()
 		elif tower_dialog.visible:
@@ -434,6 +443,8 @@ func _notification(what: int) -> void:
 				panels.close_sheet()
 
 func _input(event: InputEvent) -> void:
+	if is_instance_valid(campaign):
+		return
 	if is_instance_valid(slot_menu) and slot_menu.visible:
 		return
 	if event.is_action_pressed("ui_cancel"):
@@ -458,11 +469,7 @@ func restore_cloud_progress(snapshot: Dictionary, _world_id: String, _revision: 
 	if not game.storage.write(archive, game.snapshot()):
 		cloud.restore_completed(false)
 		return
-	# Cloud progress cannot change the chosen local mode or imported rules.
-	snapshot.mode = game.data.get("mode", "creative")
-	snapshot.settings.developer_balance = game.tuning.duplicate(true)
-	if game.data.has("setup"):
-		snapshot.setup = game.data.setup.duplicate(true)
+	# The codec validates the saved mode and rules. Restore them with the world.
 	snapshot.sequence = game.data.sequence + 1
 	for suffix in ["", ".tmp", ".bak"]:
 		var candidate := game.storage.read_candidate(game.save_path + suffix)
@@ -520,6 +527,30 @@ func show_public_builds() -> void:
 	if show_save_slots():
 		slot_menu.show_public_builds()
 
+func show_campaign() -> void:
+	if is_instance_valid(campaign):
+		campaign.move_to_front()
+		return
+	persist()
+	panels.close_sheet()
+	tower_dialog.dismiss()
+	if tower_move.visible:
+		tower_move.cancel()
+	return_overlay.hide()
+	game.suspended = true
+	hud.hide()
+	campaign = preload("res://scripts/campaign/screen.gd").new()
+	campaign.app = self
+	if not load_saved_progress:
+		campaign.progress.path = game.save_path + ".campaign-test"
+	campaign.closed.connect(func():
+		hud.show()
+		game.suspended = not slot_active or (is_instance_valid(slot_menu) and slot_menu.visible)
+		accumulator = 0.0
+		campaign = null
+	)
+	add_child(campaign)
+
 func open_slot(slot: int) -> void:
 	var next := VigilState.new()
 	next.save_path = slot_menu.slots.path_for(slot)
@@ -547,6 +578,9 @@ func activate_slot(next: VigilState, slot: int) -> void:
 	cloud.game = game
 	cloud.include_audio = game.data.get("cloud", {}).get("include_audio", false)
 	cloud.sync_timer = 0.0
+	cloud._load_pending()
+	if cloud.signed_in():
+		cloud._say("This save is connected · revision %d. Sync now to upload changes." % int(game.data.cloud.revision) if cloud.linked() else "This save has not been uploaded to this account. Choose Sync this save to create its backup.")
 	audio.bind_game()
 	accumulator = 0.0
 	save_timer = 0.0
