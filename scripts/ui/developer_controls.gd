@@ -161,7 +161,7 @@ func show_fields() -> void:
 	call_deferred("refresh_focus")
 
 func add_slider(stat: String) -> void:
-	var descriptor: Dictionary = Balance.TUNING_FIELDS[category][stat]
+	var descriptor: Dictionary = Balance.field_limits(category, editing_kind(), stat)
 	var row := VBoxContainer.new()
 	row.add_theme_constant_override("separation", 4)
 	fields.add_child(row)

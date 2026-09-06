@@ -15,7 +15,7 @@ static func test_validation_and_storage(suite: SceneTree) -> void:
 	for category in Balance.TUNING_FIELDS:
 		for kind in Balance.definitions(category):
 			for stat in Balance.fields_for(category, kind):
-				var limits: Dictionary = Balance.TUNING_FIELDS[category][stat]
+				var limits: Dictionary = Balance.field_limits(category, kind, stat)
 				for value in [limits.min, limits.max]:
 					suite.check(game.set_balance_stat(category, kind, stat, value), "Every type accepts bounded " + stat)
 					suite.check(Balance.tuned_value(category, kind, stat, game.tuning) == value, "Adjusted stat is read back")

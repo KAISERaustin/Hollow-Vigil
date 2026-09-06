@@ -47,6 +47,18 @@ static func run(suite: SceneTree) -> void:
 		before_reset.towers.erase(tier2)
 		suite.check(game.tuning == before_reset, "Reset tier preserves siblings and other types")
 		suite.clean_test_save(game.save_path)
+	for kind in Balance.TOWERS:
+		for stat in ["damage", "range", "splash", "cost"]:
+			var legacy := VigilState.new(55)
+			legacy.set_balance_stat("towers", kind, stat, Balance.TUNING_FIELDS.towers[stat].max)
+			var branches: Array = Balance.BRANCHES[kind].keys()
+			var inherited: float = Balance.stats(kind, 4, legacy.tuning, branches[0])[stat] if stat != "cost" else Balance.upgrade_cost({"kind": kind, "level": 3}, legacy.tuning, branches[0])
+			var accepted := legacy.set_tower_tier_stat(kind, stat, Balance.TOWERS[kind][stat])
+			suite.check(accepted, "Legacy maximum can become an independent base edit: " + kind + "/" + stat)
+			if not accepted:
+				continue
+			var key := Balance.tier_key(kind, 4, branches[0])
+			suite.check(is_equal_approx(legacy.tuning.towers[key][stat], inherited), "Legacy scaled upgrade survives base edit")
 	var guard := VigilState.new(55)
 	for invalid in [{"rapid:9": {"damage": 2.0}}, {"rapid:doomstone": {"damage": 2.0}}, {"rapid:2": {"slow_duration": 2.0}}, {"electric:3": {"targets": 1.5}}]:
 		suite.check(not guard.apply_balance({"towers": invalid}) and guard.tuning.is_empty(), "Malformed tier overrides are rejected atomically")

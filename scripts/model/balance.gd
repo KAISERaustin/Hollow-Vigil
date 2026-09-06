@@ -201,8 +201,18 @@ static func fields_for(category: String, kind: String) -> Dictionary:
 			order.append(stat)
 	for stat in order:
 		if TUNING_FIELDS[category].has(stat) and definitions(category)[kind].has(stat):
-			result[stat] = TUNING_FIELDS[category][stat]
+			result[stat] = field_limits(category, kind, stat)
 	return result
+
+# Legacy base tuning scales some upgrades beyond the base slider's ceiling.
+# Those inherited values must remain representable as independent tier values.
+static func field_limits(category: String, kind: String, stat: String) -> Dictionary:
+	var limits: Dictionary = TUNING_FIELDS[category][stat].duplicate()
+	if category == "towers" and kind.contains(":") and stat in ["cost", "damage", "range", "splash"]:
+		var base: float = TOWERS[kind.get_slice(":", 0)][stat]
+		if base > 0.0:
+			limits.max = ceil(limits.max * maxf(1.0, definitions(category)[kind][stat] / base)) + 1.0 # Allow scaling roundoff.
+	return limits
 
 static func definitions(category: String) -> Dictionary:
 	if category == "bosses":
@@ -253,7 +263,7 @@ static func valid_tuning(value: Variant) -> bool:
 				if not fields_for(category, kind).has(stat):
 					return false
 				var number: Variant = value[category][kind][stat]
-				var limits: Dictionary = TUNING_FIELDS[category][stat]
+				var limits: Dictionary = field_limits(category, kind, stat)
 				if not (number is float or number is int):
 					return false
 				if limits.get("integer", false) and number != floor(number):
