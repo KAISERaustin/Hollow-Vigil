@@ -28,7 +28,10 @@ func run() -> void:
 	var catalog := Catalog.new()
 	root.add_child(catalog)
 	app.public_builds = catalog
-	app.show_save_slots()
+	app.panels.show_settings()
+	var open := app.panels.find_child("OpenPublicBuilds", true, false)
+	check(open != null, "Settings exposes Public Builds")
+	open.pressed.emit()
 	var menu: Control = app.slot_menu
 	menu.slots.base_path = "user://public-build-ui-%d" % Time.get_ticks_usec()
 	var source := VigilState.new()
