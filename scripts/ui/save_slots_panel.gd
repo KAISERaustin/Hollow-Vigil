@@ -68,6 +68,7 @@ func fit() -> void:
 
 func clear(title: String, header_action: Button = null) -> void:
 	view_revision += 1
+	header.get_parent().add_theme_constant_override("separation", UI.GAP)
 	welcome_paper.hide()
 	card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 4, 16))
 	header.show()
@@ -106,6 +107,8 @@ func show_main_menu() -> void:
 
 func show_slots() -> void:
 	clear("Saved games")
+	message.hide()
+	header.get_parent().add_theme_constant_override("separation", content.get_theme_constant("separation"))
 	add_back(UI.button("Back to main menu", show_main_menu))
 	content.add_child(UI.paragraph("Three game slots on this device. Progress saves automatically while you play.", 14))
 	for slot in range(VigilSaveSlots.COUNT):

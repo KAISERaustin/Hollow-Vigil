@@ -103,7 +103,5 @@ func _draw() -> void:
 		VigilTerrainArt.road_detail(self, road)
 	for pad in pads:
 		VigilTerrainArt.socket(self, pad)
-	if style == "castle_ruin":
-		return
 	for prop in scenery:
 		VigilTerrainArt.scenery(self, region.get("style", "forest"), prop.pos, prop.extent)

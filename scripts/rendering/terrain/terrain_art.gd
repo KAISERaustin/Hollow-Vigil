@@ -113,6 +113,18 @@ static func scenery(canvas: CanvasItem, style: String, at: Vector2, extent: floa
 		return
 	var z := Vector2.ONE * extent / 30.0
 	match style:
+		"castle_ruin":
+			# A broken ashlar pier: the same small footprint as trees and crystals.
+			var stone := Color("b4adbd")
+			var face := Color("8f889c")
+			shape(canvas, [Vector2(-14, 8), Vector2(9, 6), Vector2(15, 11), Vector2(10, 15), Vector2(-13, 14)], at, z, face)
+			shape(canvas, [Vector2(-9, 9), Vector2(-9, -13), Vector2(-4, -17), Vector2(0, -12), Vector2(5, -16), Vector2(10, -12), Vector2(9, 9)], at, z, stone)
+			shape(canvas, [Vector2(4, -12), Vector2(10, -12), Vector2(9, 9), Vector2(4, 11)], at, z, face, 1.0)
+			canvas.draw_line(at + Vector2(-9, -4) * z, at + Vector2(4, -4) * z, INK, 1.2, true)
+			canvas.draw_line(at + Vector2(-8, 3) * z, at + Vector2(4, 3) * z, INK, 1.2, true)
+			canvas.draw_line(at + Vector2(-3, -4) * z, at + Vector2(-3, 3) * z, INK, 1.2, true)
+			canvas.draw_polyline(PackedVector2Array([at + Vector2(0, -12) * z, at + Vector2(-2, -8) * z, at + Vector2(1, -6) * z]), INK, 1.2, true)
+			shape(canvas, [Vector2(-17, 10), Vector2(-16, 5), Vector2(-11, 4), Vector2(-7, 8), Vector2(-9, 12)], at, z, stone, 1.3)
 		"forest":
 			shape(canvas, [Vector2(-2, 4), Vector2(3, 4), Vector2(3, 13), Vector2(-2, 13)], at, z, Color("a4977d"), 1.5)
 			shape(canvas, [Vector2(0, -16), Vector2(8, -3), Vector2(5, -3), Vector2(13, 8), Vector2(-12, 8), Vector2(-5, -3), Vector2(-8, -3)], at, z, Color("567456"))
@@ -145,6 +157,18 @@ static func ground_detail(canvas: CanvasItem, style: String, at: Vector2, varian
 	var shade := ground_color(style).darkened(0.14)
 	var light := ground_color(style).lightened(0.12)
 	match style:
+		"castle_ruin":
+			match variant % 3:
+				0:
+					# Isolated worn paving, never a second grid over the playable tile.
+					shape(canvas, [Vector2(-8, -3), Vector2(3, -5), Vector2(8, -1), Vector2(6, 4), Vector2(-7, 4)], at, z, light, 1.0)
+					canvas.draw_polyline(PackedVector2Array([at + Vector2(1, -4) * z, at + Vector2(-1, 0) * z, at + Vector2(2, 3) * z]), shade, 1.1, true)
+				1:
+					canvas.draw_polyline(PackedVector2Array([at + Vector2(-7, -3) * z, at + Vector2(-2, -1) * z, at + Vector2(0, 4) * z, at + Vector2(6, 5) * z]), shade, 1.3, true)
+					canvas.draw_line(at + Vector2(-2, -1) * z, at + Vector2(3, -4) * z, shade, 1.2, true)
+				2:
+					shape(canvas, [Vector2(-5, 2), Vector2(-4, -2), Vector2(0, -3), Vector2(4, 1), Vector2(2, 3)], at, z, light, 1.0)
+					canvas.draw_line(at + Vector2(6, 4) * z, at + Vector2(9, 3) * z, shade, 1.4, true)
 		"forest":
 			if variant % 3 == 0:
 				shape(canvas, [Vector2(-6, 1), Vector2(-1, -3), Vector2(6, 0), Vector2(1, 3)], at, z, light, 1.0)

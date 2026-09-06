@@ -10,6 +10,7 @@ black silhouettes, angular facets, and small material details.
 | Ashen Forge | Faceted rocks with gold fissures | Cracks and stone chips |
 | Drowned Crypt | Cracked grave markers in shallow pools | Ripples and reeds |
 | Bloodmoon Sanctuary | Violet crystal clusters | Crystal fragments and thorn marks |
+| Castle Ruin | Broken ashlar piers and fallen masonry | Sparse cracked flagstones, chips and fissures |
 
 Paths have broken inset wear marks, with their center lane and joining mouths
 kept clear. Tower pads have a shallow stone rim and a few joints around the
