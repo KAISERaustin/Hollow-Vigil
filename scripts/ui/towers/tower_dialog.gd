@@ -10,6 +10,7 @@ var scroll: ScrollContainer
 var footer: BoxContainer
 var heading: Label
 var identity: HBoxContainer
+var equipment_summary: VBoxContainer
 var portrait: Control
 var tower_kind := "rapid"
 var tower_branch := ""
@@ -51,6 +52,9 @@ func _ready() -> void:
 	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	identity.add_child(heading)
+	equipment_summary = VBoxContainer.new()
+	equipment_summary.hide()
+	layout.add_child(equipment_summary)
 	scroll = ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.follow_focus = true
@@ -94,10 +98,11 @@ func open_action(action: String) -> void:
 	if action == "move":
 		cost = Balance.move_cost(tower, app.game.tuning)
 	rebuild_seconds = Balance.rebuild_seconds(tower, app.game.tuning)
-	for parent in [body, footer]:
+	for parent in [body, footer, equipment_summary]:
 		for child in parent.get_children():
 			parent.remove_child(child)
 			child.queue_free()
+	equipment_summary.visible = action == "equipment"
 	var stats := Balance.tower_stats(tower, app.game.tuning)
 	heading.text = stats.name
 	var label := {"info": "Tower information · Level %d", "upgrade": "Upgrade · Level %d", "sell": "Sell tower · Level %d", "move": "Move tower · Level %d", "target": "Targeting · Level %d", "equipment": "Equipment · Level %d"}
@@ -198,6 +203,8 @@ func fit_dialog() -> void:
 	card.size.x = minf(460.0, safe.size.x)
 	footer.vertical = card.size.x < 400 * UI.text_scale
 	var chrome: float = identity.get_combined_minimum_size().y + footer.get_combined_minimum_size().y + 64.0
+	if equipment_summary.visible:
+		chrome += equipment_summary.get_combined_minimum_size().y + layout.get_theme_constant("separation")
 	scroll.custom_minimum_size.y = minf(body.get_combined_minimum_size().y, maxf(40.0, safe.size.y - chrome))
 	card.size.y = 0.0
 	card.position = safe.position + (safe.size - card.size) * 0.5
