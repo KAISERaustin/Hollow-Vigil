@@ -49,7 +49,7 @@ func _ready() -> void:
 	footer.add_theme_constant_override("separation", UI.GAP)
 	layout.add_child(footer)
 	resized.connect(fit)
-	show_slots()
+	show_main_menu()
 
 func fit() -> void:
 	var safe := UI.safe_rect(app).grow(-16)
@@ -74,12 +74,18 @@ func clear(title: String, header_action: Button = null) -> void:
 	content.add_child(message)
 	call_deferred("fit")
 
-func show_slots() -> void:
-	clear("Saved games")
-	var campaign_button := UI.gold_button("Campaign · The Last Procession", app.show_campaign, 52)
+func show_main_menu() -> void:
+	clear("Hollow Vigil")
+	var campaign_button := UI.gold_button("Campaign", app.show_campaign, 52)
 	campaign_button.name = "OpenCampaign"
 	content.add_child(campaign_button)
-	content.add_child(UI.paragraph("20 handcrafted tactical battles in a separate world.", 13))
+	var infinite_button := UI.gold_button("Infinite", show_slots, 52)
+	infinite_button.name = "OpenInfinite"
+	content.add_child(infinite_button)
+
+func show_slots() -> void:
+	clear("Saved games")
+	add_back(UI.button("Back to main menu", show_main_menu))
 	content.add_child(UI.paragraph("Three game slots on this device. Progress saves automatically while you play.", 14))
 	for slot in range(VigilSaveSlots.COUNT):
 		var snapshot := slots.summary(slot)
@@ -113,7 +119,7 @@ func show_slots() -> void:
 	add_action(UI.button("Account & backups", app.show_backups))
 	add_action(UI.button("Browse community builds", show_public_builds))
 	if app.slot_active:
-		add_back(UI.button("Back to game", close))
+		footer.add_child(UI.button("Back to game", close))
 
 func show_creation(slot: int, reset: bool = true) -> void:
 	if reset:

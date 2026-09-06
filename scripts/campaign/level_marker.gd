@@ -1,6 +1,7 @@
 extends Button
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
+const ClearedArt = preload("res://scripts/campaign/cleared_level_art.gd")
 var number := 1
 var completed := false
 var gate: Texture2D
@@ -17,7 +18,19 @@ func _ready() -> void:
 
 func _draw() -> void:
 	var active := not disabled and (is_hovered() or has_focus())
-	var paper := UI.GOLD if active or completed else Color("e8ddbd")
+	var paper := UI.GOLD if active else Color("e8ddbd")
+	if completed:
+		var offset := Vector2(0, 2) if button_pressed else Vector2.ZERO
+		if active:
+			draw_style_box(UI.surface(Color(0,0,0,0), 2, 4), Rect2(Vector2.ZERO, size))
+		ClearedArt.draw(self, offset, gate != null)
+		if gate != null:
+			var plaque := Rect2(size.x * 0.5 - 18, size.y - 21, 36, 22)
+			draw_style_box(UI.surface(paper, 2, 2), plaque)
+			draw_string(UI.font(600), plaque.position + Vector2(6, 16), str(number), HORIZONTAL_ALIGNMENT_CENTER, 24, 14, UI.TEXT)
+		else:
+			draw_string(UI.font(600), Vector2(9,40)+offset, str(number), HORIZONTAL_ALIGNMENT_CENTER, 26, 16, UI.TEXT)
+		return
 	if gate != null:
 		draw_texture_rect(gate, Rect2(Vector2.ZERO, size), false)
 		var plaque := Rect2(size.x * 0.5 - 18, size.y - 21, 36, 22)
@@ -32,6 +45,3 @@ func _draw() -> void:
 	draw_line(Vector2(12,40)+offset, Vector2(40,40)+offset, Color("a4977d"), 2)
 	draw_line(Vector2(14,10)+offset, Vector2(20,6)+offset, Color("a4977d"), 2)
 	draw_string(UI.font(600), Vector2(11,33)+offset, str(number), HORIZONTAL_ALIGNMENT_CENTER, 30, 18, UI.TEXT)
-	if completed:
-		draw_circle(Vector2(45,8), 5, UI.GOLD)
-		draw_arc(Vector2(45,8), 5, 0, TAU, 16, Color.BLACK, 2)

@@ -62,8 +62,6 @@ func _draw() -> void:
 					# Pass around the chapter heading, leaving its text unobstructed.
 					road = PackedVector2Array([previous, Vector2(previous.x,previous.y+32), Vector2(size.x-10,previous.y+32), Vector2(size.x-10,at.y-34), Vector2(at.x,at.y-34), at])
 				draw_polyline(road, color, 5, true)
-			if index < progress.data.completed_levels:
-				draw_circle(at, 31, Color(0.88,0.71,0.4,0.15))
 			var right := at.x < size.x*0.5
 			var origin := Vector2(at.x+34 if right else 12.0, at.y-4)
 			if i == 4:
@@ -72,5 +70,5 @@ func _draw() -> void:
 			var title: String = Catalog.MISSIONS[index].name
 			draw_string(UI.font(600), origin, title, HORIZONTAL_ALIGNMENT_LEFT, width, 12, UI.TEXT if progress.unlocked(index) else UI.MUTED)
 			var completed: bool = index < progress.data.completed_levels
-			var detail := "Completed" if completed else ("BOSS" if i == 4 else ("Ready" if progress.unlocked(index) else "Locked"))
-			draw_string(UI.font(400), origin+Vector2(0,20), detail, HORIZONTAL_ALIGNMENT_LEFT, width, 11, UI.GOLD if completed else UI.MUTED)
+			var detail := "Cleared · Lit" if completed else ("BOSS" if i == 4 else ("Ready" if progress.unlocked(index) else "Locked"))
+			draw_string(UI.font(400), origin+Vector2(0,20), detail, HORIZONTAL_ALIGNMENT_LEFT, width, 11, UI.TEXT if completed else UI.MUTED)
