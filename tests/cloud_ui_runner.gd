@@ -33,7 +33,9 @@ func run() -> void:
 		quit(1)
 		return
 	await create_timer(1.0).timeout
-	root.get_texture().get_image().save_png("res://artifacts/cloud-sign-in.png")
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://artifacts/cloud-sign-in.png")
 	app.cloud.player_id = "10000000-0000-4000-8000-000000000001"
 	app.cloud.refresh_token = "synthetic"
 	app.cloud.worlds = [{"world_id":"20000000-0000-4000-8000-000000000001","seed":42,"updated_at":"2026-09-06T12:00:00Z"}]
@@ -41,7 +43,15 @@ func run() -> void:
 	await process_frame
 	await process_frame
 	await process_frame
-	root.get_texture().get_image().save_png("res://artifacts/cloud-worlds.png")
+	for button_name in ["UploadCampaignBackup", "UploadInfinite1", "UploadInfinite2", "UploadInfinite3"]:
+		if app.find_child(button_name, true, false) == null:
+			push_error("Manual backup control missing: " + button_name)
+			quit(1)
+			return
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://artifacts/cloud-worlds.png")
+	print("Cloud UI: sign-in and all four manual backup controls passed")
 	app.queue_free()
 	await process_frame
 	quit()
