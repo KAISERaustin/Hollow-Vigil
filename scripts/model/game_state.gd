@@ -72,7 +72,7 @@ func apply_balance(candidate: Dictionary) -> bool:
 	data.settings.developer_balance = candidate.duplicate(true)
 	# Preserve damage already taken and progress toward the next shot.
 	for enemy in combat.enemies:
-		if enemy.dead:
+		if enemy.dead or enemy.get("boss", false):
 			continue
 		var health := Balance.tuned_value("enemies", enemy.kind, "hp", tuning) * combat.rift_health_multiplier(enemy)
 		enemy.hp = health * clampf(enemy.hp / enemy.max_hp, 0.0, 1.0)
@@ -96,6 +96,7 @@ func expand(id: String) -> bool:
 	data.first_property_required = false
 	# A new neighbor can add an equal route or shorten an older rift's route.
 	combat.rebuild_routes()
+	combat.Bosses.awaken(combat, id)
 	terrain_revision += 1
 	return true
 
@@ -130,7 +131,9 @@ func snapshot(now: float = -1.0) -> Dictionary:
 	if now < 0.0:
 		now = Time.get_unix_time_from_system()
 	data.last_accounted = maxf(data.last_accounted, now)
-	return data.duplicate(true)
+	var result := data.duplicate(true)
+	combat.Bosses.capture(combat, result.regions)
+	return result
 
 func save(now: float = -1.0) -> bool:
 	# Preserve unrecognized/corrupt snapshots until the player explicitly resets.
@@ -202,6 +205,7 @@ func load_save(now: float = -1.0) -> bool:
 		t.rebuild_remaining = float(t.get("rebuild_remaining", 0.0))
 	refresh_paths()
 	combat.enemies.clear()
+	combat.Bosses.restore(combat)
 	apply_offline(Time.get_unix_time_from_system() if now < 0.0 else now)
 	# Commit reward and its timestamp together before the player can collect it.
 	save(now)

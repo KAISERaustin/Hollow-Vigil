@@ -40,6 +40,11 @@ The preset uses the local templates in `exports/android-tools/` and the existing
 - Drag to pan and use the mouse wheel or pinch to zoom the map. The HUD keeps a fixed screen size. Tower action buttons stay attached to their towers with a fixed map-space size and spacing, scaling together with the map. Gold badges sit above their towers in map space: their text, borders, spacing, and touch padding scale together with the tower, without independent enlargement. Settings include power saving, 100/125/150% text size, reduced motion, reset, and return to the core.
 - Offline rewards use 80% of demonstrated production, capped at seven days. Rewards never purchase anything or inflate lifetime kill counts.
 
+Stone clusters now hide one boss each. Buying its assigned tile awakens it;
+it patrols owned roads around the core until defeated. Health and encounter
+progress survive reloads, and each boss has a level-four tower weakness and
+a one-time bounty. See [boss encounters and counters](docs/BOSSES.md).
+
 ## Developer Controls
 
 Open **Settings → Developer Controls**, choose **Enemies** or **Towers**, then select a type. Sliders adjust every enemy's health, movement speed and gold reward, and every tower's base damage, attack interval, reach, build cost and blast radius. Changes take effect live and save with your progress. Lower attack intervals mean faster attacks; a blast radius of zero makes a tower hit one target. Upgrades scale from the adjusted base stats, and build cost also scales upgrade prices and refunds.

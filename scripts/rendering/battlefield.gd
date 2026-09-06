@@ -278,7 +278,9 @@ func centered(text: String, at: Vector2, pixels: int, color: Color) -> void:
 	text_at(text, at - Vector2(width * 0.5, 0), pixels, color)
 
 func _draw() -> void:
+	preload("res://scripts/rendering/boss_art.gd").begin_frame(self)
 	if state == null:
+		preload("res://scripts/rendering/boss_art.gd").end_frame(self)
 		return
 	if terrain_layer != null:
 		terrain_layer.synchronize(state, camera, zoom, size)
@@ -348,6 +350,8 @@ func _draw() -> void:
 		else:
 			draw_arc(p, (1.0 - fade) * 12.0 * zoom, 0, TAU, 20, color, 2.0 * zoom, true)
 
+	preload("res://scripts/rendering/boss_art.gd").end_frame(self)
+
 func draw_region(region: Dictionary) -> void:
 	# Terrain is cached behind this interactive layer; only + glyphs redraw.
 	for pad in range(4):
@@ -414,7 +418,10 @@ static func pill(bg: Color, border: Color, radius: int) -> StyleBoxFlat:
 func draw_enemy(e: Dictionary) -> void:
 	var p := screen(e.pos)
 	var z := zoom
-	VigilTerrainArt.enemy(self, e.kind, p, z)
+	if e.get("boss", false):
+		preload("res://scripts/rendering/boss_art.gd").draw(self, e, p, z)
+	else:
+		VigilTerrainArt.enemy(self, e.kind, p, z)
 	if e.get("slow_until", 0.0) > state.combat.simulation_time:
 		draw_arc(p, 15*z, 0, TAU, 24, Color("96d6e6"), 2*z, true)
 		for index in range(6):
@@ -432,7 +439,7 @@ func draw_enemy(e: Dictionary) -> void:
 	var rift_style: String = e.get("rift_style", "forest")
 	if Balance.rift_strength(rift_style, state.tuning) > 0.0:
 		preload("res://scripts/rendering/rift_art.gd").enemy_mark(self, rift_style, p, z)
-	if e.hp < e.max_hp:
+	if e.hp < e.max_hp and not e.get("boss", false):
 		var from := p + Vector2(-9, -23 * z)
 		draw_line(from, from + Vector2(18, 0), Color.BLACK, 4)
 		draw_line(from, from + Vector2(18 * e.hp / e.max_hp, 0), VigilTerrainArt.MINT, 2)

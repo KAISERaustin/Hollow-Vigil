@@ -2,6 +2,14 @@
 
 Current direction: extremely simple flat drawings with solid black outlines. No painted textures, lighting, gradients, noise or decorative particles. Active artwork is native Godot drawing code; no image generation is needed for these elementary shapes.
 
+Boss exception, approved September 5, 2026: preserve the detailed four-boss
+concept using the sprites in `assets/bosses/`. The player explicitly requested
+the layered roots, stone facets, articulated chains, robe folds and halo from
+that reference after rejecting simplified native boss drawings. Do not reduce
+these bosses to elementary icons. `boss_art.gd` and `boss_matte.gdshader` render
+the sprites with health, weakness and defense indicators; their source prompts
+are recorded in `assets/bosses/README.md`.
+
 - Ground: forest #95aa83, forge #bb8c76, crypt #7fa6aa, sanctuary #ae879b.
 - Ink: #000000. Paper/socket: #e8ddbd. Road: #dfd0ab.
 - Tower accents: ochre #e0b568, coral #db8d73, lavender #b49dcc.

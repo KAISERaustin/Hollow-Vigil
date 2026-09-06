@@ -109,6 +109,8 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 				return false
 		if r.id != id or not r.parent is String or (r.parent != "" and not d.regions.has(r.parent)):
 			return false
+		if r.has("boss") and not valid_boss(r.boss, id, d):
+			return false
 		if r.has("style") and (not r.style is String or (r.style != "forest" and not r.style in VigilWorld.NEW_STYLES)):
 			return false
 		if r.has("road_version") and not number(r.road_version, 1, 2, true):
@@ -130,6 +132,10 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 		for value in r.history.values():
 			if not number(value):
 				return false
+	# All region shapes are now validated, so road reconstruction is safe.
+	for r in d.regions.values():
+		if r.has("boss") and r.boss.status == "active" and not valid_boss_road(r.boss, d.regions):
+			return false
 	var occupied := {}
 	for id in d.towers:
 		var t = d.towers[id]
@@ -185,3 +191,45 @@ func valid_coordinate(value: Variant) -> bool:
 	if parts.size() != 2 or not parts[0].is_valid_int() or not parts[1].is_valid_int():
 		return false
 	return str(int(parts[0])) + "," + str(int(parts[1])) == value and abs(int(parts[0])) < 100000000 and abs(int(parts[1])) < 100000000
+
+func valid_boss(b: Variant, id: String, d: Dictionary) -> bool:
+	const Bosses = preload("res://scripts/model/bosses.gd")
+	if not b is Dictionary or not b.get("kind") is String or b.kind != Bosses.kind_at(id, int(d.seed)) or b.kind == "":
+		return false
+	if b.get("status") == "defeated":
+		return true
+	if b.get("status") != "active":
+		return false
+	for field in ["tile", "previous"]:
+		if not b.get(field) is String or not d.regions.has(b[field]):
+			return false
+	if Vector2(VigilWorld.coord(b.tile) - VigilWorld.coord(b.previous)).length() != 1.0:
+		return false
+	if not number(b.get("hp"), 0, Bosses.DEFINITIONS[b.kind].hp) or b.hp <= 0.0 or not number(b.get("steps"), 1, 1.0e15, true):
+		return false
+	if not number(b.get("shield"), 0, 600) or not number(b.get("wards"), 0, 3, true):
+		return false
+	if not number(b.get("regen"), 0, 10) or not number(b.get("toll"), 0, 10) or not b.get("toll_delayed") is bool:
+		return false
+	if not b.get("path") is Array or b.path.size() < 2 or b.path.size() > 49 or not number(b.get("segment"), 1, b.path.size() - 1, true):
+		return false
+	var points: Array = b.path.duplicate()
+	points.append(b.get("pos"))
+	for point in points:
+		if not point is Array or point.size() != 2 or not number(point[0], -1.0e12, 1.0e12) or not number(point[1], -1.0e12, 1.0e12):
+			return false
+	return true
+
+func valid_boss_road(b: Dictionary, regions: Dictionary) -> bool:
+	var side := VigilWorld.DIRS.find(VigilWorld.coord(b.tile) - VigilWorld.coord(b.previous))
+	var expected := VigilWorld.spoke(regions[b.previous], side)
+	expected.reverse()
+	expected.append_array(VigilWorld.spoke(regions[b.tile], (side + 2) % 4).slice(1))
+	if expected.size() != b.path.size():
+		return false
+	for i in range(expected.size()):
+		if expected[i].distance_to(Vector2(b.path[i][0], b.path[i][1])) > 0.01:
+			return false
+	var pos := Vector2(b.pos[0], b.pos[1])
+	var segment := int(b.segment)
+	return pos.distance_to(Geometry2D.get_closest_point_to_segment(pos, expected[segment-1], expected[segment])) <= 0.01

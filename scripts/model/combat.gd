@@ -1,6 +1,7 @@
 class_name VigilCombat
 extends RefCounted
 
+const Bosses = preload("res://scripts/model/bosses.gd")
 const AttackEffects = preload("res://scripts/rendering/attack_effects.gd")
 
 var data: Dictionary
@@ -37,21 +38,30 @@ func rebuild_routes() -> void:
 		var choices: Array = route_exits[id]
 		branching_routes[id] = choices.size() > 1 or (not choices.is_empty() and branching_routes[choices[0]])
 
-func hit(enemy: Dictionary, damage: float, tower_id: String) -> bool:
+func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = "", fire: bool = false) -> bool:
 	if enemy.dead or not is_finite(damage) or damage <= 0.0 or not data.towers.has(tower_id):
 		return false
+	if enemy.get("boss", false):
+		damage = Bosses.damage(enemy, damage, branch, fire)
 	enemy.hp -= damage
 	if enemy.hp > 0.0:
 		return false
 	# Mark dead synchronously before any credit, so splash and simultaneous shots are safe.
 	enemy.dead = true
-	var reward := Balance.tuned_value("enemies", enemy.kind, "payout", tuning)
+	var is_boss: bool = enemy.get("boss", false)
+	var reward: float = Bosses.DEFINITIONS[enemy.kind].payout if is_boss else Balance.tuned_value("enemies", enemy.kind, "payout", tuning)
+	if enemy.has("summoner"):
+		reward = 0.0
+	if is_boss:
+		data.regions[enemy.source].boss = {"status": "defeated", "kind": enemy.kind}
 	economy.credit(tower_id, reward)
 	data.kills += 1.0
 	var r: Dictionary = data.regions[enemy.source]
-	r.history[tower_id] = r.history.get(tower_id, 0.0) + reward
+	# One-time encounters must not inflate recurring offline income.
+	if not is_boss and not enemy.has("summoner"):
+		r.history[tower_id] = r.history.get(tower_id, 0.0) + reward
 	income_events.append(Vector2(simulation_time, reward))
-	add_effect({"kind": "death", "pos": enemy.pos, "life": 0.45, "max_life": 0.45, "color": Balance.ENEMIES[enemy.kind].color})
+	add_effect({"kind": "death", "pos": enemy.pos, "life": 0.45, "max_life": 0.45, "color": Bosses.DEFINITIONS[enemy.kind].color if is_boss else Balance.ENEMIES[enemy.kind].color})
 	return true
 
 func add_effect(fx: Dictionary) -> void:
@@ -114,10 +124,11 @@ func tick(delta: float) -> void:
 		while r.timer <= 0.0:
 			spawn(r.id)
 			r.timer += economy.spawn_period(r.id) * rng.randf_range(0.9, 1.1)
+	Bosses.advance(self, delta)
 	for e in enemies:
 		if e.dead:
 			continue
-		var move := Balance.tuned_value("enemies", e.kind, "speed", tuning) * delta
+		var move: float = (Bosses.speed(e, simulation_time) if e.get("boss", false) else Balance.tuned_value("enemies", e.kind, "speed", tuning)) * delta
 		match e.get("rift_style", "forest"):
 			"drowned_crypt":
 				move *= 1.0 + Balance.rift_strength("drowned_crypt", tuning) / 100.0
@@ -135,6 +146,10 @@ func tick(delta: float) -> void:
 				e.segment += 1
 				move -= dist
 				if e.segment >= p.size():
+					if e.get("boss", false):
+						Bosses.next_leg(self, e)
+						p = e.path
+						continue
 					e.dead = true
 					data.escapes += 1.0
 					add_effect({"kind": "escape", "pos": e.pos, "life": 0.55, "max_life": 0.55, "color": "9bddd8"})
@@ -334,7 +349,7 @@ func branch_hit(shot: Dictionary, enemy: Dictionary) -> void:
 		curses[shot.tower_id] = curse
 		damage *= 1.0 + curse.stacks * 0.2
 		enemy.curse_stacks = curse.stacks
-	hit(enemy, damage, shot.tower_id)
+	hit(enemy, damage, shot.tower_id, branch)
 	if enemy.dead:
 		return
 	match branch:
@@ -348,7 +363,11 @@ func branch_hit(shot: Dictionary, enemy: Dictionary) -> void:
 			charges[shot.tower_id] = int(charges.get(shot.tower_id, 0)) + 1
 			if charges[shot.tower_id] >= 5:
 				charges[shot.tower_id] = 0
-				hit(enemy, damage * 3.0, shot.tower_id)
+				var bell: bool = enemy.get("boss", false) and enemy.kind == "bell"
+				hit(enemy, damage * (4.5 if bell else 3.0), shot.tower_id, branch)
+				if bell and not enemy.toll_delayed:
+					enemy.toll += 2.0
+					enemy.toll_delayed = true
 				add_effect({"kind": "seal", "pos": enemy.pos, "life": 0.4, "max_life": 0.4, "color": "b3b5f1"})
 				if enemy.get("stun_immune_until", 0.0) <= simulation_time:
 					enemy.stun_until = simulation_time + 0.4
@@ -393,7 +412,7 @@ func advance_fire(delta: float) -> void:
 		for patch in burning_ground:
 			if not owners.has(patch.tower_id) and enemy.pos.distance_squared_to(patch.pos) <= patch.radius * patch.radius:
 				owners[patch.tower_id] = true
-				hit(enemy, patch.damage * delta, patch.tower_id)
+				hit(enemy, patch.damage * delta, patch.tower_id, "cinderfield", true)
 
 func launch_fragments(shot: Dictionary) -> void:
 	var count := 0
