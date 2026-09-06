@@ -7,10 +7,12 @@ var model: VigilState
 var seed_value := -1
 var grid := preload("res://scripts/rendering/terrain_grid.gd").new()
 var clouds := preload("res://scripts/rendering/terrain_clouds.gd").new()
+var hidden_areas := preload("res://scripts/rendering/hidden_areas.gd").new()
 var cloud_edges := preload("res://scripts/rendering/terrain_cloud_edges.gd").new()
 
 func _init() -> void:
 	add_child(clouds)
+	add_child(hidden_areas)
 	add_child(cloud_edges)
 	add_child(grid)
 
@@ -38,6 +40,7 @@ func synchronize(state: VigilState, camera: Vector2, zoom: float, viewport_size:
 		move_child(grid, -1)
 	var world_view := Rect2(camera - viewport_size * 0.5 / zoom, viewport_size / zoom)
 	clouds.synchronize(world_view)
+	hidden_areas.synchronize(state, world_view)
 	cloud_edges.synchronize(state, world_view)
 	grid.synchronize(world_view)
 	var view := world_view.grow(170)

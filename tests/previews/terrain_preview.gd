@@ -62,6 +62,13 @@ func run() -> void:
 	field.state.economy.build("rapid", "0,0", 0)
 	field.queue_redraw()
 	await capture("minimal-tiles-starter")
+	root.content_scale_size = Vector2i(1200, 900)
+	root.size = Vector2i(1200, 900)
+	field.size = Vector2(1200, 900)
+	field.camera = Vector2.ZERO
+	field.zoom = 0.22
+	field.queue_redraw()
+	await capture("hidden-stone-clusters")
 	field.free()
 	print("TERRAIN RENDER: four-biome corner, 16-tile seams, matching biomes, starter captured")
 	quit()
