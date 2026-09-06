@@ -47,7 +47,7 @@ func run() -> void:
 		root.content_scale_size = viewport
 		campaign.show_map()
 		await frame()
-		check(Rect2(Vector2.ZERO,Vector2(viewport)).encloses(campaign.layout.get_global_rect()), "World map fits " + str(viewport))
+		check(Rect2(Vector2.ZERO,Vector2(viewport)).encloses(campaign.page_scroll.get_global_rect()), "World map viewport fits " + str(viewport))
 		await Harness.capture(app,"campaign-map-"+str(viewport.x))
 		for chapter in range(4):
 			var gate: Button = campaign.find_child("CampaignLevel%d" % (chapter * 5 + 5), true, false)

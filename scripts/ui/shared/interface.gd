@@ -49,6 +49,17 @@ static func surface(bg: Color = PANEL, outline: int = OUTLINE, padding: int = PA
 static func plain() -> StyleBox:
 	return surface(Color.TRANSPARENT, 0, 0)
 
+static func fullscreen_parchment() -> TextureRect:
+	var paper := TextureRect.new()
+	paper.name = "FullscreenParchment"
+	paper.texture = preload("res://assets/ui/welcome-parchment.png")
+	paper.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	paper.stretch_mode = TextureRect.STRETCH_SCALE
+	paper.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	paper.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	paper.add_child(rounded_viewport_frame())
+	return paper
+
 static func rounded_viewport_frame(background: Color = PANEL, outline: int = OUTLINE) -> Control:
 	var frame := Control.new()
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -106,6 +117,7 @@ static func trap_focus(root: Control) -> void:
 
 static func keyboard_scroll(scroll: ScrollContainer, description: String) -> void:
 	# Retain wheel, touch and keyboard scrolling without visible menu rails.
+	preload("res://scripts/ui/shared/touch_scroll.gd").attach(scroll)
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	scroll.focus_mode = Control.FOCUS_ALL
 	scroll.add_theme_stylebox_override("focus", focus_box())

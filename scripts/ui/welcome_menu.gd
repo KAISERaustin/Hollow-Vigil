@@ -14,7 +14,8 @@ func configure(campaign: Callable, infinite: Callable) -> void:
 	name = "WelcomeMenu"
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
-	custom_minimum_size.y = 500
+	# Keep both illustrations and the caption inside the scrollable composition.
+	custom_minimum_size.y = 560
 	crest = Illustration.new()
 	add_child(crest)
 	title = UI.heading("Hollow Vigil", 40)

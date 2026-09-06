@@ -1,5 +1,13 @@
 # Hollow Vigil on iPhone
 
+## TestFlight build 1.0.6 — September 6, 2026
+
+Version **0.1.0 (1.0.6)** was built from commit `269180be8be5dd09438eb44d1b87ca1f7af3cf5f` with the iOS export preset's build number updated to `1.0.6`. Xcode Organizer confirmed **Uploaded to Apple** at 6:11 PM CDT through **Distribute App → App Store Connect → Distribute**, using the existing signed-in developer account. Apple processing and tester assignment are pending verification.
+
+Validation: a fresh Godot import completed without script errors; structure checks passed; the headless gameplay suite passed **51,002 checks with zero failures**; the Release archive succeeded and its signature passed deep, strict verification. The initial working-folder test attempt encountered missing imported textures and was stopped; the successful suite ran from the freshly imported release copy. Xcode emitted the same empty camera, microphone and photo-library usage-description warnings, generated-header pragma warning, and skipped App Intents extraction warning seen in the previous release. Physical-device testing of this build remains for TestFlight testers.
+
+The Organizer archive is at `~/Library/Developer/Xcode/Archives/2026-09-06/HollowVigil-1.0.6.xcarchive`. The isolated build source is at `/private/tmp/hollow-vigil-release-1.0.6-source`; temporary files may be cleared by macOS. Logs are under ignored `artifacts/testflight-1.0.6/`, including `release-tests.log`, `import.log`, `export.log`, and `archive.log`. The exported PCK SHA-256 is `77cb11f0e4fe006aadc6f05aff126cc3170fe03bc370819c827496d3e667a43d`.
+
 ## TestFlight release — September 6, 2026
 
 Version **0.1.0 (1.0.5)** was built from commit `eb8c25d1545e3b2d6f16d0a2332a261a5e8696b3`, uploaded through **Xcode Organizer → Distribute App → App Store Connect**, processed successfully by Apple, and assigned to the internal **Just for Testing** group. App Store Connect confirmed six testers have access. Gameplay source was unchanged; the archive build number was overridden to `1.0.5`.

@@ -125,9 +125,77 @@ func run() -> void:
 	app.free()
 	await settle()
 	await check_number_rows()
+	await check_menu_pages()
 	for failure in failures: push_error(failure)
-	print("MOBILE_SCROLL: ", failures.size(), " failures; touch scrolling, safe row text, explicit Sync action, numeric input and +/- controls at 3 viewports")
+	print("MOBILE_SCROLL: ", failures.size(), " failures; touch scrolling, safe actions and numeric controls; full-screen menus at 3 portrait sizes and short landscape")
 	quit(0 if failures.is_empty() else 1)
+
+func check_menu_pages() -> void:
+	var app := VigilApp.new()
+	app.load_saved_progress = false
+	app.game.save_path = "user://menu-scroll-placeholder.save"
+	root.add_child(app)
+	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	app.set_process(false)
+	app.show_save_slots()
+	var menu: Control = app.slot_menu
+	menu.slots.base_path = "user://menu-scroll-empty-" + str(Time.get_ticks_usec())
+	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960), Vector2i(844, 390)]:
+		root.size = viewport
+		root.content_scale_size = viewport
+		menu.show_main_menu()
+		await settle()
+		check(menu.welcome_paper.get_global_rect().is_equal_approx(app.get_global_rect()), "Main parchment does not fill " + str(viewport))
+		if viewport.y < 500:
+			await swipe(menu.scroll.get_global_rect().get_center())
+			check(menu.scroll.scroll_vertical > 30, "Short main menu does not scroll")
+			check(menu.find_child("OpenInfinite", true, false) != null, "Main menu swipe activated an option")
+		menu.show_slots()
+		await settle()
+		check(menu.welcome_paper.visible, "Saved games lost the full-screen paper")
+		var first: Button = menu.find_child("SaveSlot1", true, false)
+		menu.scroll.ensure_control_visible(first)
+		await settle()
+		var before: int = menu.scroll.scroll_vertical
+		var remaining: float = menu.scroll.get_v_scroll_bar().max_value - menu.scroll.get_v_scroll_bar().page - before
+		await swipe(first.get_global_rect().get_center())
+		if remaining > 30:
+			check(menu.scroll.scroll_vertical > before + 30, "Saved game button blocks swipe at " + str(viewport))
+		check(menu.find_child("SaveSlot1", true, false) == first, "Saved game swipe activated New game")
+		menu.scroll.ensure_control_visible(menu.content.get_child(-1))
+		await settle()
+		check(menu.scroll.get_global_rect().grow(1).encloses(menu.content.get_child(-1).get_global_rect()), "Last saved-games action unreachable")
+		menu.show_creation(0)
+		await settle()
+		var create := menu.find_child("CreateSave", true, false)
+		menu.scroll.ensure_control_visible(create)
+		await settle()
+		check(menu.scroll.get_global_rect().grow(1).encloses(create.get_global_rect()), "Create action unreachable at " + str(viewport))
+		app.show_campaign()
+		var campaign: Control = app.campaign
+		campaign.set_process(false)
+		campaign.show_map()
+		await settle()
+		check(campaign.find_child("FullscreenParchment", true, false).get_global_rect().is_equal_approx(app.get_global_rect()), "Campaign parchment does not fill screen")
+		await swipe(campaign.page_scroll.get_global_rect().get_center())
+		check(campaign.page_scroll.scroll_vertical > 30, "Campaign map blocks swipe at " + str(viewport))
+		check(campaign.page == "map", "Map swipe activated a level")
+		campaign.page_scroll.ensure_control_visible(campaign.find_child("CampaignBackups", true, false))
+		await settle()
+		check(campaign.page_scroll.get_global_rect().grow(1).encloses(campaign.find_child("CampaignBackups", true, false).get_global_rect()), "Campaign bottom action unreachable")
+		campaign.show_briefing(0)
+		await settle()
+		if viewport.y < 500:
+			await swipe(campaign.page_scroll.get_global_rect().get_center())
+			check(campaign.page_scroll.scroll_vertical > 30, "Short briefing blocks swipe over preview")
+		var begin := campaign.find_child("BeginCampaignMission", true, false)
+		campaign.page_scroll.ensure_control_visible(begin)
+		await settle()
+		check(campaign.page_scroll.get_global_rect().grow(1).encloses(begin.get_global_rect()), "Begin mission unreachable at " + str(viewport))
+		campaign.close()
+		await settle()
+	app.queue_free()
+	await settle()
 
 func check_number_rows() -> void:
 	var app := VigilApp.new()

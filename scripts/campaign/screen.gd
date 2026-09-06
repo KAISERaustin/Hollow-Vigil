@@ -12,6 +12,7 @@ var app: VigilApp
 var progress := Progress.new()
 var run: RefCounted
 var layout: VBoxContainer
+var page_scroll: ScrollContainer
 var board: Control
 var status: Label
 var gold: Label
@@ -93,10 +94,8 @@ func build_tower_ui() -> void:
 func _ready() -> void:
 	name = "Campaign"
 	color = UI.PANEL
-	var paper := UI.surface(UI.PANEL, 0, 0)
-	draw.connect(func(): draw_style_box(paper, Rect2(Vector2.ZERO, size)))
-	resized.connect(queue_redraw)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(UI.fullscreen_parchment())
 	theme = UI.theme()
 	progress.load_progress()
 	layout = VBoxContainer.new()
@@ -107,6 +106,12 @@ func _ready() -> void:
 	layout.offset_bottom = -12
 	layout.add_theme_constant_override("separation", 10)
 	add_child(layout)
+	page_scroll = ScrollContainer.new()
+	page_scroll.name = "CampaignPageScroll"
+	page_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	page_scroll.follow_focus = true
+	UI.keyboard_scroll(page_scroll, "Campaign menus")
+	add_child(page_scroll)
 	resized.connect(fit)
 	_build_dialog()
 	show_map()
@@ -114,10 +119,15 @@ func _ready() -> void:
 
 func fit() -> void:
 	var safe := UI.safe_rect(self).grow(-12)
-	layout.offset_left = safe.position.x
-	layout.offset_top = safe.position.y
-	layout.offset_right = safe.end.x - size.x
-	layout.offset_bottom = safe.end.y - size.y
+	if page == "battle":
+		layout.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		layout.offset_left = safe.position.x
+		layout.offset_top = safe.position.y
+		layout.offset_right = safe.end.x - size.x
+		layout.offset_bottom = safe.end.y - size.y
+	else:
+		page_scroll.position = safe.position
+		page_scroll.size = safe.size
 	if is_instance_valid(dialog_card):
 		if not socket_dialog:
 			dialog_card.size.x = minf(470, safe.size.x)
@@ -139,6 +149,15 @@ func clear_page(next: String) -> void:
 	for child in layout.get_children():
 		layout.remove_child(child)
 		child.queue_free()
+	var parent: Node = self if next == "battle" else page_scroll
+	if layout.get_parent() != parent:
+		layout.reparent(parent, false)
+		layout.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	layout.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	page_scroll.visible = next != "battle"
+	page_scroll.set_deferred("scroll_vertical", 0)
+	fit()
 	dialog.hide()
 	accumulator = 0.0
 
@@ -167,16 +186,10 @@ func show_map() -> void:
 	header("The Last Procession", close)
 	var cleared := int(progress.data.completed_levels)
 	layout.add_child(UI.paragraph("%d / %d levels completed" % [cleared, Catalog.COUNT], 13))
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.follow_focus = true
-	UI.keyboard_scroll(scroll, "Campaign world map")
-	layout.add_child(scroll)
 	var world := WorldMap.new()
 	world.progress = progress
 	world.level_picked.connect(show_briefing)
-	scroll.add_child(world)
+	layout.add_child(world)
 	if cleared < Catalog.COUNT and not progress.blocked:
 		var next := UI.gold_button("Play level %d" % (cleared + 1), start_mission.bind(cleared), 48)
 		next.name = "ContinueCampaign"
@@ -241,7 +254,6 @@ func play_run_sound(cue: String, sound_position: Vector2) -> void:
 func show_battle() -> void:
 	clear_page("battle")
 	paused = false
-	speed = 1.0
 	selected = -1
 	var title_row := header("%02d · %s" % [run.mission.index+1,run.mission.name], show_map)
 	pause_button = UI.playback_button(func():
@@ -293,7 +305,7 @@ func add_board(interactive: bool) -> void:
 	board.run = run
 	board.interactive = interactive
 	board.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	board.custom_minimum_size.y = 140
+	board.custom_minimum_size.y = 140 if interactive else 240
 	board.socket_picked.connect(show_socket)
 	board.empty_picked.connect(func():
 		selected = -1
@@ -533,4 +545,3 @@ func close() -> void:
 		save_progress()
 	closed.emit()
 	queue_free()
-
