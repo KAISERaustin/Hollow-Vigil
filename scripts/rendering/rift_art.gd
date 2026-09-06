@@ -48,8 +48,8 @@ static func moon(canvas: CanvasItem, at: Vector2, zoom: float) -> void:
 	Art.shape(canvas, [Vector2(3, -7), Vector2(-3, -6), Vector2(-7, -1), Vector2(-5, 5), Vector2(1, 7), Vector2(6, 3), Vector2(0, 3), Vector2(-2, -1), Vector2(-1, -4)], at, Vector2.ONE * zoom, Art.LILAC, 1.5 * zoom)
 
 static func enemy_mark(canvas: CanvasItem, style: String, at: Vector2, zoom: float) -> void:
-	# Offset to the side keeps the health bar and enemy silhouette unobscured.
-	var badge := at + Vector2(18, -12) * zoom
+	# Center overhead, leaving room below for the health bar and silhouette.
+	var badge := at + Vector2(0, -40) * zoom
 	match style:
 		"ashen_forge": shield(canvas, badge, zoom * 0.7)
 		"drowned_crypt": current(canvas, badge, zoom * 0.7)
