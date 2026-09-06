@@ -5,7 +5,9 @@ extends RefCounted
 static func branch_hit(combat: VigilCombat, shot: Dictionary, enemy: Dictionary) -> void:
 	if not combat.data.towers.has(shot.tower_id):
 		return
-	combat.Relics.root_target(combat, shot, enemy)
+	# Each splash victim resolves its own conditions without changing the launch.
+	shot = shot.duplicate()
+	combat.Relics.impact(combat, shot, enemy)
 	var pierce: bool = shot.get("relic_pierce", false)
 	var branch: String = shot.get("branch", "")
 	if branch == "":

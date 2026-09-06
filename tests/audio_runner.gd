@@ -209,7 +209,9 @@ func run() -> void:
 		boss.toll = .01
 		boss.hp = boss.max_hp * .25
 		g.combat.Bosses.advance(g.combat, .05)
-		if kind in ["warden", "cindermaw", "bell", "prior"]:
+		if kind == "warden":
+			check(not events.has("boss_warden_ability"), "Warden never plays automatic shield refill audio")
+		if kind in ["cindermaw", "bell", "prior"]:
 			check(events.has("boss_" + kind + "_ability"), "Boss special ability: " + kind)
 		boss.shield = 0.0
 		boss.wards = 0

@@ -13,23 +13,40 @@ static func launch_shot(combat: VigilCombat, tower: Dictionary, origin: Vector2,
 	combat.add_effect(fx)
 	var shot := {"fx": fx, "remaining": fx.flight, "target_id": target.id,
 		"tower_id": tower.id, "branch": tower.get("branch", ""), "damage": stats.damage, "radius": stats.splash}
-	shot.relic_root = primary and stats.get("relic_root", false)
 	shot.relic_pierce = primary and stats.get("relic_pierce", false)
-	if shot.relic_pierce:
-		shot.damage *= Balance.tuned_value("gear", "prior", "damage_multiplier", combat.tuning)
-		shot.relic_pierce = Balance.tuned_value("gear", "prior", "defense_bypass", combat.tuning) > 0.0
-		fx.color = combat.Relics.DEFINITIONS.prior.color
-	if primary and stats.get("relic_echo", false):
+	if primary:
+		shot.base_damage = stats.damage
+		shot.damage *= stats.get("relic_damage_multiplier", 1.0)
+		shot.radius = maxf(shot.radius, stats.get("relic_radius", 0.0))
+		shot.gear_effects = stats.get("gear_effects", []).duplicate(true)
+		shot.gear_epoch = stats.get("gear_epoch", -1)
+		if shot.damage != stats.damage or shot.relic_pierce or not shot.gear_effects.is_empty():
+			fx.color = stats.get("gear_color", stats.color)
+	for echo in stats.get("gear_echoes", []) if primary else []:
 		# A single extra primary projectile, with no recursive branch/relic procs.
 		var echo_stats := stats.duplicate()
-		echo_stats.color = combat.Relics.DEFINITIONS.bell.color
+		echo_stats.color = stats.get("gear_color", stats.color)
 		var echo_fx := ShotFactory.shot(tower.kind, origin, target.pos, echo_stats, target.id)
 		echo_fx.tower_id = tower.id
-		echo_fx.flight += 0.18
-		echo_fx.life += 0.18
+		echo_fx.flight += echo.delay
+		echo_fx.life += echo.delay
 		echo_fx.max_life = echo_fx.life
 		combat.add_effect(echo_fx)
-		combat.pending_shots.append({"fx": echo_fx, "remaining": echo_fx.flight, "target_id": target.id, "tower_id": tower.id, "damage": stats.damage * Balance.tuned_value("gear", "bell", "echo_multiplier", combat.tuning), "radius": stats.splash})
+		combat.pending_shots.append({"fx": echo_fx, "remaining": echo_fx.flight, "target_id": target.id, "tower_id": tower.id, "damage": stats.damage * echo.multiplier, "radius": stats.splash})
+	for fork in stats.get("gear_forks", []) if primary else []:
+		var remaining: int = int(fork.fork_count)
+		for enemy in combat.nearby_enemies(target.pos, fork.fork_radius):
+			if remaining <= 0:
+				break
+			if enemy.dead or enemy.id == target.id or target.pos.distance_to(enemy.pos) > fork.fork_radius:
+				continue
+			var fork_stats := stats.duplicate()
+			fork_stats.color = stats.get("gear_color", stats.color)
+			var fork_fx := ShotFactory.shot(tower.kind, origin, enemy.pos, fork_stats, enemy.id)
+			fork_fx.tower_id = tower.id
+			combat.add_effect(fork_fx)
+			combat.pending_shots.append({"fx": fork_fx, "remaining": fork_fx.flight, "target_id": enemy.id, "tower_id": tower.id, "damage": stats.damage * fork.fork_multiplier, "radius": 0.0})
+			remaining -= 1
 	if fx.flight <= 0.0:
 		combat.resolve_shot(shot, target)
 	else:

@@ -192,7 +192,10 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 	if not inventory is Dictionary:
 		return false
 	for relic_id in inventory:
-		if not valid_coordinate(relic_id) or not inventory[relic_id] is String or not Relics.DEFINITIONS.has(inventory[relic_id]):
+		if not relic_id is String or not inventory[relic_id] is String or not Relics.DEFINITIONS.has(inventory[relic_id]):
+			return false
+		var parts: PackedStringArray = relic_id.split("#")
+		if parts.size() > 2 or not valid_coordinate(parts[0]) or (parts.size() == 2 and parts[1] != inventory[relic_id]):
 			return false
 	var equipped := {}
 	var occupied := {}
@@ -248,7 +251,7 @@ func number(value: Variant, minimum: float = 0.0, maximum: float = Balance.MAX_M
 		return false
 	return is_finite(value) and value >= minimum and value <= maximum and (not integer or value == floor(value))
 
-func valid_coordinate(value: Variant) -> bool:
+static func valid_coordinate(value: Variant) -> bool:
 	if not value is String:
 		return false
 	var parts: PackedStringArray = value.split(",")

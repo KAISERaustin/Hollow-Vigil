@@ -32,6 +32,7 @@ var enemy_pool: Array[Dictionary] = []
 var burning_ground: Array[Dictionary] = []
 var curses: Dictionary = {}
 var relic_progress: Dictionary = {}
+var relic_epochs: Dictionary = {}
 var relic_drops: Array[String] = []
 # Runtime IDs avoid retaining pooled enemy dictionaries or saving stale locks.
 var target_locks: Dictionary = {}
@@ -77,6 +78,7 @@ func rebuild_routes() -> void:
 func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = "", fire: bool = false, pierce: bool = false) -> bool:
 	if enemy.dead or not is_finite(damage) or damage <= 0.0 or not data.towers.has(tower_id):
 		return false
+	damage *= 1.0 + Relics.strength(enemy, "expose", simulation_time) / 100.0
 	if enemy.get("boss", false):
 		var protection: float = enemy.get("shield", 0.0) + enemy.get("wards", 0)
 		damage = Bosses.damage(enemy, damage, branch, fire, tuning, pierce)
@@ -94,9 +96,11 @@ func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = ""
 		reward = 0.0
 	if is_boss:
 		Bosses.record(self, enemy.source).boss = {"status": "defeated", "kind": enemy.kind}
-		if Relics.award(data, enemy.source, enemy.kind):
-			relic_drops.append(enemy.kind)
-			add_effect({"kind": "relic_drop", "relic_kind": enemy.kind, "pos": enemy.pos, "life": 2.0, "max_life": 2.0, "color": Relics.DEFINITIONS[enemy.kind].color})
+		var drops := Relics.award_set(data, enemy.source, enemy.kind)
+		for index in range(drops.size()):
+			var gear_kind: String = drops[index]
+			relic_drops.append(gear_kind)
+			add_effect({"kind": "relic_drop", "relic_kind": gear_kind, "pos": enemy.pos + Vector2((index - 1) * 28, 0), "life": 2.0, "max_life": 2.0, "color": Relics.DEFINITIONS[gear_kind].color})
 	economy.credit(tower_id, reward)
 	data.kills += 1.0
 	# One-time encounters must not inflate recurring offline income.
@@ -184,6 +188,7 @@ func tick(delta: float) -> void:
 			spawn(r.id)
 			r.timer += economy.spawn_period(r.id) * rng.randf_range(0.9, 1.1)
 	Bosses.advance(self, delta)
+	Relics.advance(self, delta)
 	for e in enemies:
 		if e.dead:
 			continue
@@ -193,9 +198,11 @@ func tick(delta: float) -> void:
 				move *= 1.0 + Balance.rift_strength("drowned_crypt", tuning) / 100.0
 			"bloodmoon_sanctuary":
 				e.hp = minf(e.max_hp, e.hp + e.max_hp * Balance.rift_strength("bloodmoon_sanctuary", tuning) / 100.0 * delta)
+		var slow := Relics.strength(e, "slow", simulation_time)
 		if e.get("slow_until", 0.0) > simulation_time:
-			move *= 1.0 - e.get("slow_percent", 25.0) / 100.0
-		if e.get("stun_until", 0.0) > simulation_time or e.get("root_until", 0.0) > simulation_time:
+			slow = maxf(slow, e.get("slow_percent", 25.0))
+		move *= 1.0 - slow / 100.0
+		if e.get("stun_until", 0.0) > simulation_time or e.get("root_until", 0.0) > simulation_time or Relics.strength(e, "stun", simulation_time) > 0.0:
 			move = 0.0
 		var p: Array = e.path
 		while move > 0.0 and not e.dead:
@@ -376,4 +383,4 @@ func advance_arrow(shot: Dictionary, delta: float, flying: Array[Dictionary]) ->
 	Projectiles.advance_arrow(self, shot, delta, flying)
 
 func clear_relic_progress(id: String) -> void:
-	relic_progress.erase(id)
+	Relics.clear(self, id)

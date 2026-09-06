@@ -125,10 +125,16 @@ static func run(suite: SceneTree) -> void:
 	e.regen = 0.01
 	game.combat.burning_ground.append({"tower_id":tid,"pos":e.pos,"radius":60.0,"until":10.0,"damage":10.0})
 	Bosses.advance(game.combat,0.1)
-	suite.check(e.shield == 400,"Burning ground blocks shield regrowth")
+	suite.check(e.shield == 400,"Warden shield stays damaged inside burning ground")
 	game.combat.burning_ground.clear()
-	Bosses.advance(game.combat,0.1)
-	suite.check(e.shield == 600,"Shield regrows outside fire")
+	Bosses.advance(game.combat,30.0)
+	suite.check(e.shield == 400,"Warden shield stays damaged across former refill periods")
+	game.combat.hit(e,200,tid,"cinderfield",true)
+	e.regen = 0.0
+	Bosses.advance(game.combat,30.0)
+	suite.check(e.shield == 0 and e.hp == e.max_hp,"Broken Warden shield never refills with an expired legacy timer")
+	game.combat.hit(e,100,tid)
+	suite.check(e.hp == e.max_hp - 100,"Damage reaches health after the shield is broken")
 	game = fixture("cindermaw")
 	e = game.combat.enemies[0]
 	tid = game.economy.build("rapid","0,0",0)

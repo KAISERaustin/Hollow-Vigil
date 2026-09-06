@@ -188,10 +188,6 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 				combat.sound_requested.emit("boss_cindermaw_ability", e.pos)
 			e.audio_raging = raging
 		var blocked := false
-		if e.kind == "warden":
-			for patch in combat.burning_ground:
-				if patch.until > combat.simulation_time and combat.data.towers.has(patch.tower_id) and e.pos.distance_to(patch.pos) <= patch.radius:
-					blocked = true
 		if e.kind == "prior":
 			for tid in combat.curses:
 				var curse: Dictionary = combat.curses[tid]
@@ -199,7 +195,7 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 					var t: Dictionary = combat.data.towers[tid]
 					if t.get("rebuild_remaining", 0.0) <= 0.0 and VigilWorld.pad_position(t.region, t.pad).distance_to(e.pos) <= Balance.tower_stats(t, combat.tuning).range:
 						blocked = true
-		if e.kind in ["warden", "prior"]:
+		if e.kind == "prior":
 			var rate: float = 1.0 - stats.regrowth_suppression / 100.0 if blocked else 1.0
 			e.regen = maxf(0.0, e.regen - delta * rate)
 			if e.regen <= 0.0 and rate > 0.0:

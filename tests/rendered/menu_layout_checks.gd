@@ -4,7 +4,7 @@ var app: VigilApp
 var failures: Array[String] = []
 
 func _initialize() -> void:
-	preload("res://tests/support/timeout.gd").arm(self, 180)
+	preload("res://tests/support/timeout.gd").arm(self, 300)
 	call_deferred("run")
 
 func settle() -> void:
@@ -22,13 +22,17 @@ func run() -> void:
 	root.add_child(app)
 	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	app.set_process(false)
+	# The catalog sweep needs container-sort frames, not real-time animation.
+	Engine.max_fps = 240
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	app.game.data.balance = 1000000.0
 	app.game.expand("-1,0")
 	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = viewport
 		root.content_scale_size = viewport
 		await settle()
-		# Empty-body expansion sheets must settle after cold opens and taller menus.
+		# Expansion sheets fit their authored body after cold opens and taller menus.
+		var expansion_height := 0.0
 		for previous in ["closed", "settings", "build"]:
 			if previous == "settings":
 				app.panels.show_settings()
@@ -43,7 +47,9 @@ func run() -> void:
 			app.panels.action_button.size.x = 1
 			app.panels.fit_sheet()
 			await settle()
-			check(app.panels.size.y < 170, "expansion too tall after " + previous + " at " + str(viewport) + ": " + str(app.panels.size.y))
+			check(app.panels.size.y < 170 + app.panels.sheet_content.get_combined_minimum_size().y, "expansion has unused space after " + previous + " at " + str(viewport))
+			if expansion_height == 0.0: expansion_height = app.panels.size.y
+			check(is_equal_approx(app.panels.size.y, expansion_height), "previous menu changes expansion height")
 			check(app.field.get_global_rect().encloses(app.panels.get_global_rect()), "expansion outside battlefield")
 			var close := app.panels.find_child("CloseSheet", true, false) as Control
 			check(app.panels.get_global_rect().encloses(close.get_global_rect()), "expansion close clipped")
@@ -72,7 +78,7 @@ func run() -> void:
 				check(app.field.preview_kind == kind and app.panels.action_cost == definition.cost and app.panels.action_button.text.begins_with("Build " + definition.name), "tower selection did not update build action")
 		app.panels.show_expansion("1,0")
 		await settle()
-		check(app.panels.size.y < 170, "expansion contains unused space")
+		check(is_equal_approx(app.panels.size.y, expansion_height), "expansion retains space from a previous menu")
 		app.panels.show_core()
 		await settle()
 		check(app.panels.sheet_content.get_child_count() > 0, "core opens an empty panel")

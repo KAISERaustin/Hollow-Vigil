@@ -26,7 +26,7 @@ const MISSIONS := [
 	{"name": "The Old Watch", "brief": "Armored revenants lead the procession. Use an Obelisk for concentrated damage.", "gold": 400, "pads": [0,1,2,3,5,6,9,10,13,14],
 	 "roads": [[[270,-600],[-150,-600],[-150,-450],[150,-450],[150,-150],[0,-150],[0,80]]],
 	 "waves": [[["basic",16,0,0,0.9]], [["heavy",3,0,0,4],["basic",12,0,3,0.8]], [["fast",16,0,0,1]], [["heavy",5,0,0,3.5],["lantern",6,0,4,2]]]},
-	{"name": "Rootbound Gate", "brief": "Break the Warden before it reaches the flame. Cinderfield burns its regrowing shield.", "gold": 1000, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
+	{"name": "Rootbound Gate", "brief": "Break the Warden before it reaches the flame. Cinderfield burns through its root shield.", "gold": 1000, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
 	 "roads": [[[-270,-600],[150,-600],[150,-450],[-150,-450],[-150,-150],[150,-150],[150,0],[0,0],[0,80]]],
 	 "waves": [[["basic",20,0,0,0.7]], [["heavy",5,0,0,3],["fast",12,0,5,1]], [["lantern",12,0,0,1.8]], [["warden",1,0,0,1],["basic",20,0,6,0.9]]]},
 	{"name": "Cinder Causeway", "brief": "Forged enemies have 25% more health. Upgrade a strong firing position early.", "gold": 450, "pads": [0,1,2,3,5,6,9,10,13,14],

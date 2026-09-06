@@ -186,7 +186,7 @@ func show_category(section: String) -> void:
 	detail.text = "Health changes keep each enemy's remaining health percentage." if category == "enemies" else "Upgrades scale from these values. Lower attack intervals fire faster. Blast radius 0 hits one target. Build cost also scales upgrades and refunds."
 	if category == "gear":
 		selector.accessibility_name = "Choose gear type"
-		hint.text = "Live changes · Auto-saved"
+		hint.text = "%d gear types · 3 per boss · Auto-saved" % Balance.GEAR.size()
 	if category == "bosses":
 		selector.accessibility_name = "Choose boss type"
 		hint.text = "Live changes · Auto-saved"
@@ -223,7 +223,7 @@ func show_fields() -> void:
 	if category == "bosses":
 		detail.text = "Counter: " + Balance.BOSSES[selected_kind].weakness + ". Values override these defaults. Health, shields, wards and timers preserve their remaining proportion. Rewards apply on defeat."
 	if category == "gear":
-		detail.text = "Changes apply to equipped gear on its next attack. Active root cooldowns keep their remaining proportion. Shots already in flight keep their launch damage."
+		detail.text = "Changes apply on the next attack. Launched shots and active effects keep their values. Root cooldowns retain their remaining proportion; stack limits update immediately. Removing or transferring gear clears its active effects."
 	if category == "rifts":
 		detail.text = Balance.rift_description(selected_kind, game.tuning) + " Set to 0 to disable. Health adjustments preserve remaining health percentage."
 	inputs.clear()
@@ -246,10 +246,13 @@ func refresh_identity() -> void:
 			if selected_branch != "":
 				identity_title.text = Balance.BRANCHES[selected_kind][selected_branch].name + " · Tier 4"
 		"rifts": description.text = Balance.rift_description(selected_kind, game.tuning)
-		"gear": description.text = preload("res://scripts/gameplay/progression/relics.gd").description(selected_kind, game.tuning)
+		"gear":
+			const Relics = preload("res://scripts/gameplay/progression/relics.gd")
+			var boss_kind: String = Relics.DEFINITIONS[selected_kind].boss
+			description.text = "From " + Balance.BOSSES[boss_kind].name + " · One of three victory drops\n\n" + Relics.description(selected_kind, game.tuning)
 		"bosses":
 			var summaries := {
-				"warden": "A forest guardian protected by a regenerating root shield. Fire can burn away its protection and suppress regrowth.",
+				"warden": "A forest guardian protected by a root shield that does not regenerate. Fire deals extra damage to its protection.",
 				"cindermaw": "An armored fire spirit in a broken vessel. It hastens when wounded; frost can quench its rage.",
 				"bell": "A haunted bell that periodically summons escorts. Delaying its tolls keeps the procession under control.",
 				"prior": "A spectral prior protected by regenerating wards. Curses can bypass its defenses and suppress regrowth."

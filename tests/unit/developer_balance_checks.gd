@@ -154,12 +154,12 @@ static func test_boss_tuning(suite: SceneTree) -> void:
 	game.set_balance_stat("bosses", "warden", "regrowth_suppression", 50.0)
 	e.regen = 8.0
 	bosses.advance(game.combat, 2.0)
-	suite.check(e.regen == 7.0, "Partial Cinderfield suppression slows defense regrowth")
+	suite.check(e.shield == 200.0, "Legacy regrowth tuning cannot restore Warden shield")
 	game.set_balance_stat("bosses", "warden", "regrowth_suppression", 100.0)
 	e.regen = 0.0
 	e.shield = 0.0
 	bosses.advance(game.combat, 0.05)
-	suite.check(e.shield == 0.0, "Full suppression blocks even a ready regrowth timer")
+	suite.check(e.shield == 0.0, "Expired legacy Warden timer cannot restore a broken shield")
 	game = fixtures.fixture("cindermaw")
 	e = game.combat.enemies[0]
 	game.set_balance_stat("bosses", "cindermaw", "frost_multiplier", 3.0)
