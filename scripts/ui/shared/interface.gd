@@ -177,10 +177,14 @@ static func theme() -> Theme:
 
 static func box(bg: Color, border: Color = BORDER, radius: int = RADIUS) -> StyleBox:
 	var style: StyleBox = StyleBoxFlat.new()
-	# Paper and darker tan surfaces share one reusable textured style.
-	# Gold accents and other semantic colors retain their own fills.
-	if bg.a > 0.0 and bg.r >= bg.g and bg.g > bg.b and bg.b >= 0.55:
+	# Semantic accents and tan surfaces share the same paper renderer.
+	var gold := Color(bg, 1.0).is_equal_approx(GOLD)
+	var danger := Color(bg, 1.0).is_equal_approx(DANGER)
+	if bg.a > 0.0 and (gold or danger or (bg.r >= bg.g and bg.g > bg.b and bg.b >= 0.55)):
 		style = preload("res://scripts/ui/shared/parchment_style.gd").new()
+		if gold or danger:
+			style.paper = style.YELLOW_PAPER if gold else style.RED_PAPER
+			style.base_color = GOLD if gold else DANGER
 	style.bg_color = bg
 	style.border_color = border
 	style.set_border_width_all(OUTLINE)

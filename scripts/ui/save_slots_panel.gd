@@ -318,7 +318,7 @@ func show_archive(slot: int) -> void:
 	var popup := preload("res://scripts/ui/shared/confirmation_popup.gd").new()
 	popup.name = "ArchiveConfirmation"
 	add_child(popup)
-	popup.configure("Archive game %d?" % (slot + 1), "Free this slot for a new game. Its files stay in a local archive, hidden from Saved games. Any cloud backup remains available.\n\nSave a build first if you want an easy way to start this world again.", "Archive and free slot", func():
+	popup.configure("Archive game %d?" % (slot + 1), "Free this slot for a new game. Its files stay in a local archive, hidden from Saved games. Any cloud backup remains available.", "Archive and free slot", func():
 		if not slots.archive(slot):
 			popup.show_error(slots.error)
 			return

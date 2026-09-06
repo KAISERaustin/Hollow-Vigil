@@ -471,10 +471,8 @@ func draw_tower(t: Dictionary) -> void:
 		centered(label, Vector2(rect.get_center().x, rect.position.y + 16), 12, Color.BLACK)
 		draw_set_transform(Vector2.ZERO)
 
-static func pill(bg: Color, border: Color, radius: int) -> StyleBoxFlat:
-	var s := StyleBoxFlat.new()
-	s.bg_color = bg
-	s.border_color = border
+static func pill(bg: Color, border: Color, radius: int) -> StyleBox:
+	var s := VigilInterface.box(bg, border, radius)
 	s.set_border_width_all(3)
 	s.set_corner_radius_all(radius)
 	return s

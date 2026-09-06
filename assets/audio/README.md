@@ -13,7 +13,7 @@ cooldown. Godot imports the committed mono 22,050 Hz / 16-bit WAV files.
 | --- | --- |
 | Menus | Dry click, rising open, falling close, selection and slider ticks; mouse, touch and keyboard use the same button signals. |
 | Transactions | Separate build, upgrade, sale, relocation, reconstruction-complete, territory purchase, rift traffic, enemy unlock, automation, gold collection, return earnings, reset and notice cues. Automatic collection stays silent. |
-| Ashneedle | Short wooden dart snap and impact. |
+| Ashneedle | Muted 260 Hz bowstring and wooden limb release with a short filtered arrow rush; soft 170 Hz arrow impact. Reusable bow and arrow-impact textures keep rapid fire dry without a high whistle. |
 | Pyre | Low filtered flame launch and burst. |
 | Obelisk | Resonant orb launch and impact. |
 | Stormspire | Brief modulated electrical crackle, once per volley rather than once per target. |

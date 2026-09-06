@@ -2,6 +2,11 @@ extends StyleBox
 ## Reusable textured fill; retain StyleBoxFlat's layout and border API.
 
 const PAPER = preload("res://assets/ui/welcome-parchment.png")
+const YELLOW_PAPER = preload("res://assets/ui/yellow-parchment.png")
+const RED_PAPER = preload("res://assets/ui/red-parchment.png")
+
+var paper: Texture2D = PAPER
+var base_color := VigilTerrainArt.PAPER
 
 var bg_color := Color.WHITE
 var border_color := Color.BLACK
@@ -38,7 +43,7 @@ func _draw(canvas_item: RID, rect: Rect2) -> void:
 		var corners := [rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]
 		var directions := [Vector2.ONE, Vector2(-1, 1), -Vector2.ONE, Vector2(1, -1)]
 		# Cover instead of stretching: paper grain keeps the same proportions.
-		var texture_size := Vector2(PAPER.get_size())
+		var texture_size := Vector2(paper.get_size())
 		var scale_factor := maxf(rect.size.x / texture_size.x, rect.size.y / texture_size.y)
 		var covered_size := texture_size * scale_factor
 		for corner in range(4):
@@ -51,9 +56,9 @@ func _draw(canvas_item: RID, rect: Rect2) -> void:
 				uvs.append((point - rect.position + (covered_size - rect.size) * 0.5) / covered_size)
 		var tint := Color.WHITE
 		# Preserve darker tan roles while using the reference paper for panels.
-		var base := VigilTerrainArt.PAPER
+		var base := base_color
 		tint = Color(bg_color.r / base.r, bg_color.g / base.g, bg_color.b / base.b, bg_color.a)
-		RenderingServer.canvas_item_add_polygon(canvas_item, points, PackedColorArray([tint]), uvs, PAPER.get_rid())
+		RenderingServer.canvas_item_add_polygon(canvas_item, points, PackedColorArray([tint]), uvs, paper.get_rid())
 	var rim := StyleBoxFlat.new()
 	rim.draw_center = false
 	rim.border_color = border_color

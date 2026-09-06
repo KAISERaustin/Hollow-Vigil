@@ -49,6 +49,15 @@ def cue(name, category, freq, duration, texture='chime', sweep=0, cooldown=0.12)
             v = math.sin(phase + 1.1 * math.sin(phase * 0.25)) + 0.3 * math.sin(phase * 1.5) + low * 0.25
         elif texture == 'air':
             v = low * 2.5 + 0.16 * math.sin(phase)
+        elif texture == 'bow':
+            # Damped string and wooden limb release under a brief arrow air rush.
+            # Noise leads the sound; no sustained high harmonic or whistle.
+            string = (math.sin(phase) + 0.18 * math.sin(phase * 2.03)) * math.exp(-t * 48)
+            limb = 0.32 * math.sin(phase * 0.57) * math.exp(-t * 65)
+            rush = low * 4.5 * math.exp(-t * 15)
+            v = 0.42 * string + limb + rush
+        elif texture == 'arrow_impact':
+            v = low * 2.8 * math.exp(-t * 28) + 0.45 * math.sin(phase) * math.exp(-t * 55)
         else:
             v = math.sin(phase) + 0.34 * math.sin(phase * 2.756) * math.exp(-t * 8) + 0.15 * math.sin(phase * 4.07)
         samples.append(v * env)
@@ -69,17 +78,19 @@ for name, f, d, tex, sweep in [
     cue('menu_' + name, 'menu', f, d, tex, sweep)
 
 weapons = {
-    'rapid': (1250, .09, 'wood', -.65), 'splash': (140, .32, 'fire', -.5),
+    'rapid': (260, .16, 'bow', -.18), 'splash': (140, .32, 'fire', -.5),
     'heavy': (180, .38, 'orb', -.35), 'electric': (760, .12, 'arc', -.6),
     'frostneedle': (1800, .15, 'chime', -.2), 'thorn_volley': (920, .19, 'wood', -.6),
     'cinderfield': (110, .44, 'fire', -.4), 'rupture_pyre': (78, .42, 'fire', -.7),
     'grave_echo': (290, .44, 'orb', .4), 'doomstone': (85, .48, 'orb', -.3),
     'tempest_web': (1100, .22, 'arc', -.4), 'thunderseal': (530, .18, 'arc', .7),
 }
+impact_overrides = {'rapid': (170, .10, 'arrow_impact', -.12)}
 for name, (f, d, tex, sweep) in weapons.items():
     cue('shot_' + name, 'towers', f, d, tex, sweep, .11)
     if name not in ('electric', 'tempest_web', 'thunderseal'):
-        cue('impact_' + name, 'towers', f * .63, min(.35, d * 1.3), tex, -sweep, .16)
+        impact = impact_overrides.get(name, (f * .63, min(.35, d * 1.3), tex, -sweep))
+        cue('impact_' + name, 'towers', *impact, cooldown=.16)
     if name not in ('rapid', 'splash', 'heavy', 'electric'):
         cue('upgrade_' + name, 'menu', f * 1.2, .55, tex, .8)
 for name, f, d, tex in [('seal', 120, .45, 'arc'), ('fragments', 980, .25, 'chime'), ('ignite', 95, .5, 'fire')]:
