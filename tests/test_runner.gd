@@ -75,6 +75,7 @@ func run() -> void:
 	preload("res://tests/unit/boss_checks.gd").run(self)
 	preload("res://tests/unit/biome_cluster_boss_checks.gd").run(self)
 	preload("res://tests/unit/relic_checks.gd").run(self)
+	preload("res://tests/unit/gear_catalog_checks.gd").run(self)
 	preload("res://tests/unit/persistence_checks.gd").run(self)
 	preload("res://tests/unit/review_regressions.gd").run(self)
 	preload("res://tests/unit/input_checks.gd").run(self)

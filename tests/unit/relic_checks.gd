@@ -4,13 +4,16 @@ const Relics = preload("res://scripts/gameplay/progression/relics.gd")
 const BossChecks = preload("res://tests/unit/boss_checks.gd")
 
 static func run(suite: SceneTree) -> void:
-	for kind in Relics.DEFINITIONS:
+	for kind in Balance.BOSSES:
 		var game := BossChecks.fixture(kind)
 		var boss: Dictionary = game.combat.enemies[0]
 		var id := game.economy.build("heavy", "0,0", 0)
 		game.combat.hit(boss, 1.0e6, id, "", false, true)
 		game.combat.hit(boss, 1.0e6, id, "", false, true)
-		suite.check(game.data.relics == {boss.source: kind} and game.combat.relic_drops.size() == 1, "Boss grants exactly one identity-bound relic: " + kind)
+		var expected := {}
+		for gear_kind in Relics.BOSS_DROPS[kind]:
+			expected[Relics.drop_id(boss.source, gear_kind, kind)] = gear_kind
+		suite.check(game.data.relics == expected and game.combat.relic_drops.size() == 3, "Boss grants exactly three identity-bound relics once: " + kind)
 		suite.check(game.economy.equip_relic(id, boss.source, ""), "Every boss drop can be equipped")
 		var second := game.economy.build("rapid", "0,0", 1)
 		game.data.regions[boss.source].history[id] = 100.0
@@ -42,13 +45,13 @@ static func run(suite: SceneTree) -> void:
 		game.data.erase("relics")
 		game.data.towers[second].erase("relic")
 		suite.check(game.save(1002) and restored.load_save(1003), "Pre-equipment save migrates")
-		suite.check(restored.data.relics == {boss.source: kind}, "Old victory receives its missing relic")
+		suite.check(restored.data.relics == expected, "Old victory receives its missing three-piece set")
 		var escaped := game.data.duplicate(true)
 		escaped.regions[boss.source].boss.status = "escaped"
 		Relics.migrate(escaped)
 		suite.check(escaped.relics.is_empty(), "Legacy escapes do not receive equipment")
 		Relics.migrate(restored.data)
-		suite.check(restored.data.relics.size() == 1, "Migration cannot duplicate drops")
+		suite.check(restored.data.relics.size() == 3, "Migration cannot duplicate drops")
 		suite.clean_test_save(game.save_path)
 	combat_checks(suite)
 	var movement_game := suite.legacy_core_fixture(879) as VigilState

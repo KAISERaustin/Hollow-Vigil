@@ -49,7 +49,7 @@ graph TD
     Content --> Targeting
 ```
 
-The four relics, eighteen ordinary enemies, six terrain/portal types, four projectile profiles, eight abilities, every tower tier, and every campaign wave have individual entries. IDs are namespaced: `tower/heavy` is Obelisk; `enemy/heavy` is Rootbound Revenant. Bosses inherit Enemy in both the content tree and the GDScript class hierarchy.
+The eighteen gear types, eighteen ordinary enemies, six terrain/portal types, four projectile profiles, eight abilities, every tower tier, and every campaign wave have individual entries. Gear composes registered `attribute/` nodes. IDs are namespaced: `tower/heavy` is Obelisk; `enemy/heavy` is Rootbound Revenant. Bosses inherit Enemy in both the content tree and the GDScript class hierarchy.
 
 ## Using a node
 
@@ -76,7 +76,8 @@ A tower tier node's `stats()` resolves its own tier through the base tower exact
 | Tower | Free plus socket on owned land; relic slot; target modes; initial state; tier scaling | Economy authorizes spending, construction, relocation, upgrades and equipment |
 | Enemy | Identity, health, movement defaults, escape damage, clean pooled records | Combat owns live enemies, movement and payouts |
 | Boss → Enemy | Encounter state; overridable movement speed and damage absorption | Encounter service owns discovery, routing, regeneration and escort timers |
-| Gear | Equipment compatibility and attack progress; overridable attack effect | Relic service owns drops, ownership and effect timing |
+| Gear | Equipment compatibility and independent progress for attached attributes | Relic service owns drops, ownership, effect timing and removal |
+| Attribute | Immutable, composable behavior with per-recipient state supplied by its owner | Owning gameplay service executes hooks and cleans removed effects |
 | Projectile | Muzzle, flight bounds, impact timing and fresh effect records | Combat owns flight and impact; rendering draws effects |
 | Ability | Specialization parameters and resolution against launched tower stats | Ability/projectile services execute effects on the simulation clock |
 | Region | Saved terrain identity and fresh history, traffic and unlock state | World service owns geography and routes |
@@ -126,7 +127,7 @@ The node/component architecture is the default for every future game addition, n
 
 - **Enemy:** add stats and assign exactly one biome family in `catalogs/actors.gd` (`FAMILIES`). Every shipped portal has three distinct inhabitants. Inherited `portal_style` identifies the family; `PRESENTATION` composes the drawing renderer and reusable death cue. Optional gameplay capabilities still require attachable component objects. Keep authored campaign and numeric escort IDs stable in `CAMPAIGN_KINDS` and `ESCORT_KINDS`.
 - **Boss:** add stats in `catalogs/actors.gd`. For special defenses/speed, extend `nodes/boss_node.gd` and add the script to `BOSS_TYPES`. Warden, Reliquary and Prior demonstrate overrides; Bell uses shared defense behavior. Encounter summons and regeneration remain in the encounter service. Add a gear entry if a relic should drop.
-- **Gear:** add stats/presentation in `catalogs/gear.gd`; extend `nodes/gear_node.gd`, override `_apply_attack()` and register the script in `GEAR_TYPES`. Shared code handles counters, targets and timestamps. Implement non-attack effects in their owning service.
+- **Gear:** add stats/presentation and boss drop assignments in `catalogs/gear.gd`, then attach reusable attribute nodes from `catalogs/attributes.gd`. Extend `AttributeNode` for a new behavior. `with_component()` and `without_component()` derive definitions with explicit attachment, replacement and removal; parents remain unchanged. `GearNode` gives each slot independent counters and state. Relic/equipment services execute gameplay and clean effects when removed. See [GEAR.md](GEAR.md) for all eighteen pieces, tuning, save compatibility and extension rules.
 - **Level:** add authored missions in `catalogs/levels.gd`. Update campaign count/progression and chapter assignment when expanding the campaign. Layout, allowed sockets and stable wave scheduling are reused.
 - **Terrain/portal:** configure `PORTALS` in `catalogs/world.gd` and the matching actor family. Portal nodes expose `unlock_costs()`, `available_kinds(unlocks)`, `spawn_mix(unlocks)` and `choose_kind(unlocks, roll)`; the menu, economy and combat use these same rules. Every unlocked non-castle territory has an enemy portal; the core keeps its receiving portal and castles keep one dungeon portal per cluster. Enemies without a price are active immediately. Purchased IDs, timers and traffic remain per region. Castle portals offer Crypt Sentinel (550) and Sepulcher Colossus (2,000); all three Orchard inhabitants remain immediately available. See `docs/PORTAL_ROSTERS.md` for all rosters and save compatibility.
 - **New family:** extend `nodes/content_node.gd`; register the parent before its subtypes. `register_node()` rejects duplicate identities, duplicate category keys and unregistered parents. Connect the family to its owning service and persistence contract before making it playable.

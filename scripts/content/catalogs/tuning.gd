@@ -30,7 +30,7 @@ const TUNING_FIELDS := {
 		"stack_timeout": {"label": "Stack timeout", "suffix": " s", "min": 0.1, "max": 120.0, "step": 0.1},
 		"attack_count": {"label": "Attacks per activation", "suffix": "", "min": 1.0, "max": 100.0, "step": 1.0, "integer": true},
 		"echo_multiplier": {"label": "Echo damage", "suffix": "× hit damage", "min": 0.0, "max": 20.0, "step": 0.1},
-		"damage_multiplier": {"label": "Empowered damage", "suffix": "× hit damage", "min": 0.0, "max": 20.0, "step": 0.1},
+		"damage_multiplier": {"label": "Damage multiplier", "suffix": "× hit damage", "min": 0.0, "max": 20.0, "step": 0.05},
 		"defense_bypass": {"label": "Bypass boss defenses (0 off, 1 on)", "suffix": "", "min": 0.0, "max": 1.0, "step": 1.0, "integer": true}
 	},
 	"bosses": {

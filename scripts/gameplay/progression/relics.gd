@@ -5,9 +5,12 @@ const DEFINITIONS = preload("res://scripts/content/catalogs/gear.gd").PRESENTATI
 const BOSS_DROPS = preload("res://scripts/content/catalogs/gear.gd").BOSS_DROPS
 
 static func description(relic_kind: String, tuning: Dictionary = {}) -> String:
-	var gear := Balance.definition("gear", relic_kind, tuning)
 	if not DEFINITIONS.has(relic_kind):
 		return ""
+	var gear := Balance.definition("gear", relic_kind, tuning)
+	for stat in gear:
+		if gear[stat] is float or gear[stat] is int:
+			gear[stat] = String.num(gear[stat], 2).trim_suffix(".0")
 	return DEFINITIONS[relic_kind].description.format(gear)
 
 static func kind(data: Dictionary, tower: Dictionary) -> String:

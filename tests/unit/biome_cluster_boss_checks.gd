@@ -98,8 +98,11 @@ static func migration(t, game: VigilState, cluster: Dictionary) -> void:
 	if Balance.GEAR.has(boss.kind):
 		restored.data.relics[completed_source] = boss.kind
 	var relics: Dictionary = restored.data.relics.duplicate()
+	const Relics = preload("res://scripts/gameplay/progression/relics.gd")
+	for gear_kind in Relics.BOSS_DROPS[boss.kind]:
+		relics[Relics.drop_id(completed_source, gear_kind, boss.kind)] = gear_kind
 	t.check(restored.save(1000) and restored.load_save(1000), "Completed cluster migration round trips")
-	t.check(active_in_cluster(restored, cluster).is_empty() and restored.data.relics == relics, "A prior victory suppresses the entire cluster and preserves earned relics")
+	t.check(active_in_cluster(restored, cluster).is_empty() and restored.data.relics == relics, "A prior victory suppresses the entire cluster, preserves earned relics and fills its equipment set")
 	for cell in cluster.cells:
 		Bosses.awaken(restored.combat, VigilWorld.key(cell))
 	t.check(active_in_cluster(restored, cluster).is_empty(), "Completed cluster cannot respawn from a different tile")

@@ -49,6 +49,8 @@ Run `Godot --headless --path . --script tests/developer_tiers_runner.gd` for sch
 
 The main headless suite includes `unit/relic_checks.gd` for guaranteed drops, transfers, ownership validation, legacy rewards, save roundtrips, and combat across every tower and specialization. Run Godot with `--path . --script tests/rendered/relic_runner.gd` for equipment mouse/touch interactions and responsive screenshots at three sizes.
 
+Run `--headless --path . --script tests/gear_runner.gd` for the eighteen-piece catalog, complete boss sets, every gear tuning field, reusable attribute composition, damage/status effects, removal, pooling and legacy save migration. These checks also run in the full unit suite. Run `--path . --script tests/rendered/gear_menu_checks.gd` for every Gear editor field at 360×640, 390×844 and 540×960, source-boss descriptions, exact defaults, dropdown sizing, reset and save-on-close. It produces `artifacts/gear-lineup.png` and per-piece editor screenshots.
+
 ## Mobile action rows
 
 Run Godot with `--path . --audio-driver Dummy --script tests/rendered/mobile_scroll_runner.gd` to exercise the real cloud panel with an offline service fixture at 360×640, 390×844, and 540×960. The test enables desktop touch emulation and checks that dragging row text scrolls, tapping text never syncs, the trailing Upload button activates once, busy actions are disabled, and action targets leave at least 60% of each row for scrolling. It also checks sound and developer number rows: label drags preserve values, typed values update the model, plus/minus buttons apply one step, and bounds disable the corresponding button. Screenshots are saved as `artifacts/mobile-cloud-rows-*.png`. This does not replace physical-device testing.

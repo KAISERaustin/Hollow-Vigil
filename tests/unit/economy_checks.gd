@@ -23,6 +23,8 @@ static func test_first_loop(suite: SceneTree) -> void:
 	suite.check(g.expand("-1,0"), "Starting gold purchases the first territory")
 	# This payout fixture measures base enemies independently of seeded biomes.
 	g.data.regions["-1,0"].style = "forest"
+	# A biome boss can now awaken on the purchased tile; it is not a base wave.
+	g.combat.enemies.clear()
 	suite.check(g.economy.build("rapid", "0,0", 0) == "1", "Player buys their first tower after purchasing property")
 	suite.check(g.data.balance == Balance.STARTING_GOLD - Balance.expansion_cost(1) - Balance.TOWERS.rapid.cost, "Property and first tower charge full price")
 	suite.check(g.paths["-1,0"][0] == VigilWorld.center("-1,0"), "First purchased rift spawns at its tile center")

@@ -38,7 +38,7 @@ static func inheritance(t) -> void:
 
 static func content_coverage(t) -> void:
 	var registry := Content.catalog()
-	for family in ["tower", "enemy", "boss", "gear", "projectile", "ability", "region", "portal", "socket", "landmark", "level", "wave", "targeting"]:
+	for family in ["tower", "enemy", "boss", "gear", "attribute", "projectile", "ability", "region", "portal", "socket", "landmark", "level", "wave", "targeting"]:
 		t.check(registry.get_node(family) != null and not registry.descendants(family).is_empty(), "Registered content family: " + family)
 	for category in ["towers", "enemies", "bosses", "gear", "rifts"]:
 		for kind in Balance.definitions(category):

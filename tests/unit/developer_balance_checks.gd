@@ -216,7 +216,7 @@ static func test_gear_tuning(suite: SceneTree) -> void:
 				suite.check(enemy.root_until == 2.0 and enemy.root_immune_until == 4.0, "Equipped root gear uses edited duration and immunity on impact")
 				game.combat.simulation_time = 3.0
 				game.set_balance_stat("gear", kind, "root_period", 2.0)
-				suite.check(game.combat.relic_progress[id].root_ready == 4.0, "Live root cooldown rescales its remaining half")
+				suite.check(game.combat.relic_progress[id].components.root.state.root_ready == 4.0, "Live root cooldown rescales its remaining half")
 				var boss := {"id": -1, "boss": true}
 				Relics.root_target(game.combat, {"relic_root": true, "target_id": -1}, boss)
 				suite.check(boss.root_until == 4.0, "Gear has independent boss root duration")
@@ -229,7 +229,7 @@ static func test_gear_tuning(suite: SceneTree) -> void:
 					attack = Relics.prepare(game.combat, tower, enemy, stats)
 				suite.check(attack.period == stats.period / 2.0, "Equipped Fang uses tuned stack strength and cap")
 				game.set_balance_stat("gear", kind, "stack_limit", 1.0)
-				suite.check(game.combat.relic_progress[id].stacks == 1, "Reducing gear cap clamps existing stacks")
+				suite.check(game.combat.relic_progress[id].components.momentum_speed.state.stacks == 1, "Reducing gear cap clamps existing stacks")
 				game.combat.simulation_time = 1.0
 				suite.check(Relics.prepare(game.combat, tower, enemy, stats).period == stats.period, "Tuned timeout clears existing attack speed stacks")
 			"bell", "prior":
