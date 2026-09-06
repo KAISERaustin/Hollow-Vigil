@@ -12,16 +12,7 @@
   </defs>
   <path fill="#95aa83" d="M0 0H360V435H0Z"/>
   <path d="M0 71C30 65 40 79 70 73S127 64 166 77 260 69 298 78 335 65 360 73M0 427C66 411 119 434 179 419S299 431 360 416" fill="none" stroke="#7f916f" stroke-width="1"/>
-  <g stroke="#000" stroke-width="1.6" stroke-linejoin="round">
-    <path d="m277 347 9-15 54-1 14 18-7 8-57 1Z" fill="#799269" stroke="none"/>
-    <path d="M291 347V306L303 292H325L338 306V347H324V309L314 301 305 309V347Z" fill="#e8ddbd"/>
-    <path d="M299 347V309L313 296 328 309V347H320V313L314 307 308 313V347Z" fill="#a4977d"/>
-    <path d="M306 347V313L314 306 322 313V347Z" fill="#222a30"/>
-    <path d="M289 346H340V353H289Z" fill="#dfd0ab"/>
-    <path d="m295 306 7 1m24-1 9 2m-43 14 7 1m30 6h8m-24-33v7" fill="none"/>
-    <path d="M295 293c-5 12-1 18-7 29m47-20c-8 7-3 24-10 34" fill="none" stroke="#567456" stroke-width="3"/>
-    <path d="m314 320 5 7-5 8-5-8Z" fill="#93c9bc"/>
-  </g>
+
   <g><use xlink:href="#fir" x="318" y="80"/><use xlink:href="#fir" x="342" y="88"/><use xlink:href="#fir" x="31" y="168"/><use xlink:href="#fir" x="16" y="190"/><use xlink:href="#fir" x="49" y="198"/><use xlink:href="#fir" x="342" y="252"/><use xlink:href="#fir" x="350" y="288"/><use xlink:href="#fir" x="282" y="318"/><use xlink:href="#fir" x="332" y="370"/><use xlink:href="#fir" x="25" y="370"/></g>
   <g><use xlink:href="#grass" x="21" y="93"/><use xlink:href="#grass" x="152" y="82"/><use xlink:href="#grass" x="235" y="90"/><use xlink:href="#grass" x="346" y="146"/><use xlink:href="#grass" x="18" y="226"/><use xlink:href="#grass" x="113" y="223"/><use xlink:href="#grass" x="173" y="292"/><use xlink:href="#grass" x="25" y="299"/><use xlink:href="#grass" x="262" y="368"/><use xlink:href="#grass" x="143" y="365"/><use xlink:href="#grass" x="190" y="426"/><use xlink:href="#stone" x="47" y="284"/><use xlink:href="#stone" x="286" y="79"/><use xlink:href="#stone" x="303" y="376"/></g>
 </svg>

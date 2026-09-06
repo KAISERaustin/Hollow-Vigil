@@ -342,7 +342,7 @@ func show_entrance(id: String) -> void:
 		, 58)
 		b.add_theme_font_size_override("font_size", UI.type_size(14))
 		price_button(b, price, unlocked)
-		sheet_content.add_child(UI.action_row(b.text, b, "Attuned" if unlocked else "Attune"))
+		sheet_content.add_child(UI.action_row(b.text, b, "Attuned" if unlocked else "Attune", UI.enemy_preview(kind)))
 
 func show_core() -> void:
 	close_sheet()

@@ -228,7 +228,18 @@ static func back_button(label: String, action: Callable) -> Button:
 static func gold_button(text: String, action: Callable, height: float = 50) -> Button:
 	return accent_button(text, action, GOLD, height)
 
-static func action_row(title: String, action: BaseButton, action_text: String = "") -> HBoxContainer:
+static func enemy_preview(kind: String) -> Control:
+	var preview := Control.new()
+	preview.custom_minimum_size = Vector2(40, 44)
+	preview.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview.draw.connect(func():
+		VigilEnemyArt.draw(preview, kind, preview.size * 0.5 + Vector2(0, 4), 1.0)
+	)
+	preview.resized.connect(preview.queue_redraw)
+	return preview
+
+static func action_row(title: String, action: BaseButton, action_text: String = "", preview: Control = null) -> HBoxContainer:
 	# Only the trailing control handles taps. Text and row gaps pass drags to
 	# the surrounding ScrollContainer, including when the action is disabled.
 	var row := HBoxContainer.new()
@@ -240,6 +251,8 @@ static func action_row(title: String, action: BaseButton, action_text: String = 
 	row.draw.connect(func():
 		row.draw_line(Vector2(0, row.size.y - 1), Vector2(row.size.x, row.size.y - 1), BORDER, 2)
 	)
+	if preview != null:
+		row.add_child(preview)
 	var description := paragraph(title, BODY)
 	description.add_theme_color_override("font_color", TEXT)
 	description.size_flags_vertical = Control.SIZE_SHRINK_CENTER

@@ -7,21 +7,7 @@
   </defs>
   <path fill="#ae879b" d="M0 0H360V435H0Z"/>
   <path d="M0 74C39 70 73 84 113 73S188 82 229 74 319 83 360 73M0 426C53 412 113 434 170 423S277 433 360 418" fill="none" stroke="#956f84" stroke-width="1"/>
-  <g stroke="#000" stroke-width="1.6" stroke-linejoin="round">
-    <path d="m276 352 12-12 51 1 15 13-10 7-55-1Z" fill="#956f84" stroke="none"/>
-    <path d="M289 349V307H302V349M328 349V307H341V349" fill="#a4977d"/>
-    <path d="m286 307 9-17 10 17Zm39 0 9-17 10 17Z" fill="#b49dcc"/>
-    <path d="M300 349V301L315 285 330 301V349Z" fill="#e8ddbd"/>
-    <path d="m298 301 17-23 17 23Z" fill="#79556f"/>
-    <path d="m315 281 12 17h-12Z" fill="#b49dcc" stroke="none"/>
-    <path d="M309 349V322L315 315 321 322V349Z" fill="#222a30"/>
-    <path d="M280 350H350V357H280Z" fill="#dfd0ab"/>
-    <path d="m315 304 4 5-4 5-4-5Z" fill="#e0b568"/>
-    <path d="M295 316V326M335 316V326" stroke-width="2.5"/>
-    <path d="M303 337H309M322 333H328M291 343H300M330 342H338" fill="none" stroke-width="1"/>
-    <circle cx="315" cy="262" r="11" fill="#e0b568"/>
-    <circle cx="318" cy="260" r="9" fill="#222a30"/>
-  </g>
+
   <g><use xlink:href="#crystal" x="322" y="83"/><use xlink:href="#shard" x="345" y="97"/><use xlink:href="#crystal" x="28" y="172"/><use xlink:href="#shard" x="47" y="199"/><use xlink:href="#crystal" x="344" y="245"/><use xlink:href="#crystal" x="28" y="373"/><use xlink:href="#crystal" x="343" y="375"/><use xlink:href="#shard" x="282" y="376"/></g>
   <g><use xlink:href="#fissure" x="24" y="92"/><use xlink:href="#shard" x="151" y="83"/><use xlink:href="#fissure" x="238" y="91"/><use xlink:href="#fissure" x="346" y="146"/><use xlink:href="#fissure" x="21" y="217"/><use xlink:href="#fissure" x="111" y="223"/><use xlink:href="#shard" x="47" y="286"/><use xlink:href="#fissure" x="178" y="293"/><use xlink:href="#fissure" x="18" y="301"/><use xlink:href="#fissure" x="259" y="369"/><use xlink:href="#shard" x="145" y="366"/><use xlink:href="#fissure" x="190" y="425"/></g>
 </svg>

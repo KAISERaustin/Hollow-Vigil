@@ -7,17 +7,7 @@
   </defs>
   <path fill="#bb8c76" d="M0 0H360V435H0Z"/>
   <path d="M0 74C49 70 63 82 113 73S187 81 227 74 318 84 360 71M0 424C56 414 102 433 163 421S281 433 360 419" fill="none" stroke="#a17865" stroke-width="1"/>
-  <g stroke="#000" stroke-width="1.6" stroke-linejoin="round">
-    <path d="m276 352 13-12 48 1 17 13-10 7-56-1Z" fill="#a17865" stroke="none"/>
-    <path d="M284 350V291H291V281H299V291H307V309H323V291H331V281H339V291H347V350Z" fill="#80685d"/>
-    <path d="M285 292H306V298H285ZM325 292H346V298H325Z" fill="#a18b75"/>
-    <path d="M304 350V321L315 310 326 321V350Z" fill="#222a30"/>
-    <path d="M307 350V323L315 315 323 323V350Z" fill="#db8d73"/>
-    <path d="m308 344 1-12 4 3 3-12 5 13v8Z" fill="#e0b568"/>
-    <path d="M280 350H350V357H280Z" fill="#a18b75"/>
-    <path d="M294 305V316M336 305V316" stroke-width="3"/>
-    <path d="M285 326H299M330 329H346M291 327V336M337 339H346M289 343H303M325 302H334" fill="none" stroke-width="1"/>
-  </g>
+
   <g><use xlink:href="#rock" x="322" y="83"/><use xlink:href="#brick" x="344" y="95"/><use xlink:href="#rock" x="28" y="172"/><use xlink:href="#brick" x="48" y="199"/><use xlink:href="#brick" x="22" y="218"/><use xlink:href="#rock" x="343" y="244"/><use xlink:href="#rock" x="28" y="371"/><use xlink:href="#brick" x="340" y="373"/><use xlink:href="#brick" x="281" y="376"/></g>
   <g><use xlink:href="#crack" x="24" y="92"/><use xlink:href="#crack" x="151" y="83"/><use xlink:href="#crack" x="238" y="91"/><use xlink:href="#crack" x="346" y="146"/><use xlink:href="#crack" x="111" y="223"/><use xlink:href="#crack" x="47" y="286"/><use xlink:href="#crack" x="178" y="293"/><use xlink:href="#crack" x="18" y="301"/><use xlink:href="#crack" x="259" y="369"/><use xlink:href="#crack" x="146" y="366"/><use xlink:href="#crack" x="190" y="425"/></g>
 </svg>

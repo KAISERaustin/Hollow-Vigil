@@ -3,6 +3,7 @@ extends Control
 const Catalog = preload("res://scripts/campaign/catalog.gd")
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Art = preload("res://scripts/rendering/terrain/terrain_art.gd")
+const Marker = preload("res://scripts/campaign/level_marker.gd")
 signal level_picked(index: int)
 var progress: RefCounted
 var nodes: Array[Button] = []
@@ -11,7 +12,12 @@ func _ready() -> void:
 	custom_minimum_size = Vector2(280, 1810)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for index in range(Catalog.COUNT):
-		var button := UI.button(str(index + 1), func(): level_picked.emit(index), 48)
+		var button := Marker.new()
+		button.number = index + 1
+		button.completed = index < progress.data.completed_levels
+		if index % 5 == 4:
+			button.gate = Catalog.CHAPTERS[index / 5].gate_art
+		button.pressed.connect(func(): level_picked.emit(index))
 		button.name = "CampaignLevel%d" % (index + 1)
 		button.disabled = not progress.unlocked(index)
 		button.accessibility_name = "Level %d: %s. %s" % [index + 1, Catalog.MISSIONS[index].name, "Locked" if button.disabled else ("Completed" if index < progress.data.completed_levels else "Ready")]
@@ -23,13 +29,13 @@ func _ready() -> void:
 func point(index: int) -> Vector2:
 	var chapter := index / 5
 	var within := index % 5
-	var x := [0.22, 0.38, 0.70, 0.58, 0.25][within] as float
-	return Vector2(size.x * x, chapter * 450 + 115 + within * 70)
+	var x := [0.22, 0.42, 0.70, 0.30, 0.80][within] as float
+	return Vector2(size.x * x, chapter * 450 + (370 if within == 4 else 115 + within * 70))
 
 func arrange() -> void:
 	for index in range(nodes.size()):
-		nodes[index].size = Vector2(48,48)
-		nodes[index].position = point(index) - Vector2(24,24)
+		nodes[index].size = Vector2(80,120) if index % 5 == 4 else Vector2(54,54)
+		nodes[index].position = point(index) - nodes[index].size * 0.5
 	queue_redraw()
 
 func _draw() -> void:
@@ -60,6 +66,8 @@ func _draw() -> void:
 				draw_circle(at, 31, Color(0.88,0.71,0.4,0.15))
 			var right := at.x < size.x*0.5
 			var origin := Vector2(at.x+34 if right else 12, at.y-4)
+			if i == 4:
+				origin = Vector2(16, top + 391)
 			var width := size.x-origin.x-10 if right else at.x-46
 			var title: String = Catalog.MISSIONS[index].name
 			draw_string(UI.font(600), origin, title, HORIZONTAL_ALIGNMENT_LEFT, width, 12, UI.TEXT if progress.unlocked(index) else UI.MUTED)
