@@ -122,6 +122,12 @@ func open_action(action: String) -> void:
 		body.add_child(UI.label(progression, 14))
 	if action == "info":
 		body.add_child(UI.paragraph(stats.description, 14))
+		body.add_child(UI.heading("Level 4 specializations", 18))
+		body.add_child(UI.paragraph("At level 3, the upgrade button locks and two choices appear beside it. Tap a side once, then tap its checkmark to purchase that permanent specialization.", 14))
+		var branch_options: Array = Balance.BRANCHES[tower.kind].values()
+		for side in range(2):
+			body.add_child(UI.heading(("Left · " if side == 0 else "Right · ") + branch_options[side].name, 16))
+			body.add_child(UI.paragraph(branch_options[side].description, 14))
 		var next := Balance.stats(tower.kind, mini(tower_level + 1, Balance.MAX_TOWER_LEVEL), app.game.tuning)
 		var grid := GridContainer.new()
 		grid.name = "TowerStats"

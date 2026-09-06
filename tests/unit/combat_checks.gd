@@ -5,6 +5,7 @@ static func run(suite: SceneTree) -> void:
 	test_core(suite)
 	test_road_junctions(suite)
 	test_targeting(suite)
+	test_target_lock(suite)
 
 static func test_targeting(suite: SceneTree) -> void:
 	for kind in Balance.TOWERS:
@@ -165,3 +166,61 @@ static func test_road_junctions(suite: SceneTree) -> void:
 				g.combat.tick(Balance.STEP)
 				suite.check(enemy.pos.is_equal_approx(previous + Vector2(-2.0 * half_step, 0)), "%s keeps moving left without pausing after the junction" % kind)
 	print("PASS GROUP: immediate road turns for all enemy types")
+
+static func test_target_lock(suite: SceneTree) -> void:
+	for kind in Balance.TOWERS:
+		for mode in Balance.TARGET_MODES:
+			var g: VigilState = suite.legacy_core_fixture(854)
+			g.data.balance = 10000.0
+			var id := g.economy.build(kind, "0,0", 0)
+			var tower: Dictionary = g.data.towers[id]
+			tower.target_mode = mode
+			var a: Dictionary = suite.fixture_enemy(g, "heavy")
+			var b: Dictionary = suite.fixture_enemy(g, "heavy")
+			for enemy in [a, b]:
+				enemy.pos = Vector2(-50, 0)
+				enemy.path = [enemy.pos, Vector2.ZERO]
+				enemy.segment = 1
+				enemy.hp = 100000.0
+				enemy.stun_until = 1000.0
+			for region in g.data.regions.values():
+				region.timer = 1000.0
+			g.combat.tick(Balance.STEP)
+			var label := "%s / %s" % [kind, mode]
+			suite.check(g.combat.effects.filter(func(fx): return fx.kind == "shot")[0].target_id == a.id, label + " initially chooses the selected enemy")
+			# Make the other enemy preferable under each targeting mode.
+			b.pos = Vector2(-90 if mode == "last" else -20, 0)
+			b.hp = 200000.0
+			tower.cooldown = 0.0
+			g.combat.effects.clear()
+			g.combat.tick(Balance.STEP)
+			var expected: int = a.id if mode == "most_hp" else b.id
+			suite.check(g.combat.effects.filter(func(fx): return fx.kind == "shot")[0].target_id == expected, label + " locks only Most HP; First and Last switch with priority")
+			if mode != "most_hp":
+				suite.check(not g.combat.target_locks.has(id), label + " never retains a target lock")
+				continue
+			a.dead = true
+			tower.cooldown = 0.0
+			g.combat.tick(Balance.STEP)
+			suite.check(g.combat.target_locks.get(id) == b.id, label + " acquires a replacement after defeat")
+			# A target leaving during cooldown must release the lock immediately.
+			b.pos = Vector2(-1000, 0)
+			tower.cooldown = 10.0
+			g.combat.tick(Balance.STEP)
+			suite.check(not g.combat.target_locks.has(id), label + " releases an out-of-range target during cooldown")
+			b.pos = Vector2(-50, 0)
+			tower.cooldown = 0.0
+			g.combat.tick(Balance.STEP)
+			suite.check(g.combat.target_locks.get(id) == b.id, label + " reacquires an available enemy")
+			# Changing away from Most HP immediately restores positional priority.
+			var c: Dictionary = suite.fixture_enemy(g, "heavy")
+			c.pos = Vector2(-10, 0)
+			c.path = [c.pos, Vector2.ZERO]
+			c.segment = 1
+			c.hp = 100000.0
+			c.stun_until = 1000.0
+			tower.target_mode = "first"
+			tower.cooldown = 0.0
+			g.combat.effects.clear()
+			g.combat.tick(Balance.STEP)
+			suite.check(not g.combat.target_locks.has(id) and g.combat.effects.filter(func(fx): return fx.kind == "shot")[0].target_id == c.id, label + " releases lock when changing to First")

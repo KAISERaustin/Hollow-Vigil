@@ -67,10 +67,13 @@ func run() -> void:
 			for side in range(2):
 				await preload("res://tests/rendered/visual_smoke.gd").tap(app,app.tower_actions.branch_bar.get_child(side).get_global_rect().get_center(),side == 1)
 				await frame()
-				var card: PanelContainer = app.tower_actions.branch_card
-				if not card.visible: failures.append("Preview not visible "+kind)
-				if card.position.y < 0 or card.get_rect().end.x > app.field.size.x: failures.append("Preview overflow "+kind)
-				if card.get_rect().end.y > app.tower_actions.branch_bar.position.y: failures.append("Preview overlaps choices")
+				var button: Button = app.tower_actions.branch_bar.get_child(side)
+				if not button.get_meta("armed", false): failures.append("Choice not armed " + kind)
+				if tower.level != 3: failures.append("First click purchased " + kind)
+				if not app.tower_actions.buttons.upgrade.disabled: failures.append("Original upgrade not locked")
+				var original: Rect2 = app.tower_actions.buttons.upgrade.get_global_rect()
+				if side == 0 and button.get_global_rect().end.x >= original.position.x: failures.append("Left choice overlaps original")
+				if side == 1 and button.get_global_rect().position.x <= original.end.x: failures.append("Right choice overlaps original")
 				root.get_texture().get_image().save_png("res://artifacts/branch-%s-%d-%d.png" % [kind,side,width])
 			index += 1
 		app.tower_actions.cancel_upgrade()
@@ -79,7 +82,7 @@ func run() -> void:
 	app.tower_actions.request_upgrade()
 	app.tower_actions.choose_branch(0)
 	await frame()
-	await preload("res://tests/rendered/visual_smoke.gd").tap(app,app.tower_actions.branch_confirm.get_global_rect().get_center())
+	await preload("res://tests/rendered/visual_smoke.gd").tap(app,app.tower_actions.branch_bar.get_child(0).get_global_rect().get_center())
 	if app.game.data.towers[id].get("branch","") != "frostneedle": failures.append("Confirm button did not purchase")
 	if app.tower_actions.branch_bar.visible: failures.append("Choices did not dismiss")
 	# Exercise branch artwork and live effect drawing, not only the preview portraits.
