@@ -16,7 +16,23 @@ func _ready() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(_path()) == OK:
 		var saved: Variant = cfg.get_value("backup", "state", {})
-		if saved is Dictionary: state = saved
+		if saved is Dictionary and Codec.valid_uuid(saved.get("player_id")) and progress.number(saved.get("revision"), 0, 1e15, true):
+			state = saved
+			if state.has("pending") and not valid_pending(state.pending): state.erase("pending")
+	cloud.changed.connect(account_changed)
+
+func valid_pending(value: Variant) -> bool:
+	if not value is Dictionary or value.size() != 3 or not Codec.valid_uuid(value.get("mutation")) or not progress.number(value.get("expected_revision"), 0, 1e15, true): return false
+	var payload: Variant = value.get("payload")
+	return payload is Dictionary and payload.size() == 3 and payload.get("format") == 1 and payload.get("catalog_version") == 1 and progress.number(payload.get("completed_levels"), 0, Progress.Catalog.COUNT, true)
+
+func account_changed() -> void:
+	if remote_owner != cloud.player_id:
+		remote.clear()
+		remote_owner = ""
+		status = "Campaign progress is local. Upload or restore only when you choose."
+	if conflict.get("player_id", "") != cloud.player_id: conflict.clear()
+	changed.emit()
 
 func _path() -> String:
 	return progress.path + ".cloud-backup"

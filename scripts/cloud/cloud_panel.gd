@@ -14,7 +14,7 @@ func _ready() -> void:
 	service = app.cloud
 	service.changed.connect(rebuild)
 	restore_slot = app.active_slot
-	app.campaign_backup.changed.connect(rebuild)
+	if is_instance_valid(app.campaign_backup): app.campaign_backup.changed.connect(rebuild)
 	rebuild()
 
 func rebuild() -> void:
@@ -91,7 +91,7 @@ func rebuild() -> void:
 	add_child(UI.heading("Campaign", 18))
 	add_child(UI.paragraph("%d of %d levels completed on this device. No medals or unfinished-level progress are saved." % [app.campaign_progress.data.completed_levels, app.campaign_progress.Catalog.COUNT], 12))
 	add_child(UI.paragraph(app.campaign_backup.status, 13))
-	var campaign_upload := UI.button("Upload campaign backup", func(): app.campaign_backup.upload())
+	var campaign_upload := UI.button("Retry campaign upload" if app.campaign_backup.state.has("pending") and app.campaign_backup.state.get("player_id") == service.player_id else "Upload campaign backup", func(): app.campaign_backup.upload())
 	campaign_upload.name = "UploadCampaignBackup"
 	campaign_upload.disabled = service.busy or app.campaign_progress.blocked
 	add_child(UI.action_row("Campaign progress", campaign_upload, "Upload"))

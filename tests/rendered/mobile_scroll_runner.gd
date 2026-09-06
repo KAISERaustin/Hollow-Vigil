@@ -5,24 +5,17 @@ const Harness = preload("res://tests/rendered/visual_smoke.gd")
 var failures: Array[String] = []
 
 # Real cloud UI with an offline fixture: button tests must never upload a save.
-class CloudFixture extends Node:
-	signal changed
-	var status := "Cloud save is up to date."
-	const MAX_NAME_LENGTH := 32
-	var display_name := "QA player"
-	var busy := false
-	var include_audio := false
-	var conflict := {}
-	var worlds := []
+const Service = preload("res://scripts/cloud/cloud_service.gd")
+class CloudFixture extends Service:
 	var sync_count := 0
-	func configured(): return true
-	func signed_in(): return true
-	func linked(): return true
-	func sync_now(): sync_count += 1
-	func start_backup(): pass
-	func refresh_worlds(): pass
-	func sign_out(): pass
-	func restore_world(_id): pass
+	func configured() -> bool: return true
+	func signed_in() -> bool: return true
+	func linked() -> bool: return true
+	func sync_now() -> void: sync_count += 1
+	func start_backup() -> void: sync_count += 1
+	func refresh_worlds() -> void: pass
+	func sign_out() -> void: pass
+	func restore_world(_id: String) -> void: pass
 
 func _initialize() -> void:
 	# Enable the engine's touchscreen scrolling path on desktop test hosts.
@@ -59,7 +52,16 @@ func run() -> void:
 	RenderingServer.set_default_clear_color(UI.PANEL)
 	var app := VigilApp.new()
 	var service := CloudFixture.new()
+	app.load_saved_progress = false
+	app.game.save_path = "user://mobile-backup-fixture.save"
 	app.cloud = service
+	service.game = app.game
+	service.player_id = "10000000-0000-4000-8000-000000000001"
+	app.campaign_progress.path = "user://mobile-campaign-fixture.save"
+	app.campaign_backup = preload("res://scripts/cloud/campaign_backup.gd").new()
+	app.campaign_backup.cloud = service
+	app.campaign_backup.progress = app.campaign_progress
+	root.add_child(app.campaign_backup)
 	root.add_child(service)
 	for i in range(10):
 		service.worlds.append({"world_id": str(i), "seed": 4200 + i, "updated_at": "2026-09-06T12:00:00Z"})
@@ -89,9 +91,11 @@ func run() -> void:
 			check(button.size.x >= 48 and button.size.y >= 48, "Action touch target too small")
 			check(button.size.x <= row.size.x * 0.4, "Action leaves too little scrolling space")
 			check(row.get_global_rect().end.x <= viewport.x, "Action row overflows viewport")
-			if button.accessibility_name == "Sync now": sync_row = row
+			if button.name == "UploadInfinite1": sync_row = row
 		check(sync_row != null, "Sync row missing")
 		if sync_row == null: continue
+		scroll.ensure_control_visible(sync_row)
+		await settle()
 		var sync_button: Button = sync_row.get_child(1)
 		var before: int = service.sync_count
 		await Harness.tap(frame, sync_row.get_child(0).get_global_rect().get_center(), true)
@@ -99,7 +103,7 @@ func run() -> void:
 		await swipe(sync_row.get_child(0).get_global_rect().get_center())
 		check(scroll.scroll_vertical > 30, "Touch drag on row text did not scroll at " + str(viewport))
 		check(service.sync_count == before, "Scrolling triggered sync")
-		scroll.scroll_vertical = 0
+		scroll.ensure_control_visible(sync_row)
 		await settle()
 		await Harness.tap(frame, sync_button.get_global_rect().get_center(), true)
 		check(service.sync_count == before + 1, "Trailing Sync button did not activate exactly once")
@@ -117,6 +121,7 @@ func run() -> void:
 			root.get_texture().get_image().save_png("res://artifacts/mobile-cloud-rows-%d.png" % viewport.x)
 	frame.queue_free()
 	service.queue_free()
+	app.campaign_backup.queue_free()
 	app.free()
 	await settle()
 	await check_number_rows()

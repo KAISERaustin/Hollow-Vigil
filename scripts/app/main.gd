@@ -309,6 +309,9 @@ func update_hud() -> void:
 		tower_dialog.refresh()
 
 func reset_progress() -> void:
+	if cloud.busy:
+		toast("Wait for the current backup operation before resetting this game.")
+		return
 	if not game.reset_progress():
 		toast(game.save_error, 8.0)
 		return
@@ -604,6 +607,8 @@ func activate_slot(next: VigilState, slot: int) -> void:
 	field.mouse_down = false
 	field.dragged = false
 	cloud.game = game
+	cloud.backup_slot = slot
+	cloud.conflict.clear()
 	cloud.include_audio = game.data.get("cloud", {}).get("include_audio", false)
 	cloud.sync_timer = 0.0
 	cloud._load_pending()
@@ -638,6 +643,8 @@ func backup_game(slot: int, allow_empty: bool = false) -> VigilState:
 	if slot < 0 or slot >= VigilSaveSlots.COUNT: return null
 	if slot_active and slot == active_slot: return game
 	var slots := slot_menu.slots as VigilSaveSlots if is_instance_valid(slot_menu) else VigilSaveSlots.new()
+	if not is_instance_valid(slot_menu) and not load_saved_progress:
+		slots.base_path = game.save_path + ".slots"
 	var saved := slots.summary(slot)
 	if saved.is_empty() and not allow_empty: return null
 	var target := StoredBackup.new()
