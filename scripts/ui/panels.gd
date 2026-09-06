@@ -398,7 +398,6 @@ func show_settings() -> void:
 		var developer := UI.button("Developer Controls", show_developer_controls)
 		developer.name = "OpenDeveloperControls"
 		sheet_content.add_child(UI.action_row(developer.text, developer, "Open"))
-		sheet_content.add_child(UI.action_row("Save configuration", UI.button("Save configuration", app.show_save_slots.bind(true)), "Open"))
 	var stats := HBoxContainer.new()
 	stats.add_theme_constant_override("separation", 12)
 	sheet_content.add_child(stats)
@@ -415,6 +414,13 @@ func show_settings() -> void:
 	sheet_content.add_child(UI.rule())
 	sheet_content.add_child(UI.heading("Progress", 18))
 	sheet_content.add_child(UI.action_row("Reset progress", UI.accent_button("Reset progress", show_reset_confirmation, UI.DANGER), "Reset"))
+	sheet_content.add_child(UI.rule())
+	var upload := UI.button("Upload build", app.show_save_slots.bind(true))
+	upload.name = "UploadBuild"
+	upload.disabled = not game.is_creative()
+	sheet_content.add_child(UI.action_row("Upload build", upload, "Upload"))
+	if not game.is_creative():
+		sheet_content.add_child(UI.paragraph("Public builds are shared from Creative saves. Use Account & cloud saves to sync this Survival save.", 12))
 
 func show_sound_settings() -> void:
 	mode = "sound"

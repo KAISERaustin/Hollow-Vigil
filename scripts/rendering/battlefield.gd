@@ -86,13 +86,15 @@ func on_tower_upgraded(region: String, pad: int, kind: String) -> void:
 	upgrade_poofs.append({"pos": VigilWorld.pad_position(region, pad), "age": 0.0, "color": Color(Balance.TOWERS[kind].color)})
 	queue_redraw()
 
+var simulation_rate := 1.0
+
 func _process(delta: float) -> void:
 	enforce_camera_limits()
 	bind_upgrade_effects()
 	if upgrade_poofs.is_empty():
 		return
 	for i in range(upgrade_poofs.size() - 1, -1, -1):
-		upgrade_poofs[i].age += delta
+		upgrade_poofs[i].age += delta * simulation_rate
 		if upgrade_poofs[i].age >= 0.65:
 			upgrade_poofs.remove_at(i)
 	queue_redraw()

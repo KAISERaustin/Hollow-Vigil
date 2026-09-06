@@ -27,6 +27,8 @@ var return_close: Button
 var pending_return_gold := 0.0
 var reset_scrim: ColorRect
 var return_opener: Control
+var simulation_paused := false
+var simulation_speed := 1.0
 var accumulator := 0.0
 var save_timer := 0.0
 var hud_timer := 0.0
@@ -84,6 +86,8 @@ func build_interface() -> void:
 	hud.add_theme_constant_override("separation", 0)
 	hud.settings_requested.connect(panels.show_settings)
 	hud.collect_requested.connect(collect_all)
+	hud.pause_requested.connect(toggle_pause)
+	hud.speed_requested.connect(toggle_speed)
 	add_child(hud)
 	hud.build_header()
 	# Notifications float near the footer instead of reserving empty header space.
@@ -293,6 +297,7 @@ func reset_progress() -> void:
 	if not game.reset_progress():
 		toast(game.save_error, 8.0)
 		return
+	reset_time_controls()
 	audio.bind_game()
 	audio.play("menu_reset")
 	panels.close_sheet()
@@ -331,6 +336,23 @@ func balance_changed() -> void:
 	field.queue_redraw()
 	update_hud()
 
+func toggle_pause() -> void:
+	simulation_paused = not simulation_paused
+	refresh_time_controls()
+
+func toggle_speed() -> void:
+	simulation_speed = 1.0 if simulation_speed == 2.0 else 2.0
+	refresh_time_controls()
+
+func refresh_time_controls() -> void:
+	field.simulation_rate = 0.0 if simulation_paused else simulation_speed
+	hud.update_time_controls(simulation_paused, simulation_speed)
+
+func reset_time_controls() -> void:
+	simulation_paused = false
+	simulation_speed = 1.0
+	refresh_time_controls()
+
 func _process(delta: float) -> void:
 	if game.suspended:
 		return
@@ -339,12 +361,13 @@ func _process(delta: float) -> void:
 		if balance_save_timer <= 0.0:
 			persist()
 	# A large stall is accounted as offline time, never as a burst of active ticks.
-	if delta > 2.0:
+	if delta > 2.0 and not simulation_paused:
 		game.apply_offline(Time.get_unix_time_from_system())
 		persist()
 		accumulator = 0.0
 		return
-	accumulator += minf(delta, 0.25)
+	var simulation_delta := 0.0 if simulation_paused else minf(delta, 0.25) * simulation_speed
+	accumulator += simulation_delta
 	while accumulator >= Balance.STEP:
 		game.combat.tick(Balance.STEP)
 		accumulator -= Balance.STEP
@@ -357,7 +380,7 @@ func _process(delta: float) -> void:
 		if game.save_error.is_empty():
 			var reward_title := "Relic found: " + names[0] if names.size() == 1 else "%d boss relics found" % names.size()
 			toast(reward_title + "\nSelect a tower → Equipment to equip.", 8.0)
-	field.update_view(delta, accumulator)
+	field.update_view(simulation_delta, accumulator)
 	# Advance the live watermark so a subsequent suspension cannot overlap active play.
 	game.data.last_accounted = maxf(game.data.last_accounted, Time.get_unix_time_from_system())
 	save_timer += delta
@@ -508,6 +531,7 @@ func open_slot(slot: int) -> void:
 func activate_slot(next: VigilState, slot: int) -> void:
 	panels.close_sheet()
 	game = next
+	reset_time_controls()
 	slot_active = true
 	active_slot = slot
 	field.state = game

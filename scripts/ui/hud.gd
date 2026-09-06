@@ -2,6 +2,8 @@ class_name VigilHUD
 extends VBoxContainer
 
 signal settings_requested
+signal pause_requested
+signal speed_requested
 signal collect_requested
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
@@ -10,6 +12,9 @@ var next_income_refresh_msec := 0
 var gold_label: Label
 var rate_label: Label
 var kills_label: Label
+var pause_button: Button
+var speed_button: Button
+var simulation_paused := false
 var collect_button: Button
 var unclaimed_label: Label
 var header_margin: MarginContainer
@@ -64,9 +69,38 @@ func build_header() -> void:
 	settings.custom_minimum_size.x = 50
 	settings.size_flags_horizontal = Control.SIZE_FILL
 	toolbar.add_child(settings)
+	pause_button = UI.button("", func(): pause_requested.emit(), 50)
+	pause_button.name = "PauseButton"
+	pause_button.custom_minimum_size.x = 50
+	pause_button.size_flags_horizontal = Control.SIZE_FILL
+	pause_button.draw.connect(func():
+		var center := pause_button.size * 0.5
+		if simulation_paused:
+			pause_button.draw_colored_polygon(PackedVector2Array([center + Vector2(-6, -10), center + Vector2(10, 0), center + Vector2(-6, 10)]), UI.TEXT)
+		else:
+			for x in [-8, 3]:
+				pause_button.draw_rect(Rect2(center + Vector2(x, -10), Vector2(5, 20)), UI.TEXT)
+	)
+	toolbar.add_child(pause_button)
+	speed_button = UI.button("» 2×", func(): speed_requested.emit(), 50)
+	speed_button.name = "SpeedButton"
+	speed_button.custom_minimum_size.x = 84
+	speed_button.size_flags_horizontal = Control.SIZE_FILL
+	speed_button.toggle_mode = true
+	toolbar.add_child(speed_button)
+	update_time_controls(false, 1.0)
 	var territory := Control.new()
 	territory.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	toolbar.add_child(territory)
+
+func update_time_controls(paused: bool, speed: float) -> void:
+	simulation_paused = paused
+	pause_button.tooltip_text = "Play" if paused else "Pause"
+	pause_button.accessibility_name = "Resume game" if paused else "Pause game"
+	pause_button.queue_redraw()
+	speed_button.set_pressed_no_signal(speed == 2.0)
+	speed_button.tooltip_text = "Return to normal speed" if speed == 2.0 else "Double game speed"
+	speed_button.accessibility_name = "Game speed: 2×. Switch to 1×" if speed == 2.0 else "Game speed: 1×. Switch to 2×"
 
 func build_footer() -> void:
 	var bottom := PanelContainer.new()

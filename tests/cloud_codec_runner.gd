@@ -98,6 +98,17 @@ func run() -> void:
 	if not relic_restored.is_empty():
 		check(relic_restored.relics == relic_game.data.relics and relic_restored.towers[relic_tower].relic == source, "Equipped relic identity preserved")
 	g.data.settings.developer_balance = {"towers":{"rapid":{"damage":20.0}}}
-	check(c.encode(g.snapshot(),wid).is_empty(), "Developer balance saves excluded")
+	g.data.mode = "survival"
+	g.data.setup = {"name": "Custom survival", "description": "Harder opening"}
+	var custom := c.decode(c.encode(g.snapshot(), wid))
+	check(not custom.is_empty() and custom.settings.developer_balance == g.data.settings.developer_balance, "Custom balance survives cloud round trip")
+	check(not custom.is_empty() and custom.mode == "survival" and custom.setup == g.data.setup, "Mode and configuration survive cloud round trip")
+	var legacy := p.duplicate(true)
+	legacy.format = 1
+	legacy.erase("world_rules")
+	check(not c.decode(legacy).is_empty(), "Legacy cloud saves still restore")
+	var invalid := c.encode(g.snapshot(), wid)
+	invalid.world_rules[0].mode = "invalid"
+	check(c.decode(invalid).is_empty(), "Invalid cloud mode rejected")
 	print("Cloud codec: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

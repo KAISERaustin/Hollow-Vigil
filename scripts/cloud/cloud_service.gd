@@ -184,7 +184,7 @@ func refresh_worlds() -> void:
 	busy = false
 	if result.ok and result.data is Array:
 		worlds = result.data
-		_say("Signed in. Choose a cloud save to restore, or back up this device's world." if not linked() else "Cloud saves are connected. This device syncs every minute while online.")
+		_say("Signed in. Choose a cloud save to restore, or Sync this save to upload it." if not linked() else "Cloud saves are connected. This device syncs every minute while online.")
 	else:
 		_say(_error(result))
 
@@ -231,7 +231,7 @@ func sync_now() -> void:
 		if game.save():
 			pending.clear()
 			_save_pending()
-			_say("Saved to cloud. You can continue on another device.")
+			_say("Saved to cloud · revision %d. You can continue on another device." % int(meta.revision))
 		else:
 			_say("Cloud save succeeded, but local sync confirmation could not be saved. It will retry safely.")
 	elif result.ok and result.data is Dictionary and result.data.get("status") == "conflict":

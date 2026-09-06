@@ -8,7 +8,12 @@ func _initialize() -> void:
 
 func run() -> void:
 	var fixtures: Array = []
-	var games: Array = [VigilState.new(424242)]
+	var opening := VigilState.new(424242)
+	opening.data.balance = 100000.0
+	opening.expand("1,0")
+	opening.economy.buy_traffic("1,0")
+	opening.economy.unlock("1,0", "fast")
+	var games: Array = [opening]
 	for kind in ["warden", "cindermaw", "bell", "prior"]:
 		games.append(preload("res://tests/unit/boss_checks.gd").fixture(kind))
 	games.append(preload("res://tests/unit/castle_checks.gd").fixture())
@@ -23,6 +28,11 @@ func run() -> void:
 	equipped.data.regions["0,0"].history_time = 15.5
 	equipped.data.settings.audio = {"master": 0.3, "muted": true}
 	games.append(equipped)
+	var custom := VigilState.new(424243)
+	custom.set_balance_stat("enemies", "basic", "hp", 200.0)
+	custom.data.mode = "survival"
+	custom.data.setup = {"name": "Cloud rules test", "description": "Custom Survival round trip"}
+	games.append(custom)
 	var codec := Codec.new()
 	for game in games:
 		# Use the real durable save format before projecting anything to the wire.
@@ -39,6 +49,8 @@ func run() -> void:
 			return
 		fixtures.append(payload)
 		DirAccess.remove_absolute(game.save_path)
+	var build := FileAccess.open("res://artifacts/cloud-public-fixture.json", FileAccess.WRITE)
+	build.store_string(VigilSaveSlots.new().export_build(equipped, "Backend contract test", "Transactional fixture"))
 	var file := FileAccess.open("res://artifacts/cloud-payload-fixtures.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(fixtures, "", true, true))
 	print("Generated %d real save/reload cloud fixtures" % fixtures.size())

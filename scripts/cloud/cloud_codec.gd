@@ -2,7 +2,7 @@ extends RefCounted
 
 # This is the only projection from local saves to the network. Never serialize
 # game.data directly. UUIDs identify entities; they contain no gameplay values.
-const FORMAT := 1
+const FORMAT := 2
 const GROUPS := ["progress", "checkpoints", "regions", "unlocks", "towers", "relics", "encounters", "production", "preferences"]
 const AUDIO := ["master", "menu", "towers", "enemies", "bosses", "music", "muted"]
 const Bosses = preload("res://scripts/gameplay/encounters/bosses.gd")
@@ -34,11 +34,11 @@ func encode(data: Dictionary, world_id: String, include_audio: bool = false) -> 
 	error = ""
 	if not valid_uuid(world_id) or not VigilSaveStore.new().valid_data(data):
 		return _fail("The local save is invalid; cloud upload was skipped.")
-	if not data.settings.get("developer_balance", {}).is_empty():
-		return _fail("Restore default developer balance values before using cloud saves.")
 	var out := {"format": FORMAT, "world": {"id": world_id, "seed": int(data.seed), "save_version": int(data.version)}}
 	for group in GROUPS:
 		out[group] = []
+	out.world_rules = [{"id": entity_id(world_id, "world_rules"), "mode": data.get("mode", "creative"),
+		"setup": data.get("setup", {}), "tuning": data.settings.get("developer_balance", {})}]
 	out.progress.append({"id": entity_id(world_id, "progress"), "gold": data.balance, "reserve": data.reserve,
 		"lifetime_earnings": data.lifetime_earnings, "kills": data.kills, "escapes": data.escapes,
 		"next_tower": int(data.next_tower), "automation": data.automation,
@@ -99,6 +99,11 @@ func decode(payload: Variant, local_settings: Dictionary = {}, local_camera: Arr
 	var d: Dictionary = VigilState.new(int(payload.world.seed)).data.duplicate(true)
 	d.settings = local_settings.duplicate(true)
 	d.settings.erase("developer_balance")
+	if int(payload.format) == FORMAT:
+		var rules: Dictionary = payload.world_rules[0]
+		d.mode = rules.mode
+		d.settings.developer_balance = rules.tuning.duplicate(true)
+		if not rules.setup.is_empty(): d.setup = rules.setup.duplicate(true)
 	d.settings.low_power = d.settings.get("low_power", false)
 	d.camera = local_camera.duplicate()
 	d.regions = {}
@@ -199,12 +204,27 @@ func _fail(message: String) -> Dictionary:
 	return {}
 
 func _shape(p: Variant) -> bool:
-	if not p is Dictionary or p.get("format") != FORMAT or not p.get("world") is Dictionary:
+	if not p is Dictionary or (p.get("format") != 1 and p.get("format") != FORMAT) or not p.get("world") is Dictionary:
 		return false
 	if not _record(p.world, {"id": "uuid", "seed": "number", "save_version": "number"}) or p.world.save_version != Balance.VERSION:
 		return false
-	if p.size() != GROUPS.size() + 2:
+	var modern := int(p.format) == FORMAT
+	if p.size() != GROUPS.size() + (3 if modern else 2):
 		return false
+	if modern:
+		if not p.get("world_rules") is Array or p.world_rules.size() != 1:
+			return false
+		var rules: Variant = p.world_rules[0]
+		if not rules is Dictionary or rules.size() != 4 or not valid_uuid(rules.get("id")):
+			return false
+		if rules.get("mode") not in ["creative", "survival"] or not rules.get("setup") is Dictionary or not rules.get("tuning") is Dictionary:
+			return false
+		if not Balance.valid_tuning(rules.tuning): return false
+		if not rules.setup.is_empty():
+			if rules.setup.size() != 2 or not rules.setup.get("name") is String or not rules.setup.get("description") is String:
+				return false
+			if rules.setup.name.strip_edges().is_empty() or rules.setup.name.length() > 80 or rules.setup.description.length() > 4000:
+				return false
 	var shapes := {
 		"progress": {"id": "uuid", "gold": "number", "reserve": "number", "lifetime_earnings": "number", "kills": "number", "escapes": "number", "next_tower": "number", "automation": "bool", "first_property_required": "bool"},
 		"checkpoints": {"id": "uuid", "last_accounted": "number", "active_seconds": "number"},
@@ -216,6 +236,9 @@ func _shape(p: Variant) -> bool:
 		"production": {"id": "uuid", "region_id": "uuid", "tower_id": "uuid", "earned": "number"},
 		"preferences": {"id": "uuid", "master": "number", "menu": "number", "towers": "number", "enemies": "number", "bosses": "number", "music": "number", "muted": "bool"}}
 	var ids := {p.world.id: true}
+	if modern:
+		if ids.has(p.world_rules[0].id): return false
+		ids[p.world_rules[0].id] = true
 	for group in GROUPS:
 		if not p.get(group) is Array or p[group].size() > 10000:
 			return false

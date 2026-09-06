@@ -74,6 +74,7 @@ func rebuild() -> void:
 	add_child(UI.action_row("Name on your account", save_name, "Save"))
 	add_child(UI.paragraph("1–32 characters. Your name follows your account across devices.", 12))
 	add_child(UI.rule())
+	add_child(UI.paragraph("Private cloud backup for Save %d · %s. Refresh lists backups; Sync uploads this save. Public sharing is under Settings → Upload build." % [app.active_slot + 1, str(app.game.data.get("mode", "creative")).capitalize()], 12))
 	var audio_toggle := CheckButton.new()
 	audio_toggle.text = "Sync sound preferences"
 	audio_toggle.button_pressed = service.include_audio
@@ -82,20 +83,21 @@ func rebuild() -> void:
 		service.include_audio = value
 		if service.linked():
 			app.game.data.cloud.include_audio = value
-			app.persist())
+			app.persist()
+			service.sync_now())
 	add_child(UI.action_row("Sync sound preferences", audio_toggle))
 	if not service.conflict.is_empty():
 		add_child(_button("Keep this device's progress…", func(): confirm_local = true; rebuild()))
 		add_child(_button("Use cloud progress…", func(): confirmation_world = service.conflict.world_id; rebuild()))
 	else:
-		add_child(_button("Sync now" if service.linked() else "Back up this device's world", service.sync_now if service.linked() else service.start_backup))
+		add_child(_button("Sync now" if service.linked() else "Sync this save", service.sync_now if service.linked() else service.start_backup))
 	add_child(_button("Refresh cloud saves", service.refresh_worlds))
 	for world in service.worlds:
 		var world_id: String = world.world_id
 		var date: String = str(world.updated_at).substr(0, 16).replace("T", " ")
 		add_child(_button("Restore world %s · %s…" % [str(int(world.seed)), date], func(): confirmation_world = world_id; rebuild()))
 	add_child(_button("Sign out", service.sign_out))
-	add_child(UI.paragraph("Your player name is stored on your account. Only progress, world reconstruction, save revisions and reward checkpoints are uploaded. Sound preferences are optional. Art, code, camera and developer settings stay on this device.", 12))
+	add_child(UI.paragraph("Your player name is stored on your account. Only progress, world reconstruction, save revisions and reward checkpoints are uploaded. Sound preferences are optional. Game mode, configuration and tuned rules are included. Art, code and camera stay on this device.", 12))
 
 func _button(title: String, action: Callable) -> HBoxContainer:
 	var button := UI.button(title, action)
@@ -106,6 +108,6 @@ func _button(title: String, action: Callable) -> HBoxContainer:
 	elif title == "Sign out": caption = "Sign out"
 	elif title == "Cancel": caption = "Cancel"
 	elif title == "Sync now": caption = "Sync"
-	elif title.begins_with("Back up"): caption = "Back up"
+	elif title == "Sync this save": caption = "Sync"
 	elif title.begins_with("Refresh"): caption = "Refresh"
 	return UI.action_row(title, button, caption)

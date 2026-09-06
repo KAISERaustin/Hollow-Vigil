@@ -150,7 +150,7 @@ func show_configurations(slot: int) -> void:
 	add_action(UI.button("Public Builds", show_public_builds.bind(slot)))
 	var saved := slots.configurations()
 	if saved.is_empty():
-		content.add_child(UI.paragraph("No configurations yet. Open a Creative world and use Settings → Save configuration to add one.", 16))
+		content.add_child(UI.paragraph("No configurations yet. Open a Creative world and use Settings → Upload build to add one.", 16))
 	for configuration in saved:
 		content.add_child(UI.heading(configuration.name, 18))
 		if not configuration.description.is_empty():
@@ -164,7 +164,7 @@ func show_configurations(slot: int) -> void:
 		content.add_child(UI.rule())
 
 func show_export() -> void:
-	clear("Save configuration")
+	clear("Upload build")
 	content.add_child(UI.paragraph("Save and automatically publish this world, towers, resources and rules to Public Builds. Your account name, title and description will be visible to everyone. Offline exports upload after you sign in.", 14))
 	content.add_child(UI.heading("Configuration name", 18))
 	var title := LineEdit.new()
@@ -185,7 +185,7 @@ func show_export() -> void:
 	style_entry(description)
 	content.add_child(description)
 	add_back(UI.button("Back to game", close))
-	var save := UI.button("Save configuration", func():
+	var save := UI.button("Upload build", func():
 		if title.text.strip_edges().is_empty() or description.text.length() > 4000:
 			message.text = "Enter a name and keep the description under 4,001 characters."
 			return
@@ -196,10 +196,16 @@ func show_export() -> void:
 		app.public_builds.queue_export(code)
 		app.game.data.setup = {"name": title.text.strip_edges(), "description": description.text}
 		app.persist()
-		clear("Configuration saved")
+		clear("Build saved locally")
 		message.text = app.public_builds.status
 		upload_revision = view_revision
 		content.add_child(UI.paragraph("“%s” is in your configuration library. To use it, open an empty save and choose Saved configuration." % title.text.strip_edges(), 16))
+		add_action(UI.button("Public Builds", show_public_builds))
+		if not app.cloud.signed_in() or app.cloud.display_name.is_empty():
+			add_action(UI.button("Account & cloud saves", func():
+				close()
+				app.panels.show_cloud_saves()
+			))
 		add_action(UI.button("Your saves", show_slots))
 		add_back(UI.button("Back to game", close))
 	)
