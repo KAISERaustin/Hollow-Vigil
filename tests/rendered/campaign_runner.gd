@@ -86,8 +86,8 @@ func run() -> void:
 		check(not campaign.run.game.combat.enemies.is_empty(), "Wave button starts visible authored enemies")
 		await Harness.capture(app,"campaign-battle-"+str(viewport.x))
 		campaign.show_map()
-		campaign.resume_checkpoint()
-		check(campaign.run.phase == "planning" and campaign.run.game.data.towers.size() == 1, "Leaving and resuming restores the preparation checkpoint")
+		campaign.start_mission(0)
+		check(campaign.run.phase == "planning" and campaign.run.game.data.towers.is_empty(), "Leaving an unfinished level restarts it without saved towers")
 		await frame()
 	# Mission tuning must reach both menu quotes and the shared transactions.
 	campaign.start_mission(0)
@@ -109,7 +109,7 @@ func run() -> void:
 	check(Balance.tower_stats(tuned_tower, campaign.run.game.tuning).damage == 20.0, "Campaign combat resolves tuned tier damage")
 	# Inspect a later-region briefing and the final completion UI independently
 	# of the full legal-combat playthrough covered by campaign_balance_runner.
-	campaign.progress.data.medals.fill(1)
+	campaign.progress.data.completed_levels = 19
 	campaign.show_briefing(19)
 	await frame()
 	await Harness.capture(app,"campaign-final-briefing")
@@ -118,7 +118,7 @@ func run() -> void:
 	campaign.run.health = 20
 	campaign.show_result()
 	await frame()
-	check(campaign.progress.data.medals[19] == 3 and campaign.dialog.visible, "Final victory saves the medal and presents the ending")
+	check(campaign.progress.data.completed_levels == 20 and campaign.dialog.visible, "Final victory saves completion and presents the ending")
 	check(campaign.find_child("NextCampaignLevel",true,false) == null, "Final victory cannot open a nonexistent level 21")
 	await Harness.capture(app,"campaign-complete")
 	var campaign_path: String = campaign.progress.path

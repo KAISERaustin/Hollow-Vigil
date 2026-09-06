@@ -85,6 +85,11 @@ func run() -> void:
 	s.responses.append({"ok":false,"code":0,"data":null})
 	await s.start_backup()
 	check(not s.pending.is_empty() and g.data.cloud.revision == 0, "Failed network retains outbox without advancing revision")
+	var idle_requests := s.requests.size()
+	s.enabled = true
+	s._process(3600.0)
+	s._process(3600.0)
+	check(s.requests.size() == idle_requests, "Signed-in idle time and legacy pending upload never trigger requests")
 	var mutation: String = s.pending.mutation
 	var payload: Dictionary = s.pending.payload.duplicate(true)
 	g.data.balance += 37.0
@@ -98,11 +103,11 @@ func run() -> void:
 	check(s.conflict.revision == 2 and g.data.cloud.revision == 1, "Conflict preserves local progress and base revision")
 	var before := s.requests.size()
 	await s.sync_now()
-	check(s.requests.size() == before, "Conflict blocks automatic overwrite")
+	check(s.requests.size() == before, "Conflict blocks unconfirmed overwrite")
 	s.responses.append({"ok":true,"code":200,"data":{"status":"ok","revision":3}})
 	await s.keep_local()
 	check(s.requests[-1].body.expected_revision == 2 and s.requests[-1].body.mutation != mutation, "Explicit local choice still uses compare-and-swap")
-	check(s.conflict.is_empty() and g.data.cloud.revision == 3, "Resolved conflict resumes synchronization")
+	check(s.conflict.is_empty() and g.data.cloud.revision == 3, "Explicit conflict resolution completes only this upload")
 	# Crash/restart while offline: reload the queued snapshot under the same account.
 	s.responses.append({"ok":false,"code":0,"data":null})
 	await s.sync_now()
@@ -115,6 +120,9 @@ func run() -> void:
 	s2.refresh_token = "synthetic"
 	s2._load_pending()
 	check(s2.pending.get("mutation") == queued, "Outbox survives restart")
+	s2.enabled = true
+	s2._process(3600.0)
+	check(s2.requests.is_empty(), "Restart and recovered outbox cannot upload without an action")
 	s2.player_id = Codec.uuid()
 	s2._load_pending()
 	check(s2.pending.is_empty(), "Different account cannot send previous account outbox")

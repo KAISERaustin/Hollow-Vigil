@@ -90,13 +90,8 @@ func show_map() -> void:
 		save_progress()
 	clear_page("map")
 	header("The Last Procession", close)
-	var cleared := 0
-	var medals := 0
-	for amount in progress.data.medals:
-		if amount > 0:
-			cleared += 1
-		medals += int(amount)
-	layout.add_child(UI.paragraph("%d / 20 sanctuaries lit   ·   %d / 60 medals" % [cleared, medals], 13))
+	var cleared := int(progress.data.completed_levels)
+	layout.add_child(UI.paragraph("%d / %d levels completed" % [cleared, Catalog.COUNT], 13))
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -107,12 +102,14 @@ func show_map() -> void:
 	world.progress = progress
 	world.level_picked.connect(show_briefing)
 	scroll.add_child(world)
-	if not progress.data.checkpoint.is_empty() and not progress.blocked:
-		var saved: Dictionary = progress.data.checkpoint
-		var resume := UI.gold_button("Continue · Level %d, wave %d" % [saved.level+1, saved.wave+1], resume_checkpoint, 48)
-		resume.name = "ResumeCampaign"
-		layout.add_child(resume)
-	save_notice = UI.paragraph(progress.last_error if not progress.last_error.is_empty() else "20 handcrafted battles. Your campaign saves separately on this device.", 12)
+	if cleared < Catalog.COUNT and not progress.blocked:
+		var next := UI.gold_button("Play level %d" % (cleared + 1), start_mission.bind(cleared), 48)
+		next.name = "ContinueCampaign"
+		layout.add_child(next)
+	var backups := UI.button("Account & backups", func(): app.show_backups())
+	backups.name = "CampaignBackups"
+	layout.add_child(backups)
+	save_notice = UI.paragraph(progress.last_error if not progress.last_error.is_empty() else "Completed levels save on this device. Unfinished levels restart. Cloud backups are uploaded only when you choose Upload.", 12)
 	layout.add_child(save_notice)
 	if cleared == 20:
 		layout.add_child(UI.paragraph("Dawn reaches the capital. Every sanctuary burns again. Replay any level to perfect your vigil.", 15))
@@ -140,15 +137,6 @@ func start_mission(index: int) -> void:
 	connect_run()
 	show_battle()
 	save_progress()
-
-func resume_checkpoint() -> void:
-	if progress.data.checkpoint.is_empty() or progress.blocked:
-		return
-	var saved: Dictionary = progress.data.checkpoint.duplicate(true)
-	run = Run.new(int(saved.level))
-	run.restore(saved)
-	connect_run()
-	show_battle()
 
 func connect_run() -> void:
 	run.changed.connect(func():
@@ -250,7 +238,7 @@ func show_waves() -> void:
 	open_dialog("Waves & rules")
 	dialog_body.add_child(UI.paragraph("Fresh gold and towers every level. Bounties go straight to your gold. Start each wave when ready; building and upgrading also work during battle.", 14))
 	dialog_body.add_child(UI.paragraph("Protect 20 flame. A Hollow, Wraith or Keeper costs 1; a Revenant or Shade costs 2; a Sentinel costs 3. A boss reaching the sanctuary ends the mission.", 14))
-	dialog_body.add_child(UI.paragraph("Medals: 3 for no leaks, 2 for at least 10 flame, 1 for surviving. Each cleared wave grants %d gold. Progress saves at preparation checkpoints; an interrupted wave restarts from that checkpoint." % run.mission.reward, 14))
+	dialog_body.add_child(UI.paragraph("Each cleared wave grants %d gold. Only completed levels are saved. Leaving an unfinished level means restarting that level." % run.mission.reward, 14))
 	for index in range(run.mission.waves.size()):
 		dialog_body.add_child(UI.heading("Wave %d%s" % [index+1, " · Cleared" if index < run.wave else ""], 18))
 		dialog_body.add_child(UI.paragraph(Catalog.wave_text(run.mission, index), 14))
@@ -317,8 +305,7 @@ func show_result() -> void:
 	var won: bool = run.phase == "victory"
 	open_dialog("Sanctuary restored" if won else "The flame went out")
 	if won:
-		dialog_body.add_child(UI.heading("●".repeat(run.medal()) + "○".repeat(3-run.medal()),30))
-		dialog_body.add_child(UI.paragraph("%d flame remains. Your best medal is kept on the world map." % run.health,15))
+		dialog_body.add_child(UI.paragraph("%d flame remains. Level completed. Your progress is saved on this device." % run.health,15))
 		if run.mission.index == 19:
 			dialog_body.add_child(UI.paragraph("The Prior falls. Across the kingdom, twenty sanctuaries answer the last flame. For the first time in an age, the capital sees dawn.",18))
 		else:
@@ -326,8 +313,7 @@ func show_result() -> void:
 			next.name = "NextCampaignLevel"
 			dialog_body.add_child(next)
 	else:
-		dialog_body.add_child(UI.paragraph("Reconsider your coverage and target priorities. The preparation checkpoint keeps the gold and flame you had before this wave.",15))
-		dialog_body.add_child(UI.gold_button("Retry from checkpoint",resume_checkpoint,48))
+		dialog_body.add_child(UI.paragraph("Restart this level with its original gold and flame. Previously completed levels remain saved.",15))
 	dialog_body.add_child(UI.button("Restart level", start_mission.bind(run.mission.index),48))
 	dialog_body.add_child(UI.button("World map",show_map,48))
 	if not progress.last_error.is_empty():

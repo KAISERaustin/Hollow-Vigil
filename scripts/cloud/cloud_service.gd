@@ -16,8 +16,9 @@ var email := ""
 var display_name := ""
 const MAX_NAME_LENGTH := 32
 var busy := false
-var status := "Cloud saves are optional. Your progress stays on this device until you sign in."
+var status := "Your progress saves on this device. Cloud backups upload only when you choose Upload."
 var worlds: Array = []
+var backup_slot := -1
 var conflict: Dictionary = {}
 var pending: Dictionary = {}
 var include_audio := false
@@ -42,13 +43,9 @@ func signed_in() -> bool:
 func linked() -> bool:
 	return signed_in() and game.data.get("cloud", {}).get("player_id", "") == player_id
 
-func _process(delta: float) -> void:
-	if not enabled or game == null or game.suspended or not linked() or busy or not conflict.is_empty():
-		return
-	sync_timer += delta
-	if sync_timer >= 60.0 and Time.get_ticks_msec() / 1000.0 >= retry_after:
-		sync_timer = 0.0
-		sync_now()
+# Uploads are manual only. In particular, legacy outboxes never run on a timer.
+func _process(_delta: float) -> void:
+	pass
 
 func _say(message: String) -> void:
 	status = message
@@ -184,7 +181,7 @@ func refresh_worlds() -> void:
 	busy = false
 	if result.ok and result.data is Array:
 		worlds = result.data
-		_say("Signed in. Choose a cloud save to restore, or Sync this save to upload it." if not linked() else "Cloud saves are connected. This device syncs every minute while online.")
+		_say("Signed in. Choose Upload to back up a save, or Restore to download a backup." if not linked() else "Backups are manual. Playing and signing in never upload progress.")
 	else:
 		_say(_error(result))
 
@@ -233,7 +230,7 @@ func sync_now() -> void:
 			_save_pending()
 			_say("Saved to cloud · revision %d. You can continue on another device." % int(meta.revision))
 		else:
-			_say("Cloud save succeeded, but local sync confirmation could not be saved. It will retry safely.")
+			_say("Cloud save succeeded, but local sync confirmation could not be saved. Choose Retry upload to confirm this attempt.")
 	elif result.ok and result.data is Dictionary and result.data.get("status") == "conflict":
 		conflict = {"world_id": meta.world_id, "revision": int(result.data.revision)}
 		_say("Another device saved this world. Choose which progress to continue. Neither balance will be added to the other.")
@@ -340,7 +337,7 @@ func _error(result: Dictionary) -> String:
 			"otp_expired":
 				return "That email code has expired or was already used. Request a new code."
 	match int(result.get("code", 0)):
-		0: return "Offline or unable to reach cloud saves. Keep playing; queued progress will retry later."
+		0: return "Offline or unable to reach cloud saves. Your progress stays local. Choose Retry upload when you want to try again."
 		401, 403: return "Sign in again to use cloud saves. Offline play is available."
 		429: return "Cloud service is temporarily rate-limited. Wait a little before trying again."
 		_: return "Cloud request failed. Your local progress is safe; please try again."

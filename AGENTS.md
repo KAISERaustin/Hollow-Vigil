@@ -1,5 +1,16 @@
 # Repository instructions
 
+## Reusable node system for every addition
+
+- This is the default architecture for **everything added to the game**, not just attributes: entities, mechanics, abilities, effects, gear, enemies, bosses, towers, levels, world features, progression and the systems connecting them. Integrate each addition into the reusable node/component structure, or introduce a reusable node family when needed. Do not build isolated, one-off implementations that future mechanics cannot reuse.
+- Before implementing an addition, identify its reusable node/category, its shared rules and its composable parts. Reuse or extend existing nodes first; define new behavior in reusable objects, then assign or compose those objects where needed. Make future reassignment, combination and extension straightforward.
+- Build future game content around the hierarchy in `scripts/content/` and the extension guide in `docs/NODE_SYSTEM.md`. Shared categories such as Tower, Enemy, Boss, Gear and Level define common identity and rules; specific types inherit those foundations. Boss is an Enemy subtype, and towers share their plus-sign placement rules.
+- Implement new optional mechanics, abilities, modifiers and other reusable attributes as **attachable attribute/component objects**. Define a behavior once so the same object can be assigned to one content type or several different types. Prefer composition for these capabilities instead of adding type-specific conditionals to a common parent or copying behavior between subclasses.
+- Attaching an attribute must affect only its assigned recipients. Do not mutate the shared parent, sibling types or unrelated game sessions. Keep shared attribute configuration separate from mutable per-instance state: timers, counters, cooldowns and effect progress belong to each spawned/placed instance, even when several types share the same attribute object.
+- Support explicit attachment, replacement and removal through the owning system. Clean up removed effects and reset attribute state when instances are recycled. Apply this pattern across enemies, bosses, towers, gear, levels and future content families where a capability can be shared.
+- Connect attributes to actual gameplay through the existing simulation/service boundaries. Keep transactions, save validation and rendering in their respective owners. Verify that an attribute works on multiple assigned types, leaves unassigned types unchanged, and does not share runtime state between instances; add persistence coverage when its configuration or state is meant to survive saves.
+- Treat examples offered to explain this architecture as design context, not authorization to add that example mechanic or change game balance. The user's September 6, 2026 example of an enemy periodically walking faster describes the desired reuse model; it is not a request to add a speed-boost ability.
+
 ## Preferred TestFlight upload method
 
 - Prefer Xcode Organizer for uploading iOS archives: open the current `.xcarchive` in Xcode, choose **Distribute App → App Store Connect → Distribute**, and use the existing signed-in developer account. The user explicitly requested this preference on September 6, 2026 after Organizer succeeded while `xcodebuild -exportArchive` failed with an App Store Connect credentials error.

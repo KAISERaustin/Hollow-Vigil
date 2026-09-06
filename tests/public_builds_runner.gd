@@ -34,6 +34,8 @@ func run() -> void:
 	await service.flush()
 	check(cloud.sent.is_empty() and service.outbox.size() == 1, "Unnamed accounts retain exports until name is set")
 	cloud.display_name = "Builder"
+	service._process(3600.0)
+	check(cloud.sent.is_empty(), "Signing in, naming an account and elapsed time never auto-publish")
 	await service.flush()
 	check(service.outbox.size() == 1 and service.outbox[0].owner == cloud.player_id, "Failure preserves export and account binding")
 	var restored := preload("res://scripts/cloud/public_builds.gd").new()

@@ -10,6 +10,8 @@ var slot_active := true
 var active_slot := 0
 var audio: Node
 var public_builds: Node
+var campaign_progress := preload("res://scripts/campaign/progress.gd").new()
+var campaign_backup: Node
 var cloud: Node
 var hud: VigilHUD
 var game := VigilState.new()
@@ -58,6 +60,18 @@ func _ready() -> void:
 	cloud.enabled = load_saved_progress
 	cloud.restore_requested.connect(restore_cloud_progress)
 	add_child(cloud)
+	if not load_saved_progress:
+		campaign_progress.path = game.save_path + ".campaign-test"
+	campaign_progress.load_progress()
+	campaign_backup = preload("res://scripts/cloud/campaign_backup.gd").new()
+	campaign_backup.cloud = cloud
+	campaign_backup.progress = campaign_progress
+	campaign_backup.restored.connect(func():
+		if is_instance_valid(campaign):
+			campaign.run = null
+			campaign.show_map()
+	)
+	add_child(campaign_backup)
 	public_builds = preload("res://scripts/cloud/public_builds.gd").new()
 	public_builds.cloud = cloud
 	if not load_saved_progress:
@@ -464,6 +478,19 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func restore_cloud_progress(snapshot: Dictionary, _world_id: String, _revision: int) -> void:
+	if cloud.backup_slot >= 0 and (not slot_active or cloud.backup_slot != active_slot):
+		var target: VigilState = cloud.game
+		var archive := target.save_path + ".before-cloud-" + preload("res://scripts/cloud/cloud_codec.gd").uuid()
+		var sequence := 0
+		for suffix in ["", ".tmp", ".bak"]:
+			var candidate := target.storage.read_candidate(target.save_path + suffix)
+			sequence = maxi(sequence, int(candidate.get("sequence", 0)))
+			if FileAccess.file_exists(target.save_path + suffix) and DirAccess.copy_absolute(target.save_path + suffix, archive + suffix) != OK:
+				cloud.restore_completed(false)
+				return
+		snapshot.sequence = sequence + 1
+		cloud.restore_completed(target.storage.write(target.save_path, snapshot))
+		return
 	# Archive first, then use the same validated, atomic local save machinery.
 	var archive := game.save_path + ".before-cloud-" + preload("res://scripts/cloud/cloud_codec.gd").uuid() + ".save"
 	if not game.storage.write(archive, game.snapshot()):
@@ -500,7 +527,7 @@ func restore_cloud_progress(snapshot: Dictionary, _world_id: String, _revision: 
 		show_return_earnings(game.offline_award)
 
 func show_save_slots(exporting: bool = false) -> bool:
-	if cloud.busy or not cloud.pending.is_empty() or not cloud.conflict.is_empty():
+	if cloud.busy:
 		toast("Finish the current cloud operation before changing saves.")
 		return false
 	persist()
@@ -541,6 +568,7 @@ func show_campaign() -> void:
 	hud.hide()
 	campaign = preload("res://scripts/campaign/screen.gd").new()
 	campaign.app = self
+	campaign.progress = campaign_progress
 	if not load_saved_progress:
 		campaign.progress.path = game.save_path + ".campaign-test"
 	campaign.closed.connect(func():
@@ -580,7 +608,7 @@ func activate_slot(next: VigilState, slot: int) -> void:
 	cloud.sync_timer = 0.0
 	cloud._load_pending()
 	if cloud.signed_in():
-		cloud._say("This save is connected · revision %d. Sync now to upload changes." % int(game.data.cloud.revision) if cloud.linked() else "This save has not been uploaded to this account. Choose Sync this save to create its backup.")
+		cloud._say("Backup revision %d. Choose Upload to replace it." % int(game.data.cloud.revision) if cloud.linked() else "This save has not been uploaded to this account. Choose Upload to create its backup.")
 	audio.bind_game()
 	accumulator = 0.0
 	save_timer = 0.0
@@ -593,3 +621,51 @@ func activate_slot(next: VigilState, slot: int) -> void:
 	field.queue_redraw()
 	if game.offline_award >= 1.0:
 		show_return_earnings(game.offline_award)
+
+# This view is reachable from Campaign or the save picker, without starting a world.
+func show_backups() -> void:
+	if is_instance_valid(campaign):
+		campaign.paused = true
+	panels.show_cloud_saves()
+	panels.move_to_front()
+
+class StoredBackup extends VigilState:
+	# Backing up an inactive slot must not account offline income or advance time.
+	func snapshot(_now: float = -1.0) -> Dictionary:
+		return data.duplicate(true)
+
+func backup_game(slot: int, allow_empty: bool = false) -> VigilState:
+	if slot < 0 or slot >= VigilSaveSlots.COUNT: return null
+	if slot_active and slot == active_slot: return game
+	var slots := slot_menu.slots as VigilSaveSlots if is_instance_valid(slot_menu) else VigilSaveSlots.new()
+	var saved := slots.summary(slot)
+	if saved.is_empty() and not allow_empty: return null
+	var target := StoredBackup.new()
+	target.save_path = slots.path_for(slot)
+	if not saved.is_empty(): target.data = saved
+	return target
+
+func upload_infinite_backup(slot: int, replace: bool = false) -> void:
+	if cloud.busy: return
+	var target := backup_game(slot)
+	if target == null:
+		cloud._say("This slot has no readable save to upload.")
+		return
+	if cloud.backup_slot != slot: cloud.conflict.clear()
+	cloud.backup_slot = slot
+	cloud.game = target
+	cloud._load_pending()
+	if replace: await cloud.keep_local()
+	else: await cloud.start_backup()
+	cloud.game = game
+	cloud.changed.emit()
+
+func restore_infinite_backup(slot: int, world_id: String) -> void:
+	if cloud.busy: return
+	var target := backup_game(slot, true)
+	if target == null: return
+	cloud.backup_slot = slot
+	cloud.game = target
+	await cloud.restore_world(world_id)
+	cloud.game = game
+	cloud.changed.emit()

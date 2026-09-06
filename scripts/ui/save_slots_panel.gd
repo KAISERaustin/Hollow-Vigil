@@ -93,7 +93,7 @@ func show_slots() -> void:
 				body.add_child(UI.paragraph(snapshot.setup.name, 16))
 			body.add_child(UI.paragraph("%d territories · %d towers" % [snapshot.regions.size(), snapshot.towers.size()], 13))
 			var synced := int(snapshot.get("cloud", {}).get("revision", 0)) > 0
-			body.add_child(UI.paragraph("Cloud backup linked · Sync in Account & cloud backups" if synced else "On this device · Cloud backup available in Settings", 12))
+			body.add_child(UI.paragraph("Cloud backup available · Upload changes manually" if synced else "On this device · Upload a backup whenever you choose", 12))
 		elif exists:
 			body.add_child(UI.paragraph("This game could not be read. Its recovery files are preserved.", 14))
 		else:
@@ -108,6 +108,9 @@ func show_slots() -> void:
 		if exists:
 			body.add_child(UI.action_row("Make room for a new game", UI.button("Archive game", show_archive.bind(slot)), "Archive"))
 	content.add_child(UI.rule())
+	if not app.public_builds.outbox.is_empty():
+		add_action(UI.button("Retry public uploads", app.public_builds.flush))
+	add_action(UI.button("Account & backups", app.show_backups))
 	add_action(UI.button("Browse community builds", show_public_builds))
 	if app.slot_active:
 		add_back(UI.button("Back to game", close))
@@ -222,7 +225,7 @@ func show_export() -> void:
 	content.add_child(UI.rule())
 	content.add_child(UI.paragraph("Save to My builds keeps a private copy on this device. Upload public build shares it with everyone, including your player name and description. Account details and sound settings are excluded.", 13))
 	if not app.cloud.signed_in() or app.cloud.display_name.is_empty():
-		content.add_child(UI.paragraph("Public uploads wait until you sign in and choose a player name. Local builds need no account.", 13))
+		content.add_child(UI.paragraph("Public uploads require sign-in and a player name. Failed attempts need an explicit retry. Local builds need no account.", 13))
 	var local := UI.button("Save to My builds", save_build.bind(title, description, false))
 	local.name = "SaveLocalBuild"
 	footer.add_child(local)
@@ -241,7 +244,8 @@ func save_build(title: LineEdit, description: TextEdit, publish: bool) -> void:
 		message.text = slots.error
 		return
 	if publish:
-		app.public_builds.queue_export(slots.export_build(app.game, build_name, details))
+		if app.public_builds.queue_export(slots.export_build(app.game, build_name, details)):
+			app.public_builds.flush()
 	app.game.data.setup = {"name": build_name, "description": details}
 	app.persist()
 	clear("Build upload" if publish else "Build saved")

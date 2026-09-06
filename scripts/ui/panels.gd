@@ -433,7 +433,7 @@ func show_settings() -> void:
 	upload.disabled = not game.is_creative()
 	sheet_content.add_child(UI.action_row("Upload build\nSave a reusable copy privately or share it publicly", upload, "Open"))
 	if not game.is_creative():
-		sheet_content.add_child(UI.paragraph("Public builds are shared from Creative saves. Use Account & cloud backups to sync this Survival save.", 12))
+		sheet_content.add_child(UI.paragraph("Public builds are shared from Creative saves. Use Account & cloud backups to upload this Survival save.", 12))
 
 func show_sound_settings() -> void:
 	mode = "sound"
@@ -509,4 +509,4 @@ func show_cloud_saves() -> void:
 	var controls := preload("res://scripts/cloud/cloud_panel.gd").new()
 	controls.app = app
 	sheet_content.add_child(controls)
-	add_header_back("Back to settings", show_settings)
+	add_header_back("Close backups", close_sheet)

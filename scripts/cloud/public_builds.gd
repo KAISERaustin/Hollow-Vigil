@@ -16,11 +16,9 @@ func _ready() -> void:
 		if saved is Array:
 			outbox = saved
 
-func _process(delta: float) -> void:
-	retry_in -= delta
-	if retry_in <= 0 and not busy and not outbox.is_empty() and cloud.signed_in() and not cloud.busy:
-		retry_in = 60.0
-		flush()
+# Publication attempts are explicit too; sign-in/reconnection never drains this file.
+func _process(_delta: float) -> void:
+	pass
 
 func _save() -> bool:
 	var config := ConfigFile.new()
@@ -37,7 +35,7 @@ func queue_export(code: String) -> bool:
 		outbox.pop_back()
 		status = "Saved locally, but couldn't queue the public upload. Please export again."
 		return false
-	status = "Queued for Community builds. Upload will retry automatically." if cloud.signed_in() else "Queued for Community builds. Sign in and set your account name to upload."
+	status = "Public upload prepared. Choose Upload to send it." if cloud.signed_in() else "Saved locally. Sign in, set your name, then choose Retry public uploads."
 	retry_in = 0.0
 	changed.emit()
 	return true
@@ -67,12 +65,12 @@ func flush() -> void:
 		if cloud.player_id != account_id:
 			break
 		if not result.ok:
-			status = "Public upload pending. Check your connection and account name; it will retry automatically."
+			status = "Public upload pending. Check your connection and account name, then choose Retry public uploads."
 			break
 		outbox.erase(item)
 		if not _save():
 			outbox.append(item)
-			status = "Published; local confirmation will retry safely."
+			status = "Published; choose Retry public uploads to confirm safely."
 			break
 		status = "Build published to Community builds."
 	busy = false

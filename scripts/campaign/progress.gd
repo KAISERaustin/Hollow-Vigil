@@ -2,52 +2,15 @@ extends VigilSaveStore
 
 const Catalog = preload("res://scripts/campaign/catalog.gd")
 var path := "user://vigil-campaign.save"
-var data := {"version": 1, "sequence": 0, "medals": [], "checkpoint": {}}
+var data := {"version": 2, "sequence": 0, "completed_levels": 0}
 var blocked := false
+var legacy_candidates := {}
 
-func _init() -> void:
-	data.medals.resize(Catalog.COUNT)
-	data.medals.fill(0)
-
-# Campaign and sandbox use distinct contracts and files. The inherited writer
-# supplies checked temporary writes and backup rotation, not sandbox validation.
 func valid_data(value: Dictionary) -> bool:
-	if value.get("version") != 1 or not number(value.get("sequence"), 0, 1e15, true):
-		return false
-	if not value.get("medals") is Array or value.medals.size() != Catalog.COUNT or not value.get("checkpoint") is Dictionary:
-		return false
-	var locked := false
-	for medal in value.medals:
-		if not number(medal, 0, 3, true) or (locked and medal > 0):
-			return false
-		locked = locked or medal == 0
-	var saved: Dictionary = value.checkpoint
-	if saved.is_empty():
-		return true
-	if not number(saved.get("level"), 0, Catalog.COUNT - 1, true):
-		return false
-	var index := int(saved.level)
-	if index > 0 and value.medals[index - 1] == 0:
-		return false
-	var mission := Catalog.level(index)
-	if not number(saved.get("wave"), 0, mission.waves.size() - 1, true) or not number(saved.get("health"), 1, Catalog.MAX_HEALTH, true) or not number(saved.get("gold"), 0, 1000000):
-		return false
-	if not saved.get("towers") is Array or saved.towers.size() > mission.pads.size():
-		return false
-	var occupied := {}
-	for tower in saved.towers:
-		if not tower is Dictionary or not number(tower.get("socket"), 0, 15, true) or int(tower.socket) not in mission.pads or occupied.has(int(tower.socket)):
-			return false
-		occupied[int(tower.socket)] = true
-		if not tower.get("kind") is String or not Balance.TOWERS.has(tower.kind) or not number(tower.get("level"), 1, 4, true):
-			return false
-		if not tower.get("target_mode") is String or not Balance.TARGET_MODES.has(tower.target_mode) or not tower.get("branch") is String:
-			return false
-		if (tower.level == 4 and not Balance.valid_branch(tower.kind, tower.branch)) or (tower.level != 4 and tower.branch != ""):
-			return false
-	return true
+	return value.size() == 3 and value.get("version") == 2 and number(value.get("sequence"), 0, 1e15, true) and number(value.get("completed_levels"), 0, Catalog.COUNT, true)
 
 func read_candidate(candidate_path: String) -> Dictionary:
+	legacy_candidates.erase(candidate_path)
 	if not FileAccess.file_exists(candidate_path):
 		return {}
 	var parser := JSON.new()
@@ -56,35 +19,59 @@ func read_candidate(candidate_path: String) -> Dictionary:
 	var envelope: Variant = parser.data
 	if not envelope is Dictionary or not envelope.get("payload") is String or envelope.get("checksum") != envelope.payload.sha256_text():
 		return {}
-	if parser.parse(envelope.payload) != OK:
+	if parser.parse(envelope.payload) != OK or not parser.data is Dictionary:
 		return {}
-	var parsed: Variant = parser.data
-	return parsed if parsed is Dictionary and valid_data(parsed) else {}
+	var parsed: Dictionary = parser.data
+	if parsed.get("version") == 1:
+		if not number(parsed.get("sequence"), 0, 1e15, true) or not parsed.get("medals") is Array or parsed.medals.size() != Catalog.COUNT:
+			return {}
+		var completed := 0
+		var locked := false
+		for medal in parsed.medals:
+			if not number(medal, 0, 3, true) or (locked and medal > 0):
+				return {}
+			locked = locked or medal == 0
+			if medal > 0: completed += 1
+		# Legacy checkpoints are deliberately discarded; only victories migrate.
+		legacy_candidates[candidate_path] = true
+		parsed = {"version": 2, "sequence": parsed.sequence, "completed_levels": completed}
+	return parsed if valid_data(parsed) else {}
 
 func load_progress() -> void:
 	var best := {}
+	var best_path := ""
 	var found := false
 	for suffix in ["", ".tmp", ".bak"]:
 		found = found or FileAccess.file_exists(path + suffix)
 		var candidate := read_candidate(path + suffix)
 		if not candidate.is_empty() and (best.is_empty() or candidate.sequence > best.sequence):
 			best = candidate
+			best_path = path + suffix
 	blocked = found and best.is_empty()
-	last_error = "Campaign progress could not be read. Your files are preserved." if blocked else ""
+	last_error = "Campaign progress could not be read. Your files are preserved. Restore a cloud backup to recover." if blocked else ""
 	if not best.is_empty():
 		data = best
+		if legacy_candidates.has(best_path):
+			var archive := path + ".before-v2-" + str(Time.get_ticks_usec())
+			if DirAccess.copy_absolute(best_path, archive) != OK:
+				blocked = true
+				last_error = "Couldn't preserve the old campaign save. Your files are unchanged."
+			elif not flush():
+				blocked = true
 
 func unlocked(index: int) -> bool:
-	return not blocked and index >= 0 and index < Catalog.COUNT and (index == 0 or data.medals[index - 1] > 0)
+	return not blocked and index >= 0 and index < Catalog.COUNT and index <= int(data.completed_levels)
 
 func save_run(run: RefCounted) -> bool:
 	if blocked:
 		return false
-	if run.phase == "victory":
-		data.medals[run.mission.index] = maxi(int(data.medals[run.mission.index]), run.medal())
-		data.checkpoint = {}
-	else:
-		data.checkpoint = run.checkpoint.duplicate(true)
+	if run.phase != "victory":
+		return true
+	var completed := int(run.mission.index) + 1
+	if completed > int(data.completed_levels) + 1:
+		last_error = "Complete the preceding level first."
+		return false
+	data.completed_levels = maxi(int(data.completed_levels), completed)
 	return flush()
 
 func flush() -> bool:
@@ -92,3 +79,22 @@ func flush() -> bool:
 		return false
 	data.sequence += 1
 	return write(path, data)
+
+func restore_completed_levels(completed: int) -> bool:
+	if completed < 0 or completed > Catalog.COUNT:
+		return false
+	var sequence := int(data.sequence)
+	var archive := path + ".before-cloud-" + str(Time.get_ticks_usec())
+	# Preserve even unreadable originals before a deliberate recovery.
+	for suffix in ["", ".tmp", ".bak"]:
+		var candidate := read_candidate(path + suffix)
+		sequence = maxi(sequence, int(candidate.get("sequence", 0)))
+		if FileAccess.file_exists(path + suffix) and DirAccess.copy_absolute(path + suffix, archive + suffix) != OK:
+			last_error = "Couldn't preserve the current campaign. Restore was cancelled."
+			return false
+	var replacement := {"version": 2, "sequence": sequence + 1, "completed_levels": completed}
+	if not write(path, replacement):
+		return false
+	data = replacement
+	blocked = false
+	return true

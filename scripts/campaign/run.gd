@@ -12,7 +12,6 @@ var health := Catalog.MAX_HEALTH
 var wave_time := 0.0
 var schedule: Array[Dictionary] = []
 var next_spawn := 0
-var checkpoint: Dictionary = {}
 
 func _init(index: int = 0) -> void:
 	mission = Catalog.level(index)
@@ -32,12 +31,10 @@ func _init(index: int = 0) -> void:
 	game.combat.scripted_spawns = true
 	game.combat.rng.seed = 91000 + index
 	game.combat.enemy_escaped.connect(_escaped)
-	refresh_checkpoint()
 
 func start_wave() -> bool:
 	if phase != "planning" or wave >= mission.waves.size():
 		return false
-	refresh_checkpoint()
 	schedule = Balance.Content.wave(mission.index, wave).schedule()
 	next_spawn = 0
 	wave_time = 0.0
@@ -74,7 +71,6 @@ func tick(delta: float) -> void:
 		game.combat.relic_progress.clear()
 		for tower in game.data.towers.values():
 			tower.cooldown = 0.0
-		refresh_checkpoint()
 		changed.emit()
 		if phase == "victory":
 			finished.emit()
@@ -82,11 +78,6 @@ func tick(delta: float) -> void:
 func _escaped(enemy: Dictionary) -> void:
 	var damage := Balance.Content.enemy(enemy.kind, enemy.get("boss", false)).escape_damage()
 	health = maxi(0, health - damage)
-
-func medal() -> int:
-	if phase != "victory":
-		return 0
-	return 3 if health == Catalog.MAX_HEALTH else (2 if health >= 10 else 1)
 
 func editable() -> bool:
 	return phase in ["planning", "wave"]
@@ -126,30 +117,4 @@ func target(socket: int, mode: String) -> bool:
 	return true
 
 func _after_edit() -> void:
-	if phase == "planning":
-		refresh_checkpoint()
 	changed.emit()
-
-func refresh_checkpoint() -> void:
-	if phase != "planning":
-		return
-	var towers: Array = []
-	for socket in mission.pads:
-		var id := tower_at(socket)
-		if not id.is_empty():
-			var tower: Dictionary = game.data.towers[id]
-			towers.append({"socket": socket, "kind": tower.kind, "level": tower.level, "branch": tower.get("branch", ""), "target_mode": tower.target_mode})
-	checkpoint = {"level": mission.index, "wave": wave, "health": health, "gold": game.data.balance, "towers": towers}
-
-func restore(saved: Dictionary) -> void:
-	# The progress store validates this compact preparation snapshot first.
-	wave = int(saved.wave)
-	health = int(saved.health)
-	for tower in saved.towers:
-		var pad := Catalog.socket(int(tower.socket))
-		var id := game.economy._add_tower(tower.kind, pad.region, pad.pad)
-		game.data.towers[id].level = int(tower.level)
-		game.data.towers[id].branch = tower.branch
-		game.data.towers[id].target_mode = tower.target_mode
-	game.data.balance = float(saved.gold)
-	refresh_checkpoint()

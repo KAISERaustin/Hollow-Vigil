@@ -14,7 +14,7 @@ func _ready() -> void:
 		var button := UI.button(str(index + 1), func(): level_picked.emit(index), 48)
 		button.name = "CampaignLevel%d" % (index + 1)
 		button.disabled = not progress.unlocked(index)
-		button.accessibility_name = "Level %d: %s. %s" % [index + 1, Catalog.MISSIONS[index].name, "Locked" if button.disabled else "%d of 3 medals" % progress.data.medals[index]]
+		button.accessibility_name = "Level %d: %s. %s" % [index + 1, Catalog.MISSIONS[index].name, "Locked" if button.disabled else ("Completed" if index < progress.data.completed_levels else "Ready")]
 		add_child(button)
 		nodes.append(button)
 	resized.connect(arrange)
@@ -44,19 +44,19 @@ func _draw() -> void:
 			var at := point(index)
 			if index > 0:
 				var previous := point(index-1)
-				var color := UI.GOLD if progress.data.medals[index-1] > 0 else palette.darkened(0.3)
+				var color := UI.GOLD if index <= progress.data.completed_levels else palette.darkened(0.3)
 				var road := PackedVector2Array([previous, Vector2(previous.x, (previous.y+at.y)*0.5), Vector2(at.x,(previous.y+at.y)*0.5), at])
 				if i == 0:
 					# Pass around the chapter heading, leaving its text unobstructed.
 					road = PackedVector2Array([previous, Vector2(previous.x,previous.y+32), Vector2(size.x-10,previous.y+32), Vector2(size.x-10,at.y-34), Vector2(at.x,at.y-34), at])
 				draw_polyline(road, color, 5, true)
-			if progress.data.medals[index] > 0:
+			if index < progress.data.completed_levels:
 				draw_circle(at, 31, Color(0.88,0.71,0.4,0.15))
 			var right := at.x < size.x*0.5
 			var origin := Vector2(at.x+34 if right else 12, at.y-4)
 			var width := size.x-origin.x-10 if right else at.x-46
 			var title: String = Catalog.MISSIONS[index].name
 			draw_string(UI.font(600), origin, title, HORIZONTAL_ALIGNMENT_LEFT, width, 12, UI.TEXT if progress.unlocked(index) else UI.MUTED)
-			var medals := int(progress.data.medals[index])
-			var detail := "●".repeat(medals) + "○".repeat(3-medals) if medals > 0 else ("BOSS" if i == 4 else ("Ready" if progress.unlocked(index) else "Locked"))
-			draw_string(UI.font(400), origin+Vector2(0,20), detail, HORIZONTAL_ALIGNMENT_LEFT, width, 11, UI.GOLD if medals > 0 else UI.MUTED)
+			var completed: bool = index < progress.data.completed_levels
+			var detail := "Completed" if completed else ("BOSS" if i == 4 else ("Ready" if progress.unlocked(index) else "Locked"))
+			draw_string(UI.font(400), origin+Vector2(0,20), detail, HORIZONTAL_ALIGNMENT_LEFT, width, 11, UI.GOLD if completed else UI.MUTED)
