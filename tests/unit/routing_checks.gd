@@ -6,10 +6,23 @@ static func fixture(ids: Array) -> VigilState:
 	g.data.balance = 1.0e12
 	for id in ids:
 		g.expand(id)
+	remove_fixture_bosses(g)
 	for r in g.data.regions.values():
 		r.timer = 1000.0
 		r.style = "forest" # Exact route distances use unmodified enemy speeds.
 	return g
+
+static func remove_fixture_bosses(g: VigilState) -> void:
+	# Road tests count ordinary travelers; encounter routing has its own suite.
+	var ordinary: Array[Dictionary] = []
+	for enemy in g.combat.enemies:
+		if enemy.get("boss", false):
+			g.combat.enemy_serial -= 1
+		else:
+			ordinary.append(enemy)
+	g.combat.enemies = ordinary
+	for region in g.data.regions.values(): region.erase("boss")
+	g.data.castles.clear()
 
 static func run(suite: SceneTree) -> void:
 	# Buy the diagonal before the second approach, so its expansion parent
@@ -27,6 +40,7 @@ static func run(suite: SceneTree) -> void:
 			var original_segment: int = existing.segment
 			suite.check(g.combat.route_exits[source] == [horizontal], "Unowned alternative is excluded at " + source)
 			suite.check(g.expand(vertical), "Unlock second approach to " + source)
+			remove_fixture_bosses(g)
 			g.data.regions[vertical].timer = 1000.0
 			suite.check(existing.path == original_path and existing.pos == original_position and existing.segment == original_segment, "Opening an equal route never changes an enemy in transit")
 			var exits: Array = g.combat.route_exits[source]
@@ -83,6 +97,7 @@ static func run(suite: SceneTree) -> void:
 	var old_position: Vector2 = old_enemy.pos
 	suite.check(detour.combat.route_exits["2,0"] == ["2,-1"] and VigilWorld.center("1,0") not in old_path, "A locked direct tile forces enemies along the available detour")
 	suite.check(detour.expand("1,0"), "Purchase a shortcut beside an existing rift")
+	remove_fixture_bosses(detour)
 	detour.data.regions["1,0"].timer = 1000.0
 	suite.check(old_enemy.path == old_path and old_enemy.pos == old_position, "Shortcut preserves the route and position of an existing enemy")
 	suite.check(detour.combat.route_exits["2,0"] == ["1,0"], "Existing rift discovers a shorter non-parent route and excludes the longer detour")

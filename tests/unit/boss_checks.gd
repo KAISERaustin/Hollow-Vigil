@@ -13,6 +13,8 @@ static func fixture(kind: String) -> VigilState:
 			var cell := Vector2i(x,y)
 			if abs(x) + abs(y) < 2:
 				continue
+			if Bosses.Clusters.at(VigilWorld.key(cell), 879).boss_tile != VigilWorld.key(cell):
+				continue
 			if Bosses.kind_at(VigilWorld.key(cell),879) == kind and (target == Vector2i.ZERO or Vector2(cell).length() < Vector2(target).length()):
 				target = cell
 	var cursor := Vector2i.ZERO

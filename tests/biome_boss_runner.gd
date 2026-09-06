@@ -20,5 +20,6 @@ func clean_test_save(path: String) -> void:
 
 func run() -> void:
 	preload("res://tests/unit/boss_checks.gd").run(self)
+	preload("res://tests/unit/biome_cluster_boss_checks.gd").run(self)
 	print("BIOME_BOSSES: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)

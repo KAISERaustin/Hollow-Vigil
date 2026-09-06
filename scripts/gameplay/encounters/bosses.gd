@@ -1,6 +1,7 @@
 extends RefCounted
 
 const Areas = preload("res://scripts/world/hidden_areas.gd")
+const Clusters = preload("res://scripts/world/biome_clusters.gd")
 const TYPES := ["warden", "cindermaw", "bell", "prior", "ruined_king", "mourning_matriarch"]
 const DEFINITIONS = Balance.BOSSES
 
@@ -18,8 +19,8 @@ static func legacy_kind_at(id: String, seed_value: int, castle: bool = false) ->
 	return TYPES[absi(("cluster-boss:" + str(sector) + ":" + str(seed_value)).hash()) % 4]
 
 static func awaken(combat: VigilCombat, id: String) -> void:
-	var gate := Areas.gate(Areas.sector_for(VigilWorld.coord(id)), int(combat.data.seed))
-	if id == gate.id and combat.data.castles.has(gate.id):
+	var cluster := Clusters.at(id, int(combat.data.seed))
+	if cluster.boss_tile != id or has_encounter(combat.data, cluster):
 		return
 	var region: Dictionary = combat.data.regions[id]
 	var kind := kind_at(id, int(combat.data.seed), region.style)
@@ -28,6 +29,38 @@ static func awaken(combat: VigilCombat, id: String) -> void:
 	region.boss = {"status": "active", "kind": kind}
 	create(combat, id, kind)
 	capture(combat, combat.data.regions, combat.data.castles)
+
+static func has_encounter(data: Dictionary, cluster: Dictionary) -> bool:
+	for cell in cluster.cells:
+		var id := VigilWorld.key(cell)
+		if data.regions.get(id, {}).has("boss") or data.get("castles", {}).get(id, {}).has("boss"):
+			return true
+	return false
+
+static func normalize_encounters(data: Dictionary) -> void:
+	# Collapse the previous per-tile release on load. Completed records and
+	# earned relics stay intact; extra active bosses disappear without rewards.
+	var records: Dictionary = data.regions.duplicate()
+	records.merge(data.get("castles", {}), true)
+	var groups := {}
+	for id in records:
+		if not records[id].has("boss"):
+			continue
+		var cluster := Clusters.at(id, int(data.seed))
+		if not groups.has(cluster.id):
+			groups[cluster.id] = []
+		groups[cluster.id].append(id)
+	for ids in groups.values():
+		ids.sort()
+		var chosen: String = ids[0]
+		var site: String = Clusters.at(chosen, int(data.seed)).boss_tile
+		for id in ids:
+			var completed: bool = records[id].boss.status != "active"
+			if completed or (records[chosen].boss.status == "active" and id == site):
+				chosen = id
+		for id in ids:
+			if id != chosen and records[id].boss.status == "active":
+				records[id].erase("boss")
 
 static func record(combat: VigilCombat, id: String) -> Dictionary:
 	return combat.data.castles[id] if combat.data.castles.has(id) else combat.data.regions[id]
@@ -44,7 +77,7 @@ static func discover_castles(combat: VigilCombat) -> void:
 		if Areas.preserved(sector, int(combat.data.seed), combat.data.regions):
 			continue
 		var g := Areas.gate(sector, int(combat.data.seed))
-		if combat.paths.has(g.neighbor) and not combat.data.castles.has(g.id):
+		if combat.paths.has(g.neighbor) and not has_encounter(combat.data, Clusters.at(g.id, int(combat.data.seed))):
 			var kind := castle_kind(sector, int(combat.data.seed))
 			combat.data.castles[g.id] = {"boss": {"status": "active", "kind": kind}}
 			create(combat, g.id, kind)
@@ -218,6 +251,7 @@ static func capture(combat: VigilCombat, regions: Dictionary, castles: Dictionar
 		(castles[e.source] if castles.has(e.source) else regions[e.source]).boss = saved
 
 static func restore(combat: VigilCombat) -> void:
+	normalize_encounters(combat.data)
 	var records: Dictionary = combat.data.regions.duplicate()
 	records.merge(combat.data.get("castles", {}), true)
 	for id in records:

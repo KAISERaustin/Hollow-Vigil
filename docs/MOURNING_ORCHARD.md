@@ -17,7 +17,7 @@ The narrow antlered Briarling pressures attack speed, the split-veiled Widow rew
 - A separate seeded random stream grows exactly one orthogonally connected patch of 6–9 tiles, within coordinates −9…9 and outside the opening two rings. Castle ruins are excluded before growth. No combat/economy RNG is consumed.
 - Every Orchard tile holds a centered portal, connecting roads and four build pads. Each portal has its own spawn timer and traffic upgrades, including on previously saved Orchard tiles.
 - The portal chooses the three inhabitants with equal probability; all are immediately available. Normal unlocks are rejected. Traffic uses normal costs, bounds and cadence.
-- Forced spawns, ordinary rifts, dungeon portals, boss escorts and authored nonportal mission spawns cannot introduce Orchard inhabitants elsewhere. The boss escort dropdown retains its six existing numeric meanings.
+- Forced spawns, other biome portals, boss escorts and authored nonportal mission spawns cannot introduce Orchard inhabitants elsewhere. The boss escort dropdown retains its eight existing numeric meanings.
 - Already purchased regions keep their saved appearance. New worlds guarantee the full patch. An old save that owns the chosen entrance keeps its existing portal; no purchased terrain, towers or attunements are replaced.
 
 ## Configurations and backend

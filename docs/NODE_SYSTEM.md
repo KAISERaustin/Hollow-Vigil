@@ -2,7 +2,7 @@
 
 `scripts/content/registry.gd` builds the game's content tree. Each node inherits attributes, rules and fresh-instance defaults from its parent. Types override only their differences. The running game uses these definitions through the existing Balance, economy, combat, world and campaign APIs.
 
-These are lightweight `RefCounted` **content nodes**, independent of Godot's visual scene nodes. One definition can serve many live entities, levels and headless simulations. Rendering still owns its `Node2D` objects; saves still contain ordinary dictionaries and stable content IDs. No save migration is needed.
+These are lightweight `RefCounted` **content nodes**, independent of Godot's visual scene nodes. One definition can serve many live entities, levels and headless simulations. Rendering still owns its `Node2D` objects; saves still contain ordinary dictionaries and stable content IDs. The portal roster update preserves those IDs and refunds retired attunements through the save owner.
 
 ```mermaid
 graph TD
@@ -17,8 +17,11 @@ graph TD
     Tier3 --> Frostneedle
     Tier3 --> ThornVolley[Thorn Volley]
     Entity --> Enemy
-    Enemy --> Normal
-    Enemy --> Dungeon
+    Enemy --> Forest
+    Enemy --> Forge
+    Enemy --> Crypt
+    Enemy --> Sanctuary
+    Enemy --> Castle
     Enemy --> Orchard
     Enemy --> Boss
     Boss --> Warden
@@ -46,7 +49,7 @@ graph TD
     Content --> Targeting
 ```
 
-The four relics, eleven ordinary enemies, six terrain/portal types, four projectile profiles, eight abilities, every tower tier, and every campaign wave have individual entries. IDs are namespaced: `tower/heavy` is Obelisk; `enemy/heavy` is Revenant. Bosses inherit Enemy in both the content tree and the GDScript class hierarchy.
+The four relics, eighteen ordinary enemies, six terrain/portal types, four projectile profiles, eight abilities, every tower tier, and every campaign wave have individual entries. IDs are namespaced: `tower/heavy` is Obelisk; `enemy/heavy` is Rootbound Revenant. Bosses inherit Enemy in both the content tree and the GDScript class hierarchy.
 
 ## Using a node
 
@@ -113,19 +116,19 @@ To ship a tower, add its rows to `scripts/content/catalogs/towers.gd`: `TOWERS`,
 
 ### Biome bosses
 
-Every region subtype supplies `boss_kind()` from `catalogs/world.gd`'s `BIOME_BOSSES`. Forest uses Briarbound Warden, Ashen Forge uses Cinder Reliquary, Drowned Crypt uses Drowned Bell, Bloodmoon Sanctuary uses Eclipse Prior, Castle Ruin uses Ruined King, and Mourning Orchard uses Mourning Matriarch. New non-core owned tiles awaken their associated boss once. Castle gates retain their discovery encounter and do not duplicate it when purchased; other owned castle tiles have their own encounter. The starting core never awakens a boss.
+Every region subtype supplies `boss_kind()` from `catalogs/world.gd`'s `BIOME_BOSSES`. Forest uses Briarbound Warden, Ashen Forge uses Cinder Reliquary, Drowned Crypt uses Drowned Bell, Bloodmoon Sanctuary uses Eclipse Prior, Castle Ruin uses Ruined King, and Mourning Orchard uses Mourning Matriarch. Each connected biome cluster has exactly one seeded encounter tile, independent of purchase order. The shared world cluster service uses visible terrain after castle and Orchard overlays, so disconnected patches are separate clusters. Only purchasing the encounter tile awakens its boss. Castle gates retain their discovery encounter; the Orchard uses its seeded entrance. Other tiles in the cluster never awaken additional bosses. The starting core is excluded from encounter selection.
 
 Ruined King and Mourning Matriarch inherit the shared Boss → Enemy node, with distinct stats, knockback resistance and native silhouettes. They award gold; the four existing relic definitions remain unchanged. Their sound families are assigned through boss presentation rules. No new special ability or mutable shared state is introduced. Optional future abilities should use attachable components.
 
-Existing active, defeated and escaped encounters retain their saved identities, including the old seeded random castle bosses. Save validation accepts that original mapping so the biome update does not reset victories, damage, routes or relic ownership. New encounters always resolve the owning region's current biome.
+On load, per-tile encounters from the previous release are reconciled by cluster. A defeated or escaped encounter completes the entire cluster. Otherwise, the active boss on the seeded encounter tile is retained, falling back to one stable existing source if that tile has not been purchased. Extra active records are removed without gold, kills or relic rewards. Completed records, earned relics and the retained boss's health and route remain intact. Old randomly assigned castle boss identities remain readable. New encounters resolve the owning region's current biome.
 
 The node/component architecture is the default for every future game addition, not only attributes. Follow `AGENTS.md`: identify the reusable node/category and shared rules, reuse or extend existing nodes, and compose reusable objects for the new content or mechanic. Implement optional capabilities once, assign them explicitly to one or more types, and keep mutable state on each live instance. Inheritance supplies the shared category; composition supplies selectable behavior. The current hierarchy is the foundation for that work. The illustrative periodic speed boost has not been added.
 
-- **Enemy:** add stats and its normal/dungeon/orchard family in `catalogs/actors.gd`, with unlock/share data when applicable. Add presentation and any new movement behavior.
+- **Enemy:** add stats and assign exactly one biome family in `catalogs/actors.gd` (`FAMILIES`). Every shipped portal has three distinct inhabitants. Inherited `portal_style` identifies the family; `PRESENTATION` composes the drawing renderer and reusable death cue. Optional gameplay capabilities still require attachable component objects. Keep authored campaign and numeric escort IDs stable in `CAMPAIGN_KINDS` and `ESCORT_KINDS`.
 - **Boss:** add stats in `catalogs/actors.gd`. For special defenses/speed, extend `nodes/boss_node.gd` and add the script to `BOSS_TYPES`. Warden, Reliquary and Prior demonstrate overrides; Bell uses shared defense behavior. Encounter summons and regeneration remain in the encounter service. Add a gear entry if a relic should drop.
 - **Gear:** add stats/presentation in `catalogs/gear.gd`; extend `nodes/gear_node.gd`, override `_apply_attack()` and register the script in `GEAR_TYPES`. Shared code handles counters, targets and timestamps. Implement non-attack effects in their owning service.
 - **Level:** add authored missions in `catalogs/levels.gd`. Update campaign count/progression and chapter assignment when expanding the campaign. Layout, allowed sockets and stable wave scheduling are reused.
-- **Terrain/portal:** update `catalogs/world.gd` and the registry's world population, choosing enemy family and exclusivity explicitly. Portal nodes expose `unlock_costs()` and `available_kinds(unlocks)`; the menu, economy, natural spawning and save validation share these rules. Enemies without an unlock price are available from the start. Purchased IDs stay in each region's `unlocks` array. Castle ruins start with Abyss Shades and offer Crypt Sentinels for 550 gold, Ruinbound Knights for 1,100 gold and Sepulcher Colossi for 2,000 gold; Orchard inhabitants remain immediately available. Add generation/art for a new terrain type and retain stable saved style IDs.
+- **Terrain/portal:** configure `PORTALS` in `catalogs/world.gd` and the matching actor family. Portal nodes expose `unlock_costs()`, `available_kinds(unlocks)`, `spawn_mix(unlocks)` and `choose_kind(unlocks, roll)`; the menu, economy and combat use these same rules. Every unlocked non-castle territory has an enemy portal; the core keeps its receiving portal and castles keep one dungeon portal per cluster. Enemies without a price are active immediately. Purchased IDs, timers and traffic remain per region. Castle portals offer Crypt Sentinel (550) and Sepulcher Colossus (2,000); all three Orchard inhabitants remain immediately available. See `docs/PORTAL_ROSTERS.md` for all rosters and save compatibility.
 - **New family:** extend `nodes/content_node.gd`; register the parent before its subtypes. `register_node()` rejects duplicate identities, duplicate category keys and unregistered parents. Connect the family to its owning service and persistence contract before making it playable.
 
 Tuning schemas live in `catalogs/tuning.gd`. Balance remains the compatibility API for editor bounds, validation, display text and prices. Keep one authored source per value; do not copy numeric defaults into new UI or behavior handlers.

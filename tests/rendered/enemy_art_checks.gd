@@ -23,12 +23,16 @@ func frame() -> void:
 	await RenderingServer.frame_post_draw
 
 func run() -> void:
-	root.size = Vector2i(1500, 960)
+	root.size = Vector2i(540, 960)
 	root.content_scale_size = root.size
+	var gallery := SubViewport.new()
+	gallery.size = Vector2i(1440, 1560)
+	gallery.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	root.add_child(gallery)
 	var background := ColorRect.new()
 	background.color = VigilTerrainArt.ROAD
-	background.size = Vector2(1500,960)
-	root.add_child(background)
+	background.size = gallery.size
+	gallery.add_child(background)
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(256,256)
 	viewport.transparent_bg = true
@@ -39,7 +43,19 @@ func run() -> void:
 	DirAccess.make_dir_recursive_absolute("res://assets/enemies")
 	var seen: Array[PackedByteArray] = []
 	var column := 0
-	for kind in Balance.ENEMIES:
+	var ordered: Array = []
+	for style in VigilWorld.ALL_STYLES:
+		ordered.append_array(Balance.portal_kinds(style))
+	for kind in ordered:
+		var row := int(column / 3.0)
+		var x := (column % 3) * 480
+		if column % 3 == 0:
+			var heading := Label.new()
+			heading.text = Balance.enemy_portal_style(kind).replace("_", " ").to_upper()
+			heading.position = Vector2(24, row * 260 + 12)
+			heading.add_theme_color_override("font_color", Color.BLACK)
+			heading.add_theme_font_size_override("font_size", 25)
+			gallery.add_child(heading)
 		art.kind = kind
 		art.zoom = 5.0
 		art.queue_redraw()
@@ -53,14 +69,17 @@ func run() -> void:
 		check(img.save_png("res://assets/enemies/%s.png" % kind) == OK, "Portrait saved")
 		var sprite := Sprite2D.new()
 		sprite.texture = ImageTexture.create_from_image(img)
-		sprite.position = Vector2(125+(column%6)*250,155+(column/6)*480)
-		root.add_child(sprite)
+		sprite.position = Vector2(108+x,130+row*260)
+		sprite.scale = Vector2.ONE * 0.7
+		gallery.add_child(sprite)
 		var label := Label.new()
 		label.text = Balance.ENEMIES[kind].name
-		label.position = Vector2(20+(column%6)*250,290+(column/6)*480)
+		label.position = Vector2(208+x,80+row*260)
+		label.size = Vector2(265, 75)
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.add_theme_color_override("font_color",Color.BLACK)
-		label.add_theme_font_size_override("font_size",24)
-		root.add_child(label)
+		label.add_theme_font_size_override("font_size",22)
+		gallery.add_child(label)
 		for zoom in [0.42, 0.65, 1.0, 1.65]:
 			art.zoom = zoom
 			art.queue_redraw()
@@ -69,11 +88,11 @@ func run() -> void:
 			check(not small.is_invisible(), "%s renders at zoom %.2f" % [kind,zoom])
 			var sample := Sprite2D.new()
 			sample.texture = ImageTexture.create_from_image(small)
-			sample.position = Vector2(45+(column%6)*250+[0.42,0.65,1.0,1.65].find(zoom)*53,345+(column/6)*480)
-			root.add_child(sample)
+			sample.position = Vector2(216+x+[0.42,0.65,1.0,1.65].find(zoom)*57,178+row*260)
+			gallery.add_child(sample)
 		column += 1
 	await frame()
-	root.get_texture().get_image().save_png("res://artifacts/enemy-lineup.png")
+	gallery.get_texture().get_image().save_png("res://artifacts/enemy-lineup.png")
 	var game := VigilState.new(879)
 	game.data.balance = 10000
 	game.expand("1,0")
@@ -82,7 +101,6 @@ func run() -> void:
 		game.economy.upgrade(tower)
 		game.economy.upgrade(tower)
 	for kind in Balance.ENEMIES:
-		game.data.regions["1,0"].style = "castle_ruin" if kind in Balance.DUNGEON_KINDS else "forest"
 		var enemy := fixture_enemy(game, kind)
 		enemy.pos = Vector2(85 + Balance.ENEMIES.keys().find(kind) * 43, 0)
 		enemy.hp *= 0.6

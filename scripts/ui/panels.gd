@@ -299,7 +299,11 @@ func show_expansion(id: String) -> void:
 	field.show_expansion = true
 	clear_sheet("Claim Castle Ruin" if VigilWorld.is_ruin(id, int(game.data.seed)) else "Expand")
 	var biome := Balance.Content.region(VigilWorld.region_style(id, int(game.data.seed)))
-	sheet_content.add_child(UI.paragraph("Biome boss: " + Balance.BOSSES[biome.boss_kind()].name, 14))
+	var cluster := preload("res://scripts/world/biome_clusters.gd").at(id, int(game.data.seed))
+	var boss_text: String = "Cluster boss: " + Balance.BOSSES[biome.boss_kind()].name + ". One encounter for this biome cluster."
+	if cluster.boss_tile == id:
+		boss_text += " This is its encounter tile."
+	sheet_content.add_child(UI.paragraph(boss_text, 14))
 	if VigilWorld.is_ruin(id, int(game.data.seed)):
 		var description := "Open dungeon ground with connecting paths and four tower sockets. This territory has no portal; the other ruin territories remain available to claim."
 		if VigilWorld.is_dungeon_portal(id, int(game.data.seed)):
@@ -343,6 +347,7 @@ func show_entrance(id: String) -> void:
 	for kind in Balance.portal_kinds(style):
 		var enemy: Dictionary = Balance.ENEMIES[kind]
 		var row := HBoxContainer.new()
+		row.name = "PortalEnemy_" + kind
 		row.add_theme_constant_override("separation", 10)
 		row.add_child(UI.enemy_preview(kind))
 		var available: bool = kind in Balance.portal_available_kinds(style, r.unlocks)
@@ -355,6 +360,7 @@ func show_entrance(id: String) -> void:
 			show_entrance(id)
 	)
 	price_button(traffic, game.economy.traffic_cost(id), traffic_maxed)
+	traffic.name = "PortalTraffic"
 	sheet_content.add_child(UI.action_row(traffic.text, traffic, "MAX" if traffic_maxed else "Increase"))
 	for kind in unlock_costs:
 		var s: Dictionary = Balance.ENEMIES[kind]
@@ -366,6 +372,7 @@ func show_entrance(id: String) -> void:
 				show_entrance(id)
 		, 58)
 		b.add_theme_font_size_override("font_size", UI.type_size(14))
+		b.name = "Attune_" + kind
 		price_button(b, price, unlocked)
 		sheet_content.add_child(UI.action_row(b.text, b, "Attuned" if unlocked else "Attune", UI.enemy_preview(kind)))
 

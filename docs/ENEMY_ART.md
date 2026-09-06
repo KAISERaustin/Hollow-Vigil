@@ -1,29 +1,13 @@
-# Enemy artwork and Lantern Keeper
+# Enemy artwork
 
-All four enemies use native Godot filled shapes and black outlines in the same
-paper, mint, coral, lilac and gold palette as the towers. `enemy_art.gd` owns their
-silhouettes; `VigilTerrainArt.enemy` is the battlefield drawing entry.
+All eighteen ordinary enemies use native Godot filled shapes and black outlines. Their six distinct biome rosters are listed in [PORTAL_ROSTERS.md](PORTAL_ROSTERS.md).
 
-| Enemy | Visual identity | Combat role |
-| --- | --- | --- |
-| Hollow | Cracked bone mask and frayed burial shroud | Existing common enemy; stats unchanged |
-| Wraith | Swept hood, dark face and forked spectral tails | Existing fast enemy; stats unchanged |
-| Revenant | Broad pauldrons, horned helmet and gold chest fissure | Existing durable enemy; stats unchanged |
-| Lantern Keeper | Split violet robe, bone clasp and hand-carried ember lantern | 120 HP, 46 units/s, 14 gold |
+`VigilEnemyArt.draw` reads the enemy node's assigned presentation renderer. Classic shapes live in `enemy_art.gd`, the seven new Forge/Crypt/Sanctuary silhouettes in `themed_enemy_art.gd`, and the three Orchard silhouettes in `orchard_art.gd`. `VigilTerrainArt.enemy` remains the battlefield entry point. Menus and generated portraits call the same native drawing code.
 
-Attune the Keeper for 140 gold at an owned rift. It occupies 16% of that rift's
-traffic, replacing part of the Hollow share. With all types attuned the mix is
-36% Hollow, 30% Wraith, 18% Revenant and 16% Keeper. Existing saves and unattuned
-rifts keep their previous traffic. Keeper attunement uses the existing save
-schema. It follows normal damage, targeting, routing and harmless-escape rules;
-its lantern is visual, with no hidden buffs or status effects.
+Forest uses moss, leaves and bark; Forge uses coal, iron and embers; Crypt uses reeds, shell masks and a sunken bell; Sanctuary uses prayer robes, crescents and a crimson knight. Castle inhabitants use dark royal stone and armor; Orchard inhabitants use thorn wood, burial veils and rooted coffins. Every silhouette stays inside the shared road footprint and below its health bar. Presentation assigns reusable death sounds independently from statistics.
 
-Developer controls read the same definition as combat.
-Health bars sit above the taller silhouettes at every camera zoom.
+Developer controls read the same definition as combat. Optional future capabilities belong to attachable components; these drawings add no hidden buffs or timed status effects.
 
-`./launch.ps1 -ArtSmoke` regenerates transparent 256 x 256 reference PNGs in
-`assets/enemies/` and `artifacts/enemy-lineup.png`, with enlarged portraits and
-four actual gameplay zoom samples. Gameplay draws the native shapes directly.
-The checks cover visible, distinct silhouettes and transparent frame padding.
-`./launch.ps1 -Tests` covers every attunement combination, normal spawning,
-Keeper movement, damage, once-only rewards, save reload, and mixed combat.
+`./launch.ps1 -ArtSmoke` regenerates transparent 256 x 256 reference PNGs in `assets/enemies/`. The grouped six-biome lineup is written to `artifacts/enemy-lineup.png`, with enlarged portraits and four gameplay zoom samples. The rendered checks cover visible distinct drawings, portrait bounds and transparent frame padding. Gameplay draws the shapes directly.
+
+`tests/rendered/portal_roster_checks.gd` exercises the real six portal menus, mouse/touch selection, each attunement purchase, traffic upgrades and scroll reachability at three phone resolutions. `tests/portal_roster_runner.gd` verifies spawn eligibility, per-instance state and save compatibility.

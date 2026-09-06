@@ -98,6 +98,7 @@ static func test_roles_and_escapes(suite: SceneTree) -> void:
 	var g := VigilState.new(456)
 	g.data.balance = 10000
 	g.expand("-1,0")
+	g.data.regions["-1,0"].style = "forest" # This test measures the Forest's roles.
 	suite.check(g.economy.unlock("-1,0", "fast") and g.economy.unlock("-1,0", "heavy"), "Enemy roles unlock explicitly")
 	var before: float = g.data.balance
 	suite.check(not g.economy.unlock("-1,0", "fast") and g.data.balance == before, "Duplicate unlock is free of side effects")

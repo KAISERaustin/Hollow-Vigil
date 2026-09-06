@@ -293,7 +293,9 @@ func fit_dialog() -> void:
 		chrome += header_divider.get_combined_minimum_size().y + layout.get_theme_constant("separation")
 	if equipment_summary.visible:
 		chrome += equipment_summary.get_combined_minimum_size().y + layout.get_theme_constant("separation")
-	scroll.custom_minimum_size.y = minf(body.get_combined_minimum_size().y, maxf(40.0, safe.size.y - chrome))
+	# Keep the inventory compact while its existing scroll container exposes every item.
+	var height_limit := safe.size.y * 0.5 if mode == "equipment" else safe.size.y
+	scroll.custom_minimum_size.y = minf(body.get_combined_minimum_size().y, maxf(40.0, height_limit - chrome))
 	card.size.y = 0.0
 	card.position = safe.position + (safe.size - card.size) * 0.5
 

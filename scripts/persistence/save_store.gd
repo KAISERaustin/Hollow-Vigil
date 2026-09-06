@@ -55,7 +55,8 @@ func migrate_portal_unlocks(data: Dictionary) -> Dictionary:
 	# Called only after validation. Keep compatible purchases, refund retired ones
 	# at their original price, and remove them so repeated restores cannot refund twice.
 	var migrated := data.duplicate(true)
-	for region in migrated.regions.values():
+	# Other validated store subtypes, such as campaign progress, have no regions.
+	for region in migrated.get("regions", {}).values():
 		var portal := Balance.Content.portal(region.get("style", "forest"))
 		var refund := portal.retired_unlock_refund(region.unlocks)
 		migrated.balance = minf(Balance.MAX_MONEY, migrated.balance + refund)
