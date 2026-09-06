@@ -313,17 +313,20 @@ func close() -> void:
 	hide()
 
 func show_archive(slot: int) -> void:
-	clear("Archive game %d?" % (slot + 1))
-	content.add_child(UI.paragraph("This frees the slot for a new game. The current game files are kept as a local archive, but archived games are not shown in this menu. Any cloud backup remains available. Save a build first if you want an easy way to start this world again.", 14))
-	add_back(UI.button("Cancel and return to games", show_slots))
-	footer.add_child(UI.accent_button("Archive and free slot", func():
+	if get_node_or_null("ArchiveConfirmation") != null:
+		return
+	var popup := preload("res://scripts/ui/shared/confirmation_popup.gd").new()
+	popup.name = "ArchiveConfirmation"
+	add_child(popup)
+	popup.configure("Archive game %d?" % (slot + 1), "Free this slot for a new game. Its files stay in a local archive, hidden from Saved games. Any cloud backup remains available.\n\nSave a build first if you want an easy way to start this world again.", "Archive and free slot", func():
 		if not slots.archive(slot):
-			message.text = slots.error
+			popup.show_error(slots.error)
 			return
 		if app.slot_active and app.active_slot == slot:
 			app.slot_active = false
+		popup.hide()
 		show_slots()
-	, UI.DANGER))
+	)
 
 func style_entry(entry: Control) -> void:
 	for state in ["normal", "read_only"]:

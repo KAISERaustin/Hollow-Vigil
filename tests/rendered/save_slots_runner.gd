@@ -97,9 +97,26 @@ func run() -> void:
 	app.open_slot(1)
 	check(not app.game.is_creative() and app.game.data.setup.name == "Test setup", "Return to saved Survival setup")
 	app.show_save_slots()
+	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
+		root.size = viewport
+		root.content_scale_size = viewport
+		await frame()
+		var revision: int = app.slot_menu.view_revision
+		app.slot_menu.show_archive(1)
+		await frame()
+		var popup: PopupPanel = app.slot_menu.get_node("ArchiveConfirmation")
+		check(popup.visible and popup.size.y < viewport.y * 0.75, "Archive is compact at " + str(viewport))
+		check(app.slot_menu.view_revision == revision, "Archive preserves Saved games underneath")
+		await Harness.capture(app, "archive-popup-" + str(viewport.x))
+		popup.find_child("CancelConfirmation", true, false).pressed.emit()
+		await frame()
+		check(slots.occupied(1) and app.slot_menu.view_revision == revision, "Cancel preserves slot and saved games view")
 	app.slot_menu.show_archive(1)
 	await frame()
-	check(app.slot_menu.visible, "Archive confirmation opens")
+	app.slot_menu.get_node("ArchiveConfirmation").find_child("ConfirmAction", true, false).pressed.emit()
+	await frame()
+	check(not slots.occupied(1) and not app.slot_active, "Confirm frees the active slot")
+	check(app.slot_menu.find_child("ScreenTitle", true, false).text == "Saved games", "Archive returns to refreshed Saved games")
 	app.queue_free()
 	await process_frame
 	for slot in range(3):

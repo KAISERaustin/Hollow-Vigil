@@ -436,7 +436,6 @@ func show_settings() -> void:
 		stat_panel.add_child(contents)
 		contents.add_child(UI.label(stat[0], 12, UI.MUTED))
 		contents.add_child(UI.heading(Balance.money(stat[1]), 18))
-	sheet_content.add_child(UI.action_row("Saved Games", UI.button("Saved Games", app.show_save_slots), "Open"))
 	if game.is_creative():
 		var developer := UI.button("Developer Controls", show_developer_controls)
 		developer.name = "OpenDeveloperControls"
@@ -450,6 +449,7 @@ func show_settings() -> void:
 	upload.disabled = not game.is_creative()
 	sheet_content.add_child(UI.action_row("Upload build", upload, "Open"))
 	sheet_content.add_child(UI.action_row("Reset progress", UI.accent_button("Reset progress", show_reset_confirmation, UI.DANGER), "Reset"))
+	sheet_content.add_child(UI.action_row("Saved Games", UI.button("Saved Games", app.show_save_slots), "Exit"))
 
 func show_sound_settings() -> void:
 	mode = "sound"
