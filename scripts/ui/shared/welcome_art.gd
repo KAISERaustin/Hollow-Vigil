@@ -40,5 +40,3 @@ func _draw() -> void:
 		Art.scenery(self, "forest", Vector2(-143,-43), 35)
 		Art.scenery(self, "drowned_crypt", Vector2(61,59), 32)
 		Art.scenery(self, "forest", Vector2(-87,63), 28)
-
-

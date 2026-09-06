@@ -28,11 +28,11 @@ func configure(campaign: Callable, infinite: Callable) -> void:
 	add_child(modes)
 	var campaign_button := UI.gold_button("Campaign", campaign, 56)
 	campaign_button.name = "OpenCampaign"
-	campaign_button.tooltip_text = "Follow the campaign through the world of Hollow Vigil."
+	campaign_button.accessibility_description = "Follow the campaign through the world of Hollow Vigil."
 	modes.add_child(campaign_button)
 	var infinite_button := UI.gold_button("Infinite", infinite, 56)
 	infinite_button.name = "OpenInfinite"
-	infinite_button.tooltip_text = "Open your saved worlds or begin a new one."
+	infinite_button.accessibility_description = "Open your saved worlds or begin a new one."
 	modes.add_child(infinite_button)
 	battlefield = Illustration.new()
 	battlefield.illustration = "battlefield"
