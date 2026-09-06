@@ -72,7 +72,7 @@ func _ready() -> void:
 	identity.add_child(header_close)
 	header_divider = ColorRect.new()
 	header_divider.color = UI.BORDER
-	header_divider.custom_minimum_size.y = UI.OUTLINE
+	header_divider.custom_minimum_size.y = 2
 	header_divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layout.add_child(header_divider)
 	equipment_summary = VBoxContainer.new()
