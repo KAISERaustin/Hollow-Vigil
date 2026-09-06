@@ -16,6 +16,7 @@ var status: Label
 var gold: Label
 var wave_button: Button
 var pause_button: Button
+var speed_button: Button
 var page := "map"
 var paused := false
 var speed := 1.0
@@ -70,7 +71,7 @@ func clear_page(next: String) -> void:
 	dialog.hide()
 	accumulator = 0.0
 
-func header(title: String, back: Callable) -> void:
+func header(title: String, back: Callable) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	layout.add_child(row)
@@ -83,7 +84,10 @@ func header(title: String, back: Callable) -> void:
 	var caption := UI.heading(title, 24)
 	caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	caption.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	caption.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	caption.autowrap_mode = TextServer.AUTOWRAP_OFF
 	row.add_child(caption)
+	return row
 
 func show_map() -> void:
 	if run != null and page == "battle":
@@ -155,7 +159,21 @@ func show_battle() -> void:
 	paused = false
 	speed = 1.0
 	selected = -1
-	header("%02d · %s" % [run.mission.index+1,run.mission.name], show_map)
+	var title_row := header("%02d · %s" % [run.mission.index+1,run.mission.name], show_map)
+	pause_button = UI.playback_button(func():
+		paused = not paused
+		update_time_controls()
+	)
+	pause_button.name = "CampaignPause"
+	title_row.add_child(pause_button)
+	speed_button = UI.playback_button(func():
+		speed = 1.0 if speed == 2.0 else 2.0
+		update_time_controls()
+	, true)
+	speed_button.toggle_mode = true
+	speed_button.name = "CampaignSpeed"
+	title_row.add_child(speed_button)
+	update_time_controls()
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	layout.add_child(row)
@@ -163,16 +181,6 @@ func show_battle() -> void:
 	gold.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	gold.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(gold)
-	pause_button = UI.button("Pause", func():
-		paused = not paused
-		pause_button.text = "Play" if paused else "Pause"
-	, 44)
-	pause_button.name = "CampaignPause"
-	row.add_child(pause_button)
-	var fast := UI.button("2×", func(): speed = 1.0 if speed == 2.0 else 2.0, 44)
-	fast.toggle_mode = true
-	fast.name = "CampaignSpeed"
-	row.add_child(fast)
 	status = UI.paragraph("", 14)
 	status.name = "CampaignStatus"
 	layout.add_child(status)
@@ -180,13 +188,14 @@ func show_battle() -> void:
 	var controls := HBoxContainer.new()
 	controls.add_theme_constant_override("separation", 8)
 	layout.add_child(controls)
-	controls.add_child(UI.button("−", func(): board.set_zoom(board.zoom / 1.25, board.size * 0.5), 44))
-	controls.add_child(UI.button("+", func(): board.set_zoom(board.zoom * 1.25, board.size * 0.5), 44))
-	controls.add_child(UI.button("Fit", func(): board.reset_view(), 44))
-	controls.add_child(UI.button("Waves", show_waves, 44))
-	wave_button = UI.gold_button("", begin_wave, 50)
+	var waves := UI.button("Waves", show_waves, 48)
+	waves.name = "CampaignWaves"
+	waves.custom_minimum_size.x = 80
+	waves.size_flags_horizontal = Control.SIZE_FILL
+	controls.add_child(waves)
+	wave_button = UI.gold_button("", begin_wave, 48)
 	wave_button.name = "StartCampaignWave"
-	layout.add_child(wave_button)
+	controls.add_child(wave_button)
 	save_notice = UI.paragraph("Drag to explore · Pinch to zoom · Tap a socket", 12)
 	layout.add_child(save_notice)
 	refresh()
@@ -209,9 +218,18 @@ func add_board(interactive: bool) -> void:
 func begin_wave() -> void:
 	if run.start_wave():
 		paused = false
-		pause_button.text = "Pause"
+		update_time_controls()
 		save_progress()
 		refresh()
+
+func update_time_controls() -> void:
+	pause_button.set_meta("paused", paused)
+	pause_button.tooltip_text = "Play" if paused else "Pause"
+	pause_button.accessibility_name = pause_button.tooltip_text
+	pause_button.queue_redraw()
+	speed_button.set_pressed_no_signal(speed == 2.0)
+	speed_button.tooltip_text = "Return to normal speed" if speed == 2.0 else "Double game speed"
+	speed_button.accessibility_name = speed_button.tooltip_text
 
 func refresh() -> void:
 	if page != "battle":
@@ -383,7 +401,7 @@ func _notification(what: int) -> void:
 		paused = true
 		if page == "battle":
 			save_progress()
-			pause_button.text = "Play"
+			update_time_controls()
 	elif what == NOTIFICATION_WM_CLOSE_REQUEST and page == "battle":
 		save_progress()
 

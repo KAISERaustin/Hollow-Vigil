@@ -215,6 +215,24 @@ static func button(text: String, action: Callable, height: float = 48) -> Button
 	)
 	return b
 
+static func playback_button(action: Callable, fast_forward: bool = false) -> Button:
+	var control := button("", action, 32)
+	control.custom_minimum_size = Vector2(32, 32)
+	control.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	control.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	control.draw.connect(func():
+		var center := control.size * 0.5
+		if fast_forward:
+			for x in [-8, 0]:
+				control.draw_colored_polygon(PackedVector2Array([center + Vector2(x, -6), center + Vector2(x + 8, 0), center + Vector2(x, 6)]), TEXT)
+		elif control.get_meta("paused", false):
+			control.draw_colored_polygon(PackedVector2Array([center + Vector2(-4, -7), center + Vector2(6, 0), center + Vector2(-4, 7)]), TEXT)
+		else:
+			for x in [-6, 2]:
+				control.draw_rect(Rect2(center + Vector2(x, -7), Vector2(4, 14)), TEXT)
+	)
+	return control
+
 static func back_button(label: String, action: Callable) -> Button:
 	var back := button("←", action)
 	back.name = "BackButton"
