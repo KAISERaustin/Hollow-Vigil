@@ -90,6 +90,8 @@ func _ready() -> void:
 	editor.add_child(description)
 	selector = OptionButton.new()
 	selector.name = "BalanceUnit"
+	# PopupMenu supplies scrolling when the options exceed this shared height cap.
+	selector.get_popup().max_size = Vector2i(0, UI.TARGET * 6)
 	selector.custom_minimum_size.y = UI.TARGET
 	selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	selector.add_theme_stylebox_override("normal", UI.box(UI.SURFACE))

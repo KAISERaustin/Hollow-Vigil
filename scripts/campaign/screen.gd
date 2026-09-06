@@ -57,12 +57,13 @@ func fit() -> void:
 	layout.offset_right = safe.end.x - size.x
 	layout.offset_bottom = safe.end.y - size.y
 	if is_instance_valid(dialog_card):
-		dialog_card.size = Vector2(minf(470, safe.size.x), minf(490, safe.size.y))
+		if not socket_dialog:
+			dialog_card.size = Vector2(minf(470, safe.size.x), minf(490, safe.size.y))
 		if waves_dialog:
 			dialog_card.size.y = minf(safe.size.y, dialog_card.get_combined_minimum_size().y + dialog_body.get_combined_minimum_size().y)
 		if socket_dialog:
 			var bounds := safe
-			if is_instance_valid(board):
+			if is_instance_valid(board) and board.size.x > 16 and board.size.y > 16:
 				bounds = Rect2(board.global_position - global_position, board.size).grow(-8).intersection(safe)
 			dialog_card.size = Vector2(minf(470, bounds.size.x), minf(340, bounds.size.y))
 			dialog_card.position = Vector2(bounds.get_center().x - dialog_card.size.x * 0.5, bounds.end.y - dialog_card.size.y)
@@ -380,6 +381,7 @@ func _build_dialog() -> void:
 	dialog.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(dialog)
 	dialog_card = PanelContainer.new()
+	dialog_card.minimum_size_changed.connect(func(): call_deferred("fit"))
 	dialog_card.add_theme_stylebox_override("panel",UI.surface(UI.PANEL,3,16))
 	dialog.add_child(dialog_card)
 	var content := UI.margin(dialog_card,14)
