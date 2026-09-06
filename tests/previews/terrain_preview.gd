@@ -25,9 +25,9 @@ func run() -> void:
 	for id in game.data.regions:
 		for pad in range(3):
 			game.economy.build(["rapid", "splash", "heavy"][pad], id, pad)
-	for kind in Balance.ENEMIES.keys():
+	for kind in Balance.NORMAL_KINDS:
 		var enemy := game.combat.spawn("1,0", kind)
-		enemy.pos = Vector2(192 + 25 * Balance.ENEMIES.keys().find(kind), 0)
+		enemy.pos = Vector2(192 + 25 * Balance.NORMAL_KINDS.find(kind), 0)
 	var field := Battlefield.new()
 	field.state = game
 	field.size = Vector2(1000, 880)

@@ -12,6 +12,9 @@ static func kind_at(id: String, seed_value: int) -> String:
 	return TYPES[absi(("cluster-boss:" + str(sector) + ":" + str(seed_value)).hash()) % TYPES.size()]
 
 static func awaken(combat: VigilCombat, id: String) -> void:
+	var gate := Areas.gate(Areas.sector_for(VigilWorld.coord(id)), int(combat.data.seed))
+	if combat.data.castles.has(gate.id):
+		return
 	var region: Dictionary = combat.data.regions[id]
 	var kind := kind_at(id, int(combat.data.seed))
 	if kind == "" or region.has("boss"):
@@ -20,7 +23,7 @@ static func awaken(combat: VigilCombat, id: String) -> void:
 	create(combat, id, kind)
 
 static func record(combat: VigilCombat, id: String) -> Dictionary:
-	return combat.data.regions[id] if combat.data.regions.has(id) else combat.data.castles[id]
+	return combat.data.castles[id] if combat.data.castles.has(id) else combat.data.regions[id]
 
 static func castle_kind(sector: Vector2i, seed_value: int) -> String:
 	return kind_at(VigilWorld.key(Areas.cluster(sector, seed_value)[0]), seed_value)
@@ -204,11 +207,11 @@ static func capture(combat: VigilCombat, regions: Dictionary, castles: Dictionar
 			saved.path.append([point.x, point.y])
 		for field in ["hp", "segment", "tile", "previous", "steps", "shield", "wards", "regen", "toll", "toll_delayed"]:
 			saved[field] = e[field]
-		(regions[e.source] if regions.has(e.source) else castles[e.source]).boss = saved
+		(castles[e.source] if castles.has(e.source) else regions[e.source]).boss = saved
 
 static func restore(combat: VigilCombat) -> void:
 	var records: Dictionary = combat.data.regions.duplicate()
-	records.merge(combat.data.get("castles", {}))
+	records.merge(combat.data.get("castles", {}), true)
 	for id in records:
 		var saved: Dictionary = records[id].get("boss", {})
 		# Existing worlds gain their previously uncovered encounter once. Once

@@ -9,6 +9,18 @@ static func draw(canvas: CanvasItem, kind: String, at: Vector2, zoom: float) -> 
 	var z := Vector2.ONE * zoom
 	var w := 1.8 * zoom
 	match kind:
+		"shade":
+			Art.shape(canvas, [Vector2(-10,-8),Vector2(0,-19),Vector2(9,-10),Vector2(6,0),Vector2(12,10),Vector2(2,7),Vector2(-3,12),Vector2(-7,5),Vector2(-14,8)], at,z,Color("554664"),w)
+			Art.shape(canvas, [Vector2(-6,-8),Vector2(0,-14),Vector2(5,-8),Vector2(3,-2),Vector2(-4,-2)],at,z,Color("171821"),zoom)
+			for x in [-3,2]:
+				canvas.draw_circle(at+Vector2(x,-7)*z,1.3*zoom,Art.LILAC)
+			canvas.draw_line(at+Vector2(-5,1)*z,at+Vector2(-2,6)*z,Art.LILAC,1.4*zoom,true)
+		"sentinel":
+			Art.shape(canvas,[Vector2(-12,-8),Vector2(-5,-11),Vector2(6,-11),Vector2(13,-7),Vector2(10,5),Vector2(8,11),Vector2(2,11),Vector2(0,6),Vector2(-2,11),Vector2(-9,11)],at,z,Color("454958"),w)
+			Art.shape(canvas,[Vector2(-8,-9),Vector2(-7,-18),Vector2(6,-18),Vector2(8,-9),Vector2(4,-4),Vector2(-4,-4)],at,z,Color("74798c"),w)
+			canvas.draw_line(at+Vector2(-4,-11)*z,at+Vector2(4,-11)*z,Art.LILAC,2*zoom,true)
+			Art.shape(canvas,[Vector2(-16,-6),Vector2(-8,-7),Vector2(-7,4),Vector2(-12,8),Vector2(-17,3)],at,z,Color("74798c"),w)
+			Art.shape(canvas,[Vector2(2,-2),Vector2(5,1),Vector2(2,5),Vector2(-1,1)],at,z,Art.LILAC,zoom)
 		"basic":
 			# Frayed burial cloth, bone mask, and a single broken brow.
 			Art.shape(canvas, [Vector2(-7,-5),Vector2(7,-5),Vector2(10,10),Vector2(3,8),Vector2(0,12),Vector2(-4,8),Vector2(-10,10)], at,z,Art.PAPER,w)

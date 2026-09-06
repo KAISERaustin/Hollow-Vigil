@@ -5,6 +5,9 @@ const Art = preload("res://scripts/rendering/terrain_art.gd")
 # The same flat fills, ink edges and cut-stone geometry as sentinels and scenery.
 # No particle nodes or animation: markers remain legible in reduced-motion mode.
 static func draw(canvas: CanvasItem, style: String, at: Vector2, zoom: float) -> void:
+	if style == "castle_ruin":
+		dungeon_portal(canvas, at, zoom)
+		return
 	var z := Vector2.ONE * zoom
 	var w := 2.5 * zoom
 	var accent := Art.ground_color(style).lightened(0.12)
@@ -54,3 +57,17 @@ static func enemy_mark(canvas: CanvasItem, style: String, at: Vector2, zoom: flo
 		"ashen_forge": shield(canvas, badge, zoom * 0.7)
 		"drowned_crypt": current(canvas, badge, zoom * 0.7)
 		"bloodmoon_sanctuary": moon(canvas, badge, zoom * 0.7)
+
+static func dungeon_portal(canvas: CanvasItem, at: Vector2, zoom: float) -> void:
+	var z := Vector2.ONE * zoom
+	Art.ellipse(canvas, at + Vector2(0, 5) * z, Vector2(39, 28) * z, Color("363340"), 3 * zoom)
+	Art.ellipse(canvas, at, Vector2(38, 27) * z, Color("b0a8b7"), 2.5 * zoom)
+	Art.ellipse(canvas, at, Vector2(29, 19) * z, Color("15131f"), 2 * zoom)
+	Art.ellipse(canvas, at + Vector2(0, 3) * z, Vector2(21, 12) * z, Color("292235"), 0)
+	Art.ellipse(canvas, at + Vector2(0, 5) * z, Vector2(15, 8) * z, Color("090b12"), 0)
+	for i in range(10):
+		var direction := Vector2.from_angle(i * TAU / 10.0)
+		canvas.draw_line(at + direction * Vector2(30, 20) * z, at + direction * Vector2(37, 26) * z, Art.INK, 1.5 * zoom, true)
+	for side in [-1, 1]:
+		Art.shape(canvas, [Vector2(side*33,-8),Vector2(side*37,-17),Vector2(side*41,-8),Vector2(side*37,-2)], at,z,Art.LILAC,1.5*zoom)
+	canvas.draw_arc(at, 12 * zoom, 3.5, 5.7, 16, Art.LILAC, 1.5 * zoom, true)

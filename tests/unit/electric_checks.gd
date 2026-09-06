@@ -17,7 +17,9 @@ static func run(suite: SceneTree) -> void:
 			var origin := VigilWorld.pad_position("0,0", 0)
 			var victims: Array[Dictionary] = []
 			for index in range(7):
-				var enemy := game.combat.spawn("1,0", Balance.ENEMIES.keys()[index % Balance.ENEMIES.size()])
+				var kind: String = Balance.ENEMIES.keys()[index % Balance.ENEMIES.size()]
+				game.data.regions["1,0"].style = "castle_ruin" if kind in Balance.DUNGEON_KINDS else "forest"
+				var enemy := game.combat.spawn("1,0", kind)
 				enemy.pos = origin + Vector2.from_angle(index * TAU / 6.0) * (80.0 if index < 6 else 500.0)
 				enemy.path = [enemy.pos, enemy.pos + Vector2(1000 + index * 100, 0)]
 				enemy.hp = 100.0 + index * 10.0

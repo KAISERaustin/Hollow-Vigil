@@ -74,7 +74,7 @@ static func run(suite: SceneTree) -> void:
 		var initial := Areas.emergence(gate, game.data.regions)
 		suite.check(e.path == initial and e.pos == initial[0], "Boss spawns just inside the gate on its authored threshold")
 		for cell in Areas.cluster(sector, 879):
-			suite.check(not game.expand(VigilWorld.key(cell)) and not game.data.regions.has(VigilWorld.key(cell)), "Castle remains decorative and cannot become a portal or tower tile")
+			suite.check(VigilWorld.is_ruin(VigilWorld.key(cell), 879), "Every castle footprint cell is a claimable ruin")
 		for r in game.data.regions.values():
 			r.timer = 9.0
 		game.combat.tick(0.5)
@@ -116,4 +116,38 @@ static func run(suite: SceneTree) -> void:
 		suite.check(game.save(1001) and restored.load_save(1001), "Defeated castle record persists")
 		suite.check(restored.combat.enemies.filter(func(v): return v.get("boss",false) and v.source == gate.id).is_empty(), "Defeated castle cannot respawn on reload")
 		suite.clean_test_save(game.save_path)
+	var claimed := fixture()
+	var claim_gate := Areas.gate(Vector2i.ZERO, 879)
+	var before_gold: float = claimed.data.balance
+	suite.check(claimed.expand(claim_gate.id), "Connected castle gate can be purchased")
+	suite.check(claimed.data.balance < before_gold and not claimed.expand(claim_gate.id), "Ruin charges once and rejects repeat purchase")
+	suite.check(claimed.data.regions[claim_gate.id].style == "castle_ruin", "Claimed castle becomes a dungeon tile")
+	var towers: Array[String] = []
+	for pad in range(4):
+		towers.append(claimed.economy.build("heavy", claim_gate.id, pad))
+		suite.check(towers[-1] != "", "Every ruin tower socket supports building")
+	var seen := {}
+	for i in range(80):
+		var mob := claimed.combat.spawn(claim_gate.id)
+		seen[mob.kind] = true
+		suite.check(mob.kind in Balance.DUNGEON_KINDS and mob.pos == VigilWorld.center(claim_gate.id), "Dungeon mobs emerge only at central ruin portal")
+		suite.check(mob.path[-1] == VigilWorld.CORE_POSITION, "Dungeon route reaches the core")
+	suite.check(seen.size() == 2, "Both exclusive dungeon mobs spawn without attunement")
+	for kind in Balance.DUNGEON_KINDS:
+		suite.check(claimed.combat.spawn(claim_gate.neighbor, kind).is_empty(), "Normal rifts reject dungeon mobs")
+		var mob := claimed.combat.spawn(claim_gate.id, kind)
+		var stored: float = claimed.data.towers[towers[0]].earnings
+		suite.check(claimed.combat.hit(mob, 10000, towers[0]), "Dungeon mobs can be defeated")
+		suite.check(claimed.data.towers[towers[0]].earnings == stored + Balance.ENEMIES[kind].payout, "Dungeon bounty is credited exactly")
+		suite.check(not claimed.combat.hit(mob, 10000, towers[0]), "Dungeon bounty cannot be collected twice")
+	suite.check(claimed.combat.spawn(claim_gate.id, "basic").is_empty() and not claimed.economy.unlock(claim_gate.id, "fast"), "Dungeon portals reject ordinary mobs and attunements")
+	claimed.save_path = "user://claimed-castle.save"
+	suite.clean_test_save(claimed.save_path)
+	suite.check(claimed.save(1000), "Purchased castle saves during existing boss emergence")
+	var reloaded := VigilState.new()
+	reloaded.save_path = claimed.save_path
+	suite.check(reloaded.load_save(1000), "Purchased castle restores")
+	suite.check(reloaded.data.regions.has(claim_gate.id) and reloaded.data.towers.size() == claimed.data.towers.size(), "Ruin and towers survive reload")
+	suite.check(reloaded.combat.enemies.filter(func(e): return e.get("boss", false) and e.source == claim_gate.id).size() == 1, "Purchasing and reloading never duplicate existing castle boss")
+	suite.clean_test_save(claimed.save_path)
 	print("PASS GROUP: castle outlines, seed architecture, reservations, reachable gates, physical emergence and saves")

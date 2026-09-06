@@ -25,11 +25,11 @@ func frame() -> void:
 	await RenderingServer.frame_post_draw
 
 func run() -> void:
-	root.size = Vector2i(1000, 480)
+	root.size = Vector2i(1500, 480)
 	root.content_scale_size = root.size
 	var background := ColorRect.new()
 	background.color = VigilTerrainArt.ROAD
-	background.size = Vector2(1000,480)
+	background.size = Vector2(1500,480)
 	root.add_child(background)
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(256,256)
@@ -84,6 +84,7 @@ func run() -> void:
 		game.economy.upgrade(tower)
 		game.economy.upgrade(tower)
 	for kind in Balance.ENEMIES:
+		game.data.regions["1,0"].style = "castle_ruin" if kind in Balance.DUNGEON_KINDS else "forest"
 		var enemy := game.combat.spawn("1,0", kind)
 		enemy.pos = Vector2(85 + Balance.ENEMIES.keys().find(kind) * 43, 0)
 		enemy.hp *= 0.6

@@ -11,6 +11,7 @@ const CORAL := Color("db8d73")
 const LILAC := Color("b49dcc")
 const MINT := Color("93c9bc")
 const BIOME_COLORS := {
+	"castle_ruin": Color("777985"),
 	"forest": Color("95aa83"),
 	"ashen_forge": Color("bb8c76"),
 	"drowned_crypt": Color("7fa6aa"),

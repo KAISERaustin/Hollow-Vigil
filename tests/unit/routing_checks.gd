@@ -33,7 +33,7 @@ static func run(suite: SceneTree) -> void:
 			suite.check(exits.size() == 2 and horizontal in exits and vertical in exits, "Both equal tile routes are available at " + source)
 			var counts := {horizontal: 0, vertical: 0}
 			var valid_routes := true
-			for kind in Balance.ENEMIES:
+			for kind in Balance.NORMAL_KINDS:
 				var kind_counts := {horizontal: 0, vertical: 0}
 				for i in range(100):
 					var enemy := g.combat.spawn(source, kind)

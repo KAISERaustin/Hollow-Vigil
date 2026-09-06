@@ -52,6 +52,7 @@ static func test_live_enemies(suite: SceneTree) -> void:
 		game.data.regions["-1,0"].timer = 9.0
 		game.combat.tick(Balance.STEP)
 		suite.check(is_equal_approx(position.distance_to(enemy.pos), 5.0), "Live " + kind + " moves with adjusted speed")
+		game.data.regions["-1,0"].style = "castle_ruin" if kind in Balance.DUNGEON_KINDS else "forest"
 		var spawned := game.combat.spawn("-1,0", kind)
 		suite.check(spawned.hp == 300.0 and spawned.max_hp == 300.0, "New " + kind + " uses adjusted health")
 		game.combat.enemies.clear()

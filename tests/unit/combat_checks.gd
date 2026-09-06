@@ -108,7 +108,7 @@ static func test_core(suite: SceneTree) -> void:
 		var path: Array = g.paths[id]
 		suite.check(path.back() == Vector2.ZERO, "Rift %s terminates at the center" % id)
 		suite.check(path.count(Vector2.ZERO) == 1, "Rift %s does not pass through the core and leave again" % id)
-		for kind in Balance.ENEMIES:
+		for kind in (Balance.DUNGEON_KINDS if g.data.regions[id].style == "castle_ruin" else Balance.NORMAL_KINDS):
 			var e := g.combat.spawn(id, kind)
 			e.segment = path.size() - 1
 			var half_step: float = Balance.ENEMIES[kind].speed * Balance.STEP * 0.5
@@ -151,7 +151,7 @@ static func test_road_junctions(suite: SceneTree) -> void:
 			suite.check(segment > 0, "Route from %s reaches the road junction with bend %s" % [child_id, bend])
 			if segment <= 0:
 				continue
-			for kind in Balance.ENEMIES.keys():
+			for kind in Balance.NORMAL_KINDS:
 				g.combat.enemies.clear()
 				var enemy := g.combat.spawn(child_id, kind)
 				enemy.rift_style = "forest" # Isolate exact road-junction movement.
