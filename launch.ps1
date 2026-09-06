@@ -82,6 +82,7 @@ try {
             Invoke-Godot -Name 'menu-layout' -EngineArguments @('--script', 'res://tests/rendered/menu_layout_checks.gd')
         }
         if ($TerrainTests -or $Check) {
+            Invoke-Godot -Name 'campaign-terrain' -EngineArguments @('--script', 'res://tests/rendered/campaign_terrain_checks.gd')
             Invoke-Godot -Name 'terrain' -EngineArguments @('--script', 'res://tests/rendered/terrain_palette_checks.gd')
             Invoke-Godot -Name 'castle-art' -EngineArguments @('--script', 'res://tests/rendered/castle_art_checks.gd')
         }

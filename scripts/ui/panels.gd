@@ -117,6 +117,19 @@ func fit_sheet() -> void:
 	# Empty scroll containers still reserve margins and spacing in the sheet.
 	content_scroll.visible = sheet_content.get_child_count() > 0
 	sheet_content.get_parent().add_theme_constant_override("margin_bottom", 0 if action_footer.get_parent().visible else 12)
+	# Account management is a full-screen view from every entry point.
+	# Inset only the contents for notches and home indicators, not the background.
+	var safe := UI.safe_rect(app) if mode == "cloud" else Rect2(Vector2.ZERO, app.size)
+	for section in [header_content, sheet_content, action_footer]:
+		section.get_parent().add_theme_constant_override("margin_left", 16 + int(safe.position.x))
+		section.get_parent().add_theme_constant_override("margin_right", 16 + int(app.size.x - safe.end.x))
+	header_content.get_parent().add_theme_constant_override("margin_top", 12 + int(safe.position.y))
+	if mode == "cloud":
+		sheet_content.get_parent().add_theme_constant_override("margin_bottom", 12 + int(app.size.y - safe.end.y))
+		self.position = Vector2.ZERO
+		self.size = app.size
+		UI.trap_focus(self)
+		return
 	if mode == "reset":
 		self.size.x = minf(460.0, UI.safe_rect(app).size.x - 32.0)
 		var content_height := sheet_height()
@@ -134,7 +147,7 @@ func fit_sheet() -> void:
 		# sheet_height already includes the visible layout gaps and panel border.
 	if mode == "settings":
 		settings_sheet_height = desired_height
-	elif mode in ["sound", "cloud"]:
+	elif mode == "sound":
 		# Keep the Settings frame when entering or rebuilding its submenus.
 		desired_height = settings_sheet_height
 	if mode == "core":

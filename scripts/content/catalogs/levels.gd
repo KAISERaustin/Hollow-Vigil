@@ -5,10 +5,10 @@ const MAX_HEALTH := 20
 const BOARD := Rect2(-310, -660, 620, 800)
 const CORE := Vector2(0, 80)
 const CHAPTERS := [
-	{"name": "The Overgrown Road", "style": "forest", "story": "The last sanctuary has gone dark. Carry its ember beyond the forest."},
-	{"name": "The Ashen Fortress", "style": "ashen_forge", "story": "The old watchfires still burn, but something else tends them now."},
-	{"name": "The Drowned Crypts", "style": "drowned_crypt", "story": "Beneath the flood, a bell calls the dead back to their posts."},
-	{"name": "The Eclipsed Capital", "style": "bloodmoon_sanctuary", "story": "One flame remains between the kingdom and a night without end."}
+	{"name": "The Overgrown Road", "map_art": preload("res://assets/campaign/overgrown-road.svg"), "style": "forest", "story": "The last sanctuary has gone dark. Carry its ember beyond the forest."},
+	{"name": "The Ashen Fortress", "map_art": preload("res://assets/campaign/ashen-fortress.svg"), "style": "ashen_forge", "story": "The old watchfires still burn, but something else tends them now."},
+	{"name": "The Drowned Crypts", "map_art": preload("res://assets/campaign/drowned-crypts.svg"), "style": "drowned_crypt", "story": "Beneath the flood, a bell calls the dead back to their posts."},
+	{"name": "The Eclipsed Capital", "map_art": preload("res://assets/campaign/eclipsed-capital.svg"), "style": "bloodmoon_sanctuary", "story": "One flame remains between the kingdom and a night without end."}
 ]
 
 # Each road is authored from its entrance to the same sanctuary. Wave groups are

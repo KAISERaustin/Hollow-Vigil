@@ -64,7 +64,7 @@ func _ready() -> void:
 	gui_input.connect(_on_gui_input)
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	var backdrop := ColorRect.new()
-	backdrop.color = VigilTerrainArt.BACKDROP
+	backdrop.color = background_color()
 	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	backdrop.show_behind_parent = true
@@ -72,6 +72,9 @@ func _ready() -> void:
 	terrain_layer = VigilTerrainLayer.new()
 	terrain_layer.show_behind_parent = true
 	add_child(terrain_layer)
+
+func background_color() -> Color:
+	return VigilTerrainArt.BACKDROP
 
 func bind_upgrade_effects() -> void:
 	if state == null or observed_economy == state.economy:

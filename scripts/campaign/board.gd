@@ -11,6 +11,11 @@ var view_zoom: float:
 	get:
 		return zoom / overview_zoom()
 
+func background_color() -> Color:
+	# Fractional camera transforms can leave a pixel between clipped tiles.
+	# A continuous ground underlay keeps those seams in the mission's palette.
+	return VigilTerrainArt.ground_color(run.mission.style)
+
 func _ready() -> void:
 	state = run.game
 	trail_bounds = Rect2(Catalog.CORE, Vector2.ZERO)

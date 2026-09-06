@@ -87,15 +87,15 @@ func run() -> void:
 			check(app.panels.mode == "settings" and app.panels.get_global_rect().is_equal_approx(settings_rect), "return from sound moved settings")
 			app.panels.find_child("OpenCloudSaves", true, false).pressed.emit()
 			await settle()
-			check(app.panels.get_global_rect().is_equal_approx(settings_rect), game_mode + " account menu moved from settings at " + str(viewport))
+			check(app.panels.get_global_rect().is_equal_approx(app.get_global_rect()), game_mode + " account menu is not full screen at " + str(viewport))
 			app.cloud.changed.emit()
 			await settle()
-			check(app.panels.get_global_rect().is_equal_approx(settings_rect), "rebuilding account menu moved panel")
+			check(app.panels.get_global_rect().is_equal_approx(app.get_global_rect()), "rebuilding account menu lost full-screen layout")
 			var cloud_back := app.panels.header_content.find_child("BackToSettings", true, false) as Button
 			check(app.panels.get_global_rect().encloses(cloud_back.get_global_rect()), "account back action clipped at " + str(viewport))
 			cloud_back.pressed.emit()
 			await settle()
-			check(app.panels.mode == "settings" and app.panels.get_global_rect().is_equal_approx(settings_rect), "return from account moved settings")
+			check(not app.panels.visible, "account back action did not close backups")
 		app.game.data.mode = "creative"
 		app.panels.show_developer_controls()
 		await settle()

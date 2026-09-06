@@ -36,7 +36,13 @@ func _draw() -> void:
 	for chapter in range(4):
 		var top := chapter * 450.0
 		var palette := Art.ground_color(Catalog.CHAPTERS[chapter].style)
-		draw_style_box(UI.surface(palette.lightened(0.1), 2, 22), Rect2(0, top, size.x, 435))
+		var panel := Rect2(0, top, size.x, 435)
+		draw_style_box(UI.surface(palette.lightened(0.1), 2, 22), panel)
+		# Chapter artwork shares the authored map coordinates; keep the frame
+		# visible and draw all navigation and labels over the background.
+		var background: Texture2D = Catalog.CHAPTERS[chapter].get("map_art")
+		if background != null:
+			draw_texture_rect(background, panel.grow(-2), false)
 		draw_string(UI.font(600), Vector2(16, top + 28), "CHAPTER %s" % ["I", "II", "III", "IV"][chapter], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, UI.MUTED)
 		draw_string(UI.font(600,true), Vector2(16, top + 55), Catalog.CHAPTERS[chapter].name, HORIZONTAL_ALIGNMENT_LEFT, size.x-24, 20, UI.TEXT)
 		for i in range(5):
