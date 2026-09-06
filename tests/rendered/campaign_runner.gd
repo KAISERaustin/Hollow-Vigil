@@ -97,7 +97,19 @@ func run() -> void:
 		wave_time_before = campaign.run.wave_time
 		campaign._process(0.1)
 		check(campaign.run.wave_time > wave_time_before, "Choosing a tower to build keeps the battle running")
+		for notice in [Node.NOTIFICATION_APPLICATION_FOCUS_OUT, Node.NOTIFICATION_APPLICATION_PAUSED, Node.NOTIFICATION_APPLICATION_RESUMED, Node.NOTIFICATION_APPLICATION_FOCUS_IN]:
+			campaign._notification(notice)
+			wave_time_before = campaign.run.wave_time
+			campaign._process(0.1)
+			check(not campaign.paused and campaign.run.wave_time > wave_time_before, "Lifecycle notifications keep the battle running")
+		app.show_backups()
+		wave_time_before = campaign.run.wave_time
+		campaign._process(0.1)
+		check(not campaign.paused and campaign.run.wave_time > wave_time_before, "Backups keep the battle running")
+		app.panels.hide()
 		campaign.find_child("CampaignPause",true,false).pressed.emit()
+		campaign._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+		campaign._notification(Node.NOTIFICATION_APPLICATION_FOCUS_IN)
 		var time_before: float = campaign.run.game.data.active_seconds
 		campaign._process(0.1)
 		check(campaign.run.game.data.active_seconds == time_before, "Pause stops the campaign clock")
@@ -105,7 +117,7 @@ func run() -> void:
 		campaign.show_waves()
 		wave_time_before = campaign.run.wave_time
 		campaign._process(0.1)
-		check(campaign.run.wave_time == wave_time_before, "Full-screen wave details still pause the battle")
+		check(campaign.run.wave_time > wave_time_before, "Wave details keep the battle running")
 		campaign.dialog.hide()
 		for tick in range(100): campaign.run.tick(Balance.STEP)
 		campaign.refresh()

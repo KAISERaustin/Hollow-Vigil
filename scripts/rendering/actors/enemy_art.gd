@@ -12,6 +12,26 @@ static func draw(canvas: CanvasItem, kind: String, at: Vector2, zoom: float) -> 
 	var z := Vector2.ONE * zoom
 	var w := 1.8 * zoom
 	match kind:
+		"ruin_knight":
+			# Broken crown, royal mantle, kite shield and upright sword.
+			Art.shape(canvas,[Vector2(-10,-9),Vector2(8,-9),Vector2(12,11),Vector2(3,8),Vector2(0,12),Vector2(-12,10)],at,z,Color("554664"),w)
+			Art.shape(canvas,[Vector2(-6,-8),Vector2(6,-8),Vector2(7,4),Vector2(0,8),Vector2(-7,4)],at,z,Color("74798c"),w)
+			Art.shape(canvas,[Vector2(-7,-18),Vector2(-3,-15),Vector2(0,-19),Vector2(3,-15),Vector2(7,-17),Vector2(6,-7),Vector2(0,-4),Vector2(-6,-7)],at,z,Color("9182ad"),w)
+			canvas.draw_line(at+Vector2(-4,-10)*z,at+Vector2(4,-10)*z,Art.PAPER,1.5*zoom,true)
+			Art.shape(canvas,[Vector2(-17,-5),Vector2(-9,-8),Vector2(-5,-3),Vector2(-8,7),Vector2(-12,11),Vector2(-17,5)],at,z,Color("74798c"),w)
+			canvas.draw_line(at+Vector2(-12,-3)*z,at+Vector2(-12,5)*z,Art.LILAC,2*zoom,true)
+			Art.shape(canvas,[Vector2(12,4),Vector2(12,-12),Vector2(14,-17),Vector2(16,-12),Vector2(15,4)],at,z,Art.PAPER,zoom)
+			canvas.draw_line(at+Vector2(9,2)*z,at+Vector2(18,2)*z,Art.INK,w,true)
+		"sepulcher":
+			# A broad stone sarcophagus with crenellations and a sealed effigy.
+			for side in [-1,1]:
+				Art.shape(canvas,[Vector2(side*5,5),Vector2(side*12,5),Vector2(side*14,12),Vector2(side*4,12)],at,z,Color("74798c"),w)
+				Art.shape(canvas,[Vector2(side*10,-7),Vector2(side*17,-4),Vector2(side*18,5),Vector2(side*12,7)],at,z,Color("99948c"),w)
+			Art.shape(canvas,[Vector2(-12,-18),Vector2(-7,-18),Vector2(-7,-14),Vector2(-3,-14),Vector2(-3,-19),Vector2(3,-19),Vector2(3,-14),Vector2(7,-14),Vector2(7,-18),Vector2(12,-18),Vector2(12,5),Vector2(7,9),Vector2(-7,9),Vector2(-12,5)],at,z,Color("99948c"),w)
+			Art.shape(canvas,[Vector2(-6,-10),Vector2(6,-10),Vector2(7,3),Vector2(0,6),Vector2(-7,3)],at,z,Color("454958"),zoom)
+			Art.shape(canvas,[Vector2(-3,-7),Vector2(3,-7),Vector2(3,-3),Vector2(0,-1),Vector2(-3,-3)],at,z,Art.LILAC,zoom)
+			canvas.draw_line(at+Vector2(0,-1)*z,at+Vector2(0,4)*z,Art.LILAC,2*zoom,true)
+			canvas.draw_polyline(PackedVector2Array([at+Vector2(8,-10)*z,at+Vector2(10,-6)*z,at+Vector2(8,-3)*z]),Art.INK,zoom,true)
 		"shade":
 			Art.shape(canvas, [Vector2(-10,-8),Vector2(0,-19),Vector2(9,-10),Vector2(6,0),Vector2(12,10),Vector2(2,7),Vector2(-3,12),Vector2(-7,5),Vector2(-14,8)], at,z,Color("554664"),w)
 			Art.shape(canvas, [Vector2(-6,-8),Vector2(0,-14),Vector2(5,-8),Vector2(3,-2),Vector2(-4,-2)],at,z,Color("171821"),zoom)

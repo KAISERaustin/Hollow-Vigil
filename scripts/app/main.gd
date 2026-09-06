@@ -628,8 +628,6 @@ func activate_slot(next: VigilState, slot: int) -> void:
 
 # This view is reachable from Campaign or the save picker, without starting a world.
 func show_backups() -> void:
-	if is_instance_valid(campaign):
-		campaign.paused = true
 	panels.show_cloud_saves()
 	panels.move_to_front()
 

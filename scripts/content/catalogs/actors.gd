@@ -1,6 +1,8 @@
 extends RefCounted
 
 const ENEMIES := {
+	"ruin_knight": {"name": "Ruinbound Knight", "role": "DUNGEON · ELITE", "description": "An oathbound knight in broken royal armor, summoned only by castle ruin portals. Greater endurance and a relentless march demand upgraded towers.", "push_resistance": 50.0, "hp": 1200.0, "speed": 38.0, "payout": 95.0, "color": "9182ad"},
+	"sepulcher": {"name": "Sepulcher Colossus", "role": "DUNGEON · COLOSSAL", "description": "A walking royal tomb crowned with ruined battlements. Castle ruin portals alone release this slow, immensely durable foe, whose stone bulk resists knockback.", "push_resistance": 90.0, "hp": 2200.0, "speed": 24.0, "payout": 165.0, "color": "99948c"},
 	"basic": {"name": "Hollow", "role": "COMMON", "description": "A steady traveler from every rift. Its sturdy body rewards upgrading your sentinels.", "push_resistance": 0.0, "hp": 45.0, "speed": 39.0, "payout": 5.0, "color": "e8ddbd"},
 	"fast": {"name": "Wraith", "role": "FAST", "description": "A swift spirit with less health than other foes. Its speed gives your towers less time to strike before it reaches the core.", "push_resistance": 0.0, "hp": 36.0, "speed": 74.0, "payout": 8.0, "color": "93c9bc"},
 	"heavy": {"name": "Revenant", "role": "DURABLE", "description": "A slow, resilient foe with a rich bounty. High-damage towers help cut through its large health pool.", "push_resistance": 75.0, "hp": 340.0, "speed": 25.0, "payout": 24.0, "color": "db8d73"},
@@ -21,14 +23,17 @@ const BOSSES := {
 
 const UNLOCK_COSTS := {"fast": 90.0, "heavy": 180.0, "lantern": 140.0}
 
-const DUNGEON_UNLOCK_COSTS := {"sentinel": 550.0}
+const DUNGEON_UNLOCK_COSTS := {"sentinel": 550.0, "ruin_knight": 1100.0, "sepulcher": 2000.0}
 
 const ENEMY_SHARES := {"fast": 0.30, "heavy": 0.18, "lantern": 0.16}
 
 const NORMAL_KINDS := ["basic", "fast", "heavy", "lantern"]
 
-const DUNGEON_KINDS := ["shade", "sentinel"]
+const DUNGEON_KINDS := ["shade", "sentinel", "ruin_knight", "sepulcher"]
 
 const ORCHARD_KINDS := ["briarling", "veil_widow", "coffinbound"]
 
 const ESCORT_KINDS := NORMAL_KINDS + DUNGEON_KINDS
+
+# Per-type shared Enemy rules, separate from editable combat stats.
+const ENEMY_RULES := {"heavy": {"escape_damage": 2}, "shade": {"escape_damage": 2}, "sentinel": {"escape_damage": 3}, "ruin_knight": {"escape_damage": 4}, "sepulcher": {"escape_damage": 5}}

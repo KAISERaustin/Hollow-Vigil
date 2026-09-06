@@ -53,6 +53,13 @@ func category_art(category: String) -> Control:
 	art.draw.connect(func():
 		var center := art.size * 0.5
 		match category:
+			"towers":
+				VigilTerrainArt.sentinel(art, "rapid", center + Vector2(0, 17), 0.65)
+			"menu":
+				art.draw_rect(Rect2(center - Vector2(17, 16), Vector2(34, 32)), UI.TEXT, false, 3)
+				for y in [-8, 0, 8]:
+					art.draw_circle(center + Vector2(-10, y), 1.5, UI.TEXT)
+					art.draw_line(center + Vector2(-4, y), center + Vector2(11, y), UI.TEXT, 2, true)
 			"enemies":
 				VigilEnemyArt.draw(art, "basic", center + Vector2(0, 3), 1.4)
 			"bosses":
@@ -63,7 +70,7 @@ func category_art(category: String) -> Control:
 					art.draw_line(center + Vector2(x, 10), center + Vector2(x, -12), UI.TEXT, 3, true)
 				art.draw_line(center + Vector2(-7, -12), center + Vector2(7, -12), UI.TEXT, 4, true)
 			_:
-				# Shared sound-wave emblem for overall, interface and tower audio.
+				# Overall sound-wave emblem for master volume.
 				for index in range(5):
 					var height := 16 - absi(index - 2) * 5
 					var x := center.x + (index - 2) * 7

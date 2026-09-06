@@ -57,7 +57,7 @@ static func content_coverage(t) -> void:
 	var paid = portal.derive("portal/test-paid", {}, {"unlock_costs": {"sentinel": 550.0}})
 	var sibling = portal.derive("portal/test-sibling", {}, {"unlock_costs": {"sentinel": 550.0}})
 	t.check(paid.available_kinds([]) == ["shade"] and sibling.available_kinds([]) == ["shade"], "Reusable portal purchase rules gate assigned types")
-	t.check(paid.available_kinds(["sentinel"]) == Balance.DUNGEON_KINDS and sibling.available_kinds([]) == ["shade"], "Portal purchase state is supplied per instance")
+	t.check(paid.available_kinds(["sentinel"]) == ["shade", "sentinel"] and sibling.available_kinds([]) == ["shade"], "Portal purchase state is supplied per instance")
 	t.check(Content.portal("forest").unlock_costs() == Balance.UNLOCK_COSTS and Content.portal("mourning_orchard").unlock_costs().is_empty(), "Portal purchase rules preserve unrelated families")
 	t.check(Content.locks_target("most_hp") and not Content.locks_target("first") and not Content.locks_target("last"), "Only Most HP inherits a persistent target lock")
 

@@ -172,7 +172,7 @@ func _populate_actors() -> void:
 		var parent := _add(EnemyNode.new("enemy/" + family, get_node("enemy")))
 		var kinds: Array = {"normal": Actors.NORMAL_KINDS, "dungeon": Actors.DUNGEON_KINDS, "orchard": Actors.ORCHARD_KINDS}[family]
 		for kind in kinds:
-			_add(EnemyNode.new("enemy/" + kind, parent, Actors.ENEMIES[kind], {"kind": kind, "escape_damage": 3 if kind == "sentinel" else (2 if kind in ["heavy", "shade"] else 1)}), "enemies", kind)
+			_add(EnemyNode.new("enemy/" + kind, parent, Actors.ENEMIES[kind], Actors.ENEMY_RULES.get(kind, {}).merged({"kind": kind})), "enemies", kind)
 	for kind in Actors.BOSSES:
 		_add(BOSS_TYPES.get(kind, BossNode).new("boss/" + kind, get_node("boss"), Actors.BOSSES[kind], {"kind": kind, "drop": "gear/" + kind if Gear.GEAR.has(kind) else ""}), "bosses", kind)
 	for kind in Gear.GEAR:

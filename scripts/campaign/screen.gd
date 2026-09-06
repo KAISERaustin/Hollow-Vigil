@@ -388,7 +388,8 @@ func open_dialog(title: String, for_socket: bool = false) -> void:
 	fit()
 
 func _process(delta: float) -> void:
-	if page != "battle" or run == null or paused or (dialog.visible and not socket_dialog):
+	# Only the player's playback control pauses an active battle; overlays do not.
+	if page != "battle" or run == null or paused:
 		return
 	accumulator += minf(delta,0.1) * speed
 	while accumulator >= Balance.STEP:
@@ -400,10 +401,8 @@ func _notification(what: int) -> void:
 	if not is_node_ready():
 		return
 	if what in [NOTIFICATION_APPLICATION_PAUSED,NOTIFICATION_APPLICATION_FOCUS_OUT]:
-		paused = true
 		if page == "battle":
 			save_progress()
-			update_time_controls()
 	elif what == NOTIFICATION_WM_CLOSE_REQUEST and page == "battle":
 		save_progress()
 

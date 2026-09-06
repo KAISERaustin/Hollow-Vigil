@@ -16,7 +16,7 @@ const TUNING_FIELDS := {
 	},
 	"bosses": {
 		"push_resistance": {"label": "Knockback resistance", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
-		"escort_kind": {"label": "Escort type: 0 Hollow, 1 Wraith, 2 Revenant, 3 Lantern, 4 Shade, 5 Sentinel", "suffix": "", "min": 0.0, "max": 5.0, "step": 1.0, "integer": true},
+		"escort_kind": {"label": "Escort type: 0 Hollow, 1 Wraith, 2 Revenant, 3 Lantern, 4 Shade, 5 Sentinel, 6 Knight, 7 Colossus", "suffix": "", "min": 0.0, "max": 7.0, "step": 1.0, "integer": true},
 		"hp": {"label": "Health", "suffix": " HP", "min": 1.0, "max": 100000.0, "step": 1.0},
 		"speed": {"label": "Move speed", "suffix": " units/s", "min": 1.0, "max": 250.0, "step": 1.0},
 		"payout": {"label": "Gold per defeat", "suffix": " gold", "min": 0.0, "max": 10000.0, "step": 1.0},
