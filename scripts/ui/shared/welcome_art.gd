@@ -3,13 +3,20 @@ extends Control
 # Reusable, stateless presentation composed from the live game's art library.
 # No simulated world or save state is created by a menu illustration.
 const Art = preload("res://scripts/rendering/terrain/terrain_art.gd")
-@export_enum("crest", "battlefield") var illustration := "crest"
+@export_enum("crest", "battlefield", "rule") var illustration := "crest"
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	resized.connect(queue_redraw)
 
 func _draw() -> void:
+	if illustration == "rule":
+		var center := size * 0.5
+		var span := minf(size.x * 0.3, 100)
+		for side in [-1, 1]:
+			draw_line(center + Vector2(side * 12, 0), center + Vector2(side * span, 0), Color("796443"), 1)
+		Art.polygon(self, PackedVector2Array([center + Vector2(0,-4), center + Vector2(4,0), center + Vector2(0,4), center + Vector2(-4,0)]), Art.GOLD, 1)
+		return
 	var zoom := minf(size.x / 400.0, size.y / 200.0)
 	draw_set_transform(size * 0.5, 0, Vector2.ONE * zoom)
 	if illustration == "crest":

@@ -8,6 +8,7 @@ var footer: VBoxContainer
 var content: VBoxContainer
 var card: PanelContainer
 var scroll: ScrollContainer
+var welcome_paper: TextureRect
 var message: Label
 var upload_revision := -1
 var view_revision := 0
@@ -25,6 +26,13 @@ func _ready() -> void:
 	name = "SaveSlots"
 	color = UI.BG
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	welcome_paper = TextureRect.new()
+	welcome_paper.name = "WelcomeParchment"
+	welcome_paper.texture = preload("res://assets/ui/welcome-parchment.png")
+	welcome_paper.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	welcome_paper.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	welcome_paper.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(welcome_paper)
 	card = PanelContainer.new()
 	card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 4, 16))
 	add_child(card)
@@ -55,9 +63,13 @@ func fit() -> void:
 	var safe := UI.safe_rect(app).grow(-16)
 	card.size = Vector2(minf(460, safe.size.x), safe.size.y)
 	card.position = safe.position + (safe.size - card.size) * 0.5
+	welcome_paper.position = card.position + Vector2.ONE * 4
+	welcome_paper.size = card.size - Vector2.ONE * 8
 
 func clear(title: String, header_action: Button = null) -> void:
 	view_revision += 1
+	welcome_paper.hide()
+	card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 4, 16))
 	header.show()
 	footer.show()
 	content.size_flags_vertical = Control.SIZE_FILL
@@ -79,6 +91,8 @@ func clear(title: String, header_action: Button = null) -> void:
 
 func show_main_menu() -> void:
 	clear("Hollow Vigil")
+	welcome_paper.show()
+	card.add_theme_stylebox_override("panel", UI.surface(Color(UI.PANEL, 0.25), 4, 16))
 	for child in header.get_children():
 		header.remove_child(child)
 		child.queue_free()

@@ -2,6 +2,13 @@
 
 Current direction: extremely simple flat drawings with solid black outlines. No painted textures, lighting, gradients, noise or decorative particles. Active artwork is native Godot drawing code; no image generation is needed for these elementary shapes.
 
+Opening-page exception requested September 6, 2026: the tan background uses
+`assets/ui/welcome-parchment.png`, generated paper with quiet fibers and mottling.
+It is composed beneath the opening card only; game artwork remains flat and
+the other menus retain their solid parchment surfaces. Title lettering uses
+warm ink and a small ochre offset; motto and footer use the bundled serif.
+The asset and generation prompt are documented in `assets/ui/WELCOME_ART.md`.
+
 Boss direction, revised September 6, 2026: use native flat drawings in
 `boss_art.gd`, referenced against the current tiles, core/rift portals and enemy
 lineup. Match their solid palette, angular silhouettes, black contours and spare
