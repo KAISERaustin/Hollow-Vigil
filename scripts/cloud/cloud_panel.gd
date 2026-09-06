@@ -120,6 +120,7 @@ func rebuild() -> void:
 	add_child(UI.heading("Restore an Infinite backup", 18))
 	var destination := OptionButton.new()
 	destination.name = "BackupRestoreSlot"
+	destination.custom_minimum_size.y = 48
 	for slot in range(VigilSaveSlots.COUNT): destination.add_item("Restore into slot %d" % (slot + 1))
 	destination.select(restore_slot)
 	destination.disabled = service.busy

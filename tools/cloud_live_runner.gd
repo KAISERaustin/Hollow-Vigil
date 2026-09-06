@@ -115,11 +115,11 @@ func run() -> void:
 	await s.sync_now()
 	check(s.pending.is_empty() and s.game.data.cloud.revision == 4, "Network recovery delivers queued progress")
 	s.enabled = true
-	s.retry_after = 0.0
-	s.sync_timer = 60.0
-	s._process(0.0)
+	s._process(3600.0)
 	while s.busy: await process_frame
-	check(s.game.data.cloud.revision == 5, "Automatic minute sync")
+	check(s.game.data.cloud.revision == 4, "Elapsed time cannot upload progress")
+	await s.sync_now()
+	check(s.game.data.cloud.revision == 5, "Explicit next upload advances revision")
 	s.enabled = false
 	s.game.set_balance_stat("enemies", "basic", "hp", 200.0)
 	s.game.data.mode = "survival"

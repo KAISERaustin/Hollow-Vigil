@@ -8,7 +8,7 @@ Hollow Vigil remains playable without an account or network connection. Local sa
 - Project: Hollow Vigil (`sjjohzftzshgceamffhx`), Ohio (`us-east-2`)
 - Dashboard: https://supabase.com/dashboard/project/sjjohzftzshgceamffhx
 - Public client configuration: `supabase/client.cfg`. It contains only the public URL and publishable key; never add a secret/service-role key.
-- All twelve public tables have RLS and owner-only SELECT policies. Anonymous users have no access. Authenticated clients cannot write tables directly.
+- Private save tables have RLS and owner-only SELECT policies. Anonymous users have no private-save access. Authenticated clients cannot write tables directly. The separate Public Builds catalog intentionally supports public reading.
 
 ## Identity and data boundary
 
@@ -25,11 +25,14 @@ Hollow Vigil remains playable without an account or network connection. Local sa
 | `relics` | UUID, world UUID, source coordinate, relic kind. |
 | `encounters` | UUID, world UUID, source coordinate, castle flag, kind/status, compact active boss checkpoint. Road paths are rebuilt locally. |
 | `production` | UUID, world UUID, region/tower UUIDs, demonstrated earnings needed for offline rewards. |
+| `campaign_backups` | One row per account: completed-level count, format/catalog version, revision, latest mutation and update time. No medals or active mission data. |
+| `world_rules` | World mode, named configuration and validated custom balance rules. |
+| `public_builds` | Separately published, publicly readable Creative configurations with author attribution. |
 | `preferences` | UUID, world UUID, optional sound volumes and mute setting. No row unless opted in. |
 
 World UUIDs are random. Child UUIDs are deterministic UUIDv8 identifiers derived from the world UUID, entity category and local key. They identify instances, not values: changing a tower's level or gold never changes its identity. Composite foreign keys prevent cross-world links. Code/definitions remain in the installed game; kind keys refer to those definitions.
 
-The encoder constructs every field explicitly. No arbitrary JSON save blob is stored. Server functions reject unknown fields, including nested record fields. No source files, artwork/audio/fonts, camera position, graphics settings, developer controls, debug output, caches, projectile/enemy arrays, contact lists, analytics or device identifiers are uploaded. Active developer balance overrides block uploads; the backend does not certify that previously earned money was legitimate.
+The encoder constructs every field explicitly. No arbitrary JSON save blob is stored. Server functions reject unknown fields, including nested record fields. No source files, artwork/audio/fonts, camera position, graphics settings, debug output, caches, projectile/enemy arrays, contact lists, analytics or device identifiers are uploaded. World mode, named configuration and custom balance rules are included; the backend does not certify that previously earned money was legitimate.
 
 ## Adding game content
 
@@ -39,21 +42,23 @@ Never reuse a retired type key for a different kind of content. Renaming a displ
 
 ## Player flow
 
-Open Settings → Cloud saves. Request an email and enter its eight-digit code within 15 minutes. Alternatively, copy its sign-in link without opening it and paste it into the same field. Only verification links for this project's exact HTTPS endpoint are accepted; the game exchanges the hash directly with Supabase. Codes are bound to the requested email, preserve leading zeros, and reject non-ASCII digits. The input is masked. Tokens and email are kept in memory only, so restarting the game requires sign-in again. No credentials are written into saves or the repository.
+Open Account & backups from Saved games, Campaign, or Infinite settings. Request an email and enter its eight-digit code within 15 minutes. Alternatively, copy its sign-in link without opening it and paste it into the same field. Only verification links for this project's exact HTTPS endpoint are accepted; the game exchanges the hash directly with Supabase. Codes are bound to the requested email, preserve leading zeros, and reject non-ASCII digits. The input is masked. Tokens and email are kept in memory only, so restarting the game requires sign-in again. No credentials are written into saves or the repository.
 
 Supabase's built-in mail service restricts recipients to organization/team email addresses, even on Pro. This supports initial owner-device testing. Public distribution still requires configuring an email sender or another Auth provider. Both the Confirm sign up and Magic link or OTP templates now use `supabase/templates/sign-in.html` with subject `Your Hollow Vigil sign-in code`; the retained link supports older installed builds. No custom SMTP provider has been configured.
 
-On a new device, select a saved world and confirm restore. The previous local save is archived before the replacement is written. Alternatively, explicitly choose to back up the local world as a separate world (up to ten per account). Resetting local progress creates a separate, initially unlinked world; it does not delete existing cloud worlds.
+Upload Campaign or one of the three Infinite slots explicitly. On a new device, choose a destination slot, select a saved world and confirm restore. Campaign has a separate restore action. The previous local save is archived before the replacement is written. Alternatively, explicitly choose to back up the local world as a separate world (up to ten per account). Resetting local progress creates a separate, initially unlinked world; it does not delete existing cloud worlds.
 
 ## Sync and recovery
 
-- After explicit backup/restore, sync runs every 60 seconds while signed in. Requests are asynchronous and time out after 15 seconds. Local saves continue every ten seconds and at normal gameplay checkpoints.
-- A durable local outbox contains the allowlisted snapshot and mutation ID. A retry reuses that exact snapshot and ID, even if play continued meanwhile. A successful response advances the base revision without replacing newer local gameplay.
+- Uploads run only after an explicit player action. There is no background upload, timer or automatic retry, including after sign-in, restore, reconnect or restart. Requests are asynchronous and time out after 15 seconds. Infinite local saves continue every ten seconds and at normal gameplay checkpoints; Campaign saves completed-level victories. Changing the sound-backup option affects the next explicit upload only.
+- A durable local outbox contains the allowlisted snapshot and mutation ID. A player-requested retry reuses that exact snapshot and ID, even if play continued meanwhile. A successful response advances the base revision without replacing newer local gameplay.
 - The database locks the world and compares the expected revision. A save updates all related records in one transaction. Failed constraints roll back the whole update. Repeated mutations do not advance the revision or add rewards.
-- Concurrent offline sessions produce a conflict. Automatic upload stops until the player chooses local or cloud progress. Choosing local still compares against the observed server revision; a new competing save causes another conflict.
+- Concurrent offline sessions produce a conflict. The attempted upload stops until the player chooses local or cloud progress. Choosing local still compares against the observed server revision; a new competing save causes another conflict.
 - Balances are replaced, never added across saves. The accounting timestamp cannot move backwards on the server. Local offline rewards retain the existing seven-day cap and once-per-watermark behavior. This is replay-safe backup, not protection against deliberately edited client saves or clocks.
 - Outbox: adjacent to the local save, with `.cloud-outbox` suffix. Recovery copies: `.before-cloud-<UUID>.save`. Never delete `.runtime` or user data wholesale.
 - Sign-out stops uploads and drops in-memory credentials; local progress remains available.
+
+Campaign uses one owner-only count record and the manual `read_campaign_backup` / `publish_campaign_backup` functions. It never stores active mission checkpoints. See `CAMPAIGN_SAVE_DESIGN.md` for migration, conflict and recovery details. Public build publishing and retries also require explicit actions.
 
 ## Deployment and verification
 
@@ -69,13 +74,13 @@ Godot --path . --script tests/cloud_ui_runner.gd
 
 The first two cover the allowlist, entity references, active bosses/castles, relics, offline outbox, retries and conflicts. Mock transport checks do not replace a live Auth/upload/second-device restore test. The rendered check uses disposable progress. Android exports require Internet permission; every preset includes public client configuration and excludes migrations/tests.
 
-Verified on 2026-09-06: 30 codec checks, 17 service checks, and 30,451 existing regression checks passed. The live SQL contract passed again after the production-duration migration. Live HTTPS Auth, upload/readback, idempotent retries, stale revisions, and previously unknown tower/enemy keys passed; this left a separate test world with seed `424242` in the owner's account. This was API readback with a fresh request, not a second physical device test. The cloud screen was rendered at 390 × 844.
+Historical pre-Campaign verification on 2026-09-06: 30 codec checks, 17 service checks, and 30,451 existing regression checks passed. The live SQL contract passed again after the production-duration migration. Live HTTPS Auth, upload/readback, idempotent retries, stale revisions, and previously unknown tower/enemy keys passed; this left a separate test world with seed `424242` in the owner's account. This was API readback with a fresh request, not a second physical device test. The cloud screen was rendered at 390 × 844.
 
 After the Pro upgrade on 2026-09-06, Security Advisor reported no findings. Schema was applied through the dashboard; the CLI migration history has not been reconciled, so do not blindly run `db push` against this existing project.
 
 ## Pro configuration
 
-The Supabase connector was reconnected and verified with the Hollow Vigil project list, organization plan (`pro`), and a SQL query confirming all twelve public tables have RLS. Future tools must target `sjjohzftzshgceamffhx`; a connection exposing another project is not a reason to change `client.cfg`.
+The Supabase connector was reconnected and verified with the Hollow Vigil project list, organization plan (`pro`), and a SQL query confirming the then-existing twelve public tables had RLS. Future tools must target `sjjohzftzshgceamffhx`; a connection exposing another project is not a reason to change `client.cfg`.
 
 Verified dashboard settings:
 
@@ -135,7 +140,7 @@ set `HOLLOW_CLOUD_CODE` to the fresh code and run the same command without
 424242), never modifies existing worlds, and clears its disposable local files.
 Credentials remain in memory. The test covers real HTTP authentication, upload,
 restore, legacy float-valued outboxes, retries, conflicts, token refresh, network
-failure/recovery, minute sync, and sign-out.
+failure/recovery, absence of automatic uploads, explicit repeat uploads, and sign-out.
 
 Email delivery is separately constrained by the built-in Supabase mail quota.
 `over_email_send_rate_limit` now has a specific user-facing message; repeated sync
@@ -145,7 +150,7 @@ evidence that email delivery is working. Public email sign-in still requires a
 custom SMTP provider; no sender credentials or subscription were configured here.
 
 
-Current verification: 37 codec checks, 32 service checks, 20 live Godot HTTPS
+Historical pre-Campaign verification: 37 codec checks, 32 service checks, 20 live Godot HTTPS
 checks, the rollback-only SQL contract, seven generated gameplay fixtures, and
 30,451 gameplay regression checks passed. The full cloud screen and masked panel
 also rendered successfully at 390 × 844. Security Advisor returned no findings.
@@ -155,3 +160,7 @@ worlds created by this debugging session were removed after verification; the
 pre-existing cloud world and player saves were preserved. No physical second-device
 or iOS release test was performed. Email delivery under the exhausted quota remains
 an external limitation, so this is not a claim of production-ready public sign-in.
+
+## Manual Campaign backups (2026-09-06)
+
+Migration `20260906192637_manual_campaign_backups.sql` adds the private scalar Campaign record without changing Infinite payloads or deleting historical world backups. Its live migration version matches the filename. The rollback-only Campaign SQL contract passed, and Security Advisor returned no findings. No real player Campaign or Infinite backup was uploaded for this change. Desktop tests cover manual attempts, disabled background retries, migration, restore and slot isolation; they do not establish physical-device acceptance or release an updated app.

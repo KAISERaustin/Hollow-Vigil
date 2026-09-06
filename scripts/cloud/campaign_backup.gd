@@ -55,6 +55,7 @@ func refresh() -> void:
 	remote = {}
 	remote_owner = ""
 	cloud.busy = true
+	_say("Reading campaign backup…")
 	var actor: String = cloud.player_id
 	var epoch: int = cloud.generation
 	var result: Dictionary = await cloud._rpc("read_campaign_backup", {})

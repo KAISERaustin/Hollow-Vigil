@@ -7,7 +7,6 @@ var outbox_path := "user://vigil-public-builds.cfg"
 var outbox: Array = []
 var busy := false
 var status := ""
-var retry_in := 0.0
 
 func _ready() -> void:
 	var config := ConfigFile.new()
@@ -36,7 +35,6 @@ func queue_export(code: String) -> bool:
 		status = "Saved locally, but couldn't queue the public upload. Please export again."
 		return false
 	status = "Public upload prepared. Choose Upload to send it." if cloud.signed_in() else "Saved locally. Sign in, set your name, then choose Retry public uploads."
-	retry_in = 0.0
 	changed.emit()
 	return true
 

@@ -22,8 +22,6 @@ var backup_slot := -1
 var conflict: Dictionary = {}
 var pending: Dictionary = {}
 var include_audio := false
-var sync_timer := 0.0
-var retry_after := 0.0
 var generation := 0
 var enabled := true
 
@@ -235,7 +233,6 @@ func sync_now() -> void:
 		conflict = {"world_id": meta.world_id, "revision": int(result.data.revision)}
 		_say("Another device saved this world. Choose which progress to continue. Neither balance will be added to the other.")
 	else:
-		retry_after = Time.get_ticks_msec() / 1000.0 + 60.0
 		_say(_error(result))
 	busy = false
 	changed.emit()

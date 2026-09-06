@@ -610,7 +610,6 @@ func activate_slot(next: VigilState, slot: int) -> void:
 	cloud.backup_slot = slot
 	cloud.conflict.clear()
 	cloud.include_audio = game.data.get("cloud", {}).get("include_audio", false)
-	cloud.sync_timer = 0.0
 	cloud._load_pending()
 	if cloud.signed_in():
 		cloud._say("Backup revision %d. Choose Upload to replace it." % int(game.data.cloud.revision) if cloud.linked() else "This save has not been uploaded to this account. Choose Upload to create its backup.")
