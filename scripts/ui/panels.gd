@@ -62,6 +62,11 @@ func _ready() -> void:
 				call_deferred("fit_sheet")
 		)
 	app.resized.connect(fit_sheet)
+	# Draw the rim after scrolling children so partially visible controls cannot cover it.
+	clip_contents = true
+	var frame := UI.rounded_viewport_frame()
+	frame.name = "SheetFrame"
+	add_child(frame)
 	hide()
 
 func clear_sheet(title: String, subtitle: String = "") -> void:
@@ -367,15 +372,19 @@ func return_to_core() -> void:
 	close_sheet()
 	app.persist()
 
-func _player_card() -> PanelContainer:
+func _settings_card(tint: Color) -> PanelContainer:
 	var card := PanelContainer.new()
-	card.name = "PlayerNameCard"
 	card.mouse_filter = Control.MOUSE_FILTER_PASS
-	var style := UI.surface(UI.GOLD, 3, 10)
+	var style := UI.surface(tint, 3, 10)
 	style.shadow_color = Color(UI.BORDER, 0.18)
 	style.shadow_offset = Vector2(0, 4)
 	style.shadow_size = 2
 	card.add_theme_stylebox_override("panel", style)
+	return card
+
+func _player_card() -> PanelContainer:
+	var card := _settings_card(UI.GOLD)
+	card.name = "PlayerNameCard"
 	var stack := HBoxContainer.new()
 	stack.add_theme_constant_override("separation", 12)
 	card.add_child(stack)
@@ -406,6 +415,11 @@ func show_settings() -> void:
 	clear_sheet("Settings")
 	sheet_content.add_theme_constant_override("separation", 6)
 	sheet_content.add_child(_player_card())
+	var account_divider := ColorRect.new()
+	account_divider.color = UI.BORDER
+	account_divider.custom_minimum_size.y = 2
+	account_divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sheet_content.add_child(account_divider)
 	var cloud_button := UI.button("Account & cloud backups", show_cloud_saves)
 	cloud_button.name = "OpenCloudSaves"
 	sheet_content.add_child(UI.action_row("Account & cloud backups", cloud_button, "Open"))
@@ -414,22 +428,15 @@ func show_settings() -> void:
 	stats.add_theme_constant_override("separation", 12)
 	sheet_content.add_child(stats)
 	for stat in [["Lifetime gold", game.data.lifetime_earnings], ["Escaped", game.data.escapes]]:
-		var stat_panel := PanelContainer.new()
+		var stat_panel := _settings_card(UI.PANEL.lerp(UI.GOLD, 0.45))
 		stat_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		stat_panel.add_theme_stylebox_override("panel", UI.plain())
 		stats.add_child(stat_panel)
 		var contents := VBoxContainer.new()
 		contents.add_theme_constant_override("separation", 4)
 		stat_panel.add_child(contents)
 		contents.add_child(UI.label(stat[0], 12, UI.MUTED))
 		contents.add_child(UI.heading(Balance.money(stat[1]), 18))
-	var campaign_button := UI.button("Campaign", app.show_campaign)
-	campaign_button.name = "OpenCampaign"
-	sheet_content.add_child(UI.action_row("The Last Procession", campaign_button, "Play"))
-	var game_summary := "Slot %d · %s" % [app.active_slot + 1, str(game.data.get("mode", "creative")).capitalize()]
-	if game.data.has("setup"):
-		game_summary += "\n" + str(game.data.setup.name)
-	sheet_content.add_child(UI.action_row("Saved games", UI.button("Saved games", app.show_save_slots), "Open", null, game_summary))
+	sheet_content.add_child(UI.action_row("Saved Games", UI.button("Saved Games", app.show_save_slots), "Open"))
 	if game.is_creative():
 		var developer := UI.button("Developer Controls", show_developer_controls)
 		developer.name = "OpenDeveloperControls"
