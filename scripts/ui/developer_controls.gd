@@ -7,6 +7,7 @@ const UI = preload("res://scripts/ui/interface.gd")
 const HANDLE = preload("res://assets/ui/slider_handle.svg")
 const SELECTOR_ARROW = preload("res://assets/ui/selector_arrow.svg")
 var game: VigilState
+var field: Battlefield
 var category := "enemies"
 var selected_kind := "basic"
 var tabs: Dictionary = {}
@@ -25,6 +26,14 @@ func _ready() -> void:
 	)
 	add_gold.name = "AddMillionGold"
 	add_child(add_gold)
+	if field != null:
+		var free_camera := UI.button("Unrestricted zoom and pan", func(): pass)
+		free_camera.name = "UnrestrictedCamera"
+		free_camera.toggle_mode = true
+		free_camera.set_pressed_no_signal(field.unrestricted_camera)
+		free_camera.toggled.connect(field.set_unrestricted_camera)
+		free_camera.tooltip_text = "Bypass camera limits for this session. Turn off to restore the two-tile limits."
+		add_child(free_camera)
 	var tab_row := HFlowContainer.new()
 	tab_row.add_theme_constant_override("separation", 8)
 	add_child(tab_row)

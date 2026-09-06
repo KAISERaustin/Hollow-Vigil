@@ -342,6 +342,7 @@ func show_developer_controls() -> void:
 	clear_sheet("Developer Controls")
 	var controls := DeveloperControls.new()
 	controls.game = game
+	controls.field = field
 	controls.changed.connect(app.balance_changed)
 	controls.layout_changed.connect(func(): call_deferred("fit_sheet"))
 	sheet_content.add_child(controls)

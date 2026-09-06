@@ -152,6 +152,7 @@ static func test_portal_controls(suite: SceneTree) -> void:
 	var badge: Rect2 = field.earnings_rect(g.data.towers[tower])
 	var anchor := VigilWorld.pad_position("0,0", 2)
 	var badge_offset := badge.position - field.screen(anchor)
+	field.set_unrestricted_camera(true) # Exercise artwork scaling below the gameplay zoom limit.
 	for scale in [0.42, 0.65, 1.0, 1.65]:
 		field.set_zoom(scale, field.size * 0.5)
 		field.camera += Vector2(12, -8)

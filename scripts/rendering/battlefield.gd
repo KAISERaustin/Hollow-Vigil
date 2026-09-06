@@ -18,6 +18,7 @@ signal tower_selection_changed
 var state: VigilState
 var camera := Vector2.ZERO
 var zoom := 1.0
+var unrestricted_camera := false
 var selected_tower := "":
 	set(value):
 		var changed := selected_tower != value
@@ -85,6 +86,7 @@ func on_tower_upgraded(region: String, pad: int, kind: String) -> void:
 	queue_redraw()
 
 func _process(delta: float) -> void:
+	enforce_camera_limits()
 	bind_upgrade_effects()
 	if upgrade_poofs.is_empty():
 		return
@@ -113,10 +115,39 @@ func screen(pos: Vector2) -> Vector2:
 func world(pos: Vector2) -> Vector2:
 	return (pos - size * 0.5) / zoom + camera
 
+# Use an envelope so protruding tiles never produce restrictive corner cutouts.
+func camera_bounds() -> Rect2:
+	var bounds := Rect2(Vector2.ONE * -Balance.TILE * 0.5, Vector2.ONE * Balance.TILE)
+	for id in state.data.regions:
+		bounds = bounds.merge(Rect2(VigilWorld.center(id) - Vector2.ONE * Balance.TILE * 0.5, Vector2.ONE * Balance.TILE))
+	return bounds.grow(2.0 * Balance.TILE)
+
+func minimum_zoom() -> float:
+	var bounds := camera_bounds()
+	return maxf(minf(size.x, size.y) / (2.0 * Balance.TILE), maxf(size.x / bounds.size.x, size.y / bounds.size.y))
+
+func enforce_camera_limits() -> void:
+	if unrestricted_camera or state == null or size.x <= 0.0 or size.y <= 0.0:
+		return
+	var old_camera := camera
+	var old_zoom := zoom
+	zoom = clampf(zoom, minimum_zoom(), maxf(1.65, minimum_zoom()))
+	var bounds := camera_bounds()
+	var half_view := size / (2.0 * zoom)
+	camera = camera.clamp(bounds.position + half_view, bounds.end - half_view)
+	if camera != old_camera or zoom != old_zoom:
+		camera_changed.emit()
+		queue_redraw()
+
+func set_unrestricted_camera(enabled: bool) -> void:
+	unrestricted_camera = enabled
+	enforce_camera_limits()
+
 func set_zoom(value: float, pivot: Vector2) -> void:
 	var before := world(pivot)
-	zoom = clampf(value, 0.42, 1.65)
+	zoom = clampf(value, 0.01, 100.0) if unrestricted_camera else clampf(value, minimum_zoom(), maxf(1.65, minimum_zoom()))
 	camera += before - world(pivot)
+	enforce_camera_limits()
 	camera_changed.emit()
 	queue_redraw()
 
@@ -144,6 +175,7 @@ func _on_gui_input(event: InputEvent) -> void:
 			dragged = true
 		if dragged:
 			camera -= (event.position - previous) / zoom
+			enforce_camera_limits()
 			camera_changed.emit()
 		previous = event.position
 	elif event is InputEventScreenTouch:
@@ -176,6 +208,7 @@ func _on_gui_input(event: InputEvent) -> void:
 				dragged = true
 			if dragged:
 				camera -= (event.position - old) / zoom
+				enforce_camera_limits()
 				camera_changed.emit()
 		touches[event.index] = event.position
 	elif event is InputEventMagnifyGesture:
