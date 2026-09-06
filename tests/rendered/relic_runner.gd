@@ -58,7 +58,7 @@ func run() -> void:
 		var dialog := app.tower_dialog
 		var before := app.game.data.duplicate(true)
 		var choice := dialog.find_child("Relic_90,90", true, false) as Button
-		check(choice.text == "" and choice.tooltip_text == "Warden’s Rootheart", "Inventory uses named icons without descriptions")
+		check(choice.text == "" and choice.accessibility_name == "Warden’s Rootheart" and choice.tooltip_text == "", "Inventory uses accessible named icons without hover tooltips")
 		dialog.scroll.ensure_control_visible(choice)
 		await frame()
 		await Harness.tap(app, choice.get_global_rect().get_center(), touch)
