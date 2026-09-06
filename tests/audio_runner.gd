@@ -230,6 +230,37 @@ func run() -> void:
 	app.reset_progress()
 	check(is_equal_approx(a.volume("enemies"), .23), "Progress reset preserves sound preferences")
 	check(a.combat == g.combat and a.economy == g.economy, "Reset reconnects audio to the new simulation")
+	a.set_muted(false)
+	a.stop_effects()
+	var campaign := preload("res://scripts/campaign/screen.gd").new()
+	campaign.app = app
+	campaign.progress.path = "user://audio-campaign-check.save"
+	app.add_child(campaign)
+	campaign.start_mission(0)
+	await settle()
+	a.elapsed += 2
+	accepted = a.accepted_events
+	campaign.run.game.combat.sound_requested.emit("shot_heavy", Vector2(100000, 100000))
+	check(a.accepted_events == accepted, "Campaign preserves positions and rejects offscreen combat")
+	campaign.run.game.combat.sound_requested.emit("shot_heavy", campaign.board.world(campaign.board.size * .5))
+	check(a.accepted_events == accepted + 1, "Visible campaign combat is audible")
+	campaign.show_map()
+	a._process(0.0)
+	check(not a.voices.towers.any(func(voice): return voice.playing), "Leaving campaign battle stops its combat tails")
+	campaign.queue_free()
+	await settle()
+	var other := VigilApp.new()
+	other.load_saved_progress = false
+	other.game.save_path = "user://audio-other-check.save"
+	root.add_child(other)
+	other.set_process(false)
+	await settle()
+	var other_master := AudioServer.get_bus_index(other.audio.master_bus_name)
+	var other_gain := AudioServer.get_bus_volume_db(other_master)
+	a.set_volume("master", 0.0)
+	check(not AudioServer.is_bus_mute(other_master) and AudioServer.get_bus_volume_db(other_master) == other_gain, "Independent app instances do not share master settings")
+	other.queue_free()
+	await settle()
 	app.queue_free()
 	await create_timer(.15).timeout
 	check(AudioServer.bus_count == initial_buses, "App exit releases its private audio bus")
