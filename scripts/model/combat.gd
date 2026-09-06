@@ -62,14 +62,14 @@ func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = ""
 	if enemy.dead or not is_finite(damage) or damage <= 0.0 or not data.towers.has(tower_id):
 		return false
 	if enemy.get("boss", false):
-		damage = Bosses.damage(enemy, damage, branch, fire)
+		damage = Bosses.damage(enemy, damage, branch, fire, tuning)
 	enemy.hp -= damage
 	if enemy.hp > 0.0:
 		return false
 	# Mark dead synchronously before any credit, so splash and simultaneous shots are safe.
 	enemy.dead = true
 	var is_boss: bool = enemy.get("boss", false)
-	var reward: float = Bosses.DEFINITIONS[enemy.kind].payout if is_boss else Balance.tuned_value("enemies", enemy.kind, "payout", tuning)
+	var reward: float = Balance.tuned_value("bosses", enemy.kind, "payout", tuning) if is_boss else Balance.tuned_value("enemies", enemy.kind, "payout", tuning)
 	if enemy.has("summoner"):
 		reward = 0.0
 	if is_boss:
@@ -149,7 +149,7 @@ func tick(delta: float) -> void:
 	for e in enemies:
 		if e.dead:
 			continue
-		var move: float = (Bosses.speed(e, simulation_time) if e.get("boss", false) else Balance.tuned_value("enemies", e.kind, "speed", tuning)) * delta
+		var move: float = (Bosses.speed(e, simulation_time, tuning) if e.get("boss", false) else Balance.tuned_value("enemies", e.kind, "speed", tuning)) * delta
 		match e.get("rift_style", "forest"):
 			"drowned_crypt":
 				move *= 1.0 + Balance.rift_strength("drowned_crypt", tuning) / 100.0
@@ -376,9 +376,9 @@ func branch_hit(shot: Dictionary, enemy: Dictionary) -> void:
 			if charges[shot.tower_id] >= 5:
 				charges[shot.tower_id] = 0
 				var bell: bool = enemy.get("boss", false) and enemy.kind == "bell"
-				hit(enemy, damage * (4.5 if bell else 3.0), shot.tower_id, branch)
+				hit(enemy, damage * (Balance.tuned_value("bosses", "bell", "seal_multiplier", tuning) if bell else 3.0), shot.tower_id, branch)
 				if bell and not enemy.toll_delayed:
-					enemy.toll += 2.0
+					enemy.toll += Balance.tuned_value("bosses", "bell", "toll_delay", tuning)
 					enemy.toll_delayed = true
 				add_effect({"kind": "seal", "pos": enemy.pos, "life": 0.4, "max_life": 0.4, "color": "b3b5f1"})
 				if enemy.get("stun_immune_until", 0.0) <= simulation_time:

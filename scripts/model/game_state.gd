@@ -72,9 +72,15 @@ func apply_balance(candidate: Dictionary) -> bool:
 	data.settings.developer_balance = candidate.duplicate(true)
 	# Preserve damage already taken and progress toward the next shot.
 	for enemy in combat.enemies:
-		if enemy.dead or enemy.get("boss", false):
+		if enemy.dead:
 			continue
-		var health := Balance.tuned_value("enemies", enemy.kind, "hp", tuning) * combat.rift_health_multiplier(enemy)
+		var boss: bool = enemy.get("boss", false)
+		var category := "bosses" if boss else "enemies"
+		var health := Balance.tuned_value(category, enemy.kind, "hp", tuning)
+		if boss:
+			combat.Bosses.apply_balance(enemy, previous, tuning)
+		else:
+			health *= combat.rift_health_multiplier(enemy)
 		enemy.hp = health * clampf(enemy.hp / enemy.max_hp, 0.0, 1.0)
 		enemy.max_hp = health
 	for tower in data.towers.values():

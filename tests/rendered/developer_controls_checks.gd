@@ -56,7 +56,7 @@ static func run(app: VigilApp, harness: Script, failures: Array[String]) -> void
 		for index in range(controls.selector.item_count):
 			controls.selector.select(index)
 			controls.selector.item_selected.emit(index)
-			if controls.sliders.size() != Balance.TUNING_FIELDS[category].size():
+			if controls.sliders.size() != Balance.fields_for(category, controls.selected_kind).size():
 				failures.append("A unit type is missing balance sliders")
 			for stat in controls.sliders:
 				var input: HSlider = controls.sliders[stat]
@@ -64,6 +64,12 @@ static func run(app: VigilApp, harness: Script, failures: Array[String]) -> void
 				if not is_equal_approx(Balance.tuned_value(category, controls.selected_kind, stat, app.game.tuning), input.value):
 					failures.append("Slider did not edit its selected type: " + controls.selected_kind + "/" + stat)
 		await settle(app)
+	controls.show_category("bosses")
+	await settle(app)
+	await harness.capture(app, "developer-bosses")
+	app.panels.content_scroll.ensure_control_visible(controls.sliders.regrowth_suppression)
+	await settle(app)
+	await harness.capture(app, "developer-boss-counters")
 	controls.show_category("towers")
 	await harness.capture(app, "developer-towers")
 	var reset_selected: Button = controls.find_child("ResetSelectedBalance", true, false)

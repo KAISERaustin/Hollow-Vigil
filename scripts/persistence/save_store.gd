@@ -205,11 +205,12 @@ func valid_boss(b: Variant, id: String, d: Dictionary) -> bool:
 			return false
 	if Vector2(VigilWorld.coord(b.tile) - VigilWorld.coord(b.previous)).length() != 1.0:
 		return false
-	if not number(b.get("hp"), 0, Bosses.DEFINITIONS[b.kind].hp) or b.hp <= 0.0 or not number(b.get("steps"), 1, 1.0e15, true):
+	var stats := Balance.definition("bosses", b.kind, d.settings.get("developer_balance", {}))
+	if not number(b.get("hp"), 0, stats.hp) or b.hp <= 0.0 or not number(b.get("steps"), 1, 1.0e15, true):
 		return false
-	if not number(b.get("shield"), 0, 600) or not number(b.get("wards"), 0, 3, true):
+	if not number(b.get("shield"), 0, stats.get("shield", 600.0)) or not number(b.get("wards"), 0, stats.get("wards", 3), true):
 		return false
-	if not number(b.get("regen"), 0, 10) or not number(b.get("toll"), 0, 10) or not b.get("toll_delayed") is bool:
+	if not number(b.get("regen"), 0, stats.get("regen_period", 10.0)) or not number(b.get("toll"), 0, stats.get("toll_period", 8.0) + stats.get("toll_delay", 2.0)) or not b.get("toll_delayed") is bool:
 		return false
 	if not b.get("path") is Array or b.path.size() < 2 or b.path.size() > 49 or not number(b.get("segment"), 1, b.path.size() - 1, true):
 		return false

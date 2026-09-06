@@ -93,19 +93,24 @@ func show_category(section: String) -> void:
 	selected_kind = selector.get_item_metadata(0)
 	hint.text = "Live changes · Auto-saved" if category == "enemies" else "Level 1 · Live changes · Auto-saved"
 	detail.text = "Health changes keep each enemy's remaining health percentage." if category == "enemies" else "Upgrades scale from these values. Lower attack intervals fire faster. Blast radius 0 hits one target. Build cost also scales upgrades and refunds."
+	if category == "bosses":
+		selector.accessibility_name = "Choose boss type"
+		hint.text = "Live changes · Auto-saved"
 	if category == "rifts":
 		selector.accessibility_name = "Choose rift type"
 		hint.text = "Live changes · Auto-saved · Grass always has no effect"
 	show_fields()
 
 func show_fields() -> void:
+	if category == "bosses":
+		detail.text = "Counter: " + Balance.BOSSES[selected_kind].weakness + ". Sliders override these defaults. Health, shields, wards and timers preserve their remaining proportion. Rewards apply on defeat."
 	if category == "rifts":
 		detail.text = Balance.rift_description(selected_kind, game.tuning) + " Set to 0 to disable. Health adjustments preserve remaining health percentage."
 	sliders.clear()
 	for child in fields.get_children():
 		fields.remove_child(child)
 		child.queue_free()
-	for stat in Balance.TUNING_FIELDS[category]:
+	for stat in Balance.fields_for(category, selected_kind):
 		add_slider(stat)
 	# Scrolling follows keyboard focus; left/right remain available to sliders.
 	call_deferred("refresh_focus")

@@ -30,6 +30,13 @@ const ENEMIES := {
 	"heavy": {"name": "Revenant", "role": "DURABLE", "description": "A slow, resilient foe with a rich bounty. High-damage towers help cut through its large health pool.", "hp": 340.0, "speed": 25.0, "payout": 24.0, "color": "db8d73"},
 	"lantern": {"name": "Lantern Keeper", "role": "STEADFAST", "description": "A hooded pilgrim carrying a stolen ember through the rifts. Tougher than a Hollow and quicker than a Revenant, it rewards sustained fire with a generous bounty.", "hp": 120.0, "speed": 46.0, "payout": 14.0, "color": "b49dcc"}
 }
+const BOSSES := {
+	"warden": {"name": "Briarbound Warden", "hp": 3200.0, "speed": 27.0, "payout": 450.0, "color": "95aa83", "weakness": "Cinderfield: burns roots; blocks regrowth", "shield": 600.0, "regen_period": 10.0, "fire_multiplier": 2.0, "regrowth_suppression": 100.0},
+	"cindermaw": {"name": "Cindermaw", "hp": 3600.0, "speed": 25.0, "payout": 500.0, "color": "db8d73", "weakness": "Frostneedle: +50% damage; quenches haste", "rage_threshold": 50.0, "haste_multiplier": 1.7, "armor_reduction": 30.0, "frost_multiplier": 1.5, "quench": 100.0},
+	"bell": {"name": "The Drowned Bell", "hp": 2800.0, "speed": 32.0, "payout": 450.0, "color": "93c9bc", "weakness": "Thunderseal: stronger seals; delays tolls", "toll_period": 8.0, "escort_count": 3, "escort_limit": 6, "seal_multiplier": 4.5, "toll_delay": 2.0},
+	"prior": {"name": "The Eclipse Prior", "hp": 3000.0, "speed": 30.0, "payout": 500.0, "color": "b49dcc", "weakness": "Doomstone: bypasses wards; curses regrowth", "wards": 3, "regen_period": 10.0, "doom_bypass": 1, "curse_threshold": 5, "regrowth_suppression": 100.0}
+}
+
 const TOWERS := {
 	"rapid": {"name": "Ashneedle", "role": "RAPID", "cost": 60.0, "damage": 6.0, "period": 0.48, "range": 132.0, "splash": 0.0, "color": "e0b568", "description": "Swift pointed darts cut through hollows and wraiths."},
 	"splash": {"name": "Pyre", "role": "SPLASH", "cost": 120.0, "damage": 15.0, "period": 1.5, "range": 126.0, "splash": 46.0, "color": "db8d73", "description": "Flame waves burst on impact, striking every enemy within the blast radius."},
@@ -106,13 +113,35 @@ static func rift_description(style: String, tuning: Dictionary = {}) -> String:
 	return "No effect · Enemies keep their normal stats."
 
 const TUNING_FIELDS := {
+	"bosses": {
+		"hp": {"label": "Health", "suffix": " HP", "min": 1.0, "max": 100000.0, "step": 1.0},
+		"speed": {"label": "Move speed", "suffix": " units/s", "min": 1.0, "max": 250.0, "step": 1.0},
+		"payout": {"label": "Gold per defeat", "suffix": " gold", "min": 0.0, "max": 10000.0, "step": 1.0},
+		"shield": {"label": "Root shield", "suffix": " HP", "min": 0.0, "max": 10000.0, "step": 1.0},
+		"regen_period": {"label": "Defense regrowth interval", "suffix": " s", "min": 0.1, "max": 120.0, "step": 0.1},
+		"fire_multiplier": {"label": "Cinderfield shield damage", "suffix": "×", "min": 1.0, "max": 10.0, "step": 0.1},
+		"regrowth_suppression": {"label": "Counter-tower regrowth suppression", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
+		"rage_threshold": {"label": "Haste / armor health threshold", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
+		"haste_multiplier": {"label": "Low-health speed", "suffix": "×", "min": 1.0, "max": 5.0, "step": 0.1},
+		"armor_reduction": {"label": "High-health damage reduction", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
+		"frost_multiplier": {"label": "Frostneedle damage received", "suffix": "×", "min": 0.0, "max": 10.0, "step": 0.1},
+		"quench": {"label": "Frostneedle haste suppression", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
+		"toll_period": {"label": "Escort summon interval", "suffix": " s", "min": 0.1, "max": 120.0, "step": 0.1},
+		"escort_count": {"label": "Escorts per toll", "suffix": "", "min": 0.0, "max": 20.0, "step": 1.0, "integer": true},
+		"escort_limit": {"label": "Living escort limit", "suffix": "", "min": 0.0, "max": 50.0, "step": 1.0, "integer": true},
+		"seal_multiplier": {"label": "Thunderseal detonation damage", "suffix": "× hit damage", "min": 0.0, "max": 15.0, "step": 0.1},
+		"toll_delay": {"label": "Thunderseal toll delay", "suffix": " s", "min": 0.0, "max": 60.0, "step": 0.1},
+		"wards": {"label": "Protective wards", "suffix": " hits", "min": 0.0, "max": 20.0, "step": 1.0, "integer": true},
+		"doom_bypass": {"label": "Doomstone bypasses wards (0 off, 1 on)", "suffix": "", "min": 0.0, "max": 1.0, "step": 1.0, "integer": true},
+		"curse_threshold": {"label": "Doomstone stacks to suppress regrowth", "suffix": " stacks", "min": 0.0, "max": 5.0, "step": 1.0, "integer": true}
+	},
 	"rifts": {
 		"strength": {"label": "Effect strength", "suffix": "%", "min": 0.0, "max": 100.0, "step": 0.25}
 	},
 	"enemies": {
 		"hp": {"label": "Health", "suffix": " HP", "min": 1.0, "max": 1000.0, "step": 1.0},
 		"speed": {"label": "Move speed", "suffix": " units/s", "min": 1.0, "max": 250.0, "step": 1.0},
-		"payout": {"label": "Defeat reward", "suffix": " gold", "min": 0.0, "max": 250.0, "step": 1.0}
+		"payout": {"label": "Gold per defeat", "suffix": " gold", "min": 0.0, "max": 250.0, "step": 1.0}
 	},
 	"towers": {
 		"damage": {"label": "Damage per hit", "suffix": "", "min": 0.1, "max": 500.0, "step": 0.1},
@@ -123,7 +152,16 @@ const TUNING_FIELDS := {
 	}
 }
 
+static func fields_for(category: String, kind: String) -> Dictionary:
+	var result := {}
+	for stat in TUNING_FIELDS[category]:
+		if definitions(category)[kind].has(stat):
+			result[stat] = TUNING_FIELDS[category][stat]
+	return result
+
 static func definitions(category: String) -> Dictionary:
+	if category == "bosses":
+		return BOSSES
 	if category == "rifts":
 		return RIFTS
 	return ENEMIES if category == "enemies" else TOWERS
@@ -146,11 +184,13 @@ static func valid_tuning(value: Variant) -> bool:
 			if not definitions(category).has(kind) or not value[category][kind] is Dictionary:
 				return false
 			for stat in value[category][kind]:
-				if not TUNING_FIELDS[category].has(stat):
+				if not fields_for(category, kind).has(stat):
 					return false
 				var number: Variant = value[category][kind][stat]
 				var limits: Dictionary = TUNING_FIELDS[category][stat]
 				if not (number is float or number is int):
+					return false
+				if limits.get("integer", false) and number != floor(number):
 					return false
 				if not is_finite(number) or number < limits.min or number > limits.max:
 					return false

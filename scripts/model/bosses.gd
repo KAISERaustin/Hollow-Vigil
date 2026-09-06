@@ -2,12 +2,7 @@ extends RefCounted
 
 const Areas = preload("res://scripts/world/hidden_areas.gd")
 const TYPES := ["warden", "cindermaw", "bell", "prior"]
-const DEFINITIONS := {
-	"warden": {"name": "Briarbound Warden", "hp": 3200.0, "speed": 27.0, "payout": 450.0, "color": "95aa83", "weakness": "Cinderfield: burns roots; blocks regrowth"},
-	"cindermaw": {"name": "Cindermaw", "hp": 3600.0, "speed": 25.0, "payout": 500.0, "color": "db8d73", "weakness": "Frostneedle: +50% damage; quenches haste"},
-	"bell": {"name": "The Drowned Bell", "hp": 2800.0, "speed": 32.0, "payout": 450.0, "color": "93c9bc", "weakness": "Thunderseal: stronger seals; delays tolls"},
-	"prior": {"name": "The Eclipse Prior", "hp": 3000.0, "speed": 30.0, "payout": 500.0, "color": "b49dcc", "weakness": "Doomstone: bypasses wards; curses regrowth"}
-}
+const DEFINITIONS = Balance.BOSSES
 
 # The first generated cell is already fixed independently of purchase order.
 static func kind_at(id: String, seed_value: int) -> String:
@@ -25,12 +20,13 @@ static func awaken(combat: VigilCombat, id: String) -> void:
 	create(combat, id, kind)
 
 static func create(combat: VigilCombat, id: String, kind: String) -> Dictionary:
+	var stats := Balance.definition("bosses", kind, combat.tuning)
 	combat.enemy_serial += 1
 	var e := {"id": combat.enemy_serial, "source": id, "kind": kind, "boss": true,
-		"hp": DEFINITIONS[kind].hp, "max_hp": DEFINITIONS[kind].hp, "dead": false,
+		"hp": stats.hp, "max_hp": stats.hp, "dead": false,
 		"pos": VigilWorld.center(id), "segment": 1, "path": [], "tile": id,
-		"previous": "", "steps": 0, "shield": 600.0 if kind == "warden" else 0.0,
-		"wards": 3 if kind == "prior" else 0, "regen": 10.0, "toll": 8.0, "toll_delayed": false}
+		"previous": "", "steps": 0, "shield": stats.get("shield", 0.0),
+		"wards": int(stats.get("wards", 0)), "regen": stats.get("regen_period", 10.0), "toll": stats.get("toll_period", 8.0), "toll_delayed": false}
 	next_leg(combat, e)
 	combat.enemies.append(e)
 	return e
@@ -73,23 +69,46 @@ static func avoid_core(combat: VigilCombat, e: Dictionary) -> void:
 			e.previous = "0,0"
 			return
 
-static func speed(e: Dictionary, now: float) -> float:
-	var value: float = DEFINITIONS[e.kind].speed
-	if e.kind == "cindermaw" and e.hp <= e.max_hp * 0.5 and e.get("slow_until", 0.0) <= now:
-		value *= 1.7
+# Keep damage and timer progress when a live encounter is retuned or reset.
+static func apply_balance(e: Dictionary, previous: Dictionary, tuning: Dictionary) -> void:
+	var before := Balance.definition("bosses", e.kind, previous)
+	var after := Balance.definition("bosses", e.kind, tuning)
+	for field in ["shield", "wards", "regen", "toll"]:
+		var stat: String = {"regen": "regen_period", "toll": "toll_period"}.get(field, field)
+		if not after.has(stat):
+			continue
+		var old_limit: float = before[stat]
+		var new_limit: float = after[stat]
+		if field == "toll" and e.toll_delayed:
+			old_limit += before.toll_delay
+			new_limit += after.toll_delay
+		if old_limit == new_limit:
+			continue
+		var remaining := clampf(e[field] / old_limit, 0.0, 1.0) if old_limit > 0.0 else 1.0
+		e[field] = new_limit * remaining
+		if field == "wards":
+			e[field] = ceili(e[field])
+
+static func speed(e: Dictionary, now: float, tuning: Dictionary = {}) -> float:
+	var stats := Balance.definition("bosses", e.kind, tuning)
+	var value: float = stats.speed
+	if e.kind == "cindermaw" and e.hp <= e.max_hp * stats.rage_threshold / 100.0:
+		var suppression: float = stats.quench / 100.0 if e.get("slow_until", 0.0) > now else 0.0
+		value *= 1.0 + (stats.haste_multiplier - 1.0) * (1.0 - suppression)
 	return value
 
-static func damage(e: Dictionary, amount: float, branch: String, fire: bool) -> float:
+static func damage(e: Dictionary, amount: float, branch: String, fire: bool, tuning: Dictionary = {}) -> float:
+	var stats := Balance.definition("bosses", e.kind, tuning)
 	if e.kind == "cindermaw":
 		if branch == "frostneedle":
-			amount *= 1.5
-		if e.hp > e.max_hp * 0.5:
-			amount *= 0.7
-	if e.kind == "prior" and e.wards > 0 and branch != "doomstone":
+			amount *= stats.frost_multiplier
+		if e.hp > e.max_hp * stats.rage_threshold / 100.0:
+			amount *= 1.0 - stats.armor_reduction / 100.0
+	if e.kind == "prior" and e.wards > 0 and (branch != "doomstone" or stats.doom_bypass == 0):
 		e.wards -= 1
 		return 0.0
 	if e.kind == "warden" and e.shield > 0.0:
-		var multiplier := 2.0 if fire else 1.0
+		var multiplier: float = stats.fire_multiplier if fire else 1.0
 		var absorbed := minf(e.shield, amount * multiplier)
 		e.shield -= absorbed
 		amount -= absorbed / multiplier
@@ -102,6 +121,7 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 		if e.dead or not e.get("boss", false):
 			continue
 		avoid_core(combat, e)
+		var stats := Balance.definition("bosses", e.kind, combat.tuning)
 		var blocked := false
 		if e.kind == "warden":
 			for patch in combat.burning_ground:
@@ -110,20 +130,21 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 		if e.kind == "prior":
 			for tid in combat.curses:
 				var curse: Dictionary = combat.curses[tid]
-				if curse.target == e.id and curse.stacks == 5 and combat.data.towers.has(tid):
+				if curse.target == e.id and curse.stacks >= stats.curse_threshold and combat.data.towers.has(tid):
 					var t: Dictionary = combat.data.towers[tid]
 					if t.get("rebuild_remaining", 0.0) <= 0.0 and VigilWorld.pad_position(t.region, t.pad).distance_to(e.pos) <= Balance.tower_stats(t, combat.tuning).range:
 						blocked = true
-		if not blocked:
-			e.regen = maxf(0.0, e.regen - delta)
-			if e.regen <= 0.0:
-				e.shield = 600.0 if e.kind == "warden" else 0.0
-				e.wards = 3 if e.kind == "prior" else 0
-				e.regen = 10.0
+		if e.kind in ["warden", "prior"]:
+			var rate: float = 1.0 - stats.regrowth_suppression / 100.0 if blocked else 1.0
+			e.regen = maxf(0.0, e.regen - delta * rate)
+			if e.regen <= 0.0 and rate > 0.0:
+				e.shield = stats.get("shield", 0.0)
+				e.wards = int(stats.get("wards", 0))
+				e.regen = stats.regen_period
 		if e.kind == "bell":
 			e.toll -= delta
 			if e.toll <= 0.0:
-				e.toll = 8.0
+				e.toll = stats.toll_period
 				e.toll_delayed = false
 				bells.append(e)
 	for bell in bells:
@@ -131,11 +152,12 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 		for e in combat.enemies:
 			if not e.dead and e.get("summoner", -1) == bell.id:
 				count += 1
-		for index in range(mini(3, 6 - count)):
+		var stats := Balance.definition("bosses", "bell", combat.tuning)
+		for index in range(maxi(0, mini(int(stats.escort_count), int(stats.escort_limit) - count))):
 			var escort := combat.spawn(bell.source, "basic")
 			escort.summoner = bell.id
 			escort.rift_style = "forest"
-			escort.hp = Balance.ENEMIES.basic.hp
+			escort.hp = Balance.tuned_value("enemies", "basic", "hp", combat.tuning)
 			escort.max_hp = escort.hp
 			escort.pos = bell.pos
 			escort.path = [bell.pos]
