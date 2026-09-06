@@ -157,7 +157,7 @@ func run() -> void:
 	campaign.show_socket(6)
 	await frame()
 	var tuned_upgrade: Button = campaign.tower_actions.buttons.upgrade
-	check(tuned_upgrade.tooltip_text.contains("35 gold"), "Campaign upgrade quote reflects mission tuning")
+	check(tuned_upgrade.accessibility_description.contains("35 gold") and tuned_upgrade.tooltip_text.is_empty(), "Campaign upgrade quote reflects mission tuning")
 	var gold: float = campaign.run.game.data.balance
 	tuned_upgrade.pressed.emit()
 	tuned_upgrade.pressed.emit()

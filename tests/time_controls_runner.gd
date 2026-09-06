@@ -58,7 +58,7 @@ func run() -> void:
 	fast._process(3.0)
 	check(combat_snapshot(fast) == frozen, "Pause freezes all combat, including across a long frame")
 	check(fast.accumulator == remainder, "Pause preserves interpolation without accumulating catch-up time")
-	check(fast.hud.pause_button.tooltip_text == "Play", "Paused button becomes play")
+	check(fast.hud.pause_button.accessibility_description == "Play" and fast.hud.pause_button.tooltip_text.is_empty(), "Paused button becomes play")
 	check(fast.field.simulation_rate == 0.0, "Battlefield animations pause")
 	fast.hud.pause_button.pressed.emit()
 	advance(fast, 60)

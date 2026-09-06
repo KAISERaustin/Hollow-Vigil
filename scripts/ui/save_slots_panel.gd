@@ -58,6 +58,9 @@ func fit() -> void:
 
 func clear(title: String, header_action: Button = null) -> void:
 	view_revision += 1
+	header.show()
+	footer.show()
+	content.size_flags_vertical = Control.SIZE_FILL
 	for container in [header, content, footer]:
 		for child in container.get_children():
 			container.remove_child(child)
@@ -76,12 +79,16 @@ func clear(title: String, header_action: Button = null) -> void:
 
 func show_main_menu() -> void:
 	clear("Hollow Vigil")
-	var campaign_button := UI.gold_button("Campaign", app.show_campaign, 52)
-	campaign_button.name = "OpenCampaign"
-	content.add_child(campaign_button)
-	var infinite_button := UI.gold_button("Infinite", show_slots, 52)
-	infinite_button.name = "OpenInfinite"
-	content.add_child(infinite_button)
+	for child in header.get_children():
+		header.remove_child(child)
+		child.queue_free()
+	header.hide()
+	footer.hide()
+	message.hide()
+	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var welcome := preload("res://scripts/ui/welcome_menu.gd").new()
+	welcome.configure(app.show_campaign, show_slots)
+	content.add_child(welcome)
 
 func show_slots() -> void:
 	clear("Saved games")
