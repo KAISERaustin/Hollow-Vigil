@@ -5,6 +5,8 @@ signal settings_requested
 signal collect_requested
 
 const UI = preload("res://scripts/ui/interface.gd")
+const INCOME_REFRESH_MSEC := 1000
+var next_income_refresh_msec := 0
 var gold_label: Label
 var rate_label: Label
 var kills_label: Label
@@ -82,7 +84,7 @@ func build_footer() -> void:
 	stats.add_theme_constant_override("separation", 12)
 	footer.add_child(stats)
 	gold_label = stat_block(stats, "Gold", "180", UI.TEXT)
-	rate_label = stat_block(stats, "Gold / sec", "0.00", UI.TEXT)
+	rate_label = stat_block(stats, "Gold / sec", "0", UI.TEXT)
 	kills_label = stat_block(stats, "Kills", "0", UI.TEXT)
 	var reserve_card := PanelContainer.new()
 	reserve_card.name = "UnclaimedEarningsCard"
@@ -112,8 +114,11 @@ func build_footer() -> void:
 
 func update_values(game: VigilState) -> void:
 	gold_label.text = Balance.money(game.data.balance)
-	var gold_per_second := game.combat.income_rate()
-	rate_label.text = "%.2f" % gold_per_second if gold_per_second < 1000.0 else Balance.money(gold_per_second)
+	# Hold the rounded rate for a full real-time second between updates.
+	var now_msec := Time.get_ticks_msec()
+	if now_msec >= next_income_refresh_msec:
+		rate_label.text = str(roundi(game.combat.income_rate()))
+		next_income_refresh_msec = now_msec + INCOME_REFRESH_MSEC
 	kills_label.text = Balance.money(game.data.kills)
 	unclaimed_label.text = Balance.money(game.economy.unclaimed()) + " gold"
 	collect_button.text = "Collect all" if not game.data.automation else "Steward active"
