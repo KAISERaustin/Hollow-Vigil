@@ -35,6 +35,8 @@ static func run(t) -> void:
 			var game := Fixtures.fixture(kind)
 			var source: String = game.combat.enemies[0].source
 			var cluster := Bosses.Clusters.at(source, int(game.data.seed))
+			game.data.regions[source].erase("boss")
+			game.combat.enemies.clear()
 			var pending: Array = cluster.cells.duplicate()
 			if reverse_order:
 				pending.reverse()
@@ -48,7 +50,12 @@ static func run(t) -> void:
 				t.check(progress, "Cluster tiles can be purchased through connected territory")
 				if not progress:
 					break
-			t.check(active_in_cluster(game, cluster).size() == 1, "Purchasing every tile awakens one boss regardless of purchase order: " + kind)
+			for cell in cluster.cells:
+				if VigilWorld.key(cell) != source:
+					Bosses.awaken(game.combat, VigilWorld.key(cell))
+			t.check(active_in_cluster(game, cluster).is_empty(), "Every non-encounter tile stays boss-free: " + kind)
+			Bosses.awaken(game.combat, source)
+			t.check(active_in_cluster(game, cluster).size() == 1, "Only the fixed encounter tile awakens the cluster boss: " + kind)
 			migration(t, game, cluster)
 	print("PASS GROUP: one deterministic boss per connected biome cluster, purchase order and per-tile save migration")
 
@@ -60,6 +67,7 @@ static func migration(t, game: VigilState, cluster: Dictionary) -> void:
 	var boss: Dictionary = active_in_cluster(game, cluster)[0]
 	boss.hp -= 125.0
 	var expected_hp: float = boss.hp
+	game.data.balance = 100000.0
 	var gold: float = game.data.balance
 	# Reproduce the previous release's active per-tile encounters.
 	for cell in cluster.cells:
@@ -77,14 +85,18 @@ static func migration(t, game: VigilState, cluster: Dictionary) -> void:
 	t.check(restored.data.balance == gold and restored.data.kills == game.data.kills, "Removing duplicates awards no gold or kills")
 	t.check(restored.save(1000) and restored.load_save(1000) and active_in_cluster(restored, cluster).size() == 1, "Repeated save/load cannot resurrect duplicates")
 	# A victory on any old tile completes the whole cluster; preserve its relic.
+	var completed_source := source
 	for cell in cluster.cells:
 		var tile := VigilWorld.key(cell)
 		if tile == source or tile == "0,0":
 			continue
-		restored.data.regions[tile].boss = {"status": "defeated", "kind": boss.kind}
-		if Balance.GEAR.has(boss.kind):
-			restored.data.relics[tile] = boss.kind
+		completed_source = tile
 		break
+	if completed_source == source:
+		active_in_cluster(restored, cluster)[0].dead = true
+	Bosses.record(restored.combat, completed_source).boss = {"status": "defeated", "kind": boss.kind}
+	if Balance.GEAR.has(boss.kind):
+		restored.data.relics[completed_source] = boss.kind
 	var relics: Dictionary = restored.data.relics.duplicate()
 	t.check(restored.save(1000) and restored.load_save(1000), "Completed cluster migration round trips")
 	t.check(active_in_cluster(restored, cluster).is_empty() and restored.data.relics == relics, "A prior victory suppresses the entire cluster and preserves earned relics")
