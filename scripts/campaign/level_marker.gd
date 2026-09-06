@@ -23,8 +23,6 @@ func _draw() -> void:
 		var plaque := Rect2(size.x * 0.5 - 18, size.y - 21, 36, 22)
 		draw_style_box(UI.surface(paper, 2, 2), plaque)
 		draw_string(UI.font(600), plaque.position + Vector2(6, 16), str(number), HORIZONTAL_ALIGNMENT_CENTER, 24, 14, UI.TEXT)
-		if active:
-			draw_rect(Rect2(Vector2(2, 2), size - Vector2(4, 4)), UI.GOLD, false, 2)
 		return
 	var offset := Vector2(0, 2) if button_pressed else Vector2.ZERO
 	var outline := PackedVector2Array([Vector2(8,8), Vector2(16,2), Vector2(39,2), Vector2(47,10), Vector2(45,47), Vector2(9,47), Vector2(6,38), Vector2(8,8)])

@@ -138,7 +138,8 @@ static func theme() -> Theme:
 	t.set_stylebox("pressed", "Button", box(SURFACE))
 	t.set_stylebox("hover_pressed", "Button", box(SURFACE))
 	t.set_stylebox("disabled", "Button", box(SURFACE))
-	t.set_stylebox("focus", "Button", focus_box())
+	for type in ["Button", "OptionButton", "CheckButton", "CheckBox", "MenuButton", "LinkButton", "LineEdit", "TextEdit", "ScrollContainer"]:
+		t.set_stylebox("focus", type, focus_box())
 	# OptionButton popups are separate windows and need their own theme roles.
 	t.set_stylebox("panel", "PopupMenu", surface(PANEL, OUTLINE, 8))
 	t.set_stylebox("hover", "PopupMenu", box(GOLD))
@@ -186,13 +187,9 @@ static func box(bg: Color, border: Color = BORDER, radius: int = RADIUS) -> Styl
 	style.content_margin_bottom = 8
 	return style
 
-static func focus_box() -> StyleBoxFlat:
-	# An inset ink ring keeps keyboard focus clear without replacing the black border.
-	var style := box(Color.TRANSPARENT)
-	style.set_border_width_all(2)
-	style.set_expand_margin_all(-6)
-	style.set_content_margin_all(0)
-	return style
+static func focus_box() -> StyleBoxEmpty:
+	# Focus navigation stays active without drawing a ring on any control.
+	return StyleBoxEmpty.new()
 
 static func label(text: String, pixels: int = 16, color: Color = TEXT) -> Label:
 	var l := Label.new()
@@ -215,7 +212,7 @@ static func value(text: String, pixels: int = 24) -> Label:
 	l.add_theme_font_override("font", font(700))
 	return l
 
-static func button(text: String, action: Callable, height: float = 48, inner_ring: bool = true) -> Button:
+static func button(text: String, action: Callable, height: float = 48) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.custom_minimum_size.y = maxf(TARGET, height)
@@ -228,18 +225,15 @@ static func button(text: String, action: Callable, height: float = 48, inner_rin
 	pressed.content_margin_top += 1
 	pressed.content_margin_bottom -= 1
 	b.add_theme_stylebox_override("pressed", pressed)
-	if not inner_ring:
-		b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	b.add_theme_stylebox_override("focus", focus_box())
 	b.draw.connect(func():
-		if inner_ring and not b.disabled and (b.is_hovered() or b.button_pressed):
-			b.draw_rect(Rect2(Vector2(6, 6), b.size - Vector2(12, 12)), BORDER, false, 2)
 		if b.toggle_mode and b.button_pressed:
 			b.draw_line(Vector2(12, b.size.y - 8), Vector2(b.size.x - 12, b.size.y - 8), BORDER, 2)
 	)
 	return b
 
 static func close_button(action: Callable, height: float = 48) -> Button:
-	return button("×", action, height, false)
+	return button("×", action, height)
 
 static func toggle_button(enabled: bool, action: Callable) -> Button:
 	var control := button("On" if enabled else "Off", func(): pass)
