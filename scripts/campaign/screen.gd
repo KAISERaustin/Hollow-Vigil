@@ -29,11 +29,16 @@ var save_notice: Label
 
 func _ready() -> void:
 	name = "Campaign"
-	color = UI.BG
+	color = UI.PANEL
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	theme = UI.theme()
 	progress.load_progress()
 	layout = VBoxContainer.new()
+	layout.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layout.offset_left = 12
+	layout.offset_top = 12
+	layout.offset_right = -12
+	layout.offset_bottom = -12
 	layout.add_theme_constant_override("separation", 10)
 	add_child(layout)
 	resized.connect(fit)
@@ -43,8 +48,10 @@ func _ready() -> void:
 
 func fit() -> void:
 	var safe := UI.safe_rect(self).grow(-12)
-	layout.position = safe.position
-	layout.size = safe.size
+	layout.offset_left = safe.position.x
+	layout.offset_top = safe.position.y
+	layout.offset_right = safe.end.x - size.x
+	layout.offset_bottom = safe.end.y - size.y
 	if is_instance_valid(dialog_card):
 		dialog_card.size = Vector2(minf(470, safe.size.x), minf(490, safe.size.y))
 		dialog_card.position = safe.position + (safe.size - dialog_card.size) * 0.5
@@ -329,6 +336,7 @@ func _build_dialog() -> void:
 	close_button.name = "CloseCampaignDialog"
 	close_button.accessibility_name = "Close and return to campaign"
 	close_button.custom_minimum_size.x = 48
+	close_button.size_flags_horizontal = Control.SIZE_SHRINK_END
 	row.add_child(close_button)
 	var scroll := ScrollContainer.new()
 	scroll.name = "CampaignDialogScroll"

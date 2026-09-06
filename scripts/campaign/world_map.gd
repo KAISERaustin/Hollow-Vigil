@@ -36,8 +36,8 @@ func _draw() -> void:
 	for chapter in range(4):
 		var top := chapter * 450.0
 		var palette := Art.ground_color(Catalog.CHAPTERS[chapter].style)
-		draw_style_box(UI.surface(palette.darkened(0.73), 2, 22), Rect2(0, top, size.x, 435))
-		draw_string(UI.font(600), Vector2(16, top + 28), "CHAPTER %s" % ["I", "II", "III", "IV"][chapter], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, palette.lightened(0.3))
+		draw_style_box(UI.surface(palette.lightened(0.1), 2, 22), Rect2(0, top, size.x, 435))
+		draw_string(UI.font(600), Vector2(16, top + 28), "CHAPTER %s" % ["I", "II", "III", "IV"][chapter], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, UI.MUTED)
 		draw_string(UI.font(600,true), Vector2(16, top + 55), Catalog.CHAPTERS[chapter].name, HORIZONTAL_ALIGNMENT_LEFT, size.x-24, 20, UI.TEXT)
 		for i in range(5):
 			var index := chapter * 5 + i

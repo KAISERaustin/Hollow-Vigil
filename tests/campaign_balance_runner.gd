@@ -22,16 +22,46 @@ func coverage(at: Vector2, mission: Dictionary) -> float:
 		result += covered/maxf(1,length)
 	return result
 
-func invest(battle: RefCounted) -> void:
-	var sockets: Array = battle.mission.sockets.duplicate()
-	sockets.sort_custom(func(a,b): return coverage(a.position,battle.mission) > coverage(b.position,battle.mission))
-	var kinds := ["rapid","heavy","splash","electric","heavy","rapid","heavy","electric"]
+func ranked_sockets(mission: Dictionary) -> Array:
+	var remaining: Array = mission.sockets.duplicate()
+	var selected: Array = []
+	var defended: Array = []
+	defended.resize(mission.routes.size())
+	defended.fill(0.0)
+	while not remaining.is_empty():
+		var best: Dictionary = remaining[0]
+		var best_score := -1.0
+		for socket in remaining:
+			var score := 0.0
+			for lane in range(mission.routes.size()):
+				score += coverage(socket.position, {"routes": [mission.routes[lane]]}) / (1.0 + 4.0 * defended[lane])
+			if score > best_score:
+				best_score = score
+				best = socket
+		selected.append(best)
+		remaining.erase(best)
+		for lane in range(mission.routes.size()):
+			defended[lane] += coverage(best.position,{"routes": [mission.routes[lane]]})
+	return selected
+
+func invest(battle: RefCounted, strategy: int) -> void:
+	var sockets := ranked_sockets(battle.mission)
+	var kinds: Array = [
+		["rapid","heavy","splash","electric","heavy","rapid","heavy","electric"],
+		["rapid","rapid","heavy","electric","splash","heavy","rapid","electric"],
+		["electric","rapid","heavy","rapid","splash","heavy","electric","rapid"],
+		["splash","heavy","rapid","electric","heavy","rapid","heavy","electric"]
+	][strategy % 4]
 	var branches := {"rapid":"frostneedle","heavy":"doomstone","splash":"cinderfield","electric":"thunderseal"}
 	# A deterministic reference strategy spends actual mission earnings only.
 	# A pair of early towers, followed by upgrades and a broader mixed defense.
-	for tier in range(1,5):
+	var targets: Array = [[2,2,2,2,2,2,2,2,3,3,3,3,4,4], [2,2,3,3,4,4,2,3,4,2,3,4], [3,3,3,3,4,4,4,4], [4,3,2,3,4,4]][strategy / 4]
+	var order: Array = [[0,1,2,3,4,5,6,7,0,1,2,3,0,1], [0,1,0,1,0,1,2,2,2,3,3,3], [0,1,2,3,0,1,2,3], [0,1,2,2,1,2]][strategy / 4]
+	for step in range(targets.size()):
+		var tier: int = targets[step]
+		var selected_rank: int = order[step]
 		for rank in range(mini(sockets.size(),8)):
-			if tier == 1 and rank > 1:
+			if rank != selected_rank:
 				continue
 			var socket: int = sockets[rank].index
 			var id: String = battle.tower_at(socket)
@@ -48,14 +78,22 @@ func invest(battle: RefCounted) -> void:
 func run() -> void:
 	var report := "level,name,result,flame,gold,seconds\n"
 	for index in range(20):
-		var battle := Run.new(index)
+		var battle: RefCounted
 		var steps := 0
-		while battle.phase in ["planning","wave"] and steps < 20000:
-			if battle.phase == "planning":
-				invest(battle)
-				battle.start_wave()
-			battle.tick(Balance.STEP)
-			steps += 1
+		var chosen := -1
+		for strategy in range(16):
+			battle = Run.new(index)
+			steps = 0
+			while battle.phase in ["planning","wave"] and steps < 20000:
+				if battle.phase == "planning":
+					invest(battle,strategy)
+					battle.start_wave()
+				battle.tick(Balance.STEP)
+				steps += 1
+			if battle.phase == "victory":
+				chosen = strategy
+				break
+		print("Strategy ",chosen)
 		var line := "%d,%s,%s,%d,%d,%.1f" % [index+1,battle.mission.name,battle.phase,battle.health,battle.game.data.balance,steps*Balance.STEP]
 		print(line)
 		report += line + "\n"

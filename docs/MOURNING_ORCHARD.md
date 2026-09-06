@@ -31,10 +31,12 @@ Live acceptance on 2026-09-06 used the normal QA account through the game's prod
 ## Verification
 
 - `tests/orchard_runner.gd`: 1,557 assertions, including 100 seeds, exclusive spawns, traffic, save/build/cloud codecs and all 36 tower/specialization/enemy combinations.
-- `tests/test_runner.gd`: full gameplay regression suite, including the Orchard checks.
+- `tests/test_runner.gd`: 32,278 passing checks in the full gameplay regression suite, including the Orchard checks.
 - `tests/rendered/enemy_art_checks.gd`: 81 checks covering nine unique portraits, transparent padding and four gameplay zooms.
 - `tests/rendered/terrain_palette_checks.gd`: 576 biome/direction/zoom combinations, plus boundary, world-grid and cloud-reveal checks; all six terrain styles are covered.
-- `tests/rendered/orchard_runner.gd`: actual portal mouse/touch interactions, developer typing and save readback at three phone sizes, followed by the complete existing developer input harness.
+- `tests/rendered/orchard_runner.gd`: 30 passing assertions plus the full developer harness; actual portal mouse/touch interactions, developer typing and save readback at three phone sizes, followed by the complete existing developer input harness.
 - `tools/orchard_live_runner.gd`: opt-in authenticated backend/configuration acceptance; see `tests/README.md` for use and cleanup.
+
+The rendered app teardown reports two existing audio object leaks, also observed by the separate cloud restore runner. There were no script/runtime errors or failed interaction assertions. Physical iPhone/TestFlight validation is separate from these desktop-rendered phone-size checks.
 
 Generated visual evidence is in `artifacts/orchard-world-*.png`, `artifacts/orchard-portal-*.png`, `artifacts/orchard-developer-*.png` and `artifacts/enemy-lineup.png`. Portrait exports are committed in `assets/enemies/`.

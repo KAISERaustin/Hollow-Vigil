@@ -73,7 +73,9 @@ func run() -> void:
 	var reloaded := Progress.new()
 	reloaded.path = progress.path
 	reloaded.load_progress()
-	check(reloaded.data.checkpoint == before, "Campaign checkpoint survives a disk round trip")
+	var from_disk := Run.new(0)
+	from_disk.restore(reloaded.data.checkpoint)
+	check(from_disk.checkpoint == before, "Campaign checkpoint survives a disk round trip")
 	resumed.phase = "victory"
 	check(progress.save_run(resumed) and progress.unlocked(1) and not progress.unlocked(2), "Victory unlocks only the next mission")
 	check(progress.data.medals[0] == 3, "Perfect health awards three medals")
