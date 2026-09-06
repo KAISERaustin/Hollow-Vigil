@@ -116,5 +116,6 @@ static func save_compatibility(t) -> void:
 		game.data.regions["1,0"].unlocks = Balance.portal_unlock_costs(style).keys()
 		for kind in Balance.portal_kinds(style): game.set_balance_stat("enemies", kind, "hp", 321.0)
 		var snapshot := game.snapshot(1000.0)
-		t.check(store.write(path, snapshot) and store.read_candidate(path) == snapshot, "New " + style + " purchases and tuning save exactly")
+		var expected: Dictionary = JSON.parse_string(JSON.stringify(snapshot, "", true, true))
+		t.check(store.write(path, snapshot) and store.read_candidate(path) == expected, "New " + style + " purchases and tuning save exactly")
 	t.clean_test_save(path)
