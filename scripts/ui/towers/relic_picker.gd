@@ -12,7 +12,7 @@ static func build(dialog) -> void:
 	summary.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, 2, 10))
 	dialog.equipment_summary.add_child(summary)
 	var summary_stack := UI.margin(summary, 12)
-	summary_stack.add_child(UI.label("Currently equipped", 14, UI.GOLD))
+	summary_stack.add_child(UI.label("Currently equipped", 14, UI.TEXT))
 	var summary_row := HBoxContainer.new()
 	summary_row.add_theme_constant_override("separation", 10)
 	summary_stack.add_child(summary_row)

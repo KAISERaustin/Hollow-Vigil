@@ -44,6 +44,7 @@ func run() -> void:
 	await Harness.tap(app, app.tower_actions.buttons.equipment.get_global_rect().get_center())
 	check(app.tower_dialog.visible and app.tower_dialog.mode == "equipment", "Equipment action opens collection with no drops")
 	check(app.tower_dialog.find_child("Relic_empty", true, false) != null, "Empty collection has removable slot and discovery guidance")
+	check(app.tower_dialog.find_child("EquippedRelicName", true, false).text == "No equipment equipped", "Empty slot is explicit at the top of the menu")
 	await Harness.capture(app, "relic-empty-collection")
 	app.tower_dialog.dismiss()
 	for index in range(4):
@@ -77,7 +78,7 @@ func run() -> void:
 		app.game.economy.equip_relic(towers[index], str(90 + index) + ",90", "")
 	app.field.selected_tower = ""
 	await Harness.capture(app, "relic-equipped-towers")
-	app.field.selected_tower = towers[0]
+	app.field.selected_tower = towers[3]
 	for dimensions in [Vector2i(360,640), Vector2i(390,844), Vector2i(768,1024)]:
 		root.size = dimensions
 		root.content_scale_size = dimensions
@@ -94,6 +95,16 @@ func run() -> void:
 		await frame()
 		var viewport := Rect2(Vector2.ZERO, app.size)
 		check(viewport.encloses(app.tower_dialog.card.get_global_rect()), "Equipment card fits viewport " + str(dimensions))
+		var equipped_name := app.tower_dialog.find_child("EquippedRelicName", true, false) as Label
+		check(equipped_name.text == "Eclipse Shard", "Header identifies the equipped Eclipse Shard")
+		check(equipped_name.get_global_rect().end.y <= app.tower_dialog.scroll.get_global_rect().position.y, "Equipped summary stays above the scrolling collection")
+		var replacement := app.tower_dialog.find_child("Relic_90,90", true, false) as Button
+		app.tower_dialog.scroll.ensure_control_visible(replacement)
+		await frame()
+		await Harness.tap(app, replacement.get_global_rect().get_center())
+		check(app.tower_dialog.relic_choice == "90,90" and equipped_name.text == "Eclipse Shard", "Pending replacement does not change the currently equipped summary")
+		app.tower_dialog.scroll.scroll_vertical = 0
+		await frame()
 		check(app.tower_dialog.scroll.get_v_scroll_bar().max_value > app.tower_dialog.scroll.size.y, "Relic collection scrolls")
 		await Harness.capture(app, "relic-picker-" + str(dimensions.x))
 		app.tower_dialog.dismiss()
