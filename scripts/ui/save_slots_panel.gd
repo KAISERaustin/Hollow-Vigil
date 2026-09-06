@@ -122,25 +122,27 @@ func show_creation(slot: int, reset: bool = true) -> void:
 	clear("New game")
 	add_back(UI.button("Back to saved games", show_slots))
 	content.add_child(UI.paragraph("Slot %d · Choose a world and a mode." % (slot + 1), 14))
-	var source := add_card("1. Starting world")
-	source.add_child(UI.paragraph(selected_configuration.get("name", "Fresh world"), 18))
+	content.add_child(UI.heading("1. Starting world", 18))
+	if not selected_configuration.is_empty():
+		content.add_child(UI.paragraph(selected_configuration.get("name", ""), 18))
 	if not selected_configuration.get("description", "").is_empty():
-		source.add_child(UI.paragraph(selected_configuration.description, 14))
+		content.add_child(UI.paragraph(selected_configuration.description, 14))
 	var choose := UI.button("My builds", show_configurations.bind(slot))
 	choose.name = "ChooseConfiguration"
 	var sources := HBoxContainer.new()
 	sources.add_theme_constant_override("separation", 8)
-	source.add_child(sources)
+	content.add_child(sources)
 	choose.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sources.add_child(choose)
 	var community := UI.button("Community", show_public_builds.bind(slot))
 	community.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sources.add_child(community)
 	if not selected_configuration.is_empty():
-		source.add_child(UI.button("Use a fresh world instead", func():
+		content.add_child(UI.button("Use a fresh world instead", func():
 			selected_configuration = {}
 			show_creation(slot, false)
 		))
+	content.add_child(UI.rule())
 	content.add_child(UI.heading("2. Choose your mode", 18))
 	var create := UI.button("Start %s game" % creation_mode.capitalize(), func():
 		var game := slots.create(slot, creation_mode, selected_configuration.get("code", ""))
