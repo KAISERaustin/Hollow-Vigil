@@ -49,6 +49,11 @@ func run() -> void:
 		await frame()
 		check(Rect2(Vector2.ZERO,Vector2(viewport)).encloses(campaign.layout.get_global_rect()), "World map fits " + str(viewport))
 		await Harness.capture(app,"campaign-map-"+str(viewport.x))
+		for chapter in range(4):
+			var gate: Button = campaign.find_child("CampaignLevel%d" % (chapter * 5 + 5), true, false)
+			check(gate.gate != null and gate.size == Vector2(80,120), "Chapter destination uses its building artwork")
+			check(gate.position.x > gate.get_parent().size.x * 0.5, "Chapter destination sits at the right end of the road")
+			check(gate.position.y + gate.size.y <= chapter * 450 + 435, "Building destination fits its chapter")
 		campaign.find_child("CampaignLevel1",true,false).pressed.emit()
 		await frame()
 		check(campaign.page == "briefing", "Campaign node opens the authored mission briefing")

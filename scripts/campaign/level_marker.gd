@@ -20,7 +20,7 @@ func _draw() -> void:
 	var paper := UI.GOLD if active or completed else Color("e8ddbd")
 	if gate != null:
 		draw_texture_rect(gate, Rect2(Vector2.ZERO, size), false)
-		var plaque := Rect2(size.x * 0.5 - 18, size.y - 15, 36, 22)
+		var plaque := Rect2(size.x * 0.5 - 18, size.y - 21, 36, 22)
 		draw_style_box(UI.surface(paper, 2, 2), plaque)
 		draw_string(UI.font(600), plaque.position + Vector2(6, 16), str(number), HORIZONTAL_ALIGNMENT_CENTER, 24, 14, UI.TEXT)
 		if active:
