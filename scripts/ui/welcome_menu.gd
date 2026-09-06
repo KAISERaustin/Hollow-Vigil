@@ -61,19 +61,23 @@ func configure(campaign: Callable, infinite: Callable) -> void:
 func arrange() -> void:
 	var width := size.x
 	var height := size.y
-	crest.position = Vector2(0, height * 0.035)
-	crest.size = Vector2(width, height * 0.22)
+	# Anchor the composition to the buttons, with bounded gaps on tall screens.
+	var modes_top := height * 0.5 - 63
+	var title_top := modes_top - 98
+	var crest_height := minf(180, height * 0.22)
+	crest.position = Vector2(0, title_top + 8 - crest_height)
+	crest.size = Vector2(width, crest_height)
 	title.add_theme_font_size_override("font_size", mini(42, int(width / 7.6)))
-	title.position = Vector2(0, height * 0.25)
+	title.position = Vector2(0, title_top)
 	title.size = Vector2(width, 58)
-	subtitle.position = Vector2(0, height * 0.25 + 52)
+	subtitle.position = Vector2(0, title_top + 52)
 	subtitle.size = Vector2(width, 24)
 	var button_width := minf(320, width - 16)
 	modes.size = Vector2(button_width, 126)
-	modes.position = Vector2((width - button_width) * 0.5, height * 0.5 - 63)
-	battlefield.position = Vector2(0, height * 0.66)
-	battlefield.size = Vector2(width, height * 0.26)
-	caption.position = Vector2(0, height * 0.94)
+	modes.position = Vector2((width - button_width) * 0.5, modes_top)
+	battlefield.position = Vector2(0, modes_top + 126 + 22)
+	battlefield.size = Vector2(width, minf(200, height * 0.26))
+	caption.position = Vector2(0, battlefield.position.y + battlefield.size.y + 24)
 	caption.size = Vector2(width, 24)
-	footer_rule.position = Vector2(0, height * 0.91)
+	footer_rule.position = Vector2(0, battlefield.position.y + battlefield.size.y + 4)
 	footer_rule.size = Vector2(width, 12)
