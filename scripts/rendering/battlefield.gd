@@ -1,6 +1,8 @@
 class_name Battlefield
 extends Control
 
+const RegionQuery = preload("res://scripts/rendering/region_query.gd")
+
 const AttackEffects = preload("res://scripts/rendering/attack_effects.gd")
 
 signal picked(region: String, pad: int)
@@ -39,6 +41,15 @@ var touches := {}
 var gesture_consumed := false
 var font := ThemeDB.fallback_font
 var terrain_layer: VigilTerrainLayer
+var frontier_cache: Dictionary = {}
+var frontier_signature: Array = []
+
+func expansion_frontier() -> Dictionary:
+	var signature := [state, state.terrain_revision, state.data.seed, state.data.regions.size()]
+	if frontier_signature != signature:
+		frontier_signature = signature
+		frontier_cache = VigilWorld.frontier(state.data.regions)
+	return frontier_cache
 const GOLD := VigilTerrainArt.GOLD
 const TEXT := VigilTerrainArt.PAPER
 const EXPANSION_HIT_RADIUS := 38.0
@@ -285,16 +296,18 @@ func _draw() -> void:
 	if terrain_layer != null:
 		terrain_layer.synchronize(state, camera, zoom, size)
 	var visible := Rect2(Vector2(-100, -100), size + Vector2(200, 200))
-	for id in state.data.regions:
+	var world_view := Rect2(world(visible.position), visible.size / zoom)
+	var visible_regions := RegionQuery.in_view(state.data.regions, world_view, Balance.TILE * 0.5)
+	for id in visible_regions:
 		var c := screen(VigilWorld.center(id))
 		if not visible.intersects(Rect2(c - Vector2.ONE * 150.0 * zoom, Vector2.ONE * 300.0 * zoom)):
 			continue
 		draw_region(state.data.regions[id])
 	# Draw portals after every tile, so newly purchased terrain cannot cover them.
-	for id in state.data.regions:
+	for id in visible_regions:
 		if VigilWorld.has_rift(id) and visible.has_point(screen(state.paths[id][0])):
 			draw_entrance(id)
-	for id in VigilWorld.frontier(state.data.regions):
+	for id in RegionQuery.in_view(expansion_frontier(), world_view):
 		var c := screen(expansion_marker(id))
 		if not visible.has_point(c):
 			continue
@@ -324,10 +337,10 @@ func _draw() -> void:
 		for index in range(9):
 			var ember: Vector2 = center + Vector2.from_angle(index*2.4)*sqrt(index/9.0)*patch.radius*zoom
 			draw_line(ember,ember+Vector2(2,-5-sin(state.combat.simulation_time*5+index)*2)*zoom,VigilTerrainArt.GOLD,2*zoom,true)
-	for e in state.combat.enemies:
+	for e in state.combat.visible_enemies(world_view):
 		if visible.has_point(screen(e.pos)):
 			draw_enemy(e)
-	for t in state.data.towers.values():
+	for t in state.economy.towers_in_regions(visible_regions):
 		if visible.has_point(screen(VigilWorld.pad_position(t.region, t.pad))):
 			draw_tower(t)
 	draw_upgrade_poofs()

@@ -4,6 +4,29 @@ extends RefCounted
 signal tower_upgraded(region: String, pad: int, kind: String)
 
 var data: Dictionary
+var tower_cells: Dictionary = {}
+var indexed_tower_count := -1
+
+func ensure_tower_index() -> void:
+	if indexed_tower_count == data.towers.size():
+		return
+	tower_cells.clear()
+	for id in data.towers:
+		var tower: Dictionary = data.towers[id]
+		if not tower_cells.has(tower.region):
+			tower_cells[tower.region] = {}
+		tower_cells[tower.region][int(tower.pad)] = id
+	indexed_tower_count = data.towers.size()
+
+func towers_in_regions(regions: Array[String]) -> Array[Dictionary]:
+	ensure_tower_index()
+	var result: Array[Dictionary] = []
+	for region in regions:
+		for id in tower_cells.get(region, {}).values():
+			result.append(data.towers[id])
+	# Tower IDs are assigned monotonically; preserve their original draw order.
+	result.sort_custom(func(a, b): return int(a.id) < int(b.id))
+	return result
 var tuning: Dictionary:
 	get: return data.settings.get("developer_balance", {})
 
@@ -25,15 +48,13 @@ func spend(cost: float) -> bool:
 func _add_tower(kind: String, region: String, pad: int) -> String:
 	var id := str(data.next_tower)
 	data.next_tower += 1
+	indexed_tower_count = -1
 	data.towers[id] = {"id": id, "kind": kind, "region": region, "pad": pad, "level": 1, "earnings": 0.0, "cooldown": 0.0, "angle": 0.0, "rebuild_remaining": 0.0, "target_mode": "first"}
 	return id
 
 func tower_at(region: String, pad: int) -> String:
-	for id in data.towers:
-		var t: Dictionary = data.towers[id]
-		if t.region == region and t.pad == pad:
-			return id
-	return ""
+	ensure_tower_index()
+	return tower_cells.get(region, {}).get(pad, "")
 
 func needs_first_property() -> bool:
 	# Saves created before onboarding was introduced remain unrestricted.
@@ -72,6 +93,7 @@ func relocate(id: String, region: String, pad: int, expected_level: int = -1) ->
 		return false
 	if not spend(Balance.move_cost(tower, tuning)):
 		return false
+	indexed_tower_count = -1
 	tower.region = region
 	tower.pad = pad
 	tower.rebuild_remaining = Balance.rebuild_seconds(tower, tuning)
@@ -94,6 +116,7 @@ func sell(id: String, expected_level: int = -1) -> Dictionary:
 	var earnings: float = tower.earnings
 	# Remove ownership and historical production before issuing the one-time payout.
 	data.towers.erase(id)
+	indexed_tower_count = -1
 	for region in data.regions.values():
 		region.history.erase(id)
 	data.balance = minf(Balance.MAX_MONEY, data.balance + refund + earnings)

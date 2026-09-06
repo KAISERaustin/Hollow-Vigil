@@ -2,6 +2,7 @@ class_name VigilTerrainLayer
 extends Node2D
 
 var chunks: Dictionary = {}
+var visible_chunks: Dictionary = {}
 var revision := -1
 var model: VigilState
 var seed_value := -1
@@ -28,12 +29,6 @@ func synchronize(state: VigilState, camera: Vector2, zoom: float, viewport_size:
 			if replace or not state.data.regions.has(id) or appearance(chunks[id].region) != appearance(state.data.regions[id]):
 				chunks[id].free()
 				chunks.erase(id)
-		for id in state.data.regions:
-			if not chunks.has(id):
-				var tile := VigilTerrainTile.new()
-				tile.configure(state.data.regions[id].duplicate(true), state.data.seed)
-				chunks[id] = tile
-				add_child(tile)
 		# A single overlay stays above every cached chunk, including new tiles,
 		# while the battlefield's portals, enemies and controls remain above it.
 		move_child(cloud_edges, -1)
@@ -44,8 +39,20 @@ func synchronize(state: VigilState, camera: Vector2, zoom: float, viewport_size:
 	cloud_edges.synchronize(state, world_view)
 	grid.synchronize(world_view)
 	var view := world_view.grow(170)
-	for id in chunks:
-		chunks[id].visible = view.has_point(chunks[id].world_center)
+	var next_visible := {}
+	for id in preload("res://scripts/rendering/region_query.gd").in_view(state.data.regions, view):
+		if not chunks.has(id):
+			var tile := VigilTerrainTile.new()
+			tile.configure(state.data.regions[id].duplicate(true), state.data.seed)
+			chunks[id] = tile
+			add_child(tile)
+			move_child(tile, cloud_edges.get_index())
+		chunks[id].visible = true
+		next_visible[id] = true
+	for id in visible_chunks:
+		if not next_visible.has(id) and chunks.has(id):
+			chunks[id].visible = false
+	visible_chunks = next_visible
 
 func appearance(region: Dictionary) -> Array:
 	return [region.get("style", "forest"), region.bend, region.get("road_version", 2)]

@@ -22,6 +22,26 @@ var tick_count := 0
 var enemy_pool: Array[Dictionary] = []
 var burning_ground: Array[Dictionary] = []
 var curses: Dictionary = {}
+var enemy_index := preload("res://scripts/model/enemy_index.gd").new()
+var spatial_ready := false
+var indexed_enemy_count := -1
+var ticking := false
+
+func rebuild_enemy_index() -> void:
+	enemy_index.rebuild(enemies)
+	indexed_enemy_count = enemies.size()
+	spatial_ready = true
+
+func nearby_enemies(pos: Vector2, radius: float) -> Array[Dictionary]:
+	# Standalone combat helpers also support editor/test changes between calls.
+	if not ticking:
+		rebuild_enemy_index()
+	return enemy_index.query_radius(pos, radius)
+
+func visible_enemies(view: Rect2) -> Array[Dictionary]:
+	if not spatial_ready or indexed_enemy_count != enemies.size():
+		rebuild_enemy_index()
+	return enemy_index.query_rect(view)
 
 func _init(shared_data: Dictionary, transactions: VigilEconomy, shared_paths: Dictionary) -> void:
 	data = shared_data
@@ -96,6 +116,7 @@ func spawn(id: String, forced_kind: String = "") -> Dictionary:
 	e.segment = 1
 	e.dead = false
 	enemies.append(e)
+	spatial_ready = false
 	return e
 
 func rift_health_multiplier(enemy: Dictionary) -> float:
@@ -158,19 +179,15 @@ func tick(delta: float) -> void:
 			else:
 				e.pos = e.pos.move_toward(p[e.segment], move)
 				move = 0.0
-	# Resolve arrivals after movement, at the same center used by the visuals.
-	advance_shots(delta)
-	advance_fire(delta)
-	# Spatial buckets keep targeting local as the battlefield grows.
-	var buckets := {}
+	# Build once after movement; knockback updates bucket membership immediately.
+	rebuild_enemy_index()
+	ticking = true
 	for e in enemies:
 		if not e.dead:
-			# Compute road distance lazily for in-range candidates, once per tick.
 			e.distance_remaining = -1.0
-			var bucket := Vector2i(floor(e.pos.x / 128.0), floor(e.pos.y / 128.0))
-			if not buckets.has(bucket):
-				buckets[bucket] = []
-			buckets[bucket].append(e)
+	# Resolve arrivals at the same centers used by targeting and drawing.
+	advance_shots(delta)
+	advance_fire(delta)
 	for t in data.towers.values():
 		if t.get("rebuild_remaining", 0.0) > 0.0:
 			t.rebuild_remaining = maxf(0.0, t.rebuild_remaining - delta)
@@ -182,7 +199,7 @@ func tick(delta: float) -> void:
 			continue
 		var stats := Balance.tower_stats(t, tuning)
 		var pos := VigilWorld.pad_position(t.region, t.pad)
-		var candidates := nearby(buckets, pos, stats.range)
+		var candidates := nearby_enemies(pos, stats.range)
 		var target := select_target(candidates, pos, stats.range, t.get("target_mode", "first"))
 		if target.is_empty():
 			continue
@@ -206,7 +223,7 @@ func tick(delta: float) -> void:
 			for victim in victims:
 				launch_shot(t, pos, victim, stats)
 				if t.get("branch", "") == "tempest_web":
-					for other in enemies:
+					for other in nearby_enemies(victim.pos, 60.0):
 						if not other.dead and other.id not in used and victim.pos.distance_to(other.pos) <= 60.0:
 							used.append(other.id)
 							var arc := AttackEffects.shot("electric", victim.pos + Vector2(0, 29), other.pos, stats, other.id)
@@ -219,6 +236,8 @@ func tick(delta: float) -> void:
 		if t.get("branch", "") == "thorn_volley":
 			launch_fan(t, pos, target, stats)
 	recycle_dead_enemies()
+	indexed_enemy_count = enemies.size()
+	ticking = false
 	while not income_events.is_empty() and simulation_time - income_events[0].x > 60.0:
 		income_events.pop_front()
 	if data.automation:
@@ -260,7 +279,7 @@ func advance_shots(delta: float) -> void:
 
 func resolve_shot(shot: Dictionary, target: Dictionary) -> void:
 	if shot.radius > 0.0:
-		for enemy in enemies:
+		for enemy in nearby_enemies(shot.fx.pos, shot.radius):
 			if not enemy.dead and shot.fx.pos.distance_squared_to(enemy.pos) <= shot.radius * shot.radius:
 				branch_hit(shot, enemy)
 	elif not target.is_empty() and not target.dead:
@@ -299,15 +318,6 @@ func select_target(candidates: Array, pos: Vector2, radius: float, mode: String)
 			best_score = score
 			best_distance = remaining
 	return target
-
-func nearby(buckets: Dictionary, pos: Vector2, radius: float) -> Array:
-	var result: Array = []
-	var first := Vector2i(floor((pos.x - radius) / 128.0), floor((pos.y - radius) / 128.0))
-	var last := Vector2i(floor((pos.x + radius) / 128.0), floor((pos.y + radius) / 128.0))
-	for x in range(first.x, last.x + 1):
-		for y in range(first.y, last.y + 1):
-			result.append_array(buckets.get(Vector2i(x, y), []))
-	return result
 
 func recycle_dead_enemies() -> void:
 	# Refresh after movement and attacks, before a dead dictionary can be reused.
@@ -389,6 +399,8 @@ func push_back(enemy: Dictionary, distance: float) -> void:
 			break
 		enemy.segment -= 1
 	enemy.distance_remaining = -1.0
+	if spatial_ready:
+		enemy_index.moved(enemy)
 
 func ignite(shot: Dictionary) -> void:
 	var patch := {"tower_id": shot.tower_id, "pos": shot.fx.pos, "radius": shot.radius, "until": simulation_time + 3.0, "damage": shot.damage / 0.75 / 3.0}
@@ -407,18 +419,28 @@ func advance_fire(delta: float) -> void:
 	if burning_ground.is_empty():
 		return
 	burning_ground = burning_ground.filter(func(p): return p.until > simulation_time and data.towers.has(p.tower_id))
-	for enemy in enemies:
-		if enemy.dead:
-			continue
+	# Keep patch order per enemy, including the first overlapping patch per owner.
+	var affected := {}
+	if not ticking:
+		rebuild_enemy_index()
+	for patch in burning_ground:
+		for enemy in enemy_index.query_radius(patch.pos, patch.radius):
+			if not affected.has(enemy.id):
+				affected[enemy.id] = {"enemy": enemy, "patches": []}
+			affected[enemy.id].patches.append(patch)
+	var ids: Array = affected.keys()
+	ids.sort_custom(func(a, b): return enemy_index.order[a] < enemy_index.order[b])
+	for id in ids:
+		var enemy: Dictionary = affected[id].enemy
 		var owners := {}
-		for patch in burning_ground:
-			if not owners.has(patch.tower_id) and enemy.pos.distance_squared_to(patch.pos) <= patch.radius * patch.radius:
+		for patch in affected[id].patches:
+			if not owners.has(patch.tower_id):
 				owners[patch.tower_id] = true
 				hit(enemy, patch.damage * delta, patch.tower_id, "cinderfield", true)
 
 func launch_fragments(shot: Dictionary) -> void:
 	var count := 0
-	for enemy in enemies:
+	for enemy in nearby_enemies(shot.fx.pos, 90.0):
 		if enemy.dead or enemy.id == shot.target_id or enemy.pos.distance_to(shot.fx.pos) > 90.0:
 			continue
 		var stats := {"damage": shot.damage * 0.2, "splash": 0.0, "color": "c3a0ed"}
@@ -454,7 +476,9 @@ func advance_arrow(shot: Dictionary, delta: float, flying: Array[Dictionary]) ->
 	var end: Vector2 = shot.fx.from.lerp(shot.fx.pos, minf(1.0, shot.elapsed / shot.fx.flight))
 	var victim: Dictionary = {}
 	var nearest := INF
-	for enemy in enemies:
+	if not ticking:
+		rebuild_enemy_index()
+	for enemy in enemy_index.query_rect(Rect2(start, Vector2.ZERO).expand(end).grow(9.0)):
 		if enemy.dead:
 			continue
 		var point := Geometry2D.get_closest_point_to_segment(enemy.pos, start, end)

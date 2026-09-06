@@ -7,6 +7,7 @@ const LOBES := 7
 const LOBE_STEPS := 16
 
 var borders: Array[Dictionary] = []
+var borders_by_region: Dictionary = {}
 var view := Rect2()
 var model: VigilState
 var revision := -1
@@ -17,6 +18,7 @@ func synchronize(state: VigilState, world_view: Rect2) -> void:
 		model = state
 		revision = state.terrain_revision
 		borders.clear()
+		borders_by_region.clear()
 		for id in state.data.regions:
 			var cell := VigilWorld.coord(id)
 			var directions: Array[Vector2] = []
@@ -24,7 +26,9 @@ func synchronize(state: VigilState, world_view: Rect2) -> void:
 				if not state.data.regions.has(VigilWorld.key(cell + direction)):
 					directions.append(Vector2(direction))
 			if not directions.is_empty():
-				borders.append({"cell": cell, "directions": directions})
+				var border := {"cell": cell, "directions": directions}
+				borders.append(border)
+				borders_by_region[id] = border
 	if changed or view != world_view:
 		view = world_view
 		queue_redraw()
@@ -76,7 +80,8 @@ func _draw() -> void:
 	# A shallow, outlined billow reaches only into explored cells adjacent to
 	# fog. Shared explored edges clear immediately when a neighbor is unlocked.
 	var half := Balance.TILE * 0.5
-	for border in borders:
+	for id in preload("res://scripts/rendering/region_query.gd").in_view(borders_by_region, view, half):
+		var border: Dictionary = borders_by_region[id]
 		var cell: Vector2i = border.cell
 		var center := Vector2(cell) * Balance.TILE
 		if not view.grow(half).has_point(center):
