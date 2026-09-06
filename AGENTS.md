@@ -1,5 +1,10 @@
 # Repository instructions
 
+## Preferred TestFlight upload method
+
+- Prefer Xcode Organizer for uploading iOS archives: open the current `.xcarchive` in Xcode, choose **Distribute App → App Store Connect → Distribute**, and use the existing signed-in developer account. The user explicitly requested this preference on September 6, 2026 after Organizer succeeded while `xcodebuild -exportArchive` failed with an App Store Connect credentials error.
+- Command-line Godot export and `xcodebuild archive` are suitable for preparing the archive. After Organizer confirms **Uploaded to Apple**, verify processing in App Store Connect and assign the new build to the existing **Just for Testing** group. An upload alone does not complete a TestFlight release.
+
 ## Commit and push after every chat
 
 - At the end of every chat/task in this repository, commit all pending repository changes and push all local commits to `origin/main` before the final response. This applies even when the chat itself made no file changes. This is standing user authorization; do not ask for routine commit/push confirmation. Follow an explicit instruction in the current chat not to commit or push.

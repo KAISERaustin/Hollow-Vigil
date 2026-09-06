@@ -1,5 +1,15 @@
 # Hollow Vigil on iPhone
 
+## TestFlight release — September 6, 2026
+
+Version **0.1.0 (1.0.5)** was built from commit `eb8c25d1545e3b2d6f16d0a2332a261a5e8696b3`, uploaded through **Xcode Organizer → Distribute App → App Store Connect**, processed successfully by Apple, and assigned to the internal **Just for Testing** group. App Store Connect confirmed six testers have access. Gameplay source was unchanged; the archive build number was overridden to `1.0.5`.
+
+Validation: structure checks passed; the headless gameplay suite passed **30,562 checks with zero failures**; the Release archive succeeded and its signature passed deep, strict verification. Xcode emitted warnings for empty camera, microphone and photo-library usage descriptions, a generated header pragma, and skipped App Intents extraction. Apple accepted the upload. Physical-device testing of this specific build remains for TestFlight testers.
+
+Prefer Organizer for future uploads: command-line archive creation succeeded, but command-line upload returned an App Store Connect credentials error. Organizer succeeded using the signed-in account. Build in an isolated local directory if iCloud-backed source reads stall. This archive is at `/private/tmp/hollow-vigil-release-1.0.5-eb8c25d/HollowVigil.xcarchive`; temporary files may be cleared by macOS. Build and test logs are under ignored `artifacts/testflight-20260906/`.
+
+[Build in App Store Connect](https://appstoreconnect.apple.com/teams/9e8e8295-c906-4d21-8e40-988d2e1a8075/apps/6809097281/testflight/ios/aba5907a-8ecf-4f7b-aa43-7f871fd4d5ac).
+
 ## Installed build — September 4, 2026
 
 Hollow Vigil 0.1.0 (build 1.0.0), bundle identifier `com.kaiser.hollowvigil`, was built in Release mode and installed on Austin's iPhone 16 Pro running iOS 27.0 beta. The build uses Godot 4.7.2, its matching official iOS templates, and Xcode 26.6.
