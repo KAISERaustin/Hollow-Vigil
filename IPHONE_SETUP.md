@@ -1,8 +1,18 @@
 # Hollow Vigil on iPhone
 
+## TestFlight build 1.0.7 — September 6, 2026
+
+Version **0.1.0 (1.0.7)** includes the latest parchment menu backgrounds, mobile scrolling changes, and campaign speed behavior from commit `6c6949a91ab16a486a46d11f9420e9d1b60c7583`, with the iOS export preset's build number updated to `1.0.7`. Xcode Organizer confirmed **Uploaded to Apple** at 6:31 PM CDT through **Distribute App → App Store Connect → Distribute**, using the existing developer account. App Store Connect confirmed **Testing** in the internal **Just for Testing** group, with six testers and seven available builds.
+
+Validation: the release source snapshot was checked against Git blob hashes; a fresh Godot import and structure checks passed; the headless gameplay suite passed **51,002 checks with zero failures**. The native-rendered mobile scrolling suite passed with **zero failures**, covering touch scrolling, safe actions, numeric controls, and full-screen menus at three portrait sizes and short landscape. The Release archive succeeded and its signature passed deep, strict verification. Xcode emitted the same generated-header, empty privacy-usage-description, and skipped App Intents extraction warnings as 1.0.6. Physical-device testing of this specific build remains for TestFlight testers.
+
+The Organizer archive is at `~/Library/Developer/Xcode/Archives/2026-09-06/HollowVigil-1.0.7.xcarchive`. The isolated build source is at `/private/tmp/hollow-vigil-release-1.0.7-source`; temporary files may be cleared by macOS. Logs are under ignored `artifacts/testflight-1.0.7/`, including `tests.log`, `mobile-scroll.log`, `import.log`, `export.log`, and `archive.log`. The exported PCK SHA-256 is `5714865d9c5e5f3c65be7eaf38328214b9f7021723969d4d3baca45f85e44ea8`.
+
+[Build 1.0.7 in App Store Connect](https://appstoreconnect.apple.com/teams/9e8e8295-c906-4d21-8e40-988d2e1a8075/apps/6809097281/testflight/ios/20038dba-56bf-41bb-ab01-579b5d97f85f).
+
 ## TestFlight build 1.0.6 — September 6, 2026
 
-Version **0.1.0 (1.0.6)** was built from commit `269180be8be5dd09438eb44d1b87ca1f7af3cf5f` with the iOS export preset's build number updated to `1.0.6`. Xcode Organizer confirmed **Uploaded to Apple** at 6:11 PM CDT through **Distribute App → App Store Connect → Distribute**, using the existing signed-in developer account. Apple processing and tester assignment are pending verification.
+Version **0.1.0 (1.0.6)** was built from commit `269180be8be5dd09438eb44d1b87ca1f7af3cf5f` with the iOS export preset's build number updated to `1.0.6`. Xcode Organizer confirmed **Uploaded to Apple** at 6:11 PM CDT through **Distribute App → App Store Connect → Distribute**, using the existing signed-in developer account. App Store Connect subsequently confirmed **Testing** in the internal **Just for Testing** group, with six testers.
 
 Validation: a fresh Godot import completed without script errors; structure checks passed; the headless gameplay suite passed **51,002 checks with zero failures**; the Release archive succeeded and its signature passed deep, strict verification. The initial working-folder test attempt encountered missing imported textures and was stopped; the successful suite ran from the freshly imported release copy. Xcode emitted the same empty camera, microphone and photo-library usage-description warnings, generated-header pragma warning, and skipped App Intents extraction warning seen in the previous release. Physical-device testing of this build remains for TestFlight testers.
 
