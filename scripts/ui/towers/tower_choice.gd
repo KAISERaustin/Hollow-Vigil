@@ -17,7 +17,9 @@ static func create(kind: String, title: String, cost: float, action: Callable, l
 	portrait.name = "TowerPortrait"
 	portrait.custom_minimum_size = Vector2(36, 44)
 	portrait.draw.connect(func():
-		VigilTerrainArt.sentinel(portrait, kind, Vector2(portrait.size.x * 0.5, 36), 0.5, level, branch)
+		# Tower art extends roughly from -42 to +12 around its ground anchor.
+		var center := portrait.size * 0.5 + Vector2(0, 7.5)
+		VigilTerrainArt.sentinel(portrait, kind, center, 0.5, level, branch)
 	)
 	portrait.resized.connect(portrait.queue_redraw)
 	row.add_child(portrait)

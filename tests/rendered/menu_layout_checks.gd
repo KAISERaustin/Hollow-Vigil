@@ -118,6 +118,13 @@ func run() -> void:
 		for category in Balance.TUNING_FIELDS:
 			controls.show_category(category)
 			await settle()
+			app.panels.content_scroll.ensure_control_visible(controls.selector)
+			await settle()
+			controls.selector.show_popup()
+			await settle()
+			var popup: PopupMenu = controls.selector.get_popup()
+			check(popup.size.y <= 288, category + " dropdown exceeds height cap at " + str(viewport))
+			popup.hide()
 			for index in range(controls.selector.item_count):
 				controls.selector.select(index)
 				controls.selector.item_selected.emit(index)
