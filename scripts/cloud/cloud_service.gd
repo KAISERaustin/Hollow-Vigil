@@ -307,7 +307,7 @@ func _request(path: String, body: Dictionary, authenticated: bool) -> Dictionary
 	var epoch := generation
 	var request := HTTPRequest.new()
 	request.timeout = 15.0
-	request.body_size_limit = 5 * 1024 * 1024
+	request.body_size_limit = (20 if path == "/rest/v1/rpc/read_public_build" else 5) * 1024 * 1024
 	add_child(request)
 	var headers := PackedStringArray(["Content-Type: application/json", "apikey: " + key])
 	if authenticated:

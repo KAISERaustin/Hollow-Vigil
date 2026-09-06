@@ -45,7 +45,15 @@ func queue_export(code: String) -> bool:
 func flush() -> void:
 	if busy or cloud.busy or not cloud.signed_in():
 		return
+	if cloud.display_name.is_empty():
+		status = "Public upload pending. Set your name in Settings → Account & cloud saves."
+		changed.emit()
+		return
 	busy = true
+	cloud.busy = true
+	var epoch: int = cloud.generation
+	# Refresh account metadata in the JWT before the server snapshots the author name.
+	cloud.expires_at = 0.0
 	var owner: String = cloud.player_id
 	for item in outbox.duplicate():
 		if item.owner != "" and item.owner != owner:
@@ -68,6 +76,8 @@ func flush() -> void:
 			break
 		status = "Configuration published to Public Builds."
 	busy = false
+	if cloud.generation == epoch:
+		cloud.busy = false
 	changed.emit()
 
 func list_page(page: int) -> Dictionary:

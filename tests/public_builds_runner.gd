@@ -30,6 +30,10 @@ func run() -> void:
 	var id: String = service.outbox[0].id
 	check(not slots.decode_build(code).has("cloud"), "Exports omit cloud identity")
 	cloud.player_id = preload("res://scripts/cloud/cloud_codec.gd").uuid()
+	cloud.display_name = ""
+	await service.flush()
+	check(cloud.sent.is_empty() and service.outbox.size() == 1, "Unnamed accounts retain exports until name is set")
+	cloud.display_name = "Builder"
 	await service.flush()
 	check(service.outbox.size() == 1 and service.outbox[0].owner == cloud.player_id, "Failure preserves export and account binding")
 	var restored := preload("res://scripts/cloud/public_builds.gd").new()

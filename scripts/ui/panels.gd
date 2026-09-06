@@ -380,6 +380,9 @@ func show_settings() -> void:
 	sheet_content.add_child(UI.action_row(cloud_button.text, cloud_button, "Open"))
 	sheet_content.add_child(UI.paragraph("Save %d · %s" % [app.active_slot + 1, str(game.data.get("mode", "creative")).capitalize()], 14))
 	sheet_content.add_child(UI.action_row("Your saves", UI.button("Your saves", app.show_save_slots), "Open"))
+	var public_button := UI.button("Public Builds", app.show_public_builds)
+	public_button.name = "OpenPublicBuilds"
+	sheet_content.add_child(UI.action_row(public_button.text, public_button, "Open"))
 	if game.data.has("setup"):
 		sheet_content.add_child(UI.paragraph(game.data.setup.name + "\n" + game.data.setup.description, 14))
 	if game.is_creative():

@@ -78,6 +78,7 @@ func show_slots() -> void:
 		if exists:
 			add_action(UI.button("Archive and free slot", show_archive.bind(slot)))
 		content.add_child(UI.rule())
+	add_action(UI.button("Public Builds", show_public_builds))
 	if app.slot_active:
 		add_action(UI.button("Back to game", close))
 

@@ -469,13 +469,13 @@ func restore_cloud_progress(snapshot: Dictionary, _world_id: String, _revision: 
 	if game.offline_award >= 1.0:
 		show_return_earnings(game.offline_award)
 
-func show_save_slots(exporting: bool = false) -> void:
+func show_save_slots(exporting: bool = false) -> bool:
 	if cloud.busy or not cloud.pending.is_empty() or not cloud.conflict.is_empty():
 		toast("Finish the current cloud operation before changing saves.")
-		return
+		return false
 	persist()
 	if not game.save_error.is_empty():
-		return
+		return false
 	panels.close_sheet()
 	return_overlay.hide()
 	pending_return_gold = 0.0
@@ -490,6 +490,12 @@ func show_save_slots(exporting: bool = false) -> void:
 		slot_menu.show_export()
 	else:
 		slot_menu.show_slots()
+
+	return true
+
+func show_public_builds() -> void:
+	if show_save_slots():
+		slot_menu.show_public_builds()
 
 func open_slot(slot: int) -> void:
 	var next := VigilState.new()
