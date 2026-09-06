@@ -240,6 +240,7 @@ static func action_row(title: String, action: BaseButton, action_text: String = 
 	action.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	if action is Button:
 		action.text = action_text
+		action.autowrap_mode = TextServer.AUTOWRAP_OFF
 		if action.toggle_mode and action_text == "Select":
 			action.text = "Selected" if action.button_pressed else "Select"
 			action.toggled.connect(func(selected: bool): action.text = "Selected" if selected else "Select")
