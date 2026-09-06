@@ -17,6 +17,8 @@ const AbilityNode = preload("res://scripts/content/nodes/ability_node.gd")
 const Towers = preload("res://scripts/content/catalogs/towers.gd")
 const Actors = preload("res://scripts/content/catalogs/actors.gd")
 const Gear = preload("res://scripts/content/catalogs/gear.gd")
+const Attributes = preload("res://scripts/content/catalogs/attributes.gd")
+const AttributeNode = preload("res://scripts/content/nodes/attribute_node.gd")
 const World = preload("res://scripts/content/catalogs/world.gd")
 const Levels = preload("res://scripts/content/catalogs/levels.gd")
 
@@ -24,12 +26,6 @@ const BOSS_TYPES := {
 	"warden": preload("res://scripts/content/nodes/bosses/warden.gd"),
 	"cindermaw": preload("res://scripts/content/nodes/bosses/cindermaw.gd"),
 	"prior": preload("res://scripts/content/nodes/bosses/prior.gd")
-}
-const GEAR_TYPES := {
-	"warden": preload("res://scripts/content/nodes/gear/warden.gd"),
-	"cindermaw": preload("res://scripts/content/nodes/gear/cindermaw.gd"),
-	"bell": preload("res://scripts/content/nodes/gear/bell.gd"),
-	"prior": preload("res://scripts/content/nodes/gear/prior.gd")
 }
 
 static var _shared: VigilContentRegistry
@@ -139,7 +135,10 @@ func _populate() -> void:
 		{"level": 1, "earnings": 0.0, "cooldown": 0.0, "angle": 0.0, "rebuild_remaining": 0.0, "target_mode": "first"}))
 	_add(EnemyNode.new("enemy", entity, {}, {"tuning_category": "enemies", "escape_damage": 1, "movement": "road", "targetable": true}, {"segment": 1, "dead": false}))
 	_add(BossNode.new("boss", get_node("enemy"), {}, {"tuning_category": "bosses", "escape_damage": 20, "movement": "patrol"}, {"boss": true, "path": [], "previous": "", "steps": 0, "toll_delayed": false}))
-	_add(GearNode.new("gear", entity, {}, {"tuning_category": "gear", "slot": "relic", "equipped_on": "tower"}, {"attacks": 0, "target": -1, "stacks": 0, "last": -100.0, "root_ready": 0.0}))
+	_add(GearNode.new("gear", entity, {}, {"tuning_category": "gear", "slot": "relic", "equipped_on": "tower"}, {"attacks": 0, "target": -1, "last": -100.0, "components": {}}))
+	_add(AttributeNode.new("attribute", root))
+	for kind in Attributes.TYPES:
+		_add(Attributes.TYPES[kind].new("attribute/" + kind, get_node("attribute"), {}, Attributes.RULES.get(kind, {})), "attributes", kind)
 	_add(ProjectileNode.new("projectile", root, {}, {}, {"kind": "shot"}))
 	_add(AbilityNode.new("ability", root))
 	_add(ContentNode.new("targeting", root))
@@ -176,9 +175,12 @@ func _populate_actors() -> void:
 			rules.merge(Actors.PRESENTATION.get(kind, {}), true)
 			_add(EnemyNode.new("enemy/" + kind, parent, Actors.ENEMIES[kind], rules), "enemies", kind)
 	for kind in Actors.BOSSES:
-		_add(BOSS_TYPES.get(kind, BossNode).new("boss/" + kind, get_node("boss"), Actors.BOSSES[kind], {"kind": kind, "presentation": Actors.BOSS_PRESENTATION.get(kind, {}), "drop": "gear/" + kind if Gear.GEAR.has(kind) else ""}), "bosses", kind)
+		_add(BOSS_TYPES.get(kind, BossNode).new("boss/" + kind, get_node("boss"), Actors.BOSSES[kind], {"kind": kind, "presentation": Actors.BOSS_PRESENTATION.get(kind, {}), "drop": "gear/" + kind, "drops": Gear.BOSS_DROPS[kind]}), "bosses", kind)
 	for kind in Gear.GEAR:
-		_add(GEAR_TYPES.get(kind, GearNode).new("gear/" + kind, get_node("gear"), Gear.GEAR[kind], {"kind": kind, "presentation": Gear.PRESENTATION[kind]}), "gear", kind)
+		var components := []
+		for attribute_kind in Gear.ATTRIBUTES[kind]:
+			components.append({"slot": attribute_kind, "component": get_node("attribute/" + attribute_kind), "config": {}})
+		_add(GearNode.new("gear/" + kind, get_node("gear"), Gear.GEAR[kind], {"kind": kind, "presentation": Gear.PRESENTATION[kind], "components": components}), "gear", kind)
 
 func _populate_world(root: ContentNode) -> void:
 	var world := _add(ContentNode.new("world", root))

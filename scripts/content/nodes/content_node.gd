@@ -71,3 +71,14 @@ func make_record(fields: Dictionary = {}) -> Dictionary:
 func derive(key: String, attribute_values: Dictionary = {}, rules: Dictionary = {}, defaults: Dictionary = {}) -> VigilContentNode:
 	# Preserve the family implementation when adding another data-only subtype.
 	return get_script().new(key, self, attribute_values, rules, defaults)
+
+## Return a new definition; never alter a shared parent or sibling's attachments.
+func with_component(key: String, slot: String, component: VigilContentNode, config: Dictionary = {}) -> VigilContentNode:
+	var attachments: Array = rule("components", [])
+	attachments = attachments.filter(func(entry): return entry.slot != slot)
+	if component != null:
+		attachments.append({"slot": slot, "component": component, "config": config.duplicate(true)})
+	return derive(key, {}, {"components": attachments})
+
+func without_component(key: String, slot: String) -> VigilContentNode:
+	return with_component(key, slot, null)
