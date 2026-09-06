@@ -90,8 +90,7 @@ func _ready() -> void:
 	editor.add_child(description)
 	selector = OptionButton.new()
 	selector.name = "BalanceUnit"
-	# PopupMenu supplies scrolling when the options exceed this shared height cap.
-	selector.get_popup().max_size = Vector2i(0, UI.TARGET * 6)
+	selector.get_popup().about_to_popup.connect(limit_dropdown.bind(selector))
 	selector.custom_minimum_size.y = UI.TARGET
 	selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	selector.add_theme_stylebox_override("normal", UI.box(UI.SURFACE))
@@ -112,6 +111,7 @@ func _ready() -> void:
 	editor.add_child(selector)
 	tier_selector = selector.duplicate(0)
 	tier_selector.name = "BalanceTier"
+	tier_selector.get_popup().about_to_popup.connect(limit_dropdown.bind(tier_selector))
 	tier_selector.item_selected.connect(func(index: int):
 		commit_fields()
 		var choice: Dictionary = tier_selector.get_item_metadata(index)
@@ -144,6 +144,11 @@ func _ready() -> void:
 	reset_all.name = "ResetAllBalance"
 	editor.add_child(UI.action_row(reset_all.text, reset_all, "Reset"))
 	show_categories()
+
+func limit_dropdown(option: OptionButton) -> void:
+	# Both dimensions must be nonzero for the embedded popup to honor its cap.
+	var viewport_size := get_viewport_rect().size
+	option.get_popup().max_size = Vector2i(int(viewport_size.x), mini(UI.TARGET * 6, int(viewport_size.y)))
 
 func commit_fields() -> void:
 	for number in inputs.values():
