@@ -94,7 +94,7 @@ func add_effect(fx: Dictionary) -> void:
 	if effects.size() < 100:
 		effects.append(fx)
 
-func spawn(id: String, forced_kind: String = "") -> Dictionary:
+func spawn(id: String, forced_kind: String = "", escort: bool = false) -> Dictionary:
 	if not VigilWorld.has_rift(id) or not data.regions.has(id):
 		return {}
 	var r: Dictionary = data.regions[id]
@@ -102,7 +102,7 @@ func spawn(id: String, forced_kind: String = "") -> Dictionary:
 	var dungeon: bool = r.get("style", "forest") == "castle_ruin"
 	if kind == "":
 		kind = Balance.DUNGEON_KINDS[rng.randi_range(0, 1)] if dungeon else Balance.enemy_kind(r.unlocks, rng.randf())
-	if (kind in Balance.DUNGEON_KINDS) != dungeon:
+	if not escort and (kind in Balance.DUNGEON_KINDS) != dungeon:
 		return {}
 	if not Balance.ENEMIES.has(kind):
 		return {}
@@ -165,7 +165,7 @@ func tick(delta: float) -> void:
 			"bloodmoon_sanctuary":
 				e.hp = minf(e.max_hp, e.hp + e.max_hp * Balance.rift_strength("bloodmoon_sanctuary", tuning) / 100.0 * delta)
 		if e.get("slow_until", 0.0) > simulation_time:
-			move *= 0.75
+			move *= 1.0 - e.get("slow_percent", 25.0) / 100.0
 		if e.get("stun_until", 0.0) > simulation_time:
 			move = 0.0
 		var p: Array = e.path
@@ -225,7 +225,7 @@ func tick(delta: float) -> void:
 			# A new pulse replaces this tower's previous connections, even when
 			# developer tuning makes attacks faster than the lightning fade.
 			effects = effects.filter(func(fx): return not (fx.kind == "shot" and fx.get("tower_id", "") == t.id and fx.tower_kind == "electric"))
-		if stats.get("targets", 1) > 1:
+		if stats.get("targets", 1) > 1 or t.get("branch", "") == "tempest_web":
 			# Pick distinct enemies in priority order before damage changes HP scores.
 			var victims: Array[Dictionary] = [target]
 			candidates.erase(target)
@@ -239,18 +239,16 @@ func tick(delta: float) -> void:
 			for victim in victims:
 				launch_shot(t, pos, victim, stats)
 				if t.get("branch", "") == "tempest_web":
-					for other in nearby_enemies(victim.pos, 60.0):
-						if not other.dead and other.id not in used and victim.pos.distance_to(other.pos) <= 60.0:
+					for other in nearby_enemies(victim.pos, stats.arc_range):
+						if not other.dead and other.id not in used and victim.pos.distance_to(other.pos) <= stats.arc_range:
 							used.append(other.id)
 							var arc := AttackEffects.shot("electric", victim.pos + Vector2(0, 29), other.pos, stats, other.id)
 							arc.tower_id = t.id
 							add_effect(arc)
-							hit(other, stats.damage * 0.5, t.id)
+							hit(other, stats.damage * stats.arc_multiplier, t.id)
 							break
 			continue
 		launch_shot(t, pos, target, stats)
-		if t.get("branch", "") == "thorn_volley":
-			launch_fan(t, pos, target, stats)
 	recycle_dead_enemies()
 	indexed_enemy_count = enemies.size()
 	ticking = false
@@ -260,12 +258,14 @@ func tick(delta: float) -> void:
 		economy.collect()
 
 func launch_shot(tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary) -> void:
+	if tower.get("branch", "") == "thorn_volley":
+		launch_fan(tower, origin, target, stats)
 	var fx := AttackEffects.shot(tower.kind, origin, target.pos, stats, target.id)
 	fx.tower_id = tower.id
 	fx.branch = tower.get("branch", "")
 	add_effect(fx)
 	var shot := {"fx": fx, "remaining": fx.flight, "target_id": target.id,
-		"tower_id": tower.id, "branch": tower.get("branch", ""), "damage": stats.damage, "radius": 0.0 if stats.get("targets", 1) > 1 else stats.splash}
+		"tower_id": tower.id, "branch": tower.get("branch", ""), "damage": stats.damage, "radius": stats.splash}
 	if fx.flight <= 0.0:
 		resolve_shot(shot, target)
 	else:
@@ -378,38 +378,46 @@ func branch_hit(shot: Dictionary, enemy: Dictionary) -> void:
 	if not data.towers.has(shot.tower_id):
 		return
 	var branch: String = shot.get("branch", "")
+	if branch == "":
+		hit(enemy, shot.damage, shot.tower_id)
+		return
 	var damage: float = shot.damage
+	var ability: Dictionary = Balance.ABILITIES.get(branch, {}).duplicate()
+	ability.merge(Balance.tower_stats(data.towers[shot.tower_id], tuning), true)
 	if branch == "doomstone":
 		var curse: Dictionary = curses.get(shot.tower_id, {"target": -1, "stacks": 0})
-		curse.stacks = mini(5, int(curse.stacks) + 1) if curse.target == enemy.id else 0
+		curse.stacks = mini(int(ability.curse_limit), int(curse.stacks) + 1) if curse.target == enemy.id else 0
 		curse.target = enemy.id
 		curses[shot.tower_id] = curse
-		damage *= 1.0 + curse.stacks * 0.2
+		damage *= 1.0 + curse.stacks * ability.curse_multiplier
 		enemy.curse_stacks = curse.stacks
 	hit(enemy, damage, shot.tower_id, branch)
 	if enemy.dead:
 		return
 	match branch:
-		"frostneedle": enemy.slow_until = simulation_time + 2.0
+		"frostneedle":
+			enemy.slow_until = simulation_time + ability.slow_duration
+			enemy.slow_percent = ability.slow_percent
 		"rupture_pyre":
 			if enemy.get("push_until", 0.0) <= simulation_time:
-				push_back(enemy, 5.0 if enemy.kind == "heavy" else 20.0)
-				enemy.push_until = simulation_time + 1.0
+				var resistance: float = Balance.tuned_value("bosses" if enemy.get("boss", false) else "enemies", enemy.kind, "push_resistance", tuning)
+				push_back(enemy, ability.push_distance * (1.0 - resistance / 100.0))
+				enemy.push_until = simulation_time + ability.push_immunity
 		"thunderseal":
 			var charges: Dictionary = enemy.get("charges", {})
 			charges[shot.tower_id] = int(charges.get(shot.tower_id, 0)) + 1
-			if charges[shot.tower_id] >= 5:
+			if charges[shot.tower_id] >= ability.seal_hits:
 				sound_requested.emit("power_seal", enemy.pos)
 				charges[shot.tower_id] = 0
 				var bell: bool = enemy.get("boss", false) and enemy.kind == "bell"
-				hit(enemy, damage * (Balance.tuned_value("bosses", "bell", "seal_multiplier", tuning) if bell else 3.0), shot.tower_id, branch)
+				hit(enemy, damage * (Balance.tuned_value("bosses", "bell", "seal_multiplier", tuning) if bell else ability.seal_damage), shot.tower_id, branch)
 				if bell and not enemy.toll_delayed:
 					enemy.toll += Balance.tuned_value("bosses", "bell", "toll_delay", tuning)
 					enemy.toll_delayed = true
 				add_effect({"kind": "seal", "pos": enemy.pos, "life": 0.4, "max_life": 0.4, "color": "b3b5f1"})
 				if enemy.get("stun_immune_until", 0.0) <= simulation_time:
-					enemy.stun_until = simulation_time + 0.4
-					enemy.stun_immune_until = simulation_time + 2.0
+					enemy.stun_until = simulation_time + ability.stun_duration
+					enemy.stun_immune_until = simulation_time + ability.stun_immunity
 			enemy.charges = charges
 
 func push_back(enemy: Dictionary, distance: float) -> void:
@@ -430,7 +438,8 @@ func push_back(enemy: Dictionary, distance: float) -> void:
 
 func ignite(shot: Dictionary) -> void:
 	sound_requested.emit("power_ignite", shot.fx.pos)
-	var patch := {"tower_id": shot.tower_id, "pos": shot.fx.pos, "radius": shot.radius, "until": simulation_time + 3.0, "damage": shot.damage / 0.75 / 3.0}
+	var ability := Balance.tower_stats(data.towers[shot.tower_id], tuning)
+	var patch := {"tower_id": shot.tower_id, "pos": shot.fx.pos, "radius": shot.radius, "until": simulation_time + ability.get("burn_duration", 3.0), "damage": shot.damage * ability.get("burn_multiplier", 1.0 / 2.25)}
 	for existing in burning_ground:
 		if existing.tower_id == shot.tower_id and existing.pos.distance_to(patch.pos) <= existing.radius + patch.radius:
 			existing.until = patch.until
@@ -467,11 +476,15 @@ func advance_fire(delta: float) -> void:
 
 func launch_fragments(shot: Dictionary) -> void:
 	sound_requested.emit("power_fragments", shot.fx.pos)
+	var ability := Balance.tower_stats(data.towers[shot.tower_id], tuning)
+	var limit := int(ability.get("fragment_count", 5))
+	if limit == 0:
+		return
 	var count := 0
-	for enemy in nearby_enemies(shot.fx.pos, 90.0):
-		if enemy.dead or enemy.id == shot.target_id or enemy.pos.distance_to(shot.fx.pos) > 90.0:
+	for enemy in nearby_enemies(shot.fx.pos, ability.get("fragment_range", 90.0)):
+		if enemy.dead or enemy.id == shot.target_id or enemy.pos.distance_to(shot.fx.pos) > ability.get("fragment_range", 90.0):
 			continue
-		var stats := {"damage": shot.damage * 0.2, "splash": 0.0, "color": "c3a0ed"}
+		var stats := {"damage": shot.damage * ability.get("fragment_multiplier", 0.2), "splash": 0.0, "color": "c3a0ed"}
 		var fx := AttackEffects.shot("heavy", shot.fx.pos + Vector2(0, 22), enemy.pos, stats, enemy.id)
 		fx.fragment = true
 		fx.curve = -1.0 if count % 2 == 0 else 1.0
@@ -479,15 +492,19 @@ func launch_fragments(shot: Dictionary) -> void:
 		add_effect(fx)
 		pending_shots.append({"fx": fx, "remaining": fx.flight, "target_id": enemy.id, "tower_id": shot.tower_id, "damage": stats.damage, "radius": 0.0})
 		count += 1
-		if count == 5:
+		if count == limit:
 			break
-	for index in range(count, 5):
-		add_effect({"kind": "shard_fade", "pos": shot.fx.pos, "direction": Vector2.from_angle(index * TAU / 5.0), "life": 0.35, "max_life": 0.35, "color": "c3a0ed"})
+	for index in range(count, limit):
+		add_effect({"kind": "shard_fade", "pos": shot.fx.pos, "direction": Vector2.from_angle(index * TAU / limit), "life": 0.35, "max_life": 0.35, "color": "c3a0ed"})
 
 func launch_fan(tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary) -> void:
 	var muzzle := origin + Vector2(0, -25)
 	var angle := muzzle.angle_to_point(target.pos)
-	for offset in [-0.48, -0.24, 0.24, 0.48]:
+	var count := int(stats.get("arrow_count", 5))
+	for index in range(count - 1):
+		var slot := index if index < count / 2 else index + 1
+		var fraction := float(slot) / maxf(1.0, count - 1)
+		var offset: float = (fraction - 0.5) * stats.get("fan_angle", 0.96)
 		var end: Vector2 = muzzle + Vector2.from_angle(angle + offset) * stats.range
 		var fx := AttackEffects.shot("rapid", origin, end, stats)
 		fx.erase("target_id")

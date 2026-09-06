@@ -10,7 +10,7 @@ func write(path: String, data: Dictionary) -> bool:
 	if not valid_data(data):
 		last_error = "Couldn't save invalid progress. Your previous save is safe."
 		return false
-	var payload := JSON.stringify(data)
+	var payload := JSON.stringify(data, "", true, true)
 	var envelope := JSON.stringify({"payload": payload, "checksum": payload.sha256_text()})
 	var f := FileAccess.open(path + ".tmp", FileAccess.WRITE)
 	if f == null:
@@ -176,7 +176,7 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 			var branch: Variant = t.get("branch", "")
 			if not branch is String or (t.level == 4 and not Balance.valid_branch(t.kind, branch)) or (t.level != 4 and branch != ""):
 				return false
-		if not number(t.pad, 0, 3, true) or not number(t.level, 1, max_tower_level, true) or not number(t.earnings) or not number(t.cooldown, 0, 10) or not number(t.angle, -TAU, TAU):
+		if not number(t.pad, 0, 3, true) or not number(t.level, 1, max_tower_level, true) or not number(t.earnings) or not number(t.cooldown, 0, maxf(10.0, Balance.TUNING_FIELDS.towers.period.max)) or not number(t.angle, -TAU, TAU):
 			return false
 		var socket := str(t.region) + "/" + str(int(t.pad))
 		if not t.get("target_mode", "first") is String or not Balance.TARGET_MODES.has(t.get("target_mode", "first")):

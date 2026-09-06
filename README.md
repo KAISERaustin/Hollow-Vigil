@@ -50,9 +50,13 @@ a one-time bounty. See [boss encounters and counters](docs/BOSSES.md).
 
 ## Developer Controls
 
-Open **Settings → Developer Controls**, choose **Enemies** or **Towers**, then select a type. Sliders adjust every enemy's health, movement speed and gold reward, and every tower's base damage, attack interval, reach, build cost and blast radius. Changes take effect live and save with your progress. Lower attack intervals mean faster attacks; a blast radius of zero makes a tower hit one target. Upgrades scale from the adjusted base stats, and build cost also scales upgrade prices and refunds.
+Open **Settings → Developer Controls**, choose **Bosses**, **Enemies**, or **Towers**, then select a type. Enemy controls include all six types, including Abyss Shades and Crypt Sentinels, with health, speed, gold reward and knockback resistance. Bosses also expose their defenses, counter strengths, timers, and summon settings.
 
-The editor shows each default value. **Reset selected type** restores only that enemy or tower; **Reset all balance values** restores the original balance without clearing progress. Existing enemies retain their remaining health percentage. Offline income learns from new combat after a balance change, while previously earned gold remains available.
+For towers, choose **Tier 1**, **Tier 2**, **Tier 3**, or either **Tier 4 specialization**. Each tier has independent damage, attack interval, reach, cost, blast radius and target count. Specializations also expose slow strength/duration, volley count/spread, burn damage/duration, knockback, fragment count/reach/damage, curse limits/strength, chain reach/damage, or seal and stun settings. Use sliders, plus/minus buttons, or type an exact number. Costs apply to the selected build or upgrade and flow through refunds and relocation prices. Multiple projectiles can each apply their configured blast.
+
+Changes apply live and save with progress. Health and cooldown adjustments preserve remaining proportions; newly applied ability effects use the edited settings. **Reset selected type / tier** clears only that selection; **Reset all balance values** restores the defaults without resetting progress. Legacy base overrides still load with their original scaling; editing tier 1 preserves sibling tiers. Rift effects are unchanged.
+
+The editor shows factory defaults alongside current values. Offline income learns from new combat after a balance change, while previously earned gold remains available.
 
 ## Project layout
 

@@ -27,18 +27,18 @@ const ENEMY_SHARES := {"fast": 0.30, "heavy": 0.18, "lantern": 0.16}
 const NORMAL_KINDS := ["basic", "fast", "heavy", "lantern"]
 const DUNGEON_KINDS := ["shade", "sentinel"]
 const ENEMIES := {
-	"basic": {"name": "Hollow", "role": "COMMON", "description": "A steady traveler from every rift. Its sturdy body rewards upgrading your sentinels.", "hp": 45.0, "speed": 39.0, "payout": 5.0, "color": "e8ddbd"},
-	"fast": {"name": "Wraith", "role": "FAST", "description": "A swift spirit with less health than other foes. Its speed gives your towers less time to strike before it reaches the core.", "hp": 36.0, "speed": 74.0, "payout": 8.0, "color": "93c9bc"},
-	"heavy": {"name": "Revenant", "role": "DURABLE", "description": "A slow, resilient foe with a rich bounty. High-damage towers help cut through its large health pool.", "hp": 340.0, "speed": 25.0, "payout": 24.0, "color": "db8d73"},
-	"lantern": {"name": "Lantern Keeper", "role": "STEADFAST", "description": "A hooded pilgrim carrying a stolen ember through the rifts. Tougher than a Hollow and quicker than a Revenant, it rewards sustained fire with a generous bounty.", "hp": 120.0, "speed": 46.0, "payout": 14.0, "color": "b49dcc"},
-	"shade": {"name": "Abyss Shade", "role": "DUNGEON · SWIFT", "description": "A swift shadow born only in castle ruin portals. Its dense shroud withstands sustained fire.", "hp": 240.0, "speed": 56.0, "payout": 30.0, "color": "9182ad"},
-	"sentinel": {"name": "Crypt Sentinel", "role": "DUNGEON · ARMORED", "description": "A dark iron guardian summoned only by castle ruin portals. A deep health pool guards a rich bounty.", "hp": 680.0, "speed": 28.0, "payout": 55.0, "color": "74798c"}
+	"basic": {"name": "Hollow", "role": "COMMON", "description": "A steady traveler from every rift. Its sturdy body rewards upgrading your sentinels.", "push_resistance": 0.0, "hp": 45.0, "speed": 39.0, "payout": 5.0, "color": "e8ddbd"},
+	"fast": {"name": "Wraith", "role": "FAST", "description": "A swift spirit with less health than other foes. Its speed gives your towers less time to strike before it reaches the core.", "push_resistance": 0.0, "hp": 36.0, "speed": 74.0, "payout": 8.0, "color": "93c9bc"},
+	"heavy": {"name": "Revenant", "role": "DURABLE", "description": "A slow, resilient foe with a rich bounty. High-damage towers help cut through its large health pool.", "push_resistance": 75.0, "hp": 340.0, "speed": 25.0, "payout": 24.0, "color": "db8d73"},
+	"lantern": {"name": "Lantern Keeper", "role": "STEADFAST", "description": "A hooded pilgrim carrying a stolen ember through the rifts. Tougher than a Hollow and quicker than a Revenant, it rewards sustained fire with a generous bounty.", "push_resistance": 0.0, "hp": 120.0, "speed": 46.0, "payout": 14.0, "color": "b49dcc"},
+	"shade": {"name": "Abyss Shade", "role": "DUNGEON · SWIFT", "description": "A swift shadow born only in castle ruin portals. Its dense shroud withstands sustained fire.", "push_resistance": 0.0, "hp": 240.0, "speed": 56.0, "payout": 30.0, "color": "9182ad"},
+	"sentinel": {"name": "Crypt Sentinel", "role": "DUNGEON · ARMORED", "description": "A dark iron guardian summoned only by castle ruin portals. A deep health pool guards a rich bounty.", "push_resistance": 0.0, "hp": 680.0, "speed": 28.0, "payout": 55.0, "color": "74798c"}
 }
 const BOSSES := {
-	"warden": {"name": "Briarbound Warden", "hp": 3200.0, "speed": 27.0, "payout": 450.0, "color": "95aa83", "weakness": "Cinderfield: burns roots; blocks regrowth", "shield": 600.0, "regen_period": 10.0, "fire_multiplier": 2.0, "regrowth_suppression": 100.0},
-	"cindermaw": {"name": "Cindermaw", "hp": 3600.0, "speed": 25.0, "payout": 500.0, "color": "db8d73", "weakness": "Frostneedle: +50% damage; quenches haste", "rage_threshold": 50.0, "haste_multiplier": 1.7, "armor_reduction": 30.0, "frost_multiplier": 1.5, "quench": 100.0},
-	"bell": {"name": "The Drowned Bell", "hp": 2800.0, "speed": 32.0, "payout": 450.0, "color": "93c9bc", "weakness": "Thunderseal: stronger seals; delays tolls", "toll_period": 8.0, "escort_count": 3, "escort_limit": 6, "seal_multiplier": 4.5, "toll_delay": 2.0},
-	"prior": {"name": "The Eclipse Prior", "hp": 3000.0, "speed": 30.0, "payout": 500.0, "color": "b49dcc", "weakness": "Doomstone: bypasses wards; curses regrowth", "wards": 3, "regen_period": 10.0, "doom_bypass": 1, "curse_threshold": 5, "regrowth_suppression": 100.0}
+	"warden": {"name": "Briarbound Warden", "push_resistance": 0.0, "hp": 3200.0, "speed": 27.0, "payout": 450.0, "color": "95aa83", "weakness": "Cinderfield: burns roots; blocks regrowth", "shield": 600.0, "regen_period": 10.0, "fire_multiplier": 2.0, "regrowth_suppression": 100.0},
+	"cindermaw": {"name": "Cindermaw", "push_resistance": 0.0, "hp": 3600.0, "speed": 25.0, "payout": 500.0, "color": "db8d73", "weakness": "Frostneedle: +50% damage; quenches haste", "rage_threshold": 50.0, "haste_multiplier": 1.7, "armor_reduction": 30.0, "frost_multiplier": 1.5, "quench": 100.0},
+	"bell": {"escort_kind": 0, "name": "The Drowned Bell", "push_resistance": 0.0, "hp": 2800.0, "speed": 32.0, "payout": 450.0, "color": "93c9bc", "weakness": "Thunderseal: stronger seals; delays tolls", "toll_period": 8.0, "escort_count": 3, "escort_limit": 6, "seal_multiplier": 4.5, "toll_delay": 2.0},
+	"prior": {"name": "The Eclipse Prior", "push_resistance": 0.0, "hp": 3000.0, "speed": 30.0, "payout": 500.0, "color": "b49dcc", "weakness": "Doomstone: bypasses wards; curses regrowth", "wards": 3, "regen_period": 10.0, "doom_bypass": 1, "curse_threshold": 5, "regrowth_suppression": 100.0}
 }
 
 const TOWERS := {
@@ -88,6 +88,17 @@ const BRANCHES := {
 	}
 }
 
+const ABILITIES := {
+	"frostneedle": {"slow_percent": 25.0, "slow_duration": 2.0},
+	"thorn_volley": {"arrow_count": 5, "fan_angle": 0.96},
+	"cinderfield": {"burn_duration": 3.0, "burn_multiplier": 0.4444444444444444},
+	"rupture_pyre": {"push_distance": 20.0, "push_immunity": 1.0},
+	"grave_echo": {"fragment_count": 5, "fragment_range": 90.0, "fragment_multiplier": 0.2},
+	"doomstone": {"curse_limit": 5, "curse_multiplier": 0.2},
+	"tempest_web": {"arc_range": 60.0, "arc_multiplier": 0.5},
+	"thunderseal": {"seal_hits": 5, "seal_damage": 3.0, "stun_duration": 0.4, "stun_immunity": 2.0}
+}
+
 static func valid_branch(kind: String, branch: String) -> bool:
 	return BRANCHES.has(kind) and BRANCHES[kind].has(branch)
 
@@ -95,7 +106,7 @@ static func tower_stats(tower: Dictionary, tuning: Dictionary = {}) -> Dictionar
 	return stats(tower.kind, tower.level, tuning, tower.get("branch", ""))
 
 # One schema drives the editor and save validation. Overrides belong to a save,
-# never to these shared defaults. All values describe level-one/base stats.
+# never to these shared defaults. Tower keys may identify a tier or branch.
 const RIFTS := {
 	"ashen_forge": {"name": "Forged Rift", "strength": 25.0},
 	"drowned_crypt": {"name": "Drowned Rift", "strength": 15.0},
@@ -121,6 +132,8 @@ static func rift_description(style: String, tuning: Dictionary = {}) -> String:
 
 const TUNING_FIELDS := {
 	"bosses": {
+		"push_resistance": {"label": "Knockback resistance", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
+		"escort_kind": {"label": "Escort type: 0 Hollow, 1 Wraith, 2 Revenant, 3 Lantern, 4 Shade, 5 Sentinel", "suffix": "", "min": 0.0, "max": 5.0, "step": 1.0, "integer": true},
 		"hp": {"label": "Health", "suffix": " HP", "min": 1.0, "max": 100000.0, "step": 1.0},
 		"speed": {"label": "Move speed", "suffix": " units/s", "min": 1.0, "max": 250.0, "step": 1.0},
 		"payout": {"label": "Gold per defeat", "suffix": " gold", "min": 0.0, "max": 10000.0, "step": 1.0},
@@ -140,29 +153,54 @@ const TUNING_FIELDS := {
 		"toll_delay": {"label": "Thunderseal toll delay", "suffix": " s", "min": 0.0, "max": 60.0, "step": 0.1},
 		"wards": {"label": "Protective wards", "suffix": " hits", "min": 0.0, "max": 20.0, "step": 1.0, "integer": true},
 		"doom_bypass": {"label": "Doomstone bypasses wards (0 off, 1 on)", "suffix": "", "min": 0.0, "max": 1.0, "step": 1.0, "integer": true},
-		"curse_threshold": {"label": "Doomstone stacks to suppress regrowth", "suffix": " stacks", "min": 0.0, "max": 5.0, "step": 1.0, "integer": true}
+		"curse_threshold": {"label": "Doomstone stacks to suppress regrowth", "suffix": " stacks", "min": 0.0, "max": 100.0, "step": 1.0, "integer": true}
 	},
 	"rifts": {
 		"strength": {"label": "Effect strength", "suffix": "%", "min": 0.0, "max": 100.0, "step": 0.25}
 	},
 	"enemies": {
-		"hp": {"label": "Health", "suffix": " HP", "min": 1.0, "max": 1000.0, "step": 1.0},
+		"push_resistance": {"label": "Knockback resistance", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
+		"hp": {"label": "Health", "suffix": " HP", "min": 1.0, "max": 100000.0, "step": 1.0},
 		"speed": {"label": "Move speed", "suffix": " units/s", "min": 1.0, "max": 250.0, "step": 1.0},
-		"payout": {"label": "Gold per defeat", "suffix": " gold", "min": 0.0, "max": 250.0, "step": 1.0}
+		"payout": {"label": "Gold per defeat", "suffix": " gold", "min": 0.0, "max": 10000.0, "step": 1.0}
 	},
 	"towers": {
-		"damage": {"label": "Damage per hit", "suffix": "", "min": 0.1, "max": 500.0, "step": 0.1},
-		"period": {"label": "Attack interval", "suffix": " s", "min": 0.1, "max": 5.0, "step": 0.01},
+		"targets": {"label": "Targets per attack", "suffix": "", "min": 1, "max": 50, "step": 1, "integer": true},
+		"slow_percent": {"label": "Slow strength (%)", "suffix": "", "min": 0, "max": 100, "step": 1},
+		"slow_duration": {"label": "Slow duration (s)", "suffix": "", "min": 0, "max": 60, "step": 0.1},
+		"arrow_count": {"label": "Arrows per volley", "suffix": "", "min": 1, "max": 31, "step": 1, "integer": true},
+		"fan_angle": {"label": "Fan spread (radians)", "suffix": "", "min": 0, "max": 3.14, "step": 0.01},
+		"burn_duration": {"label": "Burn duration (s)", "suffix": "", "min": 0.1, "max": 60, "step": 0.1},
+		"burn_multiplier": {"label": "Burn damage per second / hit damage", "suffix": "", "min": 0, "max": 10, "step": 0.01},
+		"push_distance": {"label": "Knockback distance", "suffix": "", "min": 0, "max": 300, "step": 1},
+		"push_immunity": {"label": "Knockback immunity (s)", "suffix": "", "min": 0, "max": 60, "step": 0.1},
+		"fragment_count": {"label": "Seeking fragments", "suffix": "", "min": 0, "max": 50, "step": 1, "integer": true},
+		"fragment_range": {"label": "Fragment reach", "suffix": "", "min": 0, "max": 600, "step": 1},
+		"fragment_multiplier": {"label": "Fragment damage / hit damage", "suffix": "", "min": 0, "max": 10, "step": 0.01},
+		"curse_limit": {"label": "Maximum curse stacks", "suffix": "", "min": 0, "max": 100, "step": 1, "integer": true},
+		"curse_multiplier": {"label": "Bonus damage per curse stack", "suffix": "", "min": 0, "max": 10, "step": 0.01},
+		"arc_range": {"label": "Chain lightning reach", "suffix": "", "min": 0, "max": 600, "step": 1},
+		"arc_multiplier": {"label": "Chain damage / hit damage", "suffix": "", "min": 0, "max": 10, "step": 0.01},
+		"seal_hits": {"label": "Hits per seal", "suffix": "", "min": 1, "max": 100, "step": 1, "integer": true},
+		"seal_damage": {"label": "Seal bonus / hit damage", "suffix": "", "min": 0, "max": 20, "step": 0.1},
+		"stun_duration": {"label": "Stun duration (s)", "suffix": "", "min": 0, "max": 60, "step": 0.1},
+		"stun_immunity": {"label": "Stun immunity (s)", "suffix": "", "min": 0, "max": 60, "step": 0.1},
+		"damage": {"label": "Damage per hit", "suffix": "", "min": 0.1, "max": 100000.0, "step": 0.1},
+		"period": {"label": "Attack interval", "suffix": " s", "min": 0.1, "max": 120.0, "step": 0.01},
 		"range": {"label": "Reach", "suffix": " units", "min": 10.0, "max": 600.0, "step": 1.0},
-		"cost": {"label": "Build cost", "suffix": " gold", "min": 1.0, "max": 1000.0, "step": 1.0},
+		"cost": {"label": "Build / upgrade cost", "suffix": " gold", "min": 1.0, "max": 100000.0, "step": 1.0},
 		"splash": {"label": "Blast radius", "suffix": " units", "min": 0.0, "max": 300.0, "step": 1.0}
 	}
 }
 
 static func fields_for(category: String, kind: String) -> Dictionary:
 	var result := {}
+	var order: Array = ["hp", "speed", "payout", "cost", "damage", "period", "range", "splash", "targets"]
 	for stat in TUNING_FIELDS[category]:
-		if definitions(category)[kind].has(stat):
+		if stat not in order:
+			order.append(stat)
+	for stat in order:
+		if TUNING_FIELDS[category].has(stat) and definitions(category)[kind].has(stat):
 			result[stat] = TUNING_FIELDS[category][stat]
 	return result
 
@@ -171,7 +209,28 @@ static func definitions(category: String) -> Dictionary:
 		return BOSSES
 	if category == "rifts":
 		return RIFTS
-	return ENEMIES if category == "enemies" else TOWERS
+	if category == "enemies":
+		return ENEMIES
+	return tower_definitions()
+
+static var tower_defaults: Dictionary = {}
+
+static func tier_key(kind: String, level: int, branch: String = "") -> String:
+	return kind if level == 1 else kind + ":" + (branch if level == 4 else str(level))
+
+static func tower_definitions() -> Dictionary:
+	if not tower_defaults.is_empty():
+		return tower_defaults
+	for kind in TOWERS:
+		for level in range(1, 4):
+			var entry := _scaled_stats(kind, level)
+			entry.cost = TOWERS[kind].cost if level == 1 else TOWER_UPGRADES[kind][level - 2].cost
+			tower_defaults[tier_key(kind, level)] = entry
+		for branch in BRANCHES[kind]:
+			var entry := _scaled_stats(kind, 4, {}, branch)
+			entry.cost = BRANCHES[kind][branch].cost
+			tower_defaults[tier_key(kind, 4, branch)] = entry
+	return tower_defaults
 
 static func tuned_value(category: String, kind: String, stat: String, tuning: Dictionary = {}) -> float:
 	return tuning.get(category, {}).get(kind, {}).get(stat, definitions(category)[kind][stat])
@@ -221,18 +280,20 @@ static func safe(value: Variant) -> float:
 		return 0.0
 	return clampf(float(value), 0.0, MAX_MONEY) if is_finite(float(value)) else 0.0
 
-static func stats(kind: String, level: int, tuning: Dictionary = {}, branch: String = "") -> Dictionary:
-	var s := definition("towers", kind, tuning)
+static func _scaled_stats(kind: String, level: int, tuning: Dictionary = {}, branch: String = "") -> Dictionary:
+	var s: Dictionary = TOWERS[kind].duplicate()
+	s.merge(tuning.get("towers", {}).get(kind, {}), true)
+	s.targets = s.get("targets", 1)
 	var tier := clampi(level, 1, 3)
 	if tier == 1:
 		return s
 	var upgrade: Dictionary = TOWER_UPGRADES[kind][tier - 2]
 	if upgrade.has("targets"):
-		s.targets = upgrade.targets
+		s.targets = tuning.get("towers", {}).get(kind, {}).get("targets", upgrade.targets)
 	for field in ["damage", "period", "range", "splash"]:
 		var base: float = TOWERS[kind][field]
-		# Developer controls still edit the base stats and carry the same tier
-		# ratios into upgrades. A custom blast on a single-target tower stays fixed.
+		# Preserve legacy base overrides until a tier gets an absolute override.
+		# A custom blast on a single-target tower stays fixed.
 		if base > 0.0:
 			s[field] = upgrade[field] * (s[field] / base)
 	if level >= 4 and valid_branch(kind, branch):
@@ -240,27 +301,38 @@ static func stats(kind: String, level: int, tuning: Dictionary = {}, branch: Str
 		s.name = specialization.name
 		s.description = specialization.description
 		s.color = specialization.color
+		s.merge(ABILITIES[branch], true)
 		match branch:
 			"cinderfield": s.damage *= 0.75
 			"rupture_pyre":
 				s.damage *= 1.5
 				s.period *= 1.5 / 1.1
 			"grave_echo": s.damage *= 110.0 / 90.0
-	s.period = maxf(0.1, s.period)
+	s.period = clampf(s.period, 0.1, TUNING_FIELDS.towers.period.max)
 	return s
 
-static func upgrade_cost(tower: Dictionary, tuning: Dictionary = {}) -> float:
+static func stats(kind: String, level: int, tuning: Dictionary = {}, branch: String = "") -> Dictionary:
+	var result := _scaled_stats(kind, level, tuning, branch)
+	if level > 1:
+		result.merge(tuning.get("towers", {}).get(tier_key(kind, level, branch), {}), true)
+	return result
+
+static func upgrade_cost(tower: Dictionary, tuning: Dictionary = {}, branch: String = "") -> float:
 	var level := int(tower.level)
 	if level < 1 or level >= MAX_TOWER_LEVEL:
 		return 0.0
 	var base_cost: float = TOWERS[tower.kind].cost
 	var price: float = BRANCHES[tower.kind].values()[0].cost if level == 3 else TOWER_UPGRADES[tower.kind][level - 1].cost
+	var selected: String = branch if branch != "" else tower.get("branch", BRANCHES[tower.kind].keys()[0])
+	var key := tier_key(tower.kind, level + 1, selected)
+	if tuning.get("towers", {}).get(key, {}).has("cost"):
+		return tuning.towers[key].cost
 	return ceil(price * (tuned_value("towers", tower.kind, "cost", tuning) / base_cost))
 
 static func invested_cost(tower: Dictionary, tuning: Dictionary = {}) -> float:
 	var invested := tuned_value("towers", tower.kind, "cost", tuning)
 	for level in range(1, clampi(int(tower.level), 1, MAX_TOWER_LEVEL)):
-		invested = minf(MAX_MONEY, invested + upgrade_cost({"kind": tower.kind, "level": level}, tuning))
+		invested = minf(MAX_MONEY, invested + upgrade_cost({"kind": tower.kind, "level": level, "branch": tower.get("branch", BRANCHES[tower.kind].keys()[0])}, tuning))
 	return invested
 
 static func sell_refund(tower: Dictionary, tuning: Dictionary = {}) -> float:

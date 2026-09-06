@@ -38,3 +38,7 @@ For a clean-checkout check, copy source and configuration to an isolated directo
 ## Limits
 
 Rendered checks use the native Godot engine, not a browser. Desktop-generated touch events are not physical-device testing. Export-package content checks do not replace running an installed Windows or Android release build.
+
+## Developer tier controls
+
+Run `Godot --headless --path . --script tests/developer_tiers_runner.gd` for schema limits, independent tier edits, branch prices/refunds, cooldowns, ability behavior and persistence. These tests are also included in the main headless runner. Run `Godot --path . --script tests/rendered/developer_tiers_runner.gd` for mouse/touch/keyboard controls, every tower tier and specialization, numeric input, responsive layout and save/reload. The rendered run captures `artifacts/developer-tier-frostneedle.png` and `artifacts/developer-tier-frostneedle-abilities.png`. Test saves have disposable developer-specific names.

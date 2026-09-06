@@ -81,7 +81,7 @@ func upgrade(id: String, expected_level: int = -1, branch: String = "") -> bool:
 		return false
 	if expected_level != -1 and t.level != expected_level:
 		return false
-	if t.get("rebuild_remaining", 0.0) > 0.0 or t.level >= Balance.MAX_TOWER_LEVEL or not spend(Balance.upgrade_cost(t, tuning)):
+	if t.get("rebuild_remaining", 0.0) > 0.0 or t.level >= Balance.MAX_TOWER_LEVEL or not spend(Balance.upgrade_cost(t, tuning, branch)):
 		return false
 	t.level += 1
 	if t.level == 4:

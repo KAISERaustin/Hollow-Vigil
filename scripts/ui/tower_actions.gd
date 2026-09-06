@@ -99,7 +99,7 @@ func refresh() -> void:
 		cancel_upgrade()
 		return
 	var tower: Dictionary = field.state.data.towers[field.selected_tower]
-	var cost := Balance.upgrade_cost(tower, field.state.tuning)
+	var cost := Balance.upgrade_cost(tower, field.state.tuning, chosen_branch)
 	if pending_tower != "" and (pending_tower != field.selected_tower or pending_level != int(tower.level) or pending_cost != cost):
 		cancel_upgrade()
 	var upgrade: Button = buttons.upgrade
@@ -209,7 +209,7 @@ func choose_branch(index: int) -> void:
 	else:
 		pending_tower = id
 		pending_level = 3
-		pending_cost = Balance.upgrade_cost(tower, field.state.tuning)
+		pending_cost = Balance.upgrade_cost(tower, field.state.tuning, branch)
 		chosen_branch = branch
 	refresh()
 
@@ -227,6 +227,6 @@ func refresh_branches(tower: Dictionary) -> void:
 		button.queue_redraw()
 		button.scale = Vector2.ONE * field.zoom
 		button.position = center + (Vector2(-64 if index == 0 else 64, 78) - BUTTON_SIZE * 0.5) * field.zoom
-		button.disabled = field.state.data.balance < Balance.upgrade_cost(tower, field.state.tuning) or tower.get("rebuild_remaining", 0.0) > 0.0
-		button.tooltip_text = ("Confirm " if armed else ("Left: " if index == 0 else "Right: ")) + option.name + " · " + UI.exact_money(Balance.upgrade_cost(tower, field.state.tuning)) + " gold"
+		button.disabled = field.state.data.balance < Balance.upgrade_cost(tower, field.state.tuning, options[index]) or tower.get("rebuild_remaining", 0.0) > 0.0
+		button.tooltip_text = ("Confirm " if armed else ("Left: " if index == 0 else "Right: ")) + option.name + " · " + UI.exact_money(Balance.upgrade_cost(tower, field.state.tuning, options[index])) + " gold"
 		button.accessibility_name = button.tooltip_text

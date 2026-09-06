@@ -197,12 +197,13 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 				count += 1
 		var stats := Balance.definition("bosses", "bell", combat.tuning)
 		for index in range(maxi(0, mini(int(stats.escort_count), int(stats.escort_limit) - count))):
-			var escort := combat.spawn(bell.tile, "basic")
+			var kind: String = Balance.ENEMIES.keys()[int(stats.escort_kind)]
+			var escort := combat.spawn(bell.tile, kind, true)
 			if escort.is_empty():
 				continue
 			escort.summoner = bell.id
 			escort.rift_style = "forest"
-			escort.hp = Balance.tuned_value("enemies", "basic", "hp", combat.tuning)
+			escort.hp = Balance.tuned_value("enemies", kind, "hp", combat.tuning)
 			escort.max_hp = escort.hp
 			escort.pos = bell.pos
 			escort.path = [bell.pos]

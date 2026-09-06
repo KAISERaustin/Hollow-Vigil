@@ -12,6 +12,9 @@ var category := "enemies"
 var selected_kind := "basic"
 var tabs: Dictionary = {}
 var selector: OptionButton
+var tier_selector: OptionButton
+var selected_level := 1
+var selected_branch := ""
 var fields: VBoxContainer
 var sliders: Dictionary = {}
 var hint: Label
@@ -62,9 +65,19 @@ func _ready() -> void:
 	selector.add_theme_color_override("font_pressed_color", UI.TEXT)
 	selector.item_selected.connect(func(index: int):
 		selected_kind = selector.get_item_metadata(index)
+		populate_tiers()
 		show_fields()
 	)
 	add_child(selector)
+	tier_selector = selector.duplicate(0)
+	tier_selector.name = "BalanceTier"
+	tier_selector.item_selected.connect(func(index: int):
+		var choice: Dictionary = tier_selector.get_item_metadata(index)
+		selected_level = choice.level
+		selected_branch = choice.branch
+		show_fields()
+	)
+	add_child(tier_selector)
 	hint = UI.paragraph("", 12)
 	add_child(hint)
 	fields = VBoxContainer.new()
@@ -72,8 +85,8 @@ func _ready() -> void:
 	add_child(fields)
 	detail = UI.paragraph("", 12)
 	add_child(detail)
-	var reset_selected := UI.button("Reset selected type", func():
-		game.reset_developer_balance(category, selected_kind)
+	var reset_selected := UI.button("Reset selected type / tier", func():
+		game.reset_developer_balance(category, editing_kind())
 		show_fields()
 		changed.emit()
 	)
@@ -93,7 +106,7 @@ func show_category(section: String) -> void:
 	for key in tabs:
 		tabs[key].set_pressed_no_signal(key == category)
 	selector.clear()
-	var definitions := Balance.definitions(category)
+	var definitions: Dictionary = Balance.TOWERS if category == "towers" else Balance.definitions(category)
 	for kind in definitions:
 		selector.add_item(definitions[kind].name)
 		selector.set_item_metadata(selector.item_count - 1, kind)
@@ -108,9 +121,32 @@ func show_category(section: String) -> void:
 	if category == "rifts":
 		selector.accessibility_name = "Choose rift type"
 		hint.text = "Live changes · Auto-saved · Grass always has no effect"
+	populate_tiers()
 	show_fields()
 
+func editing_kind() -> String:
+	return Balance.tier_key(selected_kind, selected_level, selected_branch) if category == "towers" else selected_kind
+
+func populate_tiers() -> void:
+	tier_selector.clear()
+	tier_selector.visible = category == "towers"
+	selected_level = 1
+	selected_branch = ""
+	if category != "towers":
+		return
+	for level in range(1, 4):
+		tier_selector.add_item("Tier " + str(level))
+		tier_selector.set_item_metadata(tier_selector.item_count - 1, {"level": level, "branch": ""})
+	for branch in Balance.BRANCHES[selected_kind]:
+		tier_selector.add_item("Tier 4 · " + Balance.BRANCHES[selected_kind][branch].name)
+		tier_selector.set_item_metadata(tier_selector.item_count - 1, {"level": 4, "branch": branch})
+	tier_selector.select(0)
+	tier_selector.accessibility_name = "Choose tower upgrade tier or specialization"
+
 func show_fields() -> void:
+	if category == "towers":
+		hint.text = "Tier %d · Live changes · Auto-saved" % selected_level
+		detail.text = "Edit this tier independently. Costs are for building tier 1 or purchasing the selected upgrade. Specialization effects appear below combat stats."
 	if category == "bosses":
 		detail.text = "Counter: " + Balance.BOSSES[selected_kind].weakness + ". Sliders override these defaults. Health, shields, wards and timers preserve their remaining proportion. Rewards apply on defeat."
 	if category == "rifts":
@@ -119,7 +155,7 @@ func show_fields() -> void:
 	for child in fields.get_children():
 		fields.remove_child(child)
 		child.queue_free()
-	for stat in Balance.fields_for(category, selected_kind):
+	for stat in Balance.fields_for(category, editing_kind()):
 		add_slider(stat)
 	# Scrolling follows keyboard focus; left/right remain available to sliders.
 	call_deferred("refresh_focus")
@@ -140,12 +176,12 @@ func add_slider(stat: String) -> void:
 	slider.min_value = descriptor.min
 	slider.max_value = descriptor.max
 	slider.step = descriptor.step
-	slider.value = Balance.tuned_value(category, selected_kind, stat, game.tuning)
+	slider.value = current_value(stat)
 	slider.custom_minimum_size = Vector2(0, UI.TARGET)
 	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	slider.focus_mode = Control.FOCUS_ALL
 	slider.scrollable = false
-	slider.accessibility_name = Balance.definitions(category)[selected_kind].name + " " + descriptor.label
+	slider.accessibility_name = Balance.definitions(category)[editing_kind()].name + " " + descriptor.label
 	for state in ["grabber", "grabber_highlight", "grabber_disabled"]:
 		slider.add_theme_icon_override(state, HANDLE)
 	var track := UI.surface(UI.SURFACE, 2, 0)
@@ -167,22 +203,47 @@ func add_slider(stat: String) -> void:
 	increase.accessibility_name = "Increase " + slider.accessibility_name
 	adjustment.add_child(increase)
 	sliders[stat] = slider
-	var baseline: float = Balance.definitions(category)[selected_kind][stat]
+	var baseline: float = Balance.definitions(category)[editing_kind()][stat]
 	var baseline_label := UI.paragraph("Default: " + format_value(baseline, descriptor), 12)
 	row.add_child(baseline_label)
+	var number := SpinBox.new()
+	number.name = stat + "Value"
+	number.min_value = slider.min_value
+	number.max_value = slider.max_value
+	number.step = slider.step
+	number.value = slider.value
+	number.custom_minimum_size.y = UI.TARGET
+	number.accessibility_name = slider.accessibility_name + " exact value"
+	var entry := number.get_line_edit()
+	entry.add_theme_stylebox_override("normal", UI.box(UI.SURFACE))
+	entry.add_theme_stylebox_override("focus", UI.focus_box())
+	entry.add_theme_color_override("font_color", UI.TEXT)
+	entry.add_theme_color_override("caret_color", UI.TEXT)
+	entry.add_theme_font_size_override("font_size", UI.type_size(14))
+	row.add_child(number)
+	number.value_changed.connect(func(value: float): slider.value = value)
+	slider.value_changed.connect(func(value: float): number.set_value_no_signal(value))
 	label.text = descriptor.label + " · " + format_value(slider.value, descriptor)
 	# Capture this row's identity so a removed control cannot edit a different type.
 	var section := category
-	var kind := selected_kind
+	var kind := editing_kind()
 	slider.value_changed.connect(func(value: float):
 		if not slider.is_inside_tree():
 			return
-		if game.set_balance_stat(section, kind, stat, value):
+		var accepted := game.set_tower_tier_stat(kind, stat, value) if section == "towers" else game.set_balance_stat(section, kind, stat, value)
+		if accepted:
 			label.text = descriptor.label + " · " + format_value(value, descriptor)
 			if section == "rifts":
 				detail.text = Balance.rift_description(kind, game.tuning) + " Set to 0 to disable. Health adjustments preserve remaining health percentage."
 			changed.emit()
 	)
+
+func current_value(stat: String) -> float:
+	if category == "towers" and stat != "cost":
+		return Balance.stats(selected_kind, selected_level, game.tuning, selected_branch)[stat]
+	if category == "towers" and stat == "cost" and selected_level > 1:
+		return Balance.upgrade_cost({"kind": selected_kind, "level": selected_level - 1}, game.tuning, selected_branch)
+	return Balance.tuned_value(category, editing_kind(), stat, game.tuning)
 
 func refresh_focus() -> void:
 	if is_inside_tree():

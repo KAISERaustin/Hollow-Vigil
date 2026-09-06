@@ -47,7 +47,7 @@ static func run(app: VigilApp, harness: Script, failures: Array[String]) -> void
 		failures.append("Plus button did not increase the value by one step")
 	app._process(0.4)
 	var autosaved := app.game.storage.read_candidate(app.game.save_path)
-	if autosaved.is_empty() or autosaved.settings.developer_balance != app.game.tuning:
+	if autosaved.is_empty() or not preload("res://tests/unit/developer_tier_checks.gd").same_values(autosaved.settings.developer_balance, app.game.tuning):
 		failures.append("Slider debounce did not automatically save changes")
 	if camera != app.field.camera:
 		failures.append("Developer sliders moved the battlefield camera")
@@ -75,13 +75,14 @@ static func run(app: VigilApp, harness: Script, failures: Array[String]) -> void
 	var reset_selected: Button = controls.find_child("ResetSelectedBalance", true, false)
 	app.panels.content_scroll.ensure_control_visible(reset_selected)
 	await settle(app)
+	await settle(app)
 	await harness.tap(app, reset_selected.get_global_rect().get_center(), true)
 	if app.game.tuning.towers.has("rapid") or not app.game.tuning.towers.has("heavy"):
 		failures.append("Reset selected button changed the wrong unit types")
 	# Closing flushes even when the debounce has not run.
 	app.panels.show_settings()
 	var saved := app.game.storage.read_candidate(app.game.save_path)
-	if saved.is_empty() or saved.settings.developer_balance != app.game.tuning:
+	if saved.is_empty() or not preload("res://tests/unit/developer_tier_checks.gd").same_values(saved.settings.developer_balance, app.game.tuning):
 		failures.append("Leaving Developer Controls did not save the latest slider values")
 	app.panels.show_developer_controls()
 	await settle(app)
