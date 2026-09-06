@@ -61,8 +61,11 @@ func fit() -> void:
 		if waves_dialog:
 			dialog_card.size.y = minf(safe.size.y, dialog_card.get_combined_minimum_size().y + dialog_body.get_combined_minimum_size().y)
 		if socket_dialog:
-			dialog_card.size.y = minf(340, safe.size.y)
-			dialog_card.position = Vector2(safe.get_center().x - dialog_card.size.x * 0.5, safe.end.y - dialog_card.size.y)
+			var bounds := safe
+			if is_instance_valid(board):
+				bounds = Rect2(board.global_position - global_position, board.size).grow(-8).intersection(safe)
+			dialog_card.size = Vector2(minf(470, bounds.size.x), minf(340, bounds.size.y))
+			dialog_card.position = Vector2(bounds.get_center().x - dialog_card.size.x * 0.5, bounds.end.y - dialog_card.size.y)
 		else:
 			dialog_card.position = safe.position + (safe.size - dialog_card.size) * 0.5
 
@@ -208,6 +211,7 @@ func show_battle() -> void:
 
 func add_board(interactive: bool) -> void:
 	board = Board.new()
+	board.resized.connect(func(): call_deferred("fit"))
 	board.name = "CampaignBattlefield"
 	board.run = run
 	board.interactive = interactive
@@ -411,7 +415,7 @@ func _build_dialog() -> void:
 
 func open_dialog(title: String, for_socket: bool = false) -> void:
 	waves_dialog = false
-	dialog.z_index = 0
+	dialog.z_index = 101
 	socket_dialog = for_socket
 	dialog_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 3, 0 if for_socket else 16))
 	dialog_body.add_theme_constant_override("separation", 6 if for_socket else 12)
