@@ -29,7 +29,7 @@ static func run(suite: SceneTree) -> void:
 				suite.check(not VigilWorld.is_ruin(id, seed_value) and maxi(absi(x),absi(y)) >= 3, "Orchard preserves castle ruins and the opening")
 				if VigilWorld.has_rift(id, {id: {"style": "mourning_orchard"}}, seed_value):
 					portals += 1
-		suite.check(count == cells.size() and portals == 1, "Exactly one patch and one portal across the world generation bounds")
+		suite.check(count == cells.size() and portals == cells.size(), "Exactly one patch with a portal on every Orchard tile")
 		VigilWorld.Orchard.cache.erase(seed_value)
 		suite.check(cells == VigilWorld.Orchard.cluster(seed_value), "Orchard regenerates identically after cache eviction")
 	suite.check(locations.size() > 70, "World seeds randomize the Orchard location")
@@ -45,8 +45,12 @@ static func run(suite: SceneTree) -> void:
 	game.combat.enemies.clear()
 	for cell in VigilWorld.Orchard.cluster(879):
 		var id := VigilWorld.key(cell)
+		var spawned := game.combat.spawn(id)
+		suite.check(not spawned.is_empty() and spawned.kind in Balance.ORCHARD_KINDS and spawned.pos == VigilWorld.center(id), "Every Orchard tile spawns exclusive inhabitants at its center")
+		var gate_traffic: int = game.data.regions[gate].traffic
+		suite.check(game.economy.buy_traffic(id), "Every Orchard portal supports traffic upgrades")
 		if id != gate:
-			suite.check(game.combat.spawn(id).is_empty() and not game.economy.buy_traffic(id), "Path-only Orchard tile cannot spawn or buy traffic")
+			suite.check(game.data.regions[gate].traffic == gate_traffic, "Traffic upgrades remain local to each portal")
 	for kind in Balance.NORMAL_KINDS + Balance.DUNGEON_KINDS:
 		suite.check(game.combat.spawn(gate,kind).is_empty() and game.combat.spawn(gate,kind,true).is_empty(), "Orchard rejects other portal inhabitants, including escorts")
 	for kind in Balance.UNLOCK_COSTS:
@@ -69,6 +73,8 @@ static func run(suite: SceneTree) -> void:
 			suite.check(game.set_balance_stat("enemies",kind,stat,value), "Developer can edit every Orchard enemy stat")
 	# Natural timers run without a rendered battlefield.
 	game.combat.enemies.clear()
+	for region in game.data.regions.values():
+		region.timer = 10000.0
 	game.data.regions[gate].timer = 0.0
 	game.combat.tick(Balance.STEP)
 	suite.check(game.combat.enemies.size() == 1 and game.combat.enemies[0].kind in Balance.ORCHARD_KINDS, "Offscreen Orchard portal advances on simulation time")
@@ -80,6 +86,9 @@ static func run(suite: SceneTree) -> void:
 	var loaded := VigilState.new()
 	loaded.save_path = game.save_path
 	suite.check(loaded.load_save(1000.0) and loaded.data.regions[gate].style == "mourning_orchard" and loaded.tuning == game.tuning, "Orchard terrain and developer edits reload exactly")
+	for cell in VigilWorld.Orchard.cluster(879):
+		var id := VigilWorld.key(cell)
+		suite.check(VigilWorld.has_rift(id, loaded.data.regions, 879) and loaded.data.regions[id].traffic == game.data.regions[id].traffic, "Saved Orchard tiles retain independent working portals")
 	var code := VigilSaveSlots.new().export_build(game,"Mourning Orchard test")
 	var decoded := VigilSaveSlots.new().decode_build(code)
 	suite.check(not decoded.is_empty() and decoded.settings.developer_balance == game.tuning and decoded.regions[gate].style == "mourning_orchard", "Exported configuration retains terrain and all enemy edits")

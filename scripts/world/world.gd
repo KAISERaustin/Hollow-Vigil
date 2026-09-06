@@ -33,8 +33,6 @@ static func center(id: String) -> Vector2:
 static func has_rift(id: String, regions: Dictionary = {}, seed_value: int = -1) -> bool:
 	if id == "0,0":
 		return false
-	if regions.get(id, {}).get("style", "forest") == Orchard.STYLE:
-		return seed_value >= 0 and id == Orchard.gate(seed_value)
 	# Derive this from the seed for old saves as well as newly claimed land.
 	if seed_value >= 0 and regions.get(id, {}).get("style", "forest") == "castle_ruin" and is_ruin(id, seed_value):
 		return is_dungeon_portal(id, seed_value)

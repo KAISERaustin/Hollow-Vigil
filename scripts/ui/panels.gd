@@ -304,7 +304,7 @@ func show_expansion(id: String) -> void:
 			description = "Four tower sockets surround this dungeon’s only portal. Other ruin territories remain available to claim. " + Balance.rift_description("castle_ruin", game.tuning)
 		sheet_content.add_child(UI.paragraph(description, 14))
 	if VigilWorld.region_style(id, int(game.data.seed)) == "mourning_orchard":
-		sheet_content.add_child(UI.paragraph("Mourning Orchard · Pale thorn trees grow around a single root-bound portal. " + (Balance.rift_description("mourning_orchard", game.tuning) if id == VigilWorld.Orchard.gate(int(game.data.seed)) else "This tile has roads and four tower sockets. The portal lies elsewhere in this same patch."), 14))
+		sheet_content.add_child(UI.paragraph("Mourning Orchard · Pale thorn trees grow around a single root-bound portal. " + Balance.rift_description("mourning_orchard", game.tuning), 14))
 	action_cost = Balance.expansion_cost(game.data.regions.size())
 	var revision := sheet_revision
 	action_button = UI.gold_button("Claim territory  ·  " + UI.exact_money(action_cost) + " gold", func():

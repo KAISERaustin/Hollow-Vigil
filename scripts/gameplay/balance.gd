@@ -97,7 +97,7 @@ static func rift_description(style: String, tuning: Dictionary = {}) -> String:
 			var inhabitants: Array[String] = []
 			for kind in ORCHARD_KINDS:
 				inhabitants.append("%s (%s HP, %s gold)" % [ENEMIES[kind].name, String.num(tuned_value("enemies", kind, "hp", tuning)), String.num(tuned_value("enemies", kind, "payout", tuning))])
-			return "One portal in the world’s Mourning Orchard. Summons only " + ", ".join(inhabitants) + ", with equal chances. All three are active immediately."
+			return "A root-bound portal at the center of every Mourning Orchard tile. Summons only " + ", ".join(inhabitants) + ", with equal chances. All three are active immediately."
 		"castle_ruin": return "Dungeon portal · Summons Abyss Shades. Attune Crypt Sentinels, Ruinbound Knights and Sepulcher Colossi to add them to this portal’s spawns."
 		"ashen_forge": return "Hardened · +" + amount + "% maximum health."
 		"drowned_crypt": return "Restless · +" + amount + "% movement speed."

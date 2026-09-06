@@ -14,6 +14,7 @@ func run() -> void:
 	app.game.save_path = "user://orchard-rendered.save"
 	clean_test_save(app.game.save_path)
 	var gate := preload("res://tests/support/orchard_fixture.gd").populate(app.game)
+	gate = VigilWorld.key(VigilWorld.Orchard.cluster(879)[1])
 	app.game.data.balance = 100000.0
 	root.add_child(app)
 	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
