@@ -256,7 +256,9 @@ func show_entrance(id: String) -> void:
 	selection_region = id
 	mode = "rift"
 	var r: Dictionary = game.data.regions[id]
-	clear_sheet("Rift")
+	var style: String = r.get("style", "forest")
+	clear_sheet(Balance.rift_name(style))
+	sheet_content.add_child(UI.paragraph(Balance.rift_description(style, game.tuning) + " Applies to every enemy from this rift for its entire journey.", 14))
 	var revision := sheet_revision
 	var traffic := UI.button("Increase traffic  ·  " + UI.exact_money(game.economy.traffic_cost(id)) + " gold", func():
 		if revision == sheet_revision and game.economy.buy_traffic(id, int(r.traffic)):

@@ -57,6 +57,7 @@ static func sample(suite: SceneTree, kinds: Array, level: int, traffic: int, mix
 			g.data.balance = 100000.0
 			var region := VigilWorld.key(direction)
 			g.expand(region)
+			g.data.regions[region].style = "forest" # Measure base tower balance independently of rifts.
 			g.data.regions[region].traffic = traffic
 			if mixed:
 				g.data.regions[region].unlocks = unlocks.duplicate()

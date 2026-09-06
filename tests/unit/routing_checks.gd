@@ -8,6 +8,7 @@ static func fixture(ids: Array) -> VigilState:
 		g.expand(id)
 	for r in g.data.regions.values():
 		r.timer = 1000.0
+		r.style = "forest" # Exact route distances use unmodified enemy speeds.
 	return g
 
 static func run(suite: SceneTree) -> void:

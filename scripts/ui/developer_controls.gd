@@ -19,11 +19,14 @@ var detail: Label
 func _ready() -> void:
 	name = "DeveloperControls"
 	add_theme_constant_override("separation", 12)
-	var tab_row := HBoxContainer.new()
+	var tab_row := HFlowContainer.new()
 	tab_row.add_theme_constant_override("separation", 8)
 	add_child(tab_row)
 	for section in Balance.TUNING_FIELDS:
 		var tab := UI.button(section.capitalize(), show_category.bind(section))
+		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tab.autowrap_mode = TextServer.AUTOWRAP_OFF
+		tab.add_theme_font_size_override("font_size", UI.type_size(14))
 		tab.toggle_mode = true
 		tab.add_theme_stylebox_override("pressed", UI.box(UI.GOLD))
 		tab.add_theme_stylebox_override("hover_pressed", UI.box(UI.GOLD))
@@ -84,9 +87,14 @@ func show_category(section: String) -> void:
 	selected_kind = selector.get_item_metadata(0)
 	hint.text = "Live changes · Auto-saved" if category == "enemies" else "Level 1 · Live changes · Auto-saved"
 	detail.text = "Health changes keep each enemy's remaining health percentage." if category == "enemies" else "Upgrades scale from these values. Lower attack intervals fire faster. Blast radius 0 hits one target. Build cost also scales upgrades and refunds."
+	if category == "rifts":
+		selector.accessibility_name = "Choose rift type"
+		hint.text = "Live changes · Auto-saved · Grass always has no effect"
 	show_fields()
 
 func show_fields() -> void:
+	if category == "rifts":
+		detail.text = Balance.rift_description(selected_kind, game.tuning) + " Set to 0 to disable. Health adjustments preserve remaining health percentage."
 	sliders.clear()
 	for child in fields.get_children():
 		fields.remove_child(child)
@@ -151,6 +159,8 @@ func add_slider(stat: String) -> void:
 			return
 		if game.set_balance_stat(section, kind, stat, value):
 			label.text = descriptor.label + " · " + format_value(value, descriptor)
+			if section == "rifts":
+				detail.text = Balance.rift_description(kind, game.tuning) + " Set to 0 to disable. Health adjustments preserve remaining health percentage."
 			changed.emit()
 	)
 

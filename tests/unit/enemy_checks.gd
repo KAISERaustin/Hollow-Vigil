@@ -4,6 +4,7 @@ static func run(suite: SceneTree) -> void:
 	var g := VigilState.new(314)
 	g.data.balance = 10000
 	g.expand("1,0")
+	g.data.regions["1,0"].style = "forest" # These assertions cover base enemy stats.
 	g.data.balance = 139
 	suite.check(not g.economy.unlock("1,0", "lantern") and g.data.balance == 139, "Keeper attunement rejects insufficient gold")
 	g.data.balance = 10000

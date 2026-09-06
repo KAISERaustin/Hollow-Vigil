@@ -6,6 +6,7 @@ static func run(suite: SceneTree) -> void:
 		var game := VigilState.new(716)
 		game.data.balance = 10000.0
 		game.expand("1,0")
+		game.data.regions["1,0"].style = "forest" # Verify base damage without biome effects.
 		game.data.regions["1,0"].timer = 100.0
 		var id := game.economy.build(kind, "0,0", 0)
 		var target := game.combat.spawn("1,0", "heavy")

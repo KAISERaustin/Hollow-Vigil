@@ -23,6 +23,8 @@ func fixture_enemy(g: VigilState, kind: String = "basic") -> Dictionary:
 		g.data.balance += Balance.expansion_cost(g.data.regions.size())
 		g.expand("-1,0")
 		g.data.balance = balance
+	# Base combat fixtures intentionally exclude biome bonuses.
+	g.data.regions["-1,0"].style = "forest"
 	return g.combat.spawn("-1,0", kind)
 
 func legacy_core_fixture(seed_value: int) -> VigilState:
@@ -37,6 +39,7 @@ func clean_test_save(path: String) -> void:
 			DirAccess.remove_absolute(path + suffix)
 
 func run() -> void:
+	preload("res://tests/unit/rift_checks.gd").run(self)
 	preload("res://tests/unit/economy_checks.gd").run(self)
 	preload("res://tests/unit/tower_economy_checks.gd").run(self)
 	preload("res://tests/unit/relocation_checks.gd").run(self)

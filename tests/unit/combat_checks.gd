@@ -154,6 +154,7 @@ static func test_road_junctions(suite: SceneTree) -> void:
 			for kind in Balance.ENEMIES.keys():
 				g.combat.enemies.clear()
 				var enemy := g.combat.spawn(child_id, kind)
+				enemy.rift_style = "forest" # Isolate exact road-junction movement.
 				var half_step: float = Balance.ENEMIES[kind].speed * Balance.STEP * 0.5
 				var approach := -1.0 if child_id == "1,-1" else 1.0
 				enemy.pos = junction + Vector2(0, approach * half_step)

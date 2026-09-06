@@ -74,8 +74,10 @@ func spawn(id: String, forced_kind: String = "") -> Dictionary:
 	e.id = enemy_serial
 	e.source = id
 	e.kind = kind
-	e.hp = s.hp
-	e.max_hp = s.hp
+	# Origin is captured once: crossing another biome never changes the effect.
+	e.rift_style = r.get("style", "forest")
+	e.hp = s.hp * rift_health_multiplier(e)
+	e.max_hp = e.hp
 	# Keep the chosen route on this enemy. A new purchase only changes future
 	# spawns, never the path or segment index of an enemy already moving.
 	# Linear routes share their cached array instead of copying it per spawn.
@@ -85,6 +87,9 @@ func spawn(id: String, forced_kind: String = "") -> Dictionary:
 	e.dead = false
 	enemies.append(e)
 	return e
+
+func rift_health_multiplier(enemy: Dictionary) -> float:
+	return 1.0 + Balance.rift_strength("ashen_forge", tuning) / 100.0 if enemy.get("rift_style", "forest") == "ashen_forge" else 1.0
 
 func tick(delta: float) -> void:
 	if not is_finite(delta) or delta <= 0.0:
@@ -113,6 +118,11 @@ func tick(delta: float) -> void:
 		if e.dead:
 			continue
 		var move := Balance.tuned_value("enemies", e.kind, "speed", tuning) * delta
+		match e.get("rift_style", "forest"):
+			"drowned_crypt":
+				move *= 1.0 + Balance.rift_strength("drowned_crypt", tuning) / 100.0
+			"bloodmoon_sanctuary":
+				e.hp = minf(e.max_hp, e.hp + e.max_hp * Balance.rift_strength("bloodmoon_sanctuary", tuning) / 100.0 * delta)
 		if e.get("slow_until", 0.0) > simulation_time:
 			move *= 0.75
 		if e.get("stun_until", 0.0) > simulation_time:

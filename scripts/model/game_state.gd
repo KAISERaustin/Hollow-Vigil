@@ -74,7 +74,7 @@ func apply_balance(candidate: Dictionary) -> bool:
 	for enemy in combat.enemies:
 		if enemy.dead:
 			continue
-		var health := Balance.tuned_value("enemies", enemy.kind, "hp", tuning)
+		var health := Balance.tuned_value("enemies", enemy.kind, "hp", tuning) * combat.rift_health_multiplier(enemy)
 		enemy.hp = health * clampf(enemy.hp / enemy.max_hp, 0.0, 1.0)
 		enemy.max_hp = health
 	for tower in data.towers.values():

@@ -365,7 +365,7 @@ func draw_region(region: Dictionary) -> void:
 func draw_entrance(id: String) -> void:
 	var gate := screen(VigilWorld.center(id))
 	var z := entrance_scale()
-	VigilTerrainArt.portal(self, gate, z, false)
+	preload("res://scripts/rendering/rift_art.gd").draw(self, state.data.regions[id].get("style", "forest"), gate, z)
 
 func draw_core() -> void:
 	var gate := screen(VigilWorld.CORE_POSITION)
@@ -429,6 +429,9 @@ func draw_enemy(e: Dictionary) -> void:
 		draw_line(p+Vector2(-10+index*5,16)*z,p+Vector2(-8+index*5,20)*z,Color("c282bb"),2*z,true)
 	if e.get("stun_until", 0.0) > state.combat.simulation_time:
 		draw_arc(p,18*z,0,TAU,24,VigilTerrainArt.PAPER,2*z,true)
+	var rift_style: String = e.get("rift_style", "forest")
+	if Balance.rift_strength(rift_style, state.tuning) > 0.0:
+		preload("res://scripts/rendering/rift_art.gd").enemy_mark(self, rift_style, p, z)
 	if e.hp < e.max_hp:
 		var from := p + Vector2(-9, -23 * z)
 		draw_line(from, from + Vector2(18, 0), Color.BLACK, 4)

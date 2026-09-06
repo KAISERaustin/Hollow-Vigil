@@ -85,7 +85,30 @@ static func tower_stats(tower: Dictionary, tuning: Dictionary = {}) -> Dictionar
 
 # One schema drives the editor and save validation. Overrides belong to a save,
 # never to these shared defaults. All values describe level-one/base stats.
+const RIFTS := {
+	"ashen_forge": {"name": "Forged Rift", "strength": 25.0},
+	"drowned_crypt": {"name": "Drowned Rift", "strength": 15.0},
+	"bloodmoon_sanctuary": {"name": "Bloodmoon Rift", "strength": 1.0}
+}
+
+static func rift_strength(style: String, tuning: Dictionary = {}) -> float:
+	return tuned_value("rifts", style, "strength", tuning) if RIFTS.has(style) else 0.0
+
+static func rift_name(style: String) -> String:
+	return RIFTS[style].name if RIFTS.has(style) else "Wild Rift"
+
+static func rift_description(style: String, tuning: Dictionary = {}) -> String:
+	var amount := String.num(rift_strength(style, tuning), 2)
+	match style:
+		"ashen_forge": return "Hardened · +" + amount + "% maximum health."
+		"drowned_crypt": return "Restless · +" + amount + "% movement speed."
+		"bloodmoon_sanctuary": return "Regeneration · Restores " + amount + "% of maximum health each second."
+	return "No effect · Enemies keep their normal stats."
+
 const TUNING_FIELDS := {
+	"rifts": {
+		"strength": {"label": "Effect strength", "suffix": "%", "min": 0.0, "max": 100.0, "step": 0.25}
+	},
 	"enemies": {
 		"hp": {"label": "Health", "suffix": " HP", "min": 1.0, "max": 1000.0, "step": 1.0},
 		"speed": {"label": "Move speed", "suffix": " units/s", "min": 1.0, "max": 250.0, "step": 1.0},
@@ -101,6 +124,8 @@ const TUNING_FIELDS := {
 }
 
 static func definitions(category: String) -> Dictionary:
+	if category == "rifts":
+		return RIFTS
 	return ENEMIES if category == "enemies" else TOWERS
 
 static func tuned_value(category: String, kind: String, stat: String, tuning: Dictionary = {}) -> float:
