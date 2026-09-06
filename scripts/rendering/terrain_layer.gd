@@ -6,8 +6,12 @@ var revision := -1
 var model: VigilState
 var seed_value := -1
 var grid := preload("res://scripts/rendering/terrain_grid.gd").new()
+var clouds := preload("res://scripts/rendering/terrain_clouds.gd").new()
+var cloud_edges := preload("res://scripts/rendering/terrain_cloud_edges.gd").new()
 
 func _init() -> void:
+	add_child(clouds)
+	add_child(cloud_edges)
 	add_child(grid)
 
 func synchronize(state: VigilState, camera: Vector2, zoom: float, viewport_size: Vector2) -> void:
@@ -30,8 +34,11 @@ func synchronize(state: VigilState, camera: Vector2, zoom: float, viewport_size:
 				add_child(tile)
 		# A single overlay stays above every cached chunk, including new tiles,
 		# while the battlefield's portals, enemies and controls remain above it.
+		move_child(cloud_edges, -1)
 		move_child(grid, -1)
 	var world_view := Rect2(camera - viewport_size * 0.5 / zoom, viewport_size / zoom)
+	clouds.synchronize(world_view)
+	cloud_edges.synchronize(state, world_view)
 	grid.synchronize(world_view)
 	var view := world_view.grow(170)
 	for id in chunks:

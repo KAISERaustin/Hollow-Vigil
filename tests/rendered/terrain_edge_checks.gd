@@ -9,6 +9,10 @@ static func run(tree: SceneTree) -> int:
 	tree.root.add_child(backdrop)
 	var layer := VigilTerrainLayer.new()
 	tree.root.add_child(layer)
+	# Isolate terrain clipping from the opaque fog beneath it. Fog coverage is
+	# exercised separately with the world grid below.
+	layer.clouds.hide()
+	layer.cloud_edges.hide()
 	var cases := 0
 	var samples := 0
 	var failures := 0
@@ -61,9 +65,45 @@ static func run(tree: SceneTree) -> int:
 	print(report)
 	var file := FileAccess.open("res://artifacts/terrain-edge-results.txt", FileAccess.WRITE)
 	file.store_string(report)
+	layer.clouds.show()
+	layer.cloud_edges.show()
+	# A contrasting sentinel distinguishes holes from intentionally dark ink.
+	backdrop.color = Color.MAGENTA
 	failures += await check_grid(tree, layer, backdrop)
+	failures += await check_cloud_reveal(tree, layer)
 	layer.free()
 	backdrop.free()
+	return failures
+
+static func check_cloud_reveal(tree: SceneTree, layer: VigilTerrainLayer) -> int:
+	tree.root.content_scale_size = Vector2i(720, 720)
+	tree.root.size = Vector2i(720, 720)
+	var game := VigilState.new(879)
+	game.data.balance = 1e12
+	var failures := 0
+	for expanded in [false, true]:
+		if expanded:
+			game.expand("1,0")
+		layer.synchronize(game, Vector2.ZERO, 1.0, Vector2(720, 720))
+		layer.cloud_edges.hide()
+		await tree.process_frame
+		await tree.process_frame
+		await RenderingServer.frame_post_draw
+		var uncovered := tree.root.get_texture().get_image()
+		layer.cloud_edges.show()
+		await tree.process_frame
+		await tree.process_frame
+		await RenderingServer.frame_post_draw
+		var covered := tree.root.get_texture().get_image()
+		# Just inside the east road mouth: fog overlaps before purchase and
+		# clears afterward. Further inside the road must always remain clear.
+		var edge := Vector2i(504, 360)
+		var interior := Vector2i(485, 360)
+		var edge_changed := uncovered.get_pixelv(edge) != covered.get_pixelv(edge)
+		if edge_changed == expanded or uncovered.get_pixelv(interior) != covered.get_pixelv(interior):
+			failures += 1
+			push_error("Cloud fringe reveal/road clearance failed: expanded=%s" % expanded)
+	print("CLOUD REVEAL: 2 expansion states, %d failures" % failures)
 	return failures
 
 static func check_grid(tree: SceneTree, layer: VigilTerrainLayer, backdrop: ColorRect) -> int:
@@ -100,10 +140,17 @@ static func check_grid(tree: SceneTree, layer: VigilTerrainLayer, backdrop: Colo
 							var expected := VigilTerrainArt.INK
 							if distance > layer.grid.LINE_WIDTH * 0.5 - 1.0 / zoom:
 								# Ignore rasterization at stroke edges and artwork inside
-								# owned cells; empty cell interiors must stay untouched.
+								# owned cells; unknown interiors must contain opaque fog.
 								if distance < layer.grid.LINE_WIDTH * 0.5 + 1.0 / zoom or game.data.regions.has(VigilWorld.key(Vector2i(floor(cell.x), floor(cell.y)))):
 									continue
-								expected = backdrop.color
+								var fog := rendered.get_pixel(x, y)
+								samples += 1
+								# Reject both black gaps and the exact untouched backdrop;
+								# the dark cloud contours can be dimmer than its blue.
+								var empty := maxf(absf(fog.r - backdrop.color.r), maxf(absf(fog.g - backdrop.color.g), absf(fog.b - backdrop.color.b))) < 0.004
+								if empty or maxf(fog.r, maxf(fog.g, fog.b)) < 0.06:
+									clean = false
+								continue
 							var actual := rendered.get_pixel(x, y)
 							samples += 1
 							if maxf(absf(actual.r - expected.r), maxf(absf(actual.g - expected.g), absf(actual.b - expected.b))) > 0.035:
