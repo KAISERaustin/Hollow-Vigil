@@ -48,15 +48,19 @@ func build(kind: String, region: String, pad: int) -> String:
 		return ""
 	return _add_tower(kind, region, pad)
 
-func upgrade(id: String, expected_level: int = -1) -> bool:
+func upgrade(id: String, expected_level: int = -1, branch: String = "") -> bool:
 	if not data.towers.has(id):
 		return false
 	var t: Dictionary = data.towers[id]
+	if (t.level == 3 and not Balance.valid_branch(t.kind, branch)) or (t.level != 3 and branch != ""):
+		return false
 	if expected_level != -1 and t.level != expected_level:
 		return false
 	if t.get("rebuild_remaining", 0.0) > 0.0 or t.level >= Balance.MAX_TOWER_LEVEL or not spend(Balance.upgrade_cost(t, tuning)):
 		return false
 	t.level += 1
+	if t.level == 4:
+		t.branch = branch
 	tower_upgraded.emit(t.region, int(t.pad), t.kind)
 	return true
 

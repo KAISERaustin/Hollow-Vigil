@@ -306,13 +306,22 @@ func _draw() -> void:
 	if state.data.towers.has(selected_tower):
 		var t: Dictionary = state.data.towers[selected_tower]
 		range_pos = VigilWorld.pad_position(t.region, t.pad)
-		range_radius = Balance.stats(t.kind, t.level, state.tuning).range
+		range_radius = Balance.tower_stats(t, state.tuning).range
 	elif selected_pad >= 0:
 		range_pos = VigilWorld.pad_position(selected_region, selected_pad)
 		range_radius = Balance.tuned_value("towers", preview_kind, "range", state.tuning)
 	if range_radius > 0.0:
 		# A single outline keeps the range preview uncluttered.
 		draw_arc(screen(range_pos), range_radius * zoom, 0, TAU, 72, GOLD, 1.5, true)
+	for patch in state.combat.burning_ground:
+		var center := screen(patch.pos)
+		if not visible.grow(patch.radius*zoom).has_point(center):
+			continue
+		draw_circle(center, patch.radius*zoom, Color(0.3,0.16,0.10,0.35))
+		draw_arc(center,patch.radius*zoom,0,TAU,40,Color("f19b57"),2*zoom,true)
+		for index in range(9):
+			var ember: Vector2 = center + Vector2.from_angle(index*2.4)*sqrt(index/9.0)*patch.radius*zoom
+			draw_line(ember,ember+Vector2(2,-5-sin(state.combat.simulation_time*5+index)*2)*zoom,VigilTerrainArt.GOLD,2*zoom,true)
 	for e in state.combat.enemies:
 		if visible.has_point(screen(e.pos)):
 			draw_enemy(e)
@@ -328,6 +337,12 @@ func _draw() -> void:
 			var origin := screen(fx.from)
 			if visible.intersects(Rect2(origin, Vector2.ZERO).expand(p).grow((fx.radius + 30.0) * zoom)):
 				AttackEffects.draw(self, fx, origin, p, zoom, effect_offset)
+		elif fx.kind == "shard_fade":
+			var tip: Vector2 = p + fx.direction * (1.0-fade)*35*zoom
+			draw_line(tip,tip+fx.direction*7*zoom,Color(color,fade),2*zoom,true)
+		elif fx.kind == "seal":
+			draw_arc(p,(1.0-fade)*35*zoom,0,TAU,32,Color(color,fade),3*zoom,true)
+			draw_circle(p,8*fade*zoom,Color(VigilTerrainArt.PAPER,fade))
 		elif fx.kind == "escape":
 			draw_arc(p, (7.0 + fade * 18.0) * zoom, 0, TAU, 32, VigilTerrainArt.MINT, 2.0 * zoom, true)
 		else:
@@ -361,7 +376,11 @@ func draw_core() -> void:
 func draw_tower(t: Dictionary) -> void:
 	var p := screen(VigilWorld.pad_position(t.region, t.pad))
 	var z := zoom
-	VigilTerrainArt.sentinel(self, t.kind, p, z, int(t.level))
+	VigilTerrainArt.sentinel(self, t.kind, p, z, int(t.level), t.get("branch", ""))
+	if t.get("branch", "") == "doomstone":
+		var stacks: int = state.combat.curses.get(t.id, {}).get("stacks", 0)
+		for y in [-38,-27,-16]:
+			VigilTerrainArt.shape(self,[Vector2(-5,0),Vector2(0,-4),Vector2(5,0),Vector2(0,4)],p+Vector2(0,y)*z,Vector2.ONE*z,Color("c282bb").lerp(VigilTerrainArt.PAPER,stacks/5.0),1.5*z)
 	if t.get("rebuild_remaining", 0.0) > 0.0:
 		# Scaffolding and a persistent timer distinguish an inactive tower.
 		draw_set_transform(p, 0, Vector2.ONE * zoom)
@@ -396,6 +415,20 @@ func draw_enemy(e: Dictionary) -> void:
 	var p := screen(e.pos)
 	var z := zoom
 	VigilTerrainArt.enemy(self, e.kind, p, z)
+	if e.get("slow_until", 0.0) > state.combat.simulation_time:
+		draw_arc(p, 15*z, 0, TAU, 24, Color("96d6e6"), 2*z, true)
+		for index in range(6):
+			var tip := p + Vector2.from_angle(index*TAU/6)*17*z
+			draw_line(tip, tip+Vector2(0,-5)*z,Color("96d6e6"),2*z,true)
+	var charge := 0
+	for amount in e.get("charges", {}).values():
+		charge = maxi(charge, int(amount))
+	for index in range(charge):
+		draw_circle(p+Vector2(-9+index*6,-30)*z,2*z,Color("b3b5f1"))
+	for index in range(int(e.get("curse_stacks", 0))):
+		draw_line(p+Vector2(-10+index*5,16)*z,p+Vector2(-8+index*5,20)*z,Color("c282bb"),2*z,true)
+	if e.get("stun_until", 0.0) > state.combat.simulation_time:
+		draw_arc(p,18*z,0,TAU,24,VigilTerrainArt.PAPER,2*z,true)
 	if e.hp < e.max_hp:
 		var from := p + Vector2(-9, -23 * z)
 		draw_line(from, from + Vector2(18, 0), Color.BLACK, 4)

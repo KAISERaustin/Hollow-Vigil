@@ -13,7 +13,7 @@ const STARTING_GOLD := 280.0 # First territory costs 100, leaving 180 for defens
 const BASE_SPAWN_PERIOD := 4.25 # 40% of the former 1.7-second spawn rate at every traffic tier.
 const TRAFFIC_INCREMENT := 0.25
 const MAX_TRAFFIC_LEVEL := 12
-const MAX_TOWER_LEVEL := 3
+const MAX_TOWER_LEVEL := 4
 const TRAFFIC_BASE_COST := 80.0
 const TRAFFIC_COST_GROWTH := 1.8
 const AUTOMATION_COST := 600.0
@@ -37,8 +37,7 @@ const TOWERS := {
 	"electric": {"name": "Stormspire", "role": "MULTI-TARGET", "cost": 140.0, "damage": 3.0, "period": 0.4, "range": 145.0, "splash": 0.0, "targets": 5, "color": "91bbff", "description": "Forked lightning zaps up to five enemies at a time within reach, of any troop type. The five-target limit stays the same at every level."}
 }
 
-# Each row buys the next level (1 -> 2, then 2 -> 3). Fixed tiers preserve
-# distinct combat roles; there is no extrapolated fourth level or price.
+# Linear upgrades lead to level 3; level 4 requires a specialization.
 const TOWER_UPGRADES := {
 	"rapid": [
 		{"cost": 60.0, "damage": 10.0, "period": 0.4, "range": 146.0, "splash": 0.0},
@@ -57,6 +56,32 @@ const TOWER_UPGRADES := {
 		{"cost": 200.0, "damage": 7.0, "period": 0.3, "range": 173.0, "splash": 0.0, "targets": 5}
 	]
 }
+
+# Ordered left/right specializations. Costs are equal within each tower family.
+const BRANCHES := {
+	"rapid": {
+		"frostneedle": {"name": "Frostneedle", "color": "96d6e6", "cost": 180.0, "description": "Ice needles slow enemies by 25% for 2 seconds. Repeated hits refresh the slow; they never stack."},
+		"thorn_volley": {"name": "Thorn Volley", "color": "93b979", "cost": 180.0, "description": "Fires five arrows in a wide fan. Each keeps level-3 damage. The center aims at the target; four fixed-angle outer arrows can hit surrounding enemies, but often miss."}
+	},
+	"splash": {
+		"cinderfield": {"name": "Cinderfield", "color": "f19b57", "cost": 320.0, "description": "Trades 25% of blast damage for burning ground: 3 seconds at one-third of level-3 damage per second. Overlapping fire from this tower refreshes without stacking."},
+		"rupture_pyre": {"name": "Rupture Pyre", "color": "e6a16d", "cost": 320.0, "description": "Blasts deal 50% more damage, fire slower, and push enemies back 20 units. Revenants resist 75% of the push. Enemies resist another push for 1 second."}
+	},
+	"heavy": {
+		"grave_echo": {"name": "Grave Echo", "color": "c3a0ed", "cost": 360.0, "description": "A heavy orb bursts into five seeking fragments. Each deals 20% of its damage to a different enemy within 90 units. The original target is excluded; unused fragments fade."},
+		"doomstone": {"name": "Doomstone", "color": "c282bb", "cost": 360.0, "description": "Consecutive hits on one enemy increase this tower's damage by 20% per curse stack, up to 100% bonus. Switching targets resets the curse."}
+	},
+	"electric": {
+		"tempest_web": {"name": "Tempest Web", "color": "a9dce9", "cost": 300.0, "description": "Strikes up to five enemies. Each strike arcs to one additional, distinct enemy within 60 units for 50% damage, reaching beyond normal range."},
+		"thunderseal": {"name": "Thunderseal", "color": "b3b5f1", "cost": 300.0, "description": "Five hits from this tower detonate a seal for triple-hit bonus damage and a 0.4-second stun. Charges reset; 2-second stun immunity prevents continuous lockdown."}
+	}
+}
+
+static func valid_branch(kind: String, branch: String) -> bool:
+	return BRANCHES.has(kind) and BRANCHES[kind].has(branch)
+
+static func tower_stats(tower: Dictionary, tuning: Dictionary = {}) -> Dictionary:
+	return stats(tower.kind, tower.level, tuning, tower.get("branch", ""))
 
 # One schema drives the editor and save validation. Overrides belong to a save,
 # never to these shared defaults. All values describe level-one/base stats.
@@ -124,9 +149,9 @@ static func safe(value: Variant) -> float:
 		return 0.0
 	return clampf(float(value), 0.0, MAX_MONEY) if is_finite(float(value)) else 0.0
 
-static func stats(kind: String, level: int, tuning: Dictionary = {}) -> Dictionary:
+static func stats(kind: String, level: int, tuning: Dictionary = {}, branch: String = "") -> Dictionary:
 	var s := definition("towers", kind, tuning)
-	var tier := clampi(level, 1, MAX_TOWER_LEVEL)
+	var tier := clampi(level, 1, 3)
 	if tier == 1:
 		return s
 	var upgrade: Dictionary = TOWER_UPGRADES[kind][tier - 2]
@@ -138,6 +163,17 @@ static func stats(kind: String, level: int, tuning: Dictionary = {}) -> Dictiona
 		# ratios into upgrades. A custom blast on a single-target tower stays fixed.
 		if base > 0.0:
 			s[field] = upgrade[field] * (s[field] / base)
+	if level >= 4 and valid_branch(kind, branch):
+		var specialization: Dictionary = BRANCHES[kind][branch]
+		s.name = specialization.name
+		s.description = specialization.description
+		s.color = specialization.color
+		match branch:
+			"cinderfield": s.damage *= 0.75
+			"rupture_pyre":
+				s.damage *= 1.5
+				s.period *= 1.5 / 1.1
+			"grave_echo": s.damage *= 110.0 / 90.0
 	s.period = maxf(0.1, s.period)
 	return s
 
@@ -146,7 +182,8 @@ static func upgrade_cost(tower: Dictionary, tuning: Dictionary = {}) -> float:
 	if level < 1 or level >= MAX_TOWER_LEVEL:
 		return 0.0
 	var base_cost: float = TOWERS[tower.kind].cost
-	return ceil(TOWER_UPGRADES[tower.kind][level - 1].cost * (tuned_value("towers", tower.kind, "cost", tuning) / base_cost))
+	var price: float = BRANCHES[tower.kind].values()[0].cost if level == 3 else TOWER_UPGRADES[tower.kind][level - 1].cost
+	return ceil(price * (tuned_value("towers", tower.kind, "cost", tuning) / base_cost))
 
 static func invested_cost(tower: Dictionary, tuning: Dictionary = {}) -> float:
 	var invested := tuned_value("towers", tower.kind, "cost", tuning)

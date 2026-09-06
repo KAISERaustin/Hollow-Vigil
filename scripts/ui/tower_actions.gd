@@ -20,10 +20,23 @@ var pending_tower := ""
 var pending_level := -1
 var pending_cost := 0.0
 var upgrade_quote: Label
+var branch_bar: HBoxContainer
+var branch_card: PanelContainer
+var branch_description: Label
+var branch_scroll: ScrollContainer
+var branch_confirm: Button
+var branch_title: Label
+var branch_portrait: Control
+var chosen_branch := ""
+var branch_kind := "rapid"
 
 func cancel_upgrade() -> void:
 	pending_tower = ""
 	pending_level = -1
+	chosen_branch = ""
+	if is_instance_valid(branch_bar):
+		branch_bar.hide()
+		branch_card.hide()
 	if is_instance_valid(upgrade_quote):
 		upgrade_quote.hide()
 	if buttons.has("upgrade"):
@@ -35,6 +48,9 @@ func request_upgrade() -> void:
 		return
 	var id := field.selected_tower
 	var tower: Dictionary = field.state.data.towers[id]
+	if pending_tower == id and tower.level == 3:
+		cancel_upgrade()
+		return
 	if pending_tower == id:
 		var level := pending_level
 		cancel_upgrade()
@@ -79,6 +95,7 @@ func _ready() -> void:
 		button.draw.connect(draw_icon.bind(button, action))
 		add_child(button)
 		buttons[action] = button
+	build_branches()
 	refresh()
 
 func _process(_delta: float) -> void:
@@ -99,14 +116,15 @@ func refresh() -> void:
 		upgrade_maxed = maxed
 		upgrade.queue_redraw()
 	upgrade.mouse_default_cursor_shape = Control.CURSOR_ARROW if maxed else Control.CURSOR_POINTING_HAND
-	upgrade.disabled = tower.level >= Balance.MAX_TOWER_LEVEL or tower.get("rebuild_remaining", 0.0) > 0.0 or field.state.data.balance < cost
+	upgrade.disabled = tower.level >= Balance.MAX_TOWER_LEVEL or tower.get("rebuild_remaining", 0.0) > 0.0 or (field.state.data.balance < cost and tower.level != 3)
 	upgrade.tooltip_text = ("Confirm upgrade" if pending_tower != "" else "Upgrade") + " · " + UI.exact_money(cost) + " gold"
 	if tower.level >= Balance.MAX_TOWER_LEVEL:
 		upgrade.tooltip_text = "Max level"
 	elif tower.get("rebuild_remaining", 0.0) > 0.0:
 		upgrade.tooltip_text = "Rebuilding"
 	upgrade.accessibility_name = upgrade.tooltip_text
-	upgrade_quote.visible = pending_tower != ""
+	upgrade_quote.visible = pending_tower != "" and pending_level != 3
+	refresh_branches(tower)
 	if upgrade_quote.visible:
 		upgrade_quote.text = "Upgrade to level %d · %s gold\nTap the checkmark to confirm." % [pending_level + 1, UI.exact_money(pending_cost)]
 		upgrade_quote.size.x = maxf(1.0, field.size.x - 24.0)
@@ -155,3 +173,89 @@ func draw_icon(button: Button, action: String) -> void:
 	else:
 		button.draw_arc(center, 11, 0, TAU, 40, color, 3, true)
 		button.draw_line(center + Vector2(-5, 0), center + Vector2(5, 0), color, 3, true)
+
+func build_branches() -> void:
+	branch_bar = HBoxContainer.new()
+	branch_bar.name = "BranchChoices"
+	branch_bar.add_theme_constant_override("separation", 10)
+	add_child(branch_bar)
+	for index in range(2):
+		var button := UI.accent_button("", choose_branch.bind(index), UI.SURFACE)
+		button.name = "LeftBranch" if index == 0 else "RightBranch"
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.add_theme_font_size_override("font_size", 14)
+		branch_bar.add_child(button)
+	branch_card = PanelContainer.new()
+	branch_card.name = "BranchDetails"
+	branch_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 3, 12))
+	add_child(branch_card)
+	var content := UI.margin(branch_card, 12)
+	var identity := HBoxContainer.new()
+	content.add_child(identity)
+	branch_portrait = Control.new()
+	branch_portrait.custom_minimum_size = Vector2(64, 78)
+	branch_portrait.draw.connect(func(): VigilTerrainArt.sentinel(branch_portrait, branch_kind, Vector2(32, 63), 0.9, 4, chosen_branch))
+	identity.add_child(branch_portrait)
+	branch_title = UI.heading("", 20)
+	branch_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	branch_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	identity.add_child(branch_title)
+	branch_scroll = ScrollContainer.new()
+	branch_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	UI.keyboard_scroll(branch_scroll, "Branch power description")
+	content.add_child(branch_scroll)
+	branch_description = UI.paragraph("", 14)
+	branch_description.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	branch_scroll.add_child(branch_description)
+	branch_confirm = UI.accent_button("", confirm_branch, UI.GOLD)
+	branch_confirm.name = "ConfirmBranch"
+	content.add_child(branch_confirm)
+	branch_bar.hide()
+	branch_card.hide()
+
+func choose_branch(index: int) -> void:
+	if pending_tower == "" or not field.state.data.towers.has(pending_tower):
+		return
+	var tower: Dictionary = field.state.data.towers[pending_tower]
+	branch_kind = tower.kind
+	chosen_branch = Balance.BRANCHES[tower.kind].keys()[index]
+	branch_portrait.queue_redraw()
+	branch_scroll.scroll_vertical = 0
+	refresh()
+
+func confirm_branch() -> void:
+	var id := pending_tower
+	var branch := chosen_branch
+	if id == "" or branch == "":
+		return
+	if field.state.economy.upgrade(id, 3, branch):
+		cancel_upgrade()
+		upgraded.emit()
+	refresh()
+
+func refresh_branches(tower: Dictionary) -> void:
+	if not is_instance_valid(branch_bar):
+		return
+	branch_bar.visible = pending_tower != "" and pending_level == 3
+	branch_card.visible = branch_bar.visible and chosen_branch != ""
+	if not branch_bar.visible:
+		return
+	var width := minf(440.0, field.size.x - 24.0)
+	branch_bar.size = Vector2(width, 52)
+	branch_bar.position = Vector2((field.size.x - width) * 0.5, field.size.y - 64)
+	var options: Array = Balance.BRANCHES[tower.kind].values()
+	for index in range(2):
+		var button: Button = branch_bar.get_child(index)
+		button.text = options[index].name
+		button.accessibility_name = "Preview " + options[index].name
+	if not branch_card.visible:
+		return
+	var option: Dictionary = Balance.BRANCHES[tower.kind][chosen_branch]
+	branch_title.text = option.name
+	branch_description.text = option.description + "\n\nPermanent specialization · Level 4"
+	branch_confirm.text = "Choose %s · %s gold" % [option.name, UI.exact_money(pending_cost)]
+	branch_confirm.add_theme_font_size_override("font_size", 14)
+	branch_confirm.disabled = field.state.data.balance < pending_cost or tower.get("rebuild_remaining", 0.0) > 0.0
+	branch_scroll.custom_minimum_size.y = clampf(field.size.y - 290.0, 44.0, 160.0)
+	branch_card.size = Vector2(width, 0)
+	branch_card.position = Vector2(branch_bar.position.x, branch_bar.position.y - branch_card.size.y - 10)

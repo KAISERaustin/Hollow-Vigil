@@ -103,10 +103,10 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 		await harness.capture(app, "tower-inline-confirm-" + str(touch))
 		await harness.tap(app, upgrade_rect.get_center(), touch)
 		check(g.data.towers[rapid].level == 3 and g.data.balance == 310.0 and g.data.towers[rapid].earnings == 25.0, "Inline upgrade charged incorrectly", failures)
-		check(app.tower_actions.pending_tower == "" and upgrade_button.disabled, "Max level did not clear confirmation", failures)
+		check(app.tower_actions.pending_tower == "" and not upgrade_button.disabled, "Level three should offer branch selection", failures)
 		var capped := g.data.duplicate(true)
 		upgrade_button.pressed.emit()
-		check(g.data == capped and not dialog.visible, "Forced max-level click changed state", failures)
+		check(g.data == capped and not dialog.visible, "Opening branch choices changed state", failures)
 		var upgrade_save: Dictionary = g.storage.read_candidate(g.save_path)
 		check(not upgrade_save.is_empty() and upgrade_save.towers[rapid].level == 3, "Upgrade was not saved", failures)
 		# A hidden badge must act like the ground beneath it, not collect gold.

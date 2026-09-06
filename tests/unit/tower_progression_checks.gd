@@ -10,7 +10,7 @@ static func run(suite: SceneTree) -> void:
 
 static func test_progression(suite: SceneTree) -> void:
 	var prices := {"rapid": [60.0, 60.0, 100.0], "splash": [120.0, 120.0, 200.0], "heavy": [160.0, 140.0, 220.0], "electric": [140.0, 120.0, 200.0]}
-	suite.check(Balance.MAX_TOWER_LEVEL == 3, "Every tower has exactly three total levels")
+	suite.check(Balance.MAX_TOWER_LEVEL == 4, "Every tower has four total levels")
 	for kind in Balance.TOWERS:
 		var g: VigilState = suite.legacy_core_fixture(314)
 		g.data.balance = 1000.0
@@ -37,12 +37,12 @@ static func test_progression(suite: SceneTree) -> void:
 		g.data.balance = Balance.MAX_MONEY
 		var capped := g.data.duplicate(true)
 		for attempt in range(5):
-			suite.check(not g.economy.upgrade(id) and g.data == capped, "%s cannot exceed level three even with unlimited gold" % kind)
-		suite.check(Balance.upgrade_cost(g.data.towers[id]) == 0.0, "Maximum %s has no purchasable next tier" % kind)
+			suite.check(not g.economy.upgrade(id) and g.data == capped, "%s requires an explicit branch beyond level three" % kind)
+		suite.check(Balance.upgrade_cost(g.data.towers[id]) > 0.0, "Level three %s offers a branch price" % kind)
 		suite.check(Balance.stats(kind, 10000) == Balance.stats(kind, 3) and Balance.stats(kind, 0) == Balance.stats(kind, 1), "Stats cannot extrapolate beyond the three %s tiers" % kind)
 		suite.check(g.storage.valid_data(g.data), "Maximum %s remains saveable" % kind)
 		g.data.towers[id].level = 4
-		suite.check(not g.storage.valid_data(g.data), "Current saves reject a fourth %s level" % kind)
+		suite.check(not g.storage.valid_data(g.data), "Current saves reject a branchless fourth %s level" % kind)
 	var heavy_hp: float = Balance.ENEMIES.heavy.hp
 	for level in [1, 2, 3]:
 		suite.check(int(ceil(heavy_hp / Balance.stats("heavy", level).damage)) == [9, 6, 4][level - 1], "Obelisk upgrades reduce Revenant hits from nine to six to four")

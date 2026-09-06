@@ -69,6 +69,7 @@ try {
         # Registers script classes and imports assets on a completely clean checkout.
         Invoke-Godot -Name 'import' -EngineArguments @('--headless', '--editor', '--import')
         if ($Tests -or $Check) {
+            Invoke-Godot -Name 'branches' -EngineArguments @('--headless', '--script', 'res://tests/branch_runner.gd')
             Invoke-Godot -Name 'first-property' -EngineArguments @('--headless', '--script', 'res://tests/first_property_runner.gd')
             Invoke-Godot -Name 'unit' -EngineArguments @('--headless', '--script', 'res://tests/test_runner.gd')
         }
@@ -82,6 +83,7 @@ try {
             Invoke-Godot -Name 'terrain' -EngineArguments @('--script', 'res://tests/rendered/terrain_palette_checks.gd')
         }
         if ($ArtSmoke -or $Check) {
+            Invoke-Godot -Name 'branch-visual' -EngineArguments @('--script', 'res://tests/rendered/branch_visual_runner.gd')
             Invoke-Godot -Name 'artwork' -EngineArguments @('--script', 'res://tests/rendered/artwork_smoke.gd')
             Invoke-Godot -Name 'tower-upgrade-art' -EngineArguments @('--script', 'res://tests/rendered/tower_upgrade_art_checks.gd')
             Invoke-Godot -Name 'enemy-art' -EngineArguments @('--script', 'res://tests/rendered/enemy_art_checks.gd')

@@ -48,11 +48,20 @@ static func draw(canvas: CanvasItem, fx: Dictionary, origin: Vector2, target: Ve
 		canvas.draw_arc(origin, (3.0 + age * 60.0) * zoom, 0, TAU, 20, Color(color, launch), 1.5 * zoom, true)
 	if age < fx.flight:
 		var progress: float = age / fx.flight
-		canvas.draw_set_transform(origin.lerp(target, progress), direction, Vector2.ONE * zoom)
+		var center := origin.lerp(target, progress)
+		if fx.get("fragment", false):
+			center += (target-origin).normalized().orthogonal() * sin(progress*PI) * 22.0 * zoom * fx.get("curve", 1.0)
+		canvas.draw_set_transform(center, direction, Vector2.ONE * zoom * (0.5 if fx.get("fragment", false) else 1.0))
 		var travel: float = origin.distance_to(target) / maxf(zoom, 0.01) * progress
 		wake(canvas, fx.tower_kind, minf(travel, 58.0 if fx.tower_kind == "heavy" else 44.0), age, color)
 		match fx.tower_kind:
 			"heavy":
+				if fx.get("fragment", false):
+					canvas.draw_circle(Vector2.ZERO, 13.0, Color(color, 0.16))
+					VigilTerrainArt.polygon(canvas, PackedVector2Array([Vector2(13,0),Vector2(-3,-6),Vector2(-9,0),Vector2(-3,6)]),color,2.0)
+					canvas.draw_line(Vector2(-5,0),Vector2(10,0),VigilTerrainArt.PAPER,2.0,true)
+					canvas.draw_set_transform(Vector2.ZERO)
+					return
 				canvas.draw_circle(Vector2.ZERO, 17.0, Color(color, 0.14))
 				canvas.draw_circle(Vector2.ZERO, 12.0, Color(color, 0.34))
 				canvas.draw_circle(Vector2.ZERO, 8.5, color)
@@ -90,6 +99,8 @@ static func draw(canvas: CanvasItem, fx: Dictionary, origin: Vector2, target: Ve
 				burst(canvas, progress, 7, 27.0, color)
 				canvas.draw_circle(Vector2.ZERO, 8.0 * (1.0 - progress), Color(VigilTerrainArt.PAPER, 1.0 - progress))
 			"splash":
+				if fx.get("branch", "") == "rupture_pyre":
+					canvas.draw_arc(Vector2.ZERO,fx.radius*progress,0,TAU,48,Color(color,1.0-progress),6.0*(1.0-progress)+1.0,true)
 				# A brief lobed flame ring shows the existing splash radius.
 				var radius: float = fx.radius * (0.35 + progress * 0.65)
 				var edge := PackedVector2Array()

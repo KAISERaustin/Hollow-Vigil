@@ -78,8 +78,8 @@ func apply_balance(candidate: Dictionary) -> bool:
 		enemy.hp = health * clampf(enemy.hp / enemy.max_hp, 0.0, 1.0)
 		enemy.max_hp = health
 	for tower in data.towers.values():
-		var before := Balance.stats(tower.kind, tower.level, previous)
-		var after := Balance.stats(tower.kind, tower.level, tuning)
+		var before := Balance.tower_stats(tower, previous)
+		var after := Balance.tower_stats(tower, tuning)
 		tower.cooldown = after.period * clampf(tower.cooldown / before.period, 0.0, 1.0)
 	# Relearn production under this balance; already earned gold stays owned.
 	for region in data.regions.values():

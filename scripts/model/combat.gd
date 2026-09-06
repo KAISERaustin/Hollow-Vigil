@@ -19,6 +19,8 @@ var income_events: Array[Vector2] = []
 var enemy_serial := 0
 var tick_count := 0
 var enemy_pool: Array[Dictionary] = []
+var burning_ground: Array[Dictionary] = []
+var curses: Dictionary = {}
 
 func _init(shared_data: Dictionary, transactions: VigilEconomy, shared_paths: Dictionary) -> void:
 	data = shared_data
@@ -68,6 +70,7 @@ func spawn(id: String, forced_kind: String = "") -> Dictionary:
 	var s := Balance.definition("enemies", kind, tuning)
 	enemy_serial += 1
 	var e: Dictionary = enemy_pool.pop_back() if not enemy_pool.is_empty() else {}
+	e.clear() # Pooled enemies must not inherit crowd control or charges.
 	e.id = enemy_serial
 	e.source = id
 	e.kind = kind
@@ -110,6 +113,10 @@ func tick(delta: float) -> void:
 		if e.dead:
 			continue
 		var move := Balance.tuned_value("enemies", e.kind, "speed", tuning) * delta
+		if e.get("slow_until", 0.0) > simulation_time:
+			move *= 0.75
+		if e.get("stun_until", 0.0) > simulation_time:
+			move = 0.0
 		var p: Array = e.path
 		while move > 0.0 and not e.dead:
 			var dist: float = e.pos.distance_to(p[e.segment])
@@ -126,6 +133,7 @@ func tick(delta: float) -> void:
 				move = 0.0
 	# Resolve arrivals after movement, at the same center used by the visuals.
 	advance_shots(delta)
+	advance_fire(delta)
 	# Spatial buckets keep targeting local as the battlefield grows.
 	var buckets := {}
 	for e in enemies:
@@ -145,7 +153,7 @@ func tick(delta: float) -> void:
 		# Do not turn a 0.40-second attack into a 0.45-second attack.
 		if t.cooldown > 0.000001:
 			continue
-		var stats := Balance.stats(t.kind, t.level, tuning)
+		var stats := Balance.tower_stats(t, tuning)
 		var pos := VigilWorld.pad_position(t.region, t.pad)
 		var candidates := nearby(buckets, pos, stats.range)
 		var target := select_target(candidates, pos, stats.range, t.get("target_mode", "first"))
@@ -167,10 +175,22 @@ func tick(delta: float) -> void:
 					break
 				victims.append(extra)
 				candidates.erase(extra)
+			var used: Array = victims.map(func(e): return e.id)
 			for victim in victims:
 				launch_shot(t, pos, victim, stats)
+				if t.get("branch", "") == "tempest_web":
+					for other in enemies:
+						if not other.dead and other.id not in used and victim.pos.distance_to(other.pos) <= 60.0:
+							used.append(other.id)
+							var arc := AttackEffects.shot("electric", victim.pos + Vector2(0, 29), other.pos, stats, other.id)
+							arc.tower_id = t.id
+							add_effect(arc)
+							hit(other, stats.damage * 0.5, t.id)
+							break
 			continue
 		launch_shot(t, pos, target, stats)
+		if t.get("branch", "") == "thorn_volley":
+			launch_fan(t, pos, target, stats)
 	recycle_dead_enemies()
 	while not income_events.is_empty() and simulation_time - income_events[0].x > 60.0:
 		income_events.pop_front()
@@ -180,9 +200,10 @@ func tick(delta: float) -> void:
 func launch_shot(tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary) -> void:
 	var fx := AttackEffects.shot(tower.kind, origin, target.pos, stats, target.id)
 	fx.tower_id = tower.id
+	fx.branch = tower.get("branch", "")
 	add_effect(fx)
 	var shot := {"fx": fx, "remaining": fx.flight, "target_id": target.id,
-		"tower_id": tower.id, "damage": stats.damage, "radius": 0.0 if stats.get("targets", 1) > 1 else stats.splash}
+		"tower_id": tower.id, "branch": tower.get("branch", ""), "damage": stats.damage, "radius": 0.0 if stats.get("targets", 1) > 1 else stats.splash}
 	if fx.flight <= 0.0:
 		resolve_shot(shot, target)
 	else:
@@ -194,7 +215,12 @@ func advance_shots(delta: float) -> void:
 	for enemy in enemies:
 		targets[enemy.id] = enemy
 	var flying: Array[Dictionary] = []
-	for shot in pending_shots:
+	var arrivals := pending_shots
+	pending_shots = []
+	for shot in arrivals:
+		if shot.get("ballistic", false):
+			advance_arrow(shot, delta, flying)
+			continue
 		var target: Dictionary = targets.get(shot.target_id, {})
 		if not target.is_empty():
 			shot.fx.pos = target.pos
@@ -203,15 +229,20 @@ func advance_shots(delta: float) -> void:
 			resolve_shot(shot, target)
 		else:
 			flying.append(shot)
-	pending_shots = flying
+	pending_shots.append_array(flying)
 
 func resolve_shot(shot: Dictionary, target: Dictionary) -> void:
 	if shot.radius > 0.0:
 		for enemy in enemies:
 			if not enemy.dead and shot.fx.pos.distance_squared_to(enemy.pos) <= shot.radius * shot.radius:
-				hit(enemy, shot.damage, shot.tower_id)
+				branch_hit(shot, enemy)
 	elif not target.is_empty() and not target.dead:
-		hit(target, shot.damage, shot.tower_id)
+		branch_hit(shot, target)
+	if data.towers.has(shot.tower_id):
+		if shot.get("branch", "") == "cinderfield":
+			ignite(shot)
+		elif shot.get("branch", "") == "grave_echo":
+			launch_fragments(shot)
 	# Traveling impacts stay at the arrival point instead of following survivors.
 	if shot.fx.flight > 0.0:
 		shot.fx.erase("target_id")
@@ -279,3 +310,128 @@ func income_rate() -> float:
 	for event in income_events:
 		amount += event.y
 	return amount / maxf(10.0, minf(60.0, simulation_time))
+
+# Branch state is transient: tower identity owns curses, enemy identity owns seals.
+func branch_hit(shot: Dictionary, enemy: Dictionary) -> void:
+	if not data.towers.has(shot.tower_id):
+		return
+	var branch: String = shot.get("branch", "")
+	var damage: float = shot.damage
+	if branch == "doomstone":
+		var curse: Dictionary = curses.get(shot.tower_id, {"target": -1, "stacks": 0})
+		curse.stacks = mini(5, int(curse.stacks) + 1) if curse.target == enemy.id else 0
+		curse.target = enemy.id
+		curses[shot.tower_id] = curse
+		damage *= 1.0 + curse.stacks * 0.2
+		enemy.curse_stacks = curse.stacks
+	hit(enemy, damage, shot.tower_id)
+	if enemy.dead:
+		return
+	match branch:
+		"frostneedle": enemy.slow_until = simulation_time + 2.0
+		"rupture_pyre":
+			if enemy.get("push_until", 0.0) <= simulation_time:
+				push_back(enemy, 5.0 if enemy.kind == "heavy" else 20.0)
+				enemy.push_until = simulation_time + 1.0
+		"thunderseal":
+			var charges: Dictionary = enemy.get("charges", {})
+			charges[shot.tower_id] = int(charges.get(shot.tower_id, 0)) + 1
+			if charges[shot.tower_id] >= 5:
+				charges[shot.tower_id] = 0
+				hit(enemy, damage * 3.0, shot.tower_id)
+				add_effect({"kind": "seal", "pos": enemy.pos, "life": 0.4, "max_life": 0.4, "color": "b3b5f1"})
+				if enemy.get("stun_immune_until", 0.0) <= simulation_time:
+					enemy.stun_until = simulation_time + 0.4
+					enemy.stun_immune_until = simulation_time + 2.0
+			enemy.charges = charges
+
+func push_back(enemy: Dictionary, distance: float) -> void:
+	while distance > 0.0:
+		var previous: Vector2 = enemy.path[enemy.segment - 1]
+		var step: float = enemy.pos.distance_to(previous)
+		if step >= distance:
+			enemy.pos = enemy.pos.move_toward(previous, distance)
+			break
+		enemy.pos = previous
+		distance -= step
+		if enemy.segment <= 1:
+			break
+		enemy.segment -= 1
+	enemy.distance_remaining = -1.0
+
+func ignite(shot: Dictionary) -> void:
+	var patch := {"tower_id": shot.tower_id, "pos": shot.fx.pos, "radius": shot.radius, "until": simulation_time + 3.0, "damage": shot.damage / 0.75 / 3.0}
+	for existing in burning_ground:
+		if existing.tower_id == shot.tower_id and existing.pos.distance_to(patch.pos) <= existing.radius + patch.radius:
+			existing.until = patch.until
+			# Keep both footprints; per-enemy damage is deduplicated by owner.
+			if existing.pos.distance_to(patch.pos) < 8.0:
+				return
+	burning_ground.append(patch)
+
+func advance_fire(delta: float) -> void:
+	for id in curses.keys():
+		if not data.towers.has(id):
+			curses.erase(id)
+	if burning_ground.is_empty():
+		return
+	burning_ground = burning_ground.filter(func(p): return p.until > simulation_time and data.towers.has(p.tower_id))
+	for enemy in enemies:
+		if enemy.dead:
+			continue
+		var owners := {}
+		for patch in burning_ground:
+			if not owners.has(patch.tower_id) and enemy.pos.distance_squared_to(patch.pos) <= patch.radius * patch.radius:
+				owners[patch.tower_id] = true
+				hit(enemy, patch.damage * delta, patch.tower_id)
+
+func launch_fragments(shot: Dictionary) -> void:
+	var count := 0
+	for enemy in enemies:
+		if enemy.dead or enemy.id == shot.target_id or enemy.pos.distance_to(shot.fx.pos) > 90.0:
+			continue
+		var stats := {"damage": shot.damage * 0.2, "splash": 0.0, "color": "c3a0ed"}
+		var fx := AttackEffects.shot("heavy", shot.fx.pos + Vector2(0, 22), enemy.pos, stats, enemy.id)
+		fx.fragment = true
+		fx.curve = -1.0 if count % 2 == 0 else 1.0
+		fx.tower_id = shot.tower_id
+		add_effect(fx)
+		pending_shots.append({"fx": fx, "remaining": fx.flight, "target_id": enemy.id, "tower_id": shot.tower_id, "damage": stats.damage, "radius": 0.0})
+		count += 1
+		if count == 5:
+			break
+	for index in range(count, 5):
+		add_effect({"kind": "shard_fade", "pos": shot.fx.pos, "direction": Vector2.from_angle(index * TAU / 5.0), "life": 0.35, "max_life": 0.35, "color": "c3a0ed"})
+
+func launch_fan(tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary) -> void:
+	var muzzle := origin + Vector2(0, -25)
+	var angle := muzzle.angle_to_point(target.pos)
+	for offset in [-0.48, -0.24, 0.24, 0.48]:
+		var end: Vector2 = muzzle + Vector2.from_angle(angle + offset) * stats.range
+		var fx := AttackEffects.shot("rapid", origin, end, stats)
+		fx.erase("target_id")
+		fx.flight = stats.range / 760.0
+		fx.life = fx.flight + 0.09
+		fx.max_life = fx.life
+		fx.tower_id = tower.id
+		add_effect(fx)
+		pending_shots.append({"fx": fx, "remaining": fx.flight, "target_id": -1, "tower_id": tower.id, "damage": stats.damage, "radius": 0.0, "ballistic": true, "elapsed": 0.0})
+
+func advance_arrow(shot: Dictionary, delta: float, flying: Array[Dictionary]) -> void:
+	var start: Vector2 = shot.fx.from.lerp(shot.fx.pos, minf(1.0, shot.elapsed / shot.fx.flight))
+	shot.elapsed += delta
+	var end: Vector2 = shot.fx.from.lerp(shot.fx.pos, minf(1.0, shot.elapsed / shot.fx.flight))
+	var victim: Dictionary = {}
+	var nearest := INF
+	for enemy in enemies:
+		if enemy.dead:
+			continue
+		var point := Geometry2D.get_closest_point_to_segment(enemy.pos, start, end)
+		if point.distance_to(enemy.pos) <= 9.0 and start.distance_to(point) < nearest:
+			nearest = start.distance_to(point)
+			victim = enemy
+	if not victim.is_empty():
+		hit(victim, shot.damage, shot.tower_id)
+		shot.fx.life = 0.0
+	elif shot.elapsed < shot.fx.flight:
+		flying.append(shot)

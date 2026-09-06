@@ -59,7 +59,10 @@ static func portal(canvas: CanvasItem, at: Vector2, zoom: float, core: bool) -> 
 	ellipse(canvas, center, Vector2(14, 20) * zoom, INK, 2.0 * zoom)
 	canvas.draw_line(center + Vector2(-17, -9) * zoom, center + Vector2(-17, 4) * zoom, PAPER, 2.5 * zoom, true)
 
-static func sentinel(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, level: int = 1) -> void:
+static func sentinel(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, level: int = 1, branch: String = "") -> void:
+	if level == 4 and Balance.valid_branch(kind, branch):
+		preload("res://scripts/rendering/tower_branches.gd").draw(canvas, branch, at, zoom)
+		return
 	var z := Vector2.ONE * zoom
 	var w := 2.5 * zoom
 	match kind:

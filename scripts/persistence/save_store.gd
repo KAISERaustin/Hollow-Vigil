@@ -55,15 +55,15 @@ func _migrate_v1(legacy: Dictionary) -> Dictionary:
 	var migrated := legacy.duplicate(true)
 	migrated.version = Balance.VERSION
 	for tower in migrated.towers.values():
-		if tower.level <= Balance.MAX_TOWER_LEVEL:
+		if tower.level <= 3:
 			continue
 		var base_cost: float = legacy.settings.get("developer_balance", {}).get("towers", {}).get(tower.kind, {}).get("cost", LEGACY_TOWER_COSTS[tower.kind])
 		# Return the full, individually rounded prices paid for levels 4+.
 		# These constants deliberately retain the version-one economy.
-		for level in range(Balance.MAX_TOWER_LEVEL, int(tower.level)):
+		for level in range(3, int(tower.level)):
 			var refund := ceil(minf(Balance.MAX_MONEY, base_cost * 0.7 * pow(1.55, mini(level - 1, 700))))
 			migrated.balance = minf(Balance.MAX_MONEY, migrated.balance + refund)
-		tower.level = Balance.MAX_TOWER_LEVEL
+		tower.level = 3
 		tower.cooldown = minf(tower.cooldown, Balance.stats(tower.kind, tower.level, migrated.settings.get("developer_balance", {})).period)
 		# Relearn production for capped towers; old high-level income must not
 		# continue generating offline gold. Already stored earnings stay owned.
@@ -142,6 +142,10 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 				return false
 		if t.id != id or int(id) >= d.next_tower or not Balance.TOWERS.has(t.kind) or not d.regions.has(t.region):
 			return false
+		if version == Balance.VERSION:
+			var branch: Variant = t.get("branch", "")
+			if not branch is String or (t.level == 4 and not Balance.valid_branch(t.kind, branch)) or (t.level != 4 and branch != ""):
+				return false
 		if not number(t.pad, 0, 3, true) or not number(t.level, 1, max_tower_level, true) or not number(t.earnings) or not number(t.cooldown, 0, 10) or not number(t.angle, -TAU, TAU):
 			return false
 		var socket := str(t.region) + "/" + str(int(t.pad))

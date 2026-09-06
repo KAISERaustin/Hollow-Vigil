@@ -12,6 +12,7 @@ var heading: Label
 var identity: HBoxContainer
 var portrait: Control
 var tower_kind := "rapid"
+var tower_branch := ""
 var confirm: Button
 var cancel: Button
 var opener: Control
@@ -41,7 +42,7 @@ func _ready() -> void:
 	portrait = Control.new()
 	portrait.custom_minimum_size = Vector2(48, 64)
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	portrait.draw.connect(func(): VigilTerrainArt.sentinel(portrait, tower_kind, Vector2(24, 51), 0.85, tower_level))
+	portrait.draw.connect(func(): VigilTerrainArt.sentinel(portrait, tower_kind, Vector2(24, 51), 0.85, tower_level, tower_branch))
 	identity.add_child(portrait)
 	heading = UI.heading("", 24)
 	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -78,6 +79,7 @@ func open_action(action: String) -> void:
 	tower_id = id
 	var tower: Dictionary = app.game.data.towers[id]
 	tower_kind = tower.kind
+	tower_branch = tower.get("branch", "")
 	target_choice = tower.get("target_mode", "first")
 	portrait.queue_redraw()
 	tower_level = int(tower.level)
@@ -90,7 +92,7 @@ func open_action(action: String) -> void:
 		for child in parent.get_children():
 			parent.remove_child(child)
 			child.queue_free()
-	var stats := Balance.stats(tower.kind, tower_level, app.game.tuning)
+	var stats := Balance.tower_stats(tower, app.game.tuning)
 	heading.text = stats.name
 	var label := {"info": "Tower information · Level %d", "upgrade": "Upgrade · Level %d", "sell": "Sell tower · Level %d", "move": "Move tower · Level %d", "target": "Targeting · Level %d"}
 	body.add_child(UI.label(label[action] % tower_level, 14))
