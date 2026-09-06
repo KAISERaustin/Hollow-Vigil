@@ -171,6 +171,8 @@ func show_build() -> void:
 	mode = "build"
 	field.preview_kind = selection_kind
 	clear_sheet("Build")
+	if game.economy.needs_first_property():
+		sheet_content.add_child(UI.paragraph("Buy your first property before building a tower. Close this panel and select a neighboring territory marked + to buy it for 100 gold. You will have 180 gold left for towers.", 14))
 	var row := VBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 	sheet_content.add_child(row)
@@ -199,6 +201,9 @@ func show_build() -> void:
 	var revision := sheet_revision
 	action_button = UI.gold_button("Build " + s.name + "  ·  " + UI.exact_money(s.cost) + " gold", func():
 		if revision != sheet_revision:
+			return
+		if game.economy.needs_first_property():
+			app.toast("Buy your first property before building a tower.")
 			return
 		var id := game.economy.build(selection_kind, selection_region, selection_pad)
 		if id != "":
@@ -352,7 +357,8 @@ func show_reset_confirmation() -> void:
 
 func refresh_affordability() -> void:
 	if is_instance_valid(action_button):
-		action_button.disabled = game.data.balance < action_cost
+		action_button.disabled = game.data.balance < action_cost or (mode == "build" and game.economy.needs_first_property())
+		action_button.tooltip_text = "Buy your first property before building a tower." if mode == "build" and game.economy.needs_first_property() else ""
 	for item in prices:
 		if is_instance_valid(item.button):
 			item.button.disabled = item.locked or game.data.balance < item.cost

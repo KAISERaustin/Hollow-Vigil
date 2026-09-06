@@ -21,6 +21,8 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 		for kind in Balance.TOWERS:
 			for touch in [false, true]:
 				var g := VigilState.new(784)
+				# Exercise relocation on existing core-only progress.
+				g.data.erase("first_property_required")
 				g.save_path = "user://relocation-ui.save"
 				g.data.balance = 10000.0
 				var id := g.economy.build(kind, "0,0", 0)

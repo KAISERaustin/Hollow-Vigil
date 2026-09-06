@@ -25,6 +25,12 @@ func fixture_enemy(g: VigilState, kind: String = "basic") -> Dictionary:
 		g.data.balance = balance
 	return g.combat.spawn("-1,0", kind)
 
+func legacy_core_fixture(seed_value: int) -> VigilState:
+	# Existing core-only progress can build without new-game onboarding.
+	var game := VigilState.new(seed_value)
+	game.data.erase("first_property_required")
+	return game
+
 func clean_test_save(path: String) -> void:
 	for suffix in ["", ".tmp", ".bak"]:
 		if FileAccess.file_exists(path + suffix):

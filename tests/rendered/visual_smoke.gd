@@ -45,6 +45,15 @@ static func run(app: Control) -> void:
 		failures.append("New game already has a tower")
 	if not game.combat.enemies.is_empty():
 		failures.append("New game spawned enemies before territory purchase")
+	app.panels.select_pad("0,0", 0)
+	app.update_hud()
+	if not app.panels.action_button.disabled:
+		failures.append("Tower build button is enabled before the first property purchase")
+	await capture(app, "first-property-required")
+	app.panels.action_button.pressed.emit()
+	if not game.data.towers.is_empty() or game.data.balance != Balance.STARTING_GOLD:
+		failures.append("Build callback bypassed the first property requirement")
+	app.panels.close_sheet()
 	app.field.camera = Vector2(-150, 0)
 	await tap(app, app.field.global_position + app.field.screen(app.field.expansion_marker("-1,0")))
 	await tap(app, app.panels.action_button.global_position + app.panels.action_button.size * 0.5)
@@ -56,6 +65,12 @@ static func run(app: Control) -> void:
 	await tap(app, app.panels.action_button.get_global_rect().get_center())
 	if game.data.towers.size() != 1 or game.data.balance != Balance.STARTING_GOLD - Balance.expansion_cost(1) - Balance.TOWERS.rapid.cost:
 		failures.append("First tower purchase did not charge its price")
+	if "--first-property-only" in OS.get_cmdline_user_args():
+		for failure in failures:
+			push_error(failure)
+		print("FIRST_PROPERTY_UI: %d failures" % failures.size())
+		app.get_tree().quit(0 if failures.is_empty() else 1)
+		return
 	app.panels.close_sheet()
 	game.data.balance = 900.0
 	game.economy.build("splash", "0,0", 2)

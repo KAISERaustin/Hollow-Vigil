@@ -15,7 +15,7 @@ static func run(suite: SceneTree) -> void:
 	print("PASS GROUP: review regressions for combat guards, content contracts, save preservation, and reusable terrain")
 
 static func combat_guards(suite: SceneTree) -> void:
-	var game := VigilState.new(79)
+	var game: VigilState = suite.legacy_core_fixture(79)
 	var tower := game.economy.build("rapid", "0,0", 0)
 	var enemy: Dictionary = suite.fixture_enemy(game)
 	var health: float = enemy.hp
@@ -63,7 +63,7 @@ static func content_contract(suite: SceneTree) -> void:
 static func storage_guards(suite: SceneTree) -> void:
 	var path := "user://review-regression.save"
 	suite.clean_test_save(path)
-	var game := VigilState.new(79)
+	var game: VigilState = suite.legacy_core_fixture(79)
 	game.save_path = path
 	game.data.last_accounted = 1000.0
 	game.economy.build("rapid", "0,0", 0)

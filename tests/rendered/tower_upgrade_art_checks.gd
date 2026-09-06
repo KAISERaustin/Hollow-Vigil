@@ -74,6 +74,8 @@ func run() -> void:
 	await frame()
 	root.get_texture().get_image().save_png("res://artifacts/tower-upgrade-stages.png")
 	var game := VigilState.new(123)
+	# Artwork fixture represents existing core-only progress.
+	game.data.erase("first_property_required")
 	game.data.balance = 10000
 	var field := Battlefield.new()
 	field.state = game

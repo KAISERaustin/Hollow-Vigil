@@ -87,6 +87,8 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 		return false
 	if not d.automation is bool or not d.settings is Dictionary or not d.camera is Array or d.camera.size() != 3:
 		return false
+	if d.has("first_property_required") and not d.first_property_required is bool:
+		return false
 	if not d.settings.get("low_power") is bool:
 		return false
 	if d.settings.has("text_scale") and (not number(d.settings.text_scale, 1.0, 1.5) or not d.settings.text_scale in [1.0, 1.25, 1.5]):

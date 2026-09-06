@@ -9,7 +9,7 @@ static func run(suite: SceneTree) -> void:
 static func test_targeting(suite: SceneTree) -> void:
 	for kind in Balance.TOWERS:
 		for mode in Balance.TARGET_MODES:
-			var g := VigilState.new(852)
+			var g: VigilState = suite.legacy_core_fixture(852)
 			g.data.balance = 10000.0
 			var id := g.economy.build(kind, "0,0", 0)
 			suite.check(g.data.towers[id].target_mode == "first", "New towers default to First")
@@ -26,7 +26,7 @@ static func test_targeting(suite: SceneTree) -> void:
 			var expected: int = g.combat.enemies[{"first": 2, "last": 0, "most_hp": 1}[mode]].id
 			g.combat.tick(Balance.STEP)
 			suite.check(g.combat.effects.filter(func(fx): return fx.kind == "shot")[0].target_id == expected, "%s obeys %s targeting during combat" % [kind, mode])
-	var g := VigilState.new(853)
+	var g: VigilState = suite.legacy_core_fixture(853)
 	var a := {"id": 1, "pos": Vector2(10, 0), "hp": 50.0, "dead": false, "distance_remaining": 100.0}
 	var b := {"id": 2, "pos": Vector2(20, 0), "hp": 50.0, "dead": false, "distance_remaining": 50.0}
 	suite.check(g.combat.select_target([a, b], Vector2.ZERO, 100, "first").id == 2, "First uses remaining road distance rather than straight-line distance")
@@ -80,7 +80,7 @@ static func test_roles_and_escapes(suite: SceneTree) -> void:
 	suite.check(g.economy.buy_traffic("-1,0", 0) and g.economy.spawn_period("-1,0") < period, "Traffic upgrade increases opportunity")
 	suite.check(not g.economy.buy_traffic("-1,0", 0), "Stale traffic action cannot apply twice")
 	suite.check(Balance.stats("splash", 1).splash > 0 and Balance.stats("heavy", 1).damage > Balance.stats("rapid", 1).damage, "Three towers have distinct roles")
-	var blast := VigilState.new(55)
+	var blast: VigilState = suite.legacy_core_fixture(55)
 	blast.data.towers.clear()
 	blast.data.balance = 500
 	var id := blast.economy.build("splash", "0,0", 0)
@@ -122,7 +122,7 @@ static func test_core(suite: SceneTree) -> void:
 	suite.check(g.data.balance == before and g.data.kills == 0 and g.data.lifetime_earnings == 0, "Core escapes cost nothing and award no gold or kills")
 	suite.check(not g.combat.effects.is_empty() and g.combat.effects.back().kind == "escape" and g.combat.effects.back().pos == Vector2.ZERO, "Escape feedback occurs at the core")
 	for pad in range(4):
-		var defense := VigilState.new(19)
+		var defense: VigilState = suite.legacy_core_fixture(19)
 		defense.data.towers.clear()
 		defense.data.regions["0,0"].timer = 1000.0
 		var tower := defense.economy.build("rapid", "0,0", pad)

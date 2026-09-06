@@ -35,7 +35,13 @@ func tower_at(region: String, pad: int) -> String:
 			return id
 	return ""
 
+func needs_first_property() -> bool:
+	# Saves created before onboarding was introduced remain unrestricted.
+	return data.get("first_property_required", false)
+
 func build(kind: String, region: String, pad: int) -> String:
+	if needs_first_property():
+		return ""
 	if not Balance.TOWERS.has(kind) or not data.regions.has(region) or pad < 0 or pad >= 4 or tower_at(region, pad) != "":
 		return ""
 	if not spend(Balance.tuned_value("towers", kind, "cost", tuning)):

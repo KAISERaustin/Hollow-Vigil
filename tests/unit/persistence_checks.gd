@@ -7,7 +7,7 @@ static func run(suite: SceneTree) -> void:
 	test_invalid_snapshots(suite)
 
 static func test_offline(suite: SceneTree) -> void:
-	var g := VigilState.new(2)
+	var g: VigilState = suite.legacy_core_fixture(2)
 	g.economy.build("rapid", "0,0", 0)
 	g.data.last_accounted = 1000
 	suite.check(g.apply_offline(4600) == 0, "New-save offline fallback is zero until demonstrated kills")
@@ -33,7 +33,7 @@ static func test_offline(suite: SceneTree) -> void:
 static func test_storage(suite: SceneTree) -> void:
 	var path := "user://integrity-test.save"
 	suite.clean_test_save(path)
-	var g := VigilState.new(7654)
+	var g: VigilState = suite.legacy_core_fixture(7654)
 	g.economy.build("rapid", "0,0", 0)
 	g.save_path = path
 	g.data.last_accounted = 1000
@@ -117,7 +117,7 @@ static func test_reset_progress(suite: SceneTree) -> void:
 	print("PASS GROUP: progress reset and recovery persistence")
 
 static func test_invalid_snapshots(suite: SceneTree) -> void:
-	var g := VigilState.new(22)
+	var g: VigilState = suite.legacy_core_fixture(22)
 	g.economy.build("rapid", "0,0", 0)
 	var store := VigilSaveStore.new()
 	suite.check(store.valid_data(g.data), "New state passes complete save schema")

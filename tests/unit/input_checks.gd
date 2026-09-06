@@ -5,7 +5,7 @@ static func run(suite: SceneTree) -> void:
 	test_portal_controls(suite)
 
 static func test_gestures(suite: SceneTree) -> void:
-	var g := VigilState.new(8)
+	var g: VigilState = suite.legacy_core_fixture(8)
 	var field := Battlefield.new()
 	field.state = g
 	field.size = Vector2(540, 620)

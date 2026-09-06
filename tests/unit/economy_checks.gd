@@ -14,13 +14,15 @@ static func test_first_loop(suite: SceneTree) -> void:
 		suite.check(start.data.kills > 0, "Affordable defense earns from first territory %s" % direction)
 	var g := VigilState.new(123)
 	suite.check(g.data.towers.is_empty() and g.data.balance == Balance.STARTING_GOLD, "New player starts with empty slots and gold")
-	suite.check(g.economy.build("rapid", "0,0", 0) == "1", "Player buys their first tower")
-	suite.check(g.data.balance == Balance.STARTING_GOLD - Balance.TOWERS.rapid.cost, "First tower charges full price")
+	for kind in Balance.TOWERS:
+		suite.check(g.economy.build(kind, "0,0", 0) == "" and g.data.balance == Balance.STARTING_GOLD and g.data.next_tower == 1, "First property requirement blocks every tower without spending gold")
 	suite.advance(g, 5)
 	suite.check(g.combat.enemies.is_empty() and g.combat.enemy_serial == 0, "Core-only start has no enemy spawns")
 	suite.check(g.combat.spawn("0,0").is_empty(), "Core cannot spawn enemies even when requested directly")
 	suite.check(not g.economy.buy_traffic("0,0") and not g.economy.unlock("0,0", "fast"), "Core has no purchasable rift upgrades")
 	suite.check(g.expand("-1,0"), "Starting gold purchases the first territory")
+	suite.check(g.economy.build("rapid", "0,0", 0) == "1", "Player buys their first tower after purchasing property")
+	suite.check(g.data.balance == Balance.STARTING_GOLD - Balance.expansion_cost(1) - Balance.TOWERS.rapid.cost, "Property and first tower charge full price")
 	suite.check(g.paths["-1,0"][0] == VigilWorld.center("-1,0"), "First purchased rift spawns at its tile center")
 	suite.advance(g, 45)
 	suite.check(g.data.kills >= 5, "Starter tower earns gold against tougher enemies in 45 seconds")
@@ -41,7 +43,7 @@ static func test_first_loop(suite: SceneTree) -> void:
 	print("PASS GROUP: first playable loop")
 
 static func test_transactions(suite: SceneTree) -> void:
-	var g := VigilState.new(77)
+	var g: VigilState = suite.legacy_core_fixture(77)
 	g.economy.build("rapid", "0,0", 0)
 	var e: Dictionary = suite.fixture_enemy(g, "heavy")
 	suite.check(g.combat.hit(e, Balance.ENEMIES.heavy.hp, "1"), "Lethal hit confirms death")

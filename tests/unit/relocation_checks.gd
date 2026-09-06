@@ -54,7 +54,7 @@ static func test_transactions(suite: SceneTree) -> void:
 	suite.check(sale.total == refund + 17.5 and not g.data.towers.has(id), "A rebuilding tower can still be sold once for its normal refund")
 
 static func test_rebuild_combat(suite: SceneTree) -> void:
-	var g := VigilState.new(781)
+	var g: VigilState = suite.legacy_core_fixture(781)
 	g.data.balance = 10000.0
 	var id := g.economy.build("rapid", "0,0", 0)
 	g.economy.relocate(id, "0,0", 1)
@@ -72,7 +72,7 @@ static func test_rebuild_combat(suite: SceneTree) -> void:
 	suite.check(g.economy.upgrade(id, 1), "Upgrades unlock after construction completes")
 
 static func test_saved_timers(suite: SceneTree) -> void:
-	var g := VigilState.new(782)
+	var g: VigilState = suite.legacy_core_fixture(782)
 	g.save_path = "user://relocation-test.save"
 	suite.clean_test_save(g.save_path)
 	g.data.balance = 10000.0

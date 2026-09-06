@@ -40,7 +40,7 @@ static func test_validation_and_storage(suite: SceneTree) -> void:
 	suite.clean_test_save(game.save_path)
 
 static func test_live_enemies(suite: SceneTree) -> void:
-	var game := VigilState.new(99)
+	var game: VigilState = suite.legacy_core_fixture(99)
 	for kind in Balance.ENEMIES:
 		var enemy: Dictionary = suite.fixture_enemy(game, kind)
 		enemy.hp *= 0.5
@@ -66,7 +66,7 @@ static func test_live_enemies(suite: SceneTree) -> void:
 
 static func test_towers(suite: SceneTree) -> void:
 	for kind in Balance.TOWERS:
-		var game := VigilState.new(43)
+		var game: VigilState = suite.legacy_core_fixture(43)
 		game.data.balance = 10000.0
 		game.set_balance_stat("towers", kind, "cost", 200.0)
 		var before: float = game.data.balance

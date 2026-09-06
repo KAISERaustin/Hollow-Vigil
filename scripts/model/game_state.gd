@@ -23,7 +23,7 @@ func _init(seed_value: int = 0) -> void:
 		"version": Balance.VERSION, "sequence": 0, "seed": world_seed,
 		"balance": Balance.STARTING_GOLD, "reserve": 0.0, "lifetime_earnings": 0.0, "kills": 0.0, "escapes": 0.0,
 		"regions": {"0,0": VigilWorld.make_region("0,0", "", world_seed)}, "towers": {},
-		"next_tower": 1, "automation": false, "last_accounted": Time.get_unix_time_from_system(),
+		"next_tower": 1, "automation": false, "first_property_required": true, "last_accounted": Time.get_unix_time_from_system(),
 		"active_seconds": 0.0, "settings": {"low_power": false},
 		"camera": [0.0, 0.0, 1.0]
 	}
@@ -93,6 +93,7 @@ func expand(id: String) -> bool:
 	if not options.has(id) or not economy.spend(Balance.expansion_cost(data.regions.size())):
 		return false
 	data.regions[id] = VigilWorld.make_region(id, options[id], data.seed)
+	data.first_property_required = false
 	# A new neighbor can add an equal route or shorten an older rift's route.
 	combat.rebuild_routes()
 	terrain_revision += 1

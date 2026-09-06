@@ -69,6 +69,7 @@ try {
         # Registers script classes and imports assets on a completely clean checkout.
         Invoke-Godot -Name 'import' -EngineArguments @('--headless', '--editor', '--import')
         if ($Tests -or $Check) {
+            Invoke-Godot -Name 'first-property' -EngineArguments @('--headless', '--script', 'res://tests/first_property_runner.gd')
             Invoke-Godot -Name 'unit' -EngineArguments @('--headless', '--script', 'res://tests/test_runner.gd')
         }
         if ($Smoke -or $Check) {

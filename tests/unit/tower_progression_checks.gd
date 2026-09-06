@@ -12,7 +12,7 @@ static func test_progression(suite: SceneTree) -> void:
 	var prices := {"rapid": [60.0, 60.0, 100.0], "splash": [120.0, 120.0, 200.0], "heavy": [160.0, 140.0, 220.0], "electric": [140.0, 120.0, 200.0]}
 	suite.check(Balance.MAX_TOWER_LEVEL == 3, "Every tower has exactly three total levels")
 	for kind in Balance.TOWERS:
-		var g := VigilState.new(314)
+		var g: VigilState = suite.legacy_core_fixture(314)
 		g.data.balance = 1000.0
 		var id := g.economy.build(kind, "0,0", 0)
 		var invested: float = prices[kind][0]
