@@ -63,8 +63,6 @@ static func test_live_enemies(suite: SceneTree) -> void:
 	suite.check(game.economy.unclaimed() == 12.5 and game.data.regions["-1,0"].history.is_empty(), "Balance changes preserve earnings and discard stale production estimates")
 	suite.check(game.combat.hit(target, 1000.0, tower) and game.data.towers[tower].earnings == 54.5, "Adjusted enemy reward is credited on a live defeat")
 	suite.check(not game.combat.hit(target, 1000.0, tower) and game.data.towers[tower].earnings == 54.5, "Adjusted rewards still pay once")
-	var entry: Dictionary = preload("res://scripts/ui/info_catalog.gd").entries("enemies", game.tuning)[0]
-	suite.check({"label": "Defeat reward", "value": "42 gold"} in entry.stats, "Guide displays the live enemy reward")
 
 static func test_towers(suite: SceneTree) -> void:
 	for kind in Balance.TOWERS:

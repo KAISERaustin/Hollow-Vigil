@@ -10,7 +10,7 @@ Every tower is built at level 1 and can be upgraded twice: 1 → 2 → 3. Level 
 | Pyre | 120 | 120 | 200 | 440 | 220 |
 | Obelisk | 160 | 140 | 220 | 520 | 260 |
 
-All values are gold. Selling also returns the tower's uncollected earnings. Upgrading never collects earnings or charges for a nonexistent fourth level. The field guide lists both upgrade prices; the upgrade dialog shows the destination level and price, or a disabled “Max level” confirmation.
+All values are gold. Selling also returns the tower's uncollected earnings. Upgrading never collects earnings or charges for a nonexistent fourth level. The upgrade dialog shows the destination level and price, or a disabled “Max level” confirmation.
 
 The first territory leaves 180 of the starting 280 gold, so every tower remains an affordable first purchase. That budget can also buy an Ashneedle through level 2 while leaving 60 gold for a second Ashneedle. Upgrades trade gold for stronger use of an occupied socket, while building another tower adds coverage and independent targeting.
 

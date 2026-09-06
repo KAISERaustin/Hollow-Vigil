@@ -2,7 +2,6 @@ class_name VigilPanels
 extends PanelContainer
 
 const UI = preload("res://scripts/ui/interface.gd")
-const FieldGuide = preload("res://scripts/ui/field_guide.gd")
 const DeveloperControls = preload("res://scripts/ui/developer_controls.gd")
 var app: VigilApp
 var game: VigilState:
@@ -20,7 +19,6 @@ var action_cost := 0.0
 var sheet_revision := 0
 var prices: Array[Dictionary] = []
 var content_scroll: ScrollContainer
-var guide: FieldGuide
 var header_content: VBoxContainer
 var action_footer: VBoxContainer
 var opener: Control
@@ -47,12 +45,6 @@ func _ready() -> void:
 		if visible:
 			call_deferred("fit_sheet")
 	)
-	guide = FieldGuide.new()
-	guide.game = game
-	guide.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	guide.close_requested.connect(close_sheet)
-	layout.add_child(guide)
-	guide.hide()
 	app.resized.connect(fit_sheet)
 	hide()
 
@@ -73,7 +65,6 @@ func clear_sheet(title: String, subtitle: String = "") -> void:
 		for child in container.get_children():
 			container.remove_child(child)
 			child.queue_free()
-	guide.hide()
 	content_scroll.show()
 	content_scroll.scroll_vertical = 0
 	sheet_revision += 1
@@ -114,7 +105,7 @@ func fit_sheet() -> void:
 		return
 	self.size.x = minf(460.0, UI.safe_rect(app).size.x - 24.0)
 	self.position.x = UI.safe_rect(app).position.x + (UI.safe_rect(app).size.x - self.size.x) * 0.5
-	var heights := {"info": 580.0, "build": 500.0, "expand": 290.0, "rift": 470.0, "core": 310.0, "settings": 520.0, "developer": 660.0}
+	var heights := {"build": 500.0, "expand": 290.0, "rift": 470.0, "core": 310.0, "settings": 520.0, "developer": 660.0}
 	var desired_height: float = heights.get(mode, 340.0)
 	if mode in ["build", "expand", "rift"]:
 		# Keep gameplay panels as small as their controls allow.
@@ -161,25 +152,6 @@ func close_sheet() -> void:
 	field.selected_pad = -1
 	field.show_expansion = false
 	app.tower_actions.refresh()
-
-func show_info() -> void:
-	var guide_opener := get_viewport().gui_get_focus_owner()
-	close_sheet()
-	opener = guide_opener
-	# Retire any pending purchase callback before opening the read-only guide.
-	sheet_revision += 1
-	prices.clear()
-	action_button = null
-	mode = "info"
-	content_scroll.hide()
-	header_content.get_parent().hide()
-	action_footer.get_parent().hide()
-	guide.show()
-	guide.game = game
-	guide.show_category("towers")
-	show()
-	guide.tabs.towers.grab_focus()
-	call_deferred("fit_sheet")
 
 func select_pad(region: String, pad: int) -> void:
 	selection_region = region

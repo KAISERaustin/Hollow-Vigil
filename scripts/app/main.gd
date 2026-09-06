@@ -58,7 +58,6 @@ func build_interface() -> void:
 	hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	hud.add_theme_constant_override("separation", 0)
 	hud.settings_requested.connect(panels.show_settings)
-	hud.info_requested.connect(panels.show_info)
 	hud.collect_requested.connect(collect_all)
 	add_child(hud)
 	hud.build_header()

@@ -2,7 +2,7 @@
 
 Use the root `launch.ps1` commands documented in the README. `-Check` runs headless, full rendered UI, GPU terrain and artwork checks sequentially. The runner prepares imports, checks script compilation, isolates test saves under `.runtime/tests`, and fails on script/engine errors. Each automated test entry point has a timeout for interrupted or failed coroutines.
 
-`./launch.ps1 -StyleTests` checks seventeen UI screens, including both Field guide tabs, tower information, Developer Controls, targeting, and relocation, at 540×960, 360×640, and 390×844 with 100%, 125%, and 150% text. It verifies viewport containment and reachable close/confirmation controls and captures `artifacts/style-*.png`. It is also included in `-Check`. Tower action targets are 48 map units at baseline zoom; their size and offsets scale with their towers, including at screen edges. Rendered smoke checks cover mouse and touch at four zooms and three viewport sizes.
+`./launch.ps1 -StyleTests` checks fifteen UI screens, including tower information, Developer Controls, targeting, and relocation, at 540×960, 360×640, and 390×844 with 100%, 125%, and 150% text. It verifies viewport containment and reachable close/confirmation controls and captures `artifacts/style-*.png`. It is also included in `-Check`. Tower action targets are 48 map units at baseline zoom; their size and offsets scale with their towers, including at screen edges. Rendered smoke checks cover mouse and touch at four zooms and three viewport sizes.
 
 ## Coverage
 
@@ -14,7 +14,6 @@ Use the root `launch.ps1` commands documented in the README. `-Check` runs headl
 - `unit/tower_progression_checks.gd`: three-level cap for every tower, exact upgrade spending and refunds, combat attack intervals, version-one migration, once-only refunds and interrupted recovery.
 - `unit/tower_balance_checks.gd`: 264 two-minute enemy cohorts across three seeds and four approaches, affordable openings, increasing upgrade income, mixed traffic at base/max density, and combined level-three defenses. Writes `artifacts/tower-balance.csv`.
 - `unit/combat_checks.gd`, `attack_effect_checks.gd`: enemy roles, splash, core escapes, route junctions, per-tower First/Last/Most HP selection, deterministic ties, saved targeting and legacy defaults, cosmetic effects and pooled targets.
-- `unit/catalog_checks.gd`: shared definitions, future content and fractional values.
 - `unit/developer_balance_checks.gd`: every editable stat, finite bounds, save round trips, defaults, independent games, live health/speed/rewards, tower attacks, prices and resets.
 - `rendered/developer_controls_checks.gd`: mouse/touch/keyboard sliders, every selectable type, immediate model updates, save-on-exit and reopening saved values.
 - `unit/world_checks.gd`, `routing_checks.gd`, `terrain_checks.gd`: seeded expansion, shortest/equal routes, legacy saves, road clearance and terrain persistence.

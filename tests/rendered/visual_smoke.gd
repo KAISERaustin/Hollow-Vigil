@@ -68,7 +68,6 @@ static func run(app: Control) -> void:
 	app.update_hud()
 	app.toast_timer = 0
 	await capture(app, "battlefield")
-	await test_info_guide(app, failures)
 	await preload("res://tests/rendered/developer_controls_checks.gd").run(app, load("res://tests/rendered/visual_smoke.gd"), failures)
 	await preload("res://tests/rendered/tower_panel_checks.gd").run(app, load("res://tests/rendered/visual_smoke.gd"), failures)
 	await preload("res://tests/rendered/relocation_ui_checks.gd").run(app, load("res://tests/rendered/visual_smoke.gd"), failures)
@@ -249,12 +248,10 @@ static func run(app: Control) -> void:
 	for failure in failures:
 		f.store_line(failure)
 		push_error(failure)
-	f.store_line("Info guide: all catalog entries, mouse/touch tabs and scrolling, 540x960 and 420x800 layouts, read-only state, stale purchase protection, close and map socket access.")
 	f.store_line("Tower controls: map-anchored Info/Upgrade/Sell icons and earnings badges that scale with their towers, no selection camera movement, stable HUD, centered confirmations, mouse/touch actions at four zooms and three viewport sizes, collection, cancel, upgrade, sale and persistence.")
 	f.store_line("Map cleanup: no core/rift labels or tower level dots; all gold badges and their click targets hide during tower management and restore on click-away or another panel.")
 	f.store_line("World simulation: 33 territories, repeated camera moves and zooms, return to core, distant upgrades/unlocks, identical enemies and per-tower income against a stationary reference.")
 	f.close()
-	print("INFO_GUIDE: mouse and touch tabs, scroll, compact layout, read-only browsing, stale purchases and socket access checked")
 	print("VISUAL_SMOKE: %d failures" % failures.size())
 	app.get_tree().quit(0 if failures.is_empty() else 1)
 
@@ -323,101 +320,3 @@ static func test_camera_independent_combat(app: Control, failures: Array[String]
 	app.save_timer = 0.0
 	app.accumulator = 0.0
 	app.set_process(true)
-
-static func test_info_guide(app: Control, failures: Array[String]) -> void:
-	app.set_process(false)
-	# A pending build must become inert when navigation opens the guide.
-	app.panels.select_pad("0,0", 3)
-	var old_build: Button = app.panels.action_button
-	var before: Dictionary = app.game.data.duplicate(true)
-	var camera: Vector2 = app.field.camera
-	var info: Button = app.find_child("InfoButton", true, false)
-	await tap(app, info.get_global_rect().get_center(), true)
-	var guide = app.panels.guide
-	if app.panels.mode != "info" or not guide.visible or guide.category != "towers":
-		failures.append("Footer Info did not open the tower guide by touch")
-	if app.panels.action_button != null or app.field.selected_pad != -1:
-		failures.append("Guide kept a build action or map preview active")
-	old_build.pressed.emit()
-	if guide.cards.get_child_count() != Balance.TOWERS.size():
-		failures.append("Guide omitted a tower")
-	await capture(app, "info-towers")
-	await scroll_guide(app, guide)
-	if guide.scroll.scroll_vertical <= 0:
-		failures.append("Mouse wheel did not scroll the tower catalog")
-	await capture(app, "info-towers-scrolled")
-	await tap(app, guide.tabs.enemies.get_global_rect().get_center())
-	if guide.category != "enemies" or guide.cards.get_child_count() != Balance.ENEMIES.size() or guide.scroll.scroll_vertical != 0:
-		failures.append("Enemies tab failed: category=%s, cards=%d, scroll=%d" % [guide.category, guide.cards.get_child_count(), guide.scroll.scroll_vertical])
-	await capture(app, "info-enemies")
-	await scroll_guide(app, guide)
-	await capture(app, "info-enemies-scrolled")
-	var window := app.get_window()
-	var original_size := window.size
-	var original_scale := window.content_scale_size
-	window.content_scale_size = Vector2i(420, 800)
-	window.size = Vector2i(420, 800)
-	await capture(app, "info-enemies-compact")
-	if app.panels.position.y < 140 or app.panels.size.x > app.size.x or guide.cards.size.x > guide.scroll.size.x:
-		failures.append("Compact guide overflows its panel or header")
-	await tap(app, guide.tabs.towers.get_global_rect().get_center(), true)
-	if guide.category != "towers" or guide.scroll.scroll_vertical != 0:
-		failures.append("Touch could not return to towers after scrolling")
-	await capture(app, "info-towers-compact")
-	await drag_guide(app, guide)
-	if guide.scroll.scroll_vertical <= 0:
-		failures.append("Touch drag did not scroll the guide cards")
-	var close: Button = guide.find_child("CloseGuide", true, false)
-	await tap(app, close.get_global_rect().get_center(), true)
-	if app.panels.visible or app.panels.mode != "":
-		failures.append("Touch could not close the guide")
-	if app.game.data != before or app.field.camera != camera:
-		failures.append("Guide browsing or a stale build changed gameplay state")
-	window.content_scale_size = original_scale
-	window.size = original_size
-	await app.get_tree().process_frame
-	await app.get_tree().process_frame
-	var socket: Vector2 = app.field.global_position + app.field.screen(VigilWorld.pad_position("0,0", 3))
-	await tap(app, socket)
-	if app.panels.mode != "build":
-		failures.append("Map socket no longer opens build after closing Info")
-	app.panels.close_sheet()
-	app.set_process(true)
-
-static func scroll_guide(app: Control, guide: Control) -> void:
-	for i in range(16):
-		var wheel := InputEventMouseButton.new()
-		wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN
-		wheel.position = guide.scroll.get_global_rect().get_center()
-		wheel.pressed = true
-		Input.parse_input_event(wheel)
-		var release := wheel.duplicate()
-		release.pressed = false
-		Input.parse_input_event(release)
-		await app.get_tree().process_frame
-
-static func drag_guide(app: Control, guide: Control) -> void:
-	# Desktop needs touch emulation enabled to exercise Godot's mobile scrolling.
-	var previous_emulation := Input.emulate_touch_from_mouse
-	Input.emulate_touch_from_mouse = true
-	var rect: Rect2 = guide.scroll.get_global_rect()
-	var start := Vector2(rect.get_center().x, rect.end.y - 20)
-	var press := InputEventScreenTouch.new()
-	press.index = 0
-	press.position = start
-	press.pressed = true
-	Input.parse_input_event(press)
-	await app.get_tree().process_frame
-	for step in range(1, 9):
-		var drag := InputEventScreenDrag.new()
-		drag.index = 0
-		drag.position = start - Vector2(0, step * 16)
-		drag.relative = Vector2(0, -16)
-		Input.parse_input_event(drag)
-		await app.get_tree().process_frame
-	var release := press.duplicate()
-	release.pressed = false
-	release.position = start - Vector2(0, 128)
-	Input.parse_input_event(release)
-	await app.get_tree().process_frame
-	Input.emulate_touch_from_mouse = previous_emulation

@@ -30,7 +30,7 @@ func run() -> void:
 			app.game.data.settings.text_scale = factor
 			app.apply_ui_preferences()
 			await settle()
-			for screen in ["hud", "build", "expand", "rift", "core", "settings", "developer", "reset", "guide", "guide-enemies", "tower-info", "upgrade", "sell", "move", "target", "move-pick", "return"]:
+			for screen in ["hud", "build", "expand", "rift", "core", "settings", "developer", "reset", "tower-info", "upgrade", "sell", "move", "target", "move-pick", "return"]:
 				app.panels.close_sheet()
 				app.close_return_popup()
 				app.reset_scrim.hide()
@@ -44,10 +44,6 @@ func run() -> void:
 					"settings": app.panels.show_settings()
 					"developer": app.panels.show_developer_controls()
 					"reset": app.panels.show_reset_confirmation()
-					"guide": app.panels.show_info()
-					"guide-enemies":
-						app.panels.show_info()
-						app.panels.guide.show_category("enemies")
 					"tower-info":
 						app.panels.select_pad("0,0", 0)
 						app.tower_dialog.open_action("info")
@@ -70,7 +66,7 @@ func run() -> void:
 				for panel in [app.hud, app.panels, app.tower_dialog.card, app.tower_move, app.return_card]:
 					if panel.is_visible_in_tree() and not bounds.grow(1).encloses(panel.get_global_rect()):
 						failures.append(label + ": panel outside viewport " + str(panel.get_global_rect()))
-				if app.panels.visible and not screen.begins_with("guide"):
+				if app.panels.visible:
 					var close := app.panels.find_child("CloseSheet", true, false) as Control
 					if not bounds.encloses(close.get_global_rect()): failures.append(label + ": close inaccessible")
 					for action in app.panels.action_footer.get_children():
@@ -93,24 +89,6 @@ func run() -> void:
 					await settle()
 				if screen == "reset" and viewport.x == 540 and factor == 1.0 and app.panels.content_scroll.get_v_scroll_bar().visible:
 					failures.append(label + ": needless reset scrollbar")
-				if screen.begins_with("guide"):
-					var guide := app.panels.guide
-					guide.scroll.grab_focus()
-					var key := InputEventKey.new()
-					key.keycode = KEY_END
-					key.pressed = true
-					Input.parse_input_event(key)
-					await settle()
-					key = key.duplicate()
-					key.pressed = false
-					Input.parse_input_event(key)
-					if guide.scroll.scroll_vertical <= 0:
-						failures.append(label + ": guide cannot scroll by keyboard")
-					var last := guide.cards.get_child(-1) as Control
-					if last.get_global_rect().end.y > guide.scroll.get_global_rect().end.y + 1:
-						failures.append(label + ": last guide entry unreachable")
-					guide.scroll.scroll_vertical = 0
-					await settle()
 				if app.tower_move.visible:
 					if not app.field.get_global_rect().encloses(app.tower_move.get_global_rect()): failures.append(label + ": move prompt outside map")
 					if not bounds.encloses(app.tower_move.cancel_button.get_global_rect()) or app.tower_move.cancel_button.size.x < 48: failures.append(label + ": move cancel inaccessible")
@@ -140,5 +118,5 @@ func run() -> void:
 	print("FONT_METRICS: ", UI.font(400).get_string_size("Hollow Vigil", 0, -1, 24), " / ", UI.font(700).get_string_size("Hollow Vigil", 0, -1, 24))
 	for failure in failures:
 		push_error(failure)
-	print("UI_STYLE: ", failures.size(), " failures; 17 screens, 3 viewports, 3 text scales")
+	print("UI_STYLE: ", failures.size(), " failures; 15 screens, 3 viewports, 3 text scales")
 	quit(0 if failures.is_empty() else 1)

@@ -2,7 +2,7 @@
 
 All four enemies use native Godot filled shapes and black outlines in the same
 paper, mint, coral, lilac and gold palette as the towers. `enemy_art.gd` owns their
-silhouettes; `VigilTerrainArt.enemy` is the shared battlefield/Field Guide entry.
+silhouettes; `VigilTerrainArt.enemy` is the battlefield drawing entry.
 
 | Enemy | Visual identity | Combat role |
 | --- | --- | --- |
@@ -18,7 +18,7 @@ rifts keep their previous traffic. Keeper attunement uses the existing save
 schema. It follows normal damage, targeting, routing and harmless-escape rules;
 its lantern is visual, with no hidden buffs or status effects.
 
-The Field Guide and developer controls read the same definition as combat.
+Developer controls read the same definition as combat.
 Health bars sit above the taller silhouettes at every camera zoom.
 
 `./launch.ps1 -ArtSmoke` regenerates transparent 256 x 256 reference PNGs in

@@ -2,7 +2,7 @@ class_name VigilEnemyArt
 extends RefCounted
 
 # Compact native silhouettes share the terrain/tower palette and ink strokes.
-# All details stay inside x +/-18, y -19..12 for roads and guide portraits.
+# All details stay inside x +/-18, y -19..12 for roads.
 const Art = preload("res://scripts/rendering/terrain_art.gd")
 
 static func draw(canvas: CanvasItem, kind: String, at: Vector2, zoom: float) -> void:

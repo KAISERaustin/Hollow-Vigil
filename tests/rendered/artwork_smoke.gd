@@ -76,13 +76,6 @@ func run() -> void:
 		app.field.queue_redraw()
 		await InputChecks.capture(app, "minimal-game-" + str(viewport.x))
 		check(app.hud.collect_button.get_global_rect().end.x <= viewport.x, "Collect button fits " + str(viewport))
-		var info: Button = app.find_child("InfoButton", true, false)
-		await InputChecks.tap(app, info.get_global_rect().get_center())
-		check(app.panels.mode == "info", "Field guide opens at " + str(viewport))
-		await InputChecks.capture(app, "minimal-guide-" + str(viewport.x))
-		var close: Button = app.panels.guide.find_child("CloseGuide", true, false)
-		await InputChecks.tap(app, close.get_global_rect().get_center())
-		check(not app.panels.visible, "Field guide closes at " + str(viewport))
 	# A frozen real combat tick exposes all simultaneous lightning branches.
 	app.game.data.towers.clear()
 	app.game.data.balance = 10000.0
@@ -105,7 +98,7 @@ func run() -> void:
 		app.field.zoom = 1.0
 		app.field.queue_redraw()
 		await InputChecks.capture(app, "electric-lightning-" + str(viewport.x))
-	var report := "ARTWORK SMOKE: socket build, tower selection, core touch, rift controls, guide and five lightning arcs at 540x960 and 360x640; %d failures\n" % failures.size()
+	var report := "ARTWORK SMOKE: socket build, tower selection, core touch, rift controls, five lightning arcs at 540x960 and 360x640; %d failures\n" % failures.size()
 	for failure in failures:
 		report += failure + "\n"
 	print(report)

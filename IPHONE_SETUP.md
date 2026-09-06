@@ -18,7 +18,7 @@ Reinstall over the existing app using the same bundle identifier and Apple team 
 
 - Official export-template SHA-256 matched the Godot release metadata.
 - Headless gameplay and persistence suite: **2,351 checks, zero failures**.
-- Rendered UI suite: **zero failures**, including simulated touch, pinch/pan, tower controls, transactions, field guide and camera-independent combat.
+- Rendered UI suite: **zero failures**, including simulated touch, pinch/pan, tower controls, transactions and camera-independent combat.
 - Xcode Release build succeeded; the finished signature passed strict verification.
 - Apple device tools confirmed installation and launch without an attached debugger.
 - A screenshot from the physical phone confirmed the game renders with visible header/footer controls and space around the Dynamic Island and Home indicator.

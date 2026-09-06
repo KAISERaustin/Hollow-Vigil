@@ -2,7 +2,7 @@
 
 Every tower has three visual stages. `VigilTerrainArt.sentinel` accepts the
 saved tower level; the battlefield and tower dialog both display that stage.
-The field guide uses level one. `tower_tiers.gd` adds details to the original
+`tower_tiers.gd` adds details to the original
 base silhouettes, preserving the game's flat palette and black outlines.
 
 | Tower | Level 2 | Level 3 |

@@ -2,7 +2,6 @@ class_name VigilHUD
 extends VBoxContainer
 
 signal settings_requested
-signal info_requested
 signal collect_requested
 
 const UI = preload("res://scripts/ui/interface.gd")
@@ -66,20 +65,6 @@ func build_header() -> void:
 	var territory := Control.new()
 	territory.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	toolbar.add_child(territory)
-	var info := UI.button("", func(): info_requested.emit(), 50)
-	info.name = "InfoButton"
-	info.tooltip_text = "Field guide"
-	info.accessibility_name = "Field guide"
-	info.custom_minimum_size.x = 50
-	info.size_flags_horizontal = Control.SIZE_FILL
-	toolbar.add_child(info)
-	# Draw the icon geometrically so its circle stays centered on every font/platform.
-	info.draw.connect(func():
-		var center := info.size * 0.5
-		info.draw_arc(center, 14.0, 0, TAU, 48, UI.TEXT, 3.0, true)
-		info.draw_circle(center + Vector2(0, -6), 2.0, UI.TEXT)
-		info.draw_line(center + Vector2(0, -1), center + Vector2(0, 8), UI.TEXT, 3.0, true)
-	)
 
 func build_footer() -> void:
 	var bottom := PanelContainer.new()

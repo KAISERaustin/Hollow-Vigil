@@ -12,7 +12,7 @@ This is the ongoing design specification. The first implementation now applies i
 
 ## What the current game establishes
 
-The current rendered interface has a parchment header and earnings footer, a large central battlefield, contextual tower actions, centered upgrade and sale dialogs, and a tabbed field guide. The illustrated towers and portals already share their colors with the interface. The upgrade dialog presents current and next values clearly, and keeping collection close to the bottom supports frequent use.
+The current rendered interface has a parchment header and earnings footer, a large central battlefield, contextual tower actions, and centered upgrade and sale dialogs. The illustrated towers and portals already share their colors with the interface. The upgrade dialog presents current and next values clearly, and keeping collection close to the bottom supports frequent use.
 
 Preserve that structure. Improve the tiny 9–11 unit HUD captions, the mix of one-off gaps, and the tendency for every small stat to receive a heavy card border. Weight should distinguish a screen container from its contents. A border alone must never imply that a read-only statistic is a button.
 
@@ -20,7 +20,7 @@ Reviewed on September 5 using the rendered game walkthrough and its fresh battle
 
 ## Visual principles
 
-1. Keep the battlefield dominant during ordinary play. Put extended explanations in contextual panels or the field guide.
+1. Keep the battlefield dominant during ordinary play. Put extended explanations in contextual panels.
 2. Give each active task one primary action. In a modal, its confirmation takes priority over the underlying Collect all button, which is blocked and dimmed.
 3. Use ink for structure, parchment for reading, and ochre for action. Keep semantic accents small and purposeful.
 4. Use flat solid fills. Avoid gradients, photographic parchment, metallic bevels, soft shadows, glow, noise, glass blur, or decorative particles.
@@ -34,7 +34,7 @@ Use semantic names in UI code. The hex values are sRGB; default fills and text a
 | --- | --- | --- |
 | ink | #000000 | Primary text, structural outlines, icons |
 | backdrop | #222A30 | Unowned world and surrounding dark canvas |
-| paper | #E8DDBD | Main panels, dialogs, field guide |
+| paper | #E8DDBD | Main panels, dialogs |
 | inset | #DFD0AB | Secondary controls and grouped information |
 | text.secondary | #222A30 | Supporting text on paper or inset |
 | text.inverse | #E8DDBD | Labels on backdrop; never use black here |
@@ -58,7 +58,7 @@ Use **Noto Sans Regular, SemiBold, and Bold** for body copy, controls, and numbe
 
 | Role | Size / target line height | Weight | Examples |
 | --- | --- | --- | --- |
-| Screen title | 30 / 36 | Serif 600 | Field guide, Settings |
+| Screen title | 30 / 36 | Serif 600 | Settings |
 | Panel or object title | 24 / 30 | Serif 600 | Ashneedle, Expand territory |
 | Section heading | 18 / 24 | Sans 700 | Upgrade effects |
 | Key value | 24 / 30 | Sans 700 | Spendable gold, unclaimed total |
@@ -123,7 +123,7 @@ Focus can coexist with selected or hover states. Do not replace the primary acti
 
 ### Persistent HUD
 
-Keep Settings on the left, location identity in the middle, and Field guide on the right. The location should be recognizable without competing with the world. The footer places unclaimed earnings beside Collect all, with spendable gold, gold per second, and lifetime kills in a lower row. Separate those statistics with alignment and spacing before adding boxes. Shorten visible captions to Gold / sec and Kills when width is limited; retain full accessible names.
+Keep Settings on the left and location identity in the middle. The location should be recognizable without competing with the world. The footer places unclaimed earnings beside Collect all, with spendable gold, gold per second, and lifetime kills in a lower row. Separate those statistics with alignment and spacing before adding boxes. Shorten visible captions to Gold / sec and Kills when width is limited; retain full accessible names.
 
 Aim to leave at least 60% of screen height to the battlefield during ordinary play at default text size. At large text sizes, readability wins; allow a taller HUD. When nothing is collectable, keep the layout stable and show No earnings yet. Never collapse the primary action or move neighboring stats as values change.
 
@@ -141,9 +141,9 @@ Context sheets support exploration. Confirmation dialogs support a single decisi
 
 Give a single active modal keyboard focus, restore focus to its opener on dismissal, and make Escape or system Back cancel or close. Backdrop taps may dismiss informational sheets; a purchase or destructive confirmation requires an explicit Cancel or close action. Never accept backdrop input as confirmation or allow it through to the battlefield. These are interaction requirements for future implementation, not new claims about current pause behavior.
 
-### Field guide and settings
+### Settings
 
-The field guide uses Towers and Enemies tabs with the same size and state rules as buttons. Each entry combines the actual game portrait, name, class, description, and comparable statistics. Show whether values are baseline or current. Keep tabs and close control outside the scroll body. Settings use labeled rows with the value or toggle on the right; stack the control below the label when needed. A toggle must show On or Off as well as its position.
+Settings use labeled rows with the value or toggle on the right; stack the control below the label when needed. A toggle must show On or Off as well as its position.
 
 ### Notifications and exceptional states
 
@@ -163,9 +163,9 @@ Hover is optional; every action must work by tap and keyboard. Use 120 ms for co
 
 ## Implementation and review
 
-Centralize UI colors, type roles, spacing, and surface variants in `scripts/ui/interface.gd` or a dedicated theme resource owned by it. Continue reusing `hud.gd`, `panels.gd`, `tower_actions.gd`, `tower_dialog.gd`, and `field_guide.gd`. The shared theme provides structural, content, badge, chrome, and borderless surface helpers. Keep gameplay statistics in `scripts/model/balance.gd` and displayed explanations in `scripts/ui/info_catalog.gd`.
+Centralize UI colors, type roles, spacing, and surface variants in `scripts/ui/interface.gd` or a dedicated theme resource owned by it. Continue reusing `hud.gd`, `panels.gd`, `tower_actions.gd`, and `tower_dialog.gd`. The shared theme provides structural, content, badge, chrome, and borderless surface helpers. Keep gameplay statistics in `scripts/model/balance.gd`.
 
-Preserve the implemented shared fonts and tokens, readable HUD, surface hierarchy, responsive comparisons, focus rules, and persisted text-size and reduced-motion preferences. Use `./launch.ps1 -StyleTests` to review eleven screens at three viewport sizes and three text scales. Keep this guide and the UI paragraph in `ART_DIRECTION.md` consistent with intentional changes.
+Preserve the implemented shared fonts and tokens, readable HUD, surface hierarchy, responsive comparisons, focus rules, and persisted text-size and reduced-motion preferences. Use `./launch.ps1 -StyleTests` to review fifteen screens at three viewport sizes and three text scales. Keep this guide and the UI paragraph in `ART_DIRECTION.md` consistent with intentional changes.
 
 Before accepting a new screen, confirm:
 
