@@ -41,7 +41,8 @@ The preset uses the local templates in `exports/android-tools/` and the existing
 - Offline rewards use 80% of demonstrated production, capped at seven days. Rewards never purchase anything or inflate lifetime kill counts.
 
 Stone clusters now hide one boss each. Buying its assigned tile awakens it;
-it patrols owned roads around the core until defeated. Health and encounter
+it patrols owned roads while avoiding the core, escaping only if the core is
+its sole exit. Health and encounter
 progress survive reloads, and each boss has a level-four tower weakness and
 a one-time bounty. See [boss encounters and counters](docs/BOSSES.md).
 

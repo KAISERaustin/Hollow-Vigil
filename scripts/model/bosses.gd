@@ -41,15 +41,13 @@ static func next_leg(combat: VigilCombat, e: Dictionary) -> void:
 		var neighbor := VigilWorld.key(VigilWorld.coord(e.tile) + direction)
 		if combat.data.regions.has(neighbor):
 			choices.append(neighbor)
-	# Avoid immediate reversal unless at a dead end. Every fourth crossing takes
-	# a detour; other crossings prefer the core's neighborhood. Never teleport.
+	# Exclude the core BEFORE avoiding reversal: even turning back is better
+	# than entering the core. Only a tile with no other owned exit may escape.
+	if choices.size() > 1:
+		choices.erase("0,0")
 	if choices.size() > 1:
 		choices.erase(e.previous)
 	var next: String = choices[int(e.steps) % choices.size()]
-	if int(e.steps) % 4 != 0:
-		for choice in choices:
-			if combat.paths[choice].size() < combat.paths[next].size():
-				next = choice
 	var side := VigilWorld.DIRS.find(VigilWorld.coord(next) - VigilWorld.coord(e.tile))
 	var path := VigilWorld.spoke(combat.data.regions[e.tile], side)
 	path.reverse()
@@ -59,6 +57,21 @@ static func next_leg(combat: VigilCombat, e: Dictionary) -> void:
 	e.previous = e.tile
 	e.tile = next
 	e.steps += 1
+
+static func avoid_core(combat: VigilCombat, e: Dictionary) -> void:
+	# An older save or a new purchase may expose a non-core alternative while
+	# the boss is already inbound. Retrace its current road without teleporting.
+	if e.tile != "0,0":
+		return
+	for direction in VigilWorld.DIRS:
+		var neighbor := VigilWorld.key(VigilWorld.coord(e.previous) + direction)
+		if neighbor != "0,0" and combat.data.regions.has(neighbor):
+			e.path = e.path.duplicate()
+			e.path.reverse()
+			e.segment = e.path.size() - int(e.segment)
+			e.tile = e.previous
+			e.previous = "0,0"
+			return
 
 static func speed(e: Dictionary, now: float) -> float:
 	var value: float = DEFINITIONS[e.kind].speed
@@ -88,6 +101,7 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 	for e in combat.enemies:
 		if e.dead or not e.get("boss", false):
 			continue
+		avoid_core(combat, e)
 		var blocked := false
 		if e.kind == "warden":
 			for patch in combat.burning_ground:
@@ -158,3 +172,4 @@ static func restore(combat: VigilCombat) -> void:
 		e.path = []
 		for point in saved.path:
 			e.path.append(Vector2(point[0], point[1]))
+		avoid_core(combat, e)

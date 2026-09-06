@@ -34,6 +34,10 @@ func run() -> void:
 	root.add_child(board)
 	await frame()
 	var img := root.get_texture().get_image()
+	for sprite in board.get_meta("boss_sprites",{}).values():
+		if not is_equal_approx(sprite.texture.get_width()*sprite.scale.x,128.0*0.6*2.3):
+			push_error("Boss sprites must render at 60 percent of original size")
+			failures += 1
 	if not img.get_pixel(90,120).is_equal_approx(background.color):
 		push_error("Boss matte must reveal the backdrop, not a checkerboard")
 		failures += 1

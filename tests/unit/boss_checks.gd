@@ -61,7 +61,7 @@ static func run(suite: SceneTree) -> void:
 		var frontier := VigilWorld.frontier(game.data.regions)
 		game.expand(frontier.keys()[0])
 		suite.check(e.path == original_leg,"Expansion preserves an existing patrol leg")
-		# Exercise the actual tick transition at the end of a leg, including core.
+		# Exercise junction transitions while keeping the core out of patrols.
 		for crossing in range(20):
 			e.pos = e.path[-1]
 			e.segment = e.path.size()-1
@@ -77,7 +77,7 @@ static func run(suite: SceneTree) -> void:
 			seen[e.tile] = true
 			e.pos = path[-1]
 			Bosses.next_leg(game.combat,e)
-		suite.check(seen.has("0,0") and seen.size() > 1 and not e.dead,"Boss visits and leaves core alive")
+		suite.check(not seen.has("0,0") and seen.size() > 1 and not e.dead,"Boss wanders and backtracks without visiting core")
 		e.hp -= 123.0
 		var live_regions: Dictionary = game.data.regions.duplicate(true)
 		var saved := game.snapshot(1000)
@@ -113,6 +113,7 @@ static func run(suite: SceneTree) -> void:
 		suite.check(game.save(1010) and restored.load_save(1020),"Defeated boss saves and reloads")
 		suite.check(restored.combat.enemies.filter(func(v): return v.get("boss",false) and v.source == source).is_empty(),"Reload cannot farm defeated boss")
 		suite.clean_test_save(game.save_path)
+	core_escape_checks(suite)
 	var game := fixture("warden")
 	var e: Dictionary = game.combat.enemies[0]
 	var tid := game.economy.build("splash","0,0",0)
@@ -163,3 +164,84 @@ static func run(suite: SceneTree) -> void:
 	Bosses.advance(game.combat,0.1)
 	suite.check(e.wards == 3,"Changing curse target restores ward regeneration")
 	print("PASS GROUP: boss clusters, patrol roads, counters, persistence and one-time rewards")
+
+static func core_escape_checks(suite: SceneTree) -> void:
+	var loop_game := VigilState.new(879)
+	var ring := ["1,0","1,1","0,1","-1,1","-1,0","-1,-1","0,-1","1,-1"]
+	var parent := "0,0"
+	for id in ring:
+		loop_game.data.regions[id] = VigilWorld.make_region(id,parent,879)
+		parent = id
+	loop_game.refresh_paths()
+	var walker := Bosses.create(loop_game.combat,"1,0","warden")
+	var visited := {}
+	for step in range(96):
+		suite.check(walker.tile != "0,0" and walker.previous != "0,0","Ring patrol never traverses the core tile")
+		visited[walker.tile] = true
+		walker.pos = walker.path[-1]
+		Bosses.next_leg(loop_game.combat,walker)
+	suite.check(visited.size() == 8,"Boss explores every direction around a connected core ring")
+	var game := fixture("warden")
+	var e: Dictionary = game.combat.enemies[0]
+	var leaf := ""
+	for direction in VigilWorld.DIRS:
+		var candidate := VigilWorld.key(direction)
+		if game.data.regions.has(candidate):
+			continue
+		var neighbors := 0
+		for d in VigilWorld.DIRS:
+			if game.data.regions.has(VigilWorld.key(direction+d)):
+				neighbors += 1
+		if neighbors == 1:
+			leaf = candidate
+			break
+	game.data.regions[leaf] = VigilWorld.make_region(leaf,"0,0",879)
+	game.refresh_paths()
+	e.tile = leaf
+	e.previous = ""
+	e.pos = VigilWorld.center(leaf)
+	Bosses.next_leg(game.combat,e)
+	suite.check(e.tile == "0,0","Core-only exit becomes a final escape leg")
+	e.segment = 2
+	e.pos = e.path[1]
+	var position: Vector2 = e.pos
+	var extra := VigilWorld.key(VigilWorld.coord(leaf)*2)
+	game.data.regions[extra] = VigilWorld.make_region(extra,leaf,879)
+	game.refresh_paths()
+	# A legacy inbound save remains valid; restore redirects it without warping.
+	game.save_path = "user://boss-redirect.save"
+	suite.clean_test_save(game.save_path)
+	suite.check(game.save(1000),"Inbound legacy boss can be saved")
+	var restored := VigilState.new()
+	restored.save_path = game.save_path
+	suite.check(restored.load_save(1001),"Inbound legacy boss reloads")
+	var loaded: Dictionary = restored.combat.enemies.filter(func(v): return v.source == e.source and v.get("boss",false))[0]
+	suite.check(loaded.tile == leaf and loaded.pos.is_equal_approx(position),"Reload reverses forbidden core route on the same road")
+	Bosses.avoid_core(game.combat,e)
+	suite.check(e.tile == leaf and e.pos == position,"New road redirects inbound boss without teleporting")
+	suite.check(game.storage.valid_data(game.snapshot(1001)),"Reversed road remains valid for saves")
+	e.pos = e.path[-1]
+	Bosses.next_leg(game.combat,e)
+	suite.check(e.tile == extra,"Boss chooses non-core route after turning back")
+	e.pos = e.path[-1]
+	Bosses.next_leg(game.combat,e)
+	e.pos = e.path[-1]
+	Bosses.next_leg(game.combat,e)
+	suite.check(e.tile == extra,"Backtracking wins over escaping into core")
+	# With only the core available, arrival ends this encounter once, without gold.
+	game.data.regions.erase(extra)
+	game.refresh_paths()
+	e.tile = leaf
+	e.previous = ""
+	e.pos = VigilWorld.center(leaf)
+	Bosses.next_leg(game.combat,e)
+	e.segment = e.path.size()-1
+	e.pos = e.path[-1]
+	for region in game.data.regions.values():
+		region.timer = 9.0
+	game.combat.tick(0.05)
+	suite.check(game.data.escapes == 1 and game.data.kills == 0 and game.data.lifetime_earnings == 0,"Boss core arrival escapes once without a bounty")
+	suite.check(game.data.regions[e.source].boss.status == "escaped","Escaped encounter is marked complete")
+	suite.check(game.save(1002) and restored.load_save(1003),"Escaped boss state persists")
+	suite.check(restored.combat.enemies.filter(func(v): return v.source == e.source and v.get("boss",false)).is_empty(),"Escaped cluster cannot respawn after reload")
+	suite.clean_test_save(game.save_path)

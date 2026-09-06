@@ -146,11 +146,13 @@ func tick(delta: float) -> void:
 				e.segment += 1
 				move -= dist
 				if e.segment >= p.size():
-					if e.get("boss", false):
+					if e.get("boss", false) and e.tile != "0,0":
 						Bosses.next_leg(self, e)
 						p = e.path
 						continue
 					e.dead = true
+					if e.get("boss", false):
+						data.regions[e.source].boss = {"status": "escaped", "kind": e.kind}
 					data.escapes += 1.0
 					add_effect({"kind": "escape", "pos": e.pos, "life": 0.55, "max_life": 0.55, "color": "9bddd8"})
 			else:

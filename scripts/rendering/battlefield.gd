@@ -420,6 +420,7 @@ func draw_enemy(e: Dictionary) -> void:
 	var z := zoom
 	if e.get("boss", false):
 		preload("res://scripts/rendering/boss_art.gd").draw(self, e, p, z)
+		z *= preload("res://scripts/rendering/boss_art.gd").SIZE_SCALE
 	else:
 		VigilTerrainArt.enemy(self, e.kind, p, z)
 	if e.get("slow_until", 0.0) > state.combat.simulation_time:

@@ -196,7 +196,7 @@ func valid_boss(b: Variant, id: String, d: Dictionary) -> bool:
 	const Bosses = preload("res://scripts/model/bosses.gd")
 	if not b is Dictionary or not b.get("kind") is String or b.kind != Bosses.kind_at(id, int(d.seed)) or b.kind == "":
 		return false
-	if b.get("status") == "defeated":
+	if b.get("status") in ["defeated", "escaped"]:
 		return true
 	if b.get("status") != "active":
 		return false

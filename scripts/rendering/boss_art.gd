@@ -3,6 +3,7 @@ extends RefCounted
 const Art = preload("res://scripts/rendering/terrain_art.gd")
 const Bosses = preload("res://scripts/model/bosses.gd")
 const MATTE = preload("res://scripts/rendering/boss_matte.gdshader")
+const SIZE_SCALE := 0.6
 const TEXTURES := {
 	"warden": preload("res://assets/bosses/warden.png"),
 	"cindermaw": preload("res://assets/bosses/cindermaw.png"),
@@ -22,6 +23,7 @@ static func end_frame(c: CanvasItem) -> void:
 			sprites.erase(id)
 
 static func draw(c: CanvasItem, e: Dictionary, at: Vector2, z: float) -> void:
+	z *= SIZE_SCALE
 	var sprites: Dictionary = c.get_meta("boss_sprites", {})
 	var id := str(e.get("id", e.kind))
 	if not sprites.has(id):
