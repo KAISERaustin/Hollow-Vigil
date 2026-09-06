@@ -76,12 +76,11 @@ func _ready() -> void:
 	for action in ACTION_OFFSETS:
 		var button := UI.accent_button("", func(): action_requested.emit(action), UI.GOLD if action == "upgrade" else UI.SURFACE)
 		button.size = BUTTON_SIZE
-		button.tooltip_text = action.capitalize()
+		button.accessibility_description = action.capitalize()
 		button.accessibility_name = action.capitalize() + " tower"
 		button.name = "Tower" + action.capitalize()
-		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		button.focus_mode = Control.FOCUS_ALL
-		for state in ["normal", "hover", "pressed", "focus"]:
+		for state in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
 			var color := UI.GOLD if action == "upgrade" else UI.SURFACE
 			var style := UI.focus_box() if state == "focus" else UI.box(color)
 			style.set_content_margin_all(0)
@@ -105,8 +104,8 @@ func refresh() -> void:
 	if equipment_kind != relic_kind:
 		equipment_kind = relic_kind
 		buttons.equipment.queue_redraw()
-	buttons.equipment.tooltip_text = "Equipment · " + ("Empty slot" if relic_kind == "" else preload("res://scripts/gameplay/progression/relics.gd").DEFINITIONS[relic_kind].name)
-	buttons.equipment.accessibility_name = buttons.equipment.tooltip_text
+	buttons.equipment.accessibility_description = "Equipment · " + ("Empty slot" if relic_kind == "" else preload("res://scripts/gameplay/progression/relics.gd").DEFINITIONS[relic_kind].name)
+	buttons.equipment.accessibility_name = buttons.equipment.accessibility_description
 	var cost := Balance.upgrade_cost(tower, field.state.tuning, chosen_branch)
 	if pending_tower != "" and (pending_tower != field.selected_tower or pending_level != int(tower.level) or pending_cost != cost):
 		cancel_upgrade()
@@ -115,16 +114,15 @@ func refresh() -> void:
 	if upgrade_maxed != maxed:
 		upgrade_maxed = maxed
 		upgrade.queue_redraw()
-	upgrade.mouse_default_cursor_shape = Control.CURSOR_ARROW if maxed else Control.CURSOR_POINTING_HAND
 	upgrade.disabled = tower.level >= 3 or tower.get("rebuild_remaining", 0.0) > 0.0 or (field.state.data.balance < cost and tower.level != 3)
-	upgrade.tooltip_text = ("Confirm upgrade" if pending_tower != "" else "Upgrade") + " · " + UI.exact_money(cost) + " gold"
+	upgrade.accessibility_description = ("Confirm upgrade" if pending_tower != "" else "Upgrade") + " · " + UI.exact_money(cost) + " gold"
 	if tower.level >= Balance.MAX_TOWER_LEVEL:
-		upgrade.tooltip_text = "Max level"
+		upgrade.accessibility_description = "Max level"
 	elif tower.level == 3:
-		upgrade.tooltip_text = "Choose the left or right specialization · See info for details"
+		upgrade.accessibility_description = "Choose the left or right specialization · See info for details"
 	elif tower.get("rebuild_remaining", 0.0) > 0.0:
-		upgrade.tooltip_text = "Rebuilding"
-	upgrade.accessibility_name = upgrade.tooltip_text
+		upgrade.accessibility_description = "Rebuilding"
+	upgrade.accessibility_name = upgrade.accessibility_description
 	upgrade_quote.visible = pending_tower != ""
 	refresh_branches(tower)
 	if upgrade_quote.visible:
@@ -243,5 +241,5 @@ func refresh_branches(tower: Dictionary) -> void:
 		button.scale = Vector2.ONE * field.zoom
 		button.position = center + (Vector2(-64 if index == 0 else 64, 78) - BUTTON_SIZE * 0.5) * field.zoom
 		button.disabled = field.state.data.balance < Balance.upgrade_cost(tower, field.state.tuning, options[index]) or tower.get("rebuild_remaining", 0.0) > 0.0
-		button.tooltip_text = ("Confirm " if armed else ("Left: " if index == 0 else "Right: ")) + option.name + " · " + UI.exact_money(Balance.upgrade_cost(tower, field.state.tuning, options[index])) + " gold"
-		button.accessibility_name = button.tooltip_text
+		button.accessibility_description = ("Confirm " if armed else ("Left: " if index == 0 else "Right: ")) + option.name + " · " + UI.exact_money(Balance.upgrade_cost(tower, field.state.tuning, options[index])) + " gold"
+		button.accessibility_name = button.accessibility_description

@@ -65,7 +65,7 @@ func _ready() -> void:
 		else: dismiss()
 	, 44)
 	header_close.name = "CloseEquipment"
-	header_close.tooltip_text = "Close"
+	header_close.accessibility_description = "Close"
 	header_close.custom_minimum_size.x = 44
 	header_close.size_flags_horizontal = Control.SIZE_SHRINK_END
 	header_close.size_flags_vertical = Control.SIZE_SHRINK_CENTER

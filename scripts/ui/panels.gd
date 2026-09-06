@@ -479,7 +479,6 @@ func show_developer_controls() -> void:
 	controls.layout_changed.connect(func():
 		back.name = "BackToCategories" if controls.editor.visible else "BackToSettings"
 		back.accessibility_name = "Back to categories" if controls.editor.visible else "Back to settings"
-		back.tooltip_text = back.accessibility_name
 		call_deferred("fit_sheet")
 	)
 	sheet_content.add_child(controls)
@@ -494,11 +493,11 @@ func show_reset_confirmation() -> void:
 func refresh_affordability() -> void:
 	if is_instance_valid(action_button):
 		action_button.disabled = game.data.balance < action_cost or (mode == "build" and game.economy.needs_first_property())
-		action_button.tooltip_text = "Buy your first property before building a tower." if mode == "build" and game.economy.needs_first_property() else ""
+		action_button.accessibility_description = "Buy your first property before building a tower." if mode == "build" and game.economy.needs_first_property() else ""
 	for item in prices:
 		if is_instance_valid(item.button):
 			item.button.disabled = item.locked or game.data.balance < item.cost
-			item.button.tooltip_text = "Need " + UI.exact_money(item.cost - game.data.balance) + " more gold" if not item.locked and game.data.balance < item.cost else ""
+			item.button.accessibility_description = "Need " + UI.exact_money(item.cost - game.data.balance) + " more gold" if not item.locked and game.data.balance < item.cost else ""
 
 func price_button(button: Button, cost: float, locked: bool = false) -> void:
 	prices.append({"button": button, "cost": cost, "locked": locked})

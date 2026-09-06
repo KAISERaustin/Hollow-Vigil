@@ -3,19 +3,16 @@ extends RefCounted
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Relics = preload("res://scripts/gameplay/progression/relics.gd")
 const Art = preload("res://scripts/rendering/actors/relic_art.gd")
+const SLOT_SIZE := 64
 
 static func build(dialog) -> void:
 	var data: Dictionary = dialog.app.game.data
 	var equipped_kind := Relics.kind(data, data.towers[dialog.tower_id])
 	dialog.equipment_summary.add_child(UI.label("Currently equipped", 14, UI.TEXT))
-	var summary := PanelContainer.new()
-	summary.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	summary.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, 2, 10))
-	dialog.equipment_summary.add_child(summary)
-	var summary_stack := UI.margin(summary, 12)
+	dialog.equipment_summary.add_theme_constant_override("separation", 8)
 	var summary_row := HBoxContainer.new()
-	summary_row.add_theme_constant_override("separation", 10)
-	summary_stack.add_child(summary_row)
+	summary_row.add_theme_constant_override("separation", 8)
+	dialog.equipment_summary.add_child(summary_row)
 	if equipped_kind != "":
 		var equipped_icon := Control.new()
 		equipped_icon.custom_minimum_size = Vector2(32, 32)
@@ -32,7 +29,7 @@ static func build(dialog) -> void:
 	if equipped_kind != "":
 		var remove := UI.button("×", dialog.request_equipment_removal, 44)
 		remove.name = "RemoveEquipment"
-		remove.tooltip_text = "Remove equipment"
+		remove.accessibility_description = "Remove equipment"
 		remove.custom_minimum_size.x = 44
 		remove.size_flags_horizontal = Control.SIZE_SHRINK_END
 		remove.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -41,27 +38,24 @@ static func build(dialog) -> void:
 	var grid := GridContainer.new()
 	grid.name = "EquipmentGrid"
 	grid.columns = 4
+	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
 	dialog.body.add_child(grid)
-	grid.resized.connect(func():
-		var side := maxf(48, (grid.size.x - 24) / 4)
-		for slot in grid.get_children():
-			slot.custom_minimum_size.y = side
-	)
 	var inventory: Dictionary = data.get("relics", {})
 	for relic_id in inventory:
 		var kind: String = inventory[relic_id]
-		var button := UI.button("", func(): dialog.show_equipment_details(relic_id), 48)
+		var button := UI.button("", func(): dialog.show_equipment_details(relic_id), SLOT_SIZE)
+		button.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
 		button.name = "Relic_" + relic_id
-		button.tooltip_text = Relics.DEFINITIONS[kind].name
+		button.accessibility_description = Relics.DEFINITIONS[kind].name
 		button.accessibility_name = Relics.DEFINITIONS[kind].name
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.draw.connect(func(): Art.draw(button, kind, button.size * 0.5))
 		grid.add_child(button)
 	for index in range(maxi(16, ceili(inventory.size() / 4.0) * 4) - inventory.size()):
 		var slot := PanelContainer.new()
-		slot.custom_minimum_size = Vector2(48, 48)
+		slot.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
 		slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		slot.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, 2, 4))
+		slot.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, UI.OUTLINE, 0))
 		grid.add_child(slot)

@@ -9,15 +9,13 @@ var gate: Texture2D
 func _ready() -> void:
 	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
 		add_theme_stylebox_override(state, StyleBoxEmpty.new())
-	mouse_entered.connect(queue_redraw)
-	mouse_exited.connect(queue_redraw)
 	focus_entered.connect(queue_redraw)
 	focus_exited.connect(queue_redraw)
 	button_down.connect(queue_redraw)
 	button_up.connect(queue_redraw)
 
 func _draw() -> void:
-	var active := not disabled and (is_hovered() or has_focus())
+	var active := not disabled and has_focus()
 	var paper := UI.GOLD if active else Color("e8ddbd")
 	if completed:
 		var offset := Vector2(0, 2) if button_pressed else Vector2.ZERO

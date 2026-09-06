@@ -30,12 +30,10 @@ func _ready() -> void:
 		preview.name = "Preview_" + category
 		preview.custom_minimum_size.x = 48
 		preview.accessibility_name = "Preview " + category + " volume"
-		preview.tooltip_text = preview.accessibility_name
 		if category == "music":
 			preview.text = "♪"
 			preview.disabled = true
 			preview.accessibility_name = "Music is playing; change its volume to listen"
-			preview.tooltip_text = preview.accessibility_name
 		add_child(UI.number_row(category.capitalize(), number, preview, category_art(category)))
 	var reset := UI.button("Restore sound defaults", func():
 		for category in app.audio.DEFAULTS:

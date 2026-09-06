@@ -88,12 +88,11 @@ Standard buttons are at least 48 high, primary footer actions 52, and icon butto
 | Content card | 4 | 2 ink | Inset; only when grouping adds meaning |
 | Stat group within a panel | 0 | None | Transparent; spacing provides grouping |
 | Small badge | 4 | 2 ink | Paper or ochre with ink text |
-| Tooltip | 4 | 2 ink | Paper, 12 padding |
 | Separator | 0 | 2 ink line | Use only between distinct sections |
 
 Four units is the maximum corner radius for rectangular UI. Circular core, socket, and expansion markers remain circles because their shape is part of world interaction. Avoid capsule buttons and rounded dashboard styling. Use no more than two visible nested surfaces: a main panel and one inset. Do not put every statistic inside its own card.
 
-Depth comes from occlusion and contrast. A modal has an opaque paper surface over one scrim. Ordinary tooltips and contextual panels do not dim the world. Tooltip text cannot contain the only explanation of an important action because touch users may never hover.
+Depth comes from occlusion and contrast. A modal has an opaque paper surface over one scrim. Contextual panels do not dim the world. Do not use hover tooltips; show explanations in the interface and retain accessible descriptions.
 
 ## Component hierarchy
 
@@ -112,14 +111,14 @@ Primary buttons use ochre, ink text, 4-unit borders, and semibold labels. Second
 | State | Required presentation |
 | --- | --- |
 | Default | Semantic fill, ink label and outline |
-| Hover | Keep the semantic fill; do not add a ring or outline |
+| Hover | Identical to the resting state; no visual response or tooltip |
 | Pressed | No added ring; offset contents down 1 unit without moving the hit area |
 | Keyboard focus | No ring or outline; retain keyboard navigation |
 | Selected tab | Ochre plus a visible underline or selection marker; not color alone |
 | Disabled | Inset fill, secondary text, no hover or pressed response; show reason nearby |
 | Pending | Preserve button width, show action-specific progress text, prevent duplicate activation |
 
-Focus can coexist with selected or hover states. Do not replace the primary action color with ordinary paper on hover. An unaffordable action reads Need 125 more gold nearby rather than relying on fading the control. Disabled elements remain legible without lowering the opacity of the whole subtree.
+Focus can coexist with selected states. Pointer entry must not change fills, outlines, icon colors, cursors, or text. An unaffordable action reads Need 125 more gold nearby rather than relying on fading the control. Disabled elements remain legible without lowering the opacity of the whole subtree.
 
 ### Persistent HUD
 
@@ -157,9 +156,9 @@ Reference layouts are 360 × 640, 390 × 844, and 540 × 960 in effective UI uni
 
 The original build stretched a 540 × 960 canvas. The restyled desktop UI now reflows at the window's size, while mobile uses display-density scaling and safe-area conversion. Do not equate a 48-unit control with a 48-point touch target without checking the final scale on the physical device. World zoom must not shrink HUD text. Tower action controls and gold badges are intentionally anchored in map space and scale with their towers, including their spacing and hit areas. Verify density reporting and touch sizes on supported phones before release.
 
-Respect safe areas on every overlay as well as the header and footer. Test standard text size, long names, large balances, and translated labels that are roughly 30% longer. Increase vertical space or scroll; do not clip, ellipsize purchase consequences, or reduce essential type below the minimum. Tooltips supplement labels. Icon-only controls require accessible names. Controller or keyboard focus follows visual reading order without drawing a ring.
+Respect safe areas on every overlay as well as the header and footer. Test standard text size, long names, large balances, and translated labels that are roughly 30% longer. Increase vertical space or scroll; do not clip, ellipsize purchase consequences, or reduce essential type below the minimum. Hover tooltips are prohibited; use visible labels and accessible descriptions. Icon-only controls require accessible names. Controller or keyboard focus follows visual reading order without drawing a ring.
 
-Hover is optional; every action must work by tap and keyboard. Use 120 ms for control feedback and about 180 ms for panel entry or exit. No bounce, camera shake, or continuous pulsing in interface chrome. Use normal motion with a fixed 60 FPS cap; there are no player text-size, power-saving, or reduced-motion settings.
+Hover produces no response anywhere in the app; every action must work by tap and keyboard. Use 120 ms for control feedback and about 180 ms for panel entry or exit. No bounce, camera shake, or continuous pulsing in interface chrome. Use normal motion with a fixed 60 FPS cap; there are no player text-size, power-saving, or reduced-motion settings.
 
 ## Implementation and review
 

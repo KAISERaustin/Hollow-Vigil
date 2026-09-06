@@ -133,6 +133,10 @@ static func theme() -> Theme:
 	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
 		t.set_color(state, "Button", TEXT)
 	t.set_color("font_disabled_color", "Button", MUTED)
+	# Pointer entry must not change icon tint, including toggled buttons.
+	for type in ["Button", "OptionButton", "CheckButton", "CheckBox", "MenuButton"]:
+		for state in ["icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_hover_pressed_color", "icon_focus_color"]:
+			t.set_color(state, type, Color.WHITE)
 	t.set_stylebox("normal", "Button", box(SURFACE))
 	t.set_stylebox("hover", "Button", box(SURFACE))
 	t.set_stylebox("pressed", "Button", box(SURFACE))
@@ -142,7 +146,7 @@ static func theme() -> Theme:
 		t.set_stylebox("focus", type, focus_box())
 	# OptionButton popups are separate windows and need their own theme roles.
 	t.set_stylebox("panel", "PopupMenu", surface(PANEL, OUTLINE, 8))
-	t.set_stylebox("hover", "PopupMenu", box(GOLD))
+	t.set_stylebox("hover", "PopupMenu", StyleBoxEmpty.new())
 	t.set_font("font", "PopupMenu", font(600))
 	t.set_font_size("font_size", "PopupMenu", type_size(BODY))
 	for state in ["font_color", "font_hover_color", "font_accelerator_color"]:
@@ -150,10 +154,6 @@ static func theme() -> Theme:
 	t.set_color("font_disabled_color", "PopupMenu", MUTED)
 	t.set_constant("v_separation", "PopupMenu", maxi(12, TARGET - ceili(font(600).get_height(type_size(BODY)))))
 	t.set_stylebox("panel", "PanelContainer", surface(PANEL, OUTLINE, 0))
-	t.set_stylebox("panel", "TooltipPanel", surface(PANEL, 2, 12))
-	t.set_color("font_color", "TooltipLabel", TEXT)
-	t.set_color("font_shadow_color", "TooltipLabel", Color.TRANSPARENT)
-	t.set_font_size("font_size", "TooltipLabel", type_size(CAPTION))
 	for type in ["VScrollBar", "HScrollBar"]:
 		var track := box(SURFACE)
 		track.set_content_margin_all(3)
@@ -167,7 +167,7 @@ static func theme() -> Theme:
 		t.set_stylebox("scroll", type, track)
 		t.set_stylebox("scroll_focus", type, focus_box())
 		for state in ["grabber", "grabber_highlight", "grabber_pressed"]:
-			var grabber := box(PANEL if state == "grabber_highlight" else GOLD)
+			var grabber := box(GOLD)
 			grabber.set_content_margin_all(7)
 			grabber.set_border_width_all(3)
 			t.set_stylebox(state, type, grabber)
@@ -219,12 +219,12 @@ static func button(text: String, action: Callable, height: float = 48) -> Button
 	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	b.accessibility_name = text
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	b.pressed.connect(action)
 	var pressed := box(SURFACE)
 	pressed.content_margin_top += 1
 	pressed.content_margin_bottom -= 1
 	b.add_theme_stylebox_override("pressed", pressed)
+	b.add_theme_stylebox_override("hover_pressed", pressed)
 	b.add_theme_stylebox_override("focus", focus_box())
 	b.draw.connect(func():
 		if b.toggle_mode and b.button_pressed:
@@ -267,7 +267,7 @@ static func back_button(back_label: String, action: Callable) -> Button:
 	var back := button("←", action)
 	back.name = "BackButton"
 	back.accessibility_name = back_label
-	back.tooltip_text = back_label
+	back.accessibility_description = back_label
 	back.custom_minimum_size.x = TARGET
 	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	back.size_flags_vertical = Control.SIZE_SHRINK_CENTER

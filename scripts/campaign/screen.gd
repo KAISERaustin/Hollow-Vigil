@@ -313,12 +313,12 @@ func begin_wave() -> void:
 
 func update_time_controls() -> void:
 	pause_button.set_meta("paused", paused)
-	pause_button.tooltip_text = "Play" if paused else "Pause"
-	pause_button.accessibility_name = pause_button.tooltip_text
+	pause_button.accessibility_description = "Play" if paused else "Pause"
+	pause_button.accessibility_name = pause_button.accessibility_description
 	pause_button.queue_redraw()
 	speed_button.set_pressed_no_signal(speed == 2.0)
-	speed_button.tooltip_text = "Return to normal speed" if speed == 2.0 else "Double game speed"
-	speed_button.accessibility_name = speed_button.tooltip_text
+	speed_button.accessibility_description = "Return to normal speed" if speed == 2.0 else "Double game speed"
+	speed_button.accessibility_name = speed_button.accessibility_description
 
 func refresh() -> void:
 	if page != "battle":

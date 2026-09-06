@@ -314,7 +314,7 @@ func style_entry(entry: Control) -> void:
 
 func add_back(back: Button) -> void:
 	back.accessibility_name = back.text
-	back.tooltip_text = back.text
+	back.accessibility_description = back.text
 	back.text = "←"
 	back.name = "BackButton"
 	back.custom_minimum_size.x = UI.TARGET

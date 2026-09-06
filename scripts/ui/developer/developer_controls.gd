@@ -44,7 +44,7 @@ func _ready() -> void:
 		free_camera.toggle_mode = true
 		free_camera.set_pressed_no_signal(field.unrestricted_camera)
 		free_camera.toggled.connect(field.set_unrestricted_camera)
-		free_camera.tooltip_text = "Bypass camera limits for this session. Turn off to restore the two-tile limits."
+		free_camera.accessibility_description = "Bypass camera limits for this session. Turn off to restore the two-tile limits."
 		general.add_child(UI.action_row(free_camera.text, free_camera, "Toggle"))
 		var health_numbers := UI.button("Show enemy and boss health", func(): pass)
 		health_numbers.name = "ShowHealthNumbers"
@@ -96,6 +96,7 @@ func _ready() -> void:
 	selector.add_theme_stylebox_override("normal", UI.box(UI.SURFACE))
 	selector.add_theme_stylebox_override("hover", UI.box(UI.SURFACE))
 	selector.add_theme_stylebox_override("pressed", UI.box(UI.GOLD))
+	selector.add_theme_stylebox_override("hover_pressed", UI.box(UI.GOLD))
 	selector.add_theme_stylebox_override("focus", UI.focus_box())
 	selector.add_theme_icon_override("arrow", SELECTOR_ARROW)
 	selector.add_theme_constant_override("modulate_arrow", 0)

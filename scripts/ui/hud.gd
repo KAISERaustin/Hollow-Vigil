@@ -53,7 +53,7 @@ func build_header() -> void:
 	header.add_child(toolbar)
 	var settings := UI.button("", func(): settings_requested.emit(), 50)
 	settings.name = "SettingsButton"
-	settings.tooltip_text = "Settings"
+	settings.accessibility_description = "Settings"
 	settings.accessibility_name = "Settings"
 	settings.draw.connect(func():
 		var center := settings.size * 0.5
@@ -95,11 +95,11 @@ func build_header() -> void:
 
 func update_time_controls(paused: bool, speed: float) -> void:
 	simulation_paused = paused
-	pause_button.tooltip_text = "Play" if paused else "Pause"
+	pause_button.accessibility_description = "Play" if paused else "Pause"
 	pause_button.accessibility_name = "Resume game" if paused else "Pause game"
 	pause_button.queue_redraw()
 	speed_button.set_pressed_no_signal(speed == 2.0)
-	speed_button.tooltip_text = "Return to normal speed" if speed == 2.0 else "Double game speed"
+	speed_button.accessibility_description = "Return to normal speed" if speed == 2.0 else "Double game speed"
 	speed_button.accessibility_name = "Game speed: 2×. Switch to 1×" if speed == 2.0 else "Game speed: 1×. Switch to 2×"
 
 func build_footer() -> void:
@@ -157,7 +157,7 @@ func update_values(game: VigilState) -> void:
 	unclaimed_label.text = Balance.money(game.economy.unclaimed()) + " gold"
 	collect_button.text = "Collect all" if not game.data.automation else "Steward active"
 	collect_button.disabled = game.economy.unclaimed() < 0.01
-	unclaimed_label.tooltip_text = "No earnings yet" if collect_button.disabled else "Gold ready to collect"
+	unclaimed_label.accessibility_description = "No earnings yet" if collect_button.disabled else "Gold ready to collect"
 	var caption := unclaimed_label.get_parent().get_child(0) as Label
 	caption.text = "Unclaimed earnings"
 
