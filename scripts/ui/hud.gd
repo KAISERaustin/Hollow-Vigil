@@ -82,7 +82,7 @@ func build_header() -> void:
 				pause_button.draw_rect(Rect2(center + Vector2(x, -10), Vector2(5, 20)), UI.TEXT)
 	)
 	toolbar.add_child(pause_button)
-	speed_button = UI.button("» 2×", func(): speed_requested.emit(), 50)
+	speed_button = UI.button("2x", func(): speed_requested.emit(), 50)
 	speed_button.name = "SpeedButton"
 	speed_button.custom_minimum_size.x = 84
 	speed_button.size_flags_horizontal = Control.SIZE_FILL
