@@ -6,6 +6,41 @@ static func run(suite: SceneTree) -> void:
 	test_road_junctions(suite)
 	test_targeting(suite)
 	test_target_lock(suite)
+	test_equal_hp_focus(suite)
+
+static func test_equal_hp_focus(suite: SceneTree) -> void:
+	for kind in Balance.TOWERS:
+		var g: VigilState = suite.legacy_core_fixture(855)
+		g.data.balance = 10000.0
+		var id := g.economy.build(kind, "0,0", 0)
+		var tower: Dictionary = g.data.towers[id]
+		tower.target_mode = "most_hp"
+		var enemies: Array[Dictionary] = []
+		for i in range(3):
+			var enemy: Dictionary = suite.fixture_enemy(g, "heavy")
+			enemy.pos = Vector2(-50, 0)
+			enemy.path = [enemy.pos, Vector2.ZERO]
+			enemy.segment = 1
+			enemy.hp = 100000.0
+			enemy.stun_until = 1000.0
+			enemies.append(enemy)
+		for region in g.data.regions.values():
+			region.timer = 1000.0
+		for index in range(enemies.size()):
+			var expected: Dictionary = enemies[index]
+			for attack in range(4):
+				tower.cooldown = 0.0
+				g.combat.effects.clear()
+				g.combat.tick(Balance.STEP)
+				var shots: Array = g.combat.effects.filter(func(fx): return fx.kind == "shot")
+				suite.check(not shots.is_empty() and shots[0].get("target_id", -1) == expected.id,
+					"%s keeps equal-HP enemy %d as primary target on attack %d" % [kind, index, attack])
+				# Resolve actual projectile impacts before the next attack. Extra
+				# damage makes the locked enemy less healthy even for area attacks.
+				g.combat.advance_shots(1.0)
+				g.combat.hit(expected, 100.0, id)
+			g.combat.hit(expected, expected.hp + 1.0, id)
+			suite.check(expected.dead, "%s finishes the focused enemy before selecting the next" % kind)
 
 static func test_targeting(suite: SceneTree) -> void:
 	for kind in Balance.TOWERS:
