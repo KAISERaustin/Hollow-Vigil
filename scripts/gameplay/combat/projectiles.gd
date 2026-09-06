@@ -85,15 +85,15 @@ static func resolve_shot(combat: VigilCombat, shot: Dictionary, target: Dictiona
 static func launch_fragments(combat: VigilCombat, shot: Dictionary) -> void:
 	combat.sound_requested.emit("power_fragments", shot.fx.pos)
 	var ability := Balance.tower_stats(combat.data.towers[shot.tower_id], combat.tuning)
-	var limit := int(ability.get("fragment_count", 5))
+	var limit := int(ability.fragment_count)
 	if limit == 0:
 		return
 	var count := 0
-	for enemy in combat.nearby_enemies(shot.fx.pos, ability.get("fragment_range", 90.0)):
-		if enemy.dead or enemy.id == shot.target_id or enemy.pos.distance_to(shot.fx.pos) > ability.get("fragment_range", 90.0):
+	for enemy in combat.nearby_enemies(shot.fx.pos, ability.fragment_range):
+		if enemy.dead or enemy.id == shot.target_id or enemy.pos.distance_to(shot.fx.pos) > ability.fragment_range:
 			continue
-		var stats := {"damage": shot.damage * ability.get("fragment_multiplier", 0.2), "splash": 0.0, "color": "c3a0ed"}
-		var fx := ShotFactory.shot("heavy", shot.fx.pos + Vector2(0, 22), enemy.pos, stats, enemy.id)
+		var stats := {"damage": shot.damage * ability.fragment_multiplier, "splash": 0.0, "color": "c3a0ed"}
+		var fx := ShotFactory.shot("heavy", shot.fx.pos - Balance.PROJECTILES.heavy.muzzle, enemy.pos, stats, enemy.id)
 		fx.fragment = true
 		fx.curve = -1.0 if count % 2 == 0 else 1.0
 		fx.tower_id = shot.tower_id
@@ -106,19 +106,16 @@ static func launch_fragments(combat: VigilCombat, shot: Dictionary) -> void:
 		combat.add_effect({"kind": "shard_fade", "pos": shot.fx.pos, "direction": Vector2.from_angle(index * TAU / limit), "life": 0.35, "max_life": 0.35, "color": "c3a0ed"})
 
 static func launch_fan(combat: VigilCombat, tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary) -> void:
-	var muzzle := origin + Vector2(0, -25)
+	var muzzle: Vector2 = origin + Balance.PROJECTILES[tower.kind].muzzle
 	var angle := muzzle.angle_to_point(target.pos)
-	var count := int(stats.get("arrow_count", 5))
+	var count := int(stats.arrow_count)
 	for index in range(count - 1):
 		var slot := index if index < floori(count / 2.0) else index + 1
 		var fraction := float(slot) / maxf(1.0, count - 1)
-		var offset: float = (fraction - 0.5) * stats.get("fan_angle", 0.96)
+		var offset: float = (fraction - 0.5) * stats.fan_angle
 		var end: Vector2 = muzzle + Vector2.from_angle(angle + offset) * stats.range
-		var fx := ShotFactory.shot("rapid", origin, end, stats)
+		var fx := ShotFactory.shot(tower.kind, origin, end, stats, -1, true)
 		fx.erase("target_id")
-		fx.flight = stats.range / 760.0
-		fx.life = fx.flight + 0.09
-		fx.max_life = fx.life
 		fx.tower_id = tower.id
 		combat.add_effect(fx)
 		combat.pending_shots.append({"fx": fx, "remaining": fx.flight, "target_id": -1, "tower_id": tower.id, "damage": stats.damage, "radius": 0.0, "ballistic": true, "elapsed": 0.0})

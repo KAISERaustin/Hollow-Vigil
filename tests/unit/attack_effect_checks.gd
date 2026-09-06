@@ -2,6 +2,7 @@ extends RefCounted
 
 static func run(suite: SceneTree) -> void:
 	test_impact_timing(suite)
+	test_shared_projectiles(suite)
 	for kind in Balance.TOWERS:
 		var game := VigilState.new(716)
 		game.data.balance = 10000.0
@@ -120,3 +121,20 @@ static func fixture() -> VigilState:
 	for pad in range(4):
 		game.economy.build(["rapid", "splash", "heavy", "electric"][pad], "1,0", pad)
 	return game
+
+static func test_shared_projectiles(suite: SceneTree) -> void:
+	var factory = preload("res://scripts/gameplay/combat/shot_factory.gd")
+	for kind in Balance.TOWERS:
+		suite.check(Balance.PROJECTILES.has(kind), "Every tower has a shared projectile profile")
+	var fixtures = preload("res://tests/branch_runner.gd").new()
+	var game: VigilState = fixtures.fixture("rapid", "thorn_volley")
+	var tower: Dictionary = game.data.towers["1"]
+	var target: Dictionary = fixtures.enemy(game, Vector2(100, 0))
+	var stats := Balance.tower_stats(tower)
+	game.combat.launch_fan(tower, Vector2.ZERO, target, stats)
+	var ordinary := factory.shot(tower.kind, Vector2.ZERO, target.pos, stats)
+	for arrow in game.combat.pending_shots:
+		suite.check(arrow.fx.from == ordinary.from, "Volley and aimed arrow share the same muzzle")
+		suite.check(is_equal_approx(arrow.fx.flight, stats.range / Balance.PROJECTILES.rapid.speed), "Volley flight uses the shared projectile speed")
+		suite.check(is_equal_approx(arrow.fx.life - arrow.fx.flight, ordinary.life - ordinary.flight), "Volley and aimed arrow share impact duration")
+	fixtures.free()

@@ -12,6 +12,8 @@ static func branch_hit(combat: VigilCombat, shot: Dictionary, enemy: Dictionary)
 		combat.hit(enemy, shot.damage, shot.tower_id, "", false, pierce)
 		return
 	var damage: float = shot.damage
+	# The launched branch can differ from the owner's current form (including
+	# scripted attacks). Its defaults still come from the shared catalog.
 	var ability: Dictionary = Balance.ABILITIES.get(branch, {}).duplicate()
 	ability.merge(Balance.tower_stats(combat.data.towers[shot.tower_id], combat.tuning), true)
 	if branch == "doomstone":
@@ -69,7 +71,7 @@ static func push_back(combat: VigilCombat, enemy: Dictionary, distance: float) -
 static func ignite(combat: VigilCombat, shot: Dictionary) -> void:
 	combat.sound_requested.emit("power_ignite", shot.fx.pos)
 	var ability := Balance.tower_stats(combat.data.towers[shot.tower_id], combat.tuning)
-	var patch := {"tower_id": shot.tower_id, "pos": shot.fx.pos, "radius": shot.radius, "until": combat.simulation_time + ability.get("burn_duration", 3.0), "damage": shot.damage * ability.get("burn_multiplier", 1.0 / 2.25)}
+	var patch := {"tower_id": shot.tower_id, "pos": shot.fx.pos, "radius": shot.radius, "until": combat.simulation_time + ability.burn_duration, "damage": shot.damage * ability.burn_multiplier}
 	for existing in combat.burning_ground:
 		if existing.tower_id == shot.tower_id and existing.pos.distance_to(patch.pos) <= existing.radius + patch.radius:
 			existing.until = patch.until

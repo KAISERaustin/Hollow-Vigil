@@ -1,6 +1,9 @@
 extends RefCounted
 
 static func run(suite: SceneTree) -> void:
+	for key in Balance.tower_definitions():
+		var description: String = Balance.definition("towers", key).description
+		suite.check(not description.contains("{") and not description.contains("}"), "Tower description resolves every catalog placeholder: " + key)
 	for kind in Balance.TOWERS:
 		var game: VigilState = suite.legacy_core_fixture(43)
 		game.data.balance = 100000.0
@@ -73,6 +76,7 @@ static func test_abilities(suite: SceneTree) -> void:
 	game.set_tower_tier_stat("rapid:frostneedle", "slow_percent", 60.0)
 	game.set_tower_tier_stat("rapid:frostneedle", "slow_duration", 7.0)
 	game.combat.branch_hit(helpers.shot(game, e), e)
+	suite.check(Balance.tower_description(Balance.tower_stats(game.data.towers["1"], game.tuning)).contains("60% for 7 seconds"), "Ability description uses the same tuned values as hits")
 	suite.check(e.slow_percent == 60.0 and e.slow_until == 7.0, "Frost strength and duration drive hits")
 	var start: Vector2 = e.pos
 	game.data.towers["1"].cooldown = 10.0

@@ -45,6 +45,15 @@ func refresh_paths() -> void:
 	combat.rebuild_routes()
 	terrain_revision += 1
 
+# Both game modes use the same validation and lock invalidation.
+func set_tower_target(id: String, mode: String) -> bool:
+	if not data.towers.has(id) or not Balance.TARGET_MODES.has(mode):
+		return false
+	if data.towers[id].get("target_mode", "first") != mode:
+		data.towers[id].target_mode = mode
+		combat.target_locks.erase(id)
+	return true
+
 func set_balance_stat(category: String, kind: String, stat: String, value: float) -> bool:
 	var candidate := tuning.duplicate(true)
 	if not candidate.has(category):

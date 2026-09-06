@@ -229,10 +229,9 @@ func refresh_identity() -> void:
 		"enemies": description.text = definition.description
 		"towers":
 			identity_title.text = Balance.TOWERS[selected_kind].name + " · Tier " + str(selected_level)
-			description.text = Balance.TOWERS[selected_kind].description
+			description.text = Balance.tower_description(Balance.stats(selected_kind, selected_level, game.tuning, selected_branch))
 			if selected_branch != "":
 				identity_title.text = Balance.BRANCHES[selected_kind][selected_branch].name + " · Tier 4"
-				description.text = Balance.BRANCHES[selected_kind][selected_branch].description
 		"rifts": description.text = Balance.rift_description(selected_kind, game.tuning)
 		"gear": description.text = preload("res://scripts/gameplay/progression/relics.gd").description(selected_kind, game.tuning)
 		"bosses":

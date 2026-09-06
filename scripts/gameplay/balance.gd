@@ -51,7 +51,15 @@ const TOWERS := {
 	"rapid": {"name": "Ashneedle", "role": "RAPID", "cost": 60.0, "damage": 6.0, "period": 0.48, "range": 132.0, "splash": 0.0, "color": "e0b568", "description": "Swift pointed darts cut through hollows and wraiths."},
 	"splash": {"name": "Pyre", "role": "SPLASH", "cost": 120.0, "damage": 15.0, "period": 1.5, "range": 126.0, "splash": 46.0, "color": "db8d73", "description": "Flame waves burst on impact, striking every enemy within the blast radius."},
 	"heavy": {"name": "Obelisk", "role": "HEAVY", "cost": 160.0, "damage": 40.0, "period": 1.8, "range": 157.0, "splash": 0.0, "color": "b49dcc", "description": "Large magic orbs reach distant foes and deal heavy damage to resilient enemies."},
-	"electric": {"name": "Stormspire", "role": "MULTI-TARGET", "cost": 140.0, "damage": 3.0, "period": 0.4, "range": 145.0, "splash": 0.0, "targets": 5, "color": "91bbff", "description": "Forked lightning zaps up to five enemies at a time within reach, of any troop type. The five-target limit stays the same at every level."}
+	"electric": {"name": "Stormspire", "role": "MULTI-TARGET", "cost": 140.0, "damage": 3.0, "period": 0.4, "range": 145.0, "splash": 0.0, "targets": 5, "color": "91bbff", "description": "Forked lightning zaps up to {targets} enemies at a time within reach, of any troop type."}
+}
+
+# Shared by ordinary projectiles, branch volleys and cosmetic shot records.
+const PROJECTILES := {
+	"rapid": {"muzzle": Vector2(0, -25), "speed": 760.0, "min_flight": 0.10, "max_flight": 0.22, "impact_time": 0.09},
+	"splash": {"muzzle": Vector2(0, -29), "speed": 520.0, "min_flight": 0.17, "max_flight": 0.30, "impact_time": 0.24},
+	"heavy": {"muzzle": Vector2(0, -22), "speed": 470.0, "min_flight": 0.18, "max_flight": 0.36, "impact_time": 0.18},
+	"electric": {"muzzle": Vector2(0, -29), "speed": 760.0, "min_flight": 0.0, "max_flight": 0.0, "impact_time": 0.30}
 }
 
 # Linear upgrades lead to level 3; level 4 requires a specialization.
@@ -77,21 +85,27 @@ const TOWER_UPGRADES := {
 # Ordered left/right specializations. Costs are equal within each tower family.
 const BRANCHES := {
 	"rapid": {
-		"frostneedle": {"name": "Frostneedle", "color": "96d6e6", "cost": 180.0, "description": "Ice needles slow enemies by 25% for 2 seconds. Repeated hits refresh the slow; they never stack."},
-		"thorn_volley": {"name": "Thorn Volley", "color": "93b979", "cost": 180.0, "description": "Fires five arrows in a wide fan. Each keeps level-3 damage. The center aims at the target; four fixed-angle outer arrows can hit surrounding enemies, but often miss."}
+		"frostneedle": {"name": "Frostneedle", "color": "96d6e6", "cost": 180.0, "description": "Ice needles slow enemies by {slow_percent}% for {slow_duration} seconds. Repeated hits refresh the slow; they never stack."},
+		"thorn_volley": {"name": "Thorn Volley", "color": "93b979", "cost": 180.0, "description": "Fires {arrow_count} arrows in a wide fan, each dealing {damage} damage. The center aims at the target; fixed-angle outer arrows can hit surrounding enemies, but often miss."}
 	},
 	"splash": {
-		"cinderfield": {"name": "Cinderfield", "color": "f19b57", "cost": 320.0, "description": "Trades 25% of blast damage for burning ground: 3 seconds at one-third of level-3 damage per second. Overlapping fire from this tower refreshes without stacking."},
-		"rupture_pyre": {"name": "Rupture Pyre", "color": "e6a16d", "cost": 320.0, "description": "Blasts deal 50% more damage, fire slower, and push enemies back 20 units. Revenants resist 75% of the push. Enemies resist another push for 1 second."}
+		"cinderfield": {"name": "Cinderfield", "color": "f19b57", "cost": 320.0, "description": "Blasts leave burning ground for {burn_duration} seconds at {burn_dps} damage per second. Overlapping fire from this tower refreshes without stacking."},
+		"rupture_pyre": {"name": "Rupture Pyre", "color": "e6a16d", "cost": 320.0, "description": "Blasts deal {damage} damage every {period} seconds and push enemies back {push_distance} units, reduced by enemy resistance. Enemies resist another push for {push_immunity} seconds."}
 	},
 	"heavy": {
-		"grave_echo": {"name": "Grave Echo", "color": "c3a0ed", "cost": 360.0, "description": "A heavy orb bursts into five seeking fragments. Each deals 20% of its damage to a different enemy within 90 units. The original target is excluded; unused fragments fade."},
-		"doomstone": {"name": "Doomstone", "color": "c282bb", "cost": 360.0, "description": "Consecutive hits on one enemy increase this tower's damage by 20% per curse stack, up to 100% bonus. Switching targets resets the curse."}
+		"grave_echo": {"name": "Grave Echo", "color": "c3a0ed", "cost": 360.0, "description": "A heavy orb bursts into {fragment_count} seeking fragments. Each deals {fragment_percent}% of its damage to a different enemy within {fragment_range} units. The original target is excluded; unused fragments fade."},
+		"doomstone": {"name": "Doomstone", "color": "c282bb", "cost": 360.0, "description": "Consecutive hits on one enemy increase this tower's damage by {curse_percent}% per curse stack, up to {curse_max_percent}% bonus. Switching targets resets the curse."}
 	},
 	"electric": {
-		"tempest_web": {"name": "Tempest Web", "color": "a9dce9", "cost": 300.0, "description": "Strikes up to five enemies. Each strike arcs to one additional, distinct enemy within 60 units for 50% damage, reaching beyond normal range."},
-		"thunderseal": {"name": "Thunderseal", "color": "b3b5f1", "cost": 300.0, "description": "Five hits from this tower detonate a seal for triple-hit bonus damage and a 0.4-second stun. Charges reset; 2-second stun immunity prevents continuous lockdown."}
+		"tempest_web": {"name": "Tempest Web", "color": "a9dce9", "cost": 300.0, "description": "Strikes up to {targets} enemies. Each strike arcs to one additional, distinct enemy within {arc_range} units for {arc_percent}% damage, reaching beyond normal range."},
+		"thunderseal": {"name": "Thunderseal", "color": "b3b5f1", "cost": 300.0, "description": "After {seal_hits} hits from this tower, a seal detonates for {seal_damage} times hit damage as a bonus and a {stun_duration}-second stun. Charges reset; {stun_immunity}-second stun immunity prevents continuous lockdown."}
 	}
+}
+
+const BRANCH_STAT_MULTIPLIERS := {
+	"cinderfield": {"damage": 0.75},
+	"rupture_pyre": {"damage": 1.5, "period": 1.5 / 1.1},
+	"grave_echo": {"damage": 110.0 / 90.0}
 }
 
 const ABILITIES := {
@@ -292,6 +306,8 @@ static func tuned_value(category: String, kind: String, stat: String, tuning: Di
 static func definition(category: String, kind: String, tuning: Dictionary = {}) -> Dictionary:
 	var result: Dictionary = definitions(category)[kind].duplicate()
 	result.merge(tuning.get(category, {}).get(kind, {}), true)
+	if category == "towers":
+		result.description = tower_description(result)
 	return result
 
 static func valid_tuning(value: Variant) -> bool:
@@ -356,12 +372,8 @@ static func _scaled_stats(kind: String, level: int, tuning: Dictionary = {}, bra
 		s.description = specialization.description
 		s.color = specialization.color
 		s.merge(ABILITIES[branch], true)
-		match branch:
-			"cinderfield": s.damage *= 0.75
-			"rupture_pyre":
-				s.damage *= 1.5
-				s.period *= 1.5 / 1.1
-			"grave_echo": s.damage *= 110.0 / 90.0
+		for field in BRANCH_STAT_MULTIPLIERS.get(branch, {}):
+			s[field] *= BRANCH_STAT_MULTIPLIERS[branch][field]
 	s.period = clampf(s.period, 0.1, TUNING_FIELDS.towers.period.max)
 	return s
 
@@ -371,17 +383,32 @@ static func stats(kind: String, level: int, tuning: Dictionary = {}, branch: Str
 		result.merge(tuning.get("towers", {}).get(tier_key(kind, level, branch), {}), true)
 	return result
 
+# Descriptions use the same resolved values as combat, including tier overrides.
+static func tower_description(resolved: Dictionary) -> String:
+	var values := {}
+	for field in resolved:
+		if resolved[field] is float or resolved[field] is int:
+			values[field] = String.num(float(resolved[field]), 2)
+	values.burn_dps = String.num(resolved.damage * resolved.get("burn_multiplier", 0.0), 2)
+	for prefix in ["fragment", "curse", "arc"]:
+		values[prefix + "_percent"] = String.num(resolved.get(prefix + "_multiplier", 0.0) * 100.0, 2)
+	values.curse_max_percent = String.num(resolved.get("curse_multiplier", 0.0) * resolved.get("curse_limit", 0) * 100.0, 2)
+	for field in values:
+		values[field] = values[field].trim_suffix(".0")
+	return resolved.description.format(values)
+
 static func upgrade_cost(tower: Dictionary, tuning: Dictionary = {}, branch: String = "") -> float:
 	var level := int(tower.level)
 	if level < 1 or level >= MAX_TOWER_LEVEL:
 		return 0.0
-	var base_cost: float = TOWERS[tower.kind].cost
-	var price: float = BRANCHES[tower.kind].values()[0].cost if level == 3 else TOWER_UPGRADES[tower.kind][level - 1].cost
-	var selected: String = branch if branch != "" else tower.get("branch", BRANCHES[tower.kind].keys()[0])
+	var selected: String = branch if branch != "" else tower.get("branch", "")
+	if level == 3 and not valid_branch(tower.kind, selected):
+		selected = BRANCHES[tower.kind].keys()[0]
 	var key := tier_key(tower.kind, level + 1, selected)
 	if tuning.get("towers", {}).get(key, {}).has("cost"):
 		return tuning.towers[key].cost
-	return ceil(price * (tuned_value("towers", tower.kind, "cost", tuning) / base_cost))
+	var price: float = tower_definitions()[key].cost
+	return ceil(price * (tuned_value("towers", tower.kind, "cost", tuning) / TOWERS[tower.kind].cost))
 
 static func invested_cost(tower: Dictionary, tuning: Dictionary = {}) -> float:
 	var invested := tuned_value("towers", tower.kind, "cost", tuning)

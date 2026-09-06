@@ -121,13 +121,11 @@ func sell(socket: int) -> bool:
 	return true
 
 func target(socket: int, mode: String) -> bool:
-	if not editable() or socket not in mission.pads or not Balance.TARGET_MODES.has(mode):
+	if not editable() or socket not in mission.pads:
 		return false
 	var id := tower_at(socket)
-	if id.is_empty():
+	if not game.set_tower_target(id, mode):
 		return false
-	game.data.towers[id].target_mode = mode
-	game.combat.target_locks.erase(id)
 	_after_edit()
 	return true
 

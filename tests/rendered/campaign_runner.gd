@@ -89,6 +89,24 @@ func run() -> void:
 		campaign.resume_checkpoint()
 		check(campaign.run.phase == "planning" and campaign.run.game.data.towers.size() == 1, "Leaving and resuming restores the preparation checkpoint")
 		await frame()
+	# Mission tuning must reach both menu quotes and the shared transactions.
+	campaign.start_mission(0)
+	campaign.run.game.data.settings.developer_balance = {"towers": {"rapid": {"cost": 70.0, "damage": 12.0}, "rapid:2": {"cost": 35.0}}}
+	campaign.show_socket(6)
+	await frame()
+	var tuned_build: Button = campaign.find_child("CampaignBuild_rapid", true, false)
+	check(tuned_build.text.contains("70 gold"), "Campaign build quote reflects mission tuning")
+	tuned_build.pressed.emit()
+	campaign.show_socket(6)
+	await frame()
+	var tuned_upgrade: Button = campaign.find_child("CampaignUpgrade_", true, false)
+	check(tuned_upgrade.text.contains("35 gold"), "Campaign upgrade quote reflects mission tuning")
+	var gold: float = campaign.run.game.data.balance
+	tuned_upgrade.pressed.emit()
+	await frame()
+	check(campaign.run.game.data.balance == gold - 35.0, "Campaign upgrade charge matches the displayed tuned price")
+	var tuned_tower: Dictionary = campaign.run.game.data.towers[campaign.run.tower_at(6)]
+	check(Balance.tower_stats(tuned_tower, campaign.run.game.tuning).damage == 20.0, "Campaign combat resolves tuned tier damage")
 	# Inspect a later-region briefing and the final completion UI independently
 	# of the full legal-combat playthrough covered by campaign_balance_runner.
 	campaign.progress.data.medals.fill(1)

@@ -267,7 +267,7 @@ func show_socket(socket: int) -> void:
 	open_dialog("Build a tower" if id.is_empty() else "Manage tower", true)
 	if id.is_empty():
 		for kind in Balance.TOWERS:
-			var stats: Dictionary = Balance.TOWERS[kind]
+			var stats := Balance.definition("towers", kind, run.game.tuning)
 			dialog_body.add_child(UI.paragraph(stats.description, 13))
 			var button := UI.button("%s · %d gold" % [stats.name,stats.cost], func():
 				if run.build(socket, kind):
@@ -278,16 +278,16 @@ func show_socket(socket: int) -> void:
 			dialog_body.add_child(button)
 		return
 	var tower: Dictionary = run.game.data.towers[id]
-	var stats := Balance.tower_stats(tower)
-	var title: String = Balance.BRANCHES[tower.kind][tower.branch].name if tower.level == 4 else Balance.TOWERS[tower.kind].name
+	var stats := Balance.tower_stats(tower, run.game.tuning)
+	var title: String = stats.name
 	dialog_body.add_child(UI.heading("%s · Level %d" % [title,tower.level], 20))
 	dialog_body.add_child(UI.paragraph("%s damage · %ss between attacks · %s reach" % [String.num(stats.damage,1),String.num(stats.period,2),String.num(stats.range,0)], 14))
-	if tower.level < 4:
+	if tower.level < Balance.MAX_TOWER_LEVEL:
 		var branches: Array = Balance.BRANCHES[tower.kind].keys() if tower.level == 3 else [""]
 		for branch in branches:
-			var cost := Balance.upgrade_cost(tower, {}, branch)
+			var cost := Balance.upgrade_cost(tower, run.game.tuning, branch)
 			if branch != "":
-				dialog_body.add_child(UI.paragraph(Balance.BRANCHES[tower.kind][branch].description,13))
+				dialog_body.add_child(UI.paragraph(Balance.tower_description(Balance.stats(tower.kind, 4, run.game.tuning, branch)),13))
 			var caption: String = Balance.BRANCHES[tower.kind][branch].name if branch != "" else "Upgrade to level %d" % (tower.level + 1)
 			var button := UI.button("%s · %d gold" % [caption,cost], func():
 				if run.upgrade(socket,branch):
@@ -305,7 +305,7 @@ func show_socket(socket: int) -> void:
 	targets.select(Balance.TARGET_MODES.keys().find(tower.target_mode))
 	targets.item_selected.connect(func(index): run.target(socket,Balance.TARGET_MODES.keys()[index]))
 	dialog_body.add_child(targets)
-	var sell := UI.button("Sell · refund %d gold" % Balance.sell_refund(tower), func():
+	var sell := UI.button("Sell · refund %d gold" % Balance.sell_refund(tower, run.game.tuning), func():
 		if run.sell(socket):
 			dialog.hide()
 	,48)

@@ -134,16 +134,17 @@ func open_action(action: String) -> void:
 		var progression := "Maximum level reached · %d / %d" % [tower_level, Balance.MAX_TOWER_LEVEL] if tower_level >= Balance.MAX_TOWER_LEVEL else "Level %d → %d / %d" % [tower_level, tower_level + 1, Balance.MAX_TOWER_LEVEL]
 		body.add_child(UI.label(progression, 14))
 	if action == "info":
-		body.add_child(UI.paragraph(stats.description, 14))
+		body.add_child(UI.paragraph(Balance.tower_description(stats), 14))
 		var relic_kind := preload("res://scripts/gameplay/progression/relics.gd").kind(app.game.data, tower)
 		body.add_child(UI.heading("Equipment", 18))
 		body.add_child(UI.paragraph("Empty slot · Defeat bosses to collect relics." if relic_kind == "" else preload("res://scripts/gameplay/progression/relics.gd").DEFINITIONS[relic_kind].name + "\n" + preload("res://scripts/gameplay/progression/relics.gd").description(relic_kind, app.game.tuning), 14))
 		body.add_child(UI.heading("Level 4 specializations", 18))
 		body.add_child(UI.paragraph("At level 3, the upgrade button locks and two choices appear beside it. Tap a side once, then tap its checkmark to purchase that permanent specialization.", 14))
-		var branch_options: Array = Balance.BRANCHES[tower.kind].values()
-		for side in range(2):
-			body.add_child(UI.heading(("Left · " if side == 0 else "Right · ") + branch_options[side].name, 16))
-			body.add_child(UI.paragraph(branch_options[side].description, 14))
+		var branch_options: Array = Balance.BRANCHES[tower.kind].keys()
+		for side in range(branch_options.size()):
+			var option := Balance.stats(tower.kind, 4, app.game.tuning, branch_options[side])
+			body.add_child(UI.heading(("Left · " if side == 0 else "Right · ") + option.name, 16))
+			body.add_child(UI.paragraph(Balance.tower_description(option), 14))
 		var next := Balance.stats(tower.kind, mini(tower_level + 1, Balance.MAX_TOWER_LEVEL), app.game.tuning)
 		var grid := GridContainer.new()
 		grid.name = "TowerStats"
@@ -242,8 +243,7 @@ func commit(opened_revision: int) -> void:
 			dismiss()
 			app.toast("Equipment changed. Open the equipment slot again.")
 	elif mode == "target":
-		if app.game.data.towers.has(tower_id) and Balance.TARGET_MODES.has(target_choice):
-			app.game.data.towers[tower_id].target_mode = target_choice
+		if app.game.set_tower_target(tower_id, target_choice):
 			dismiss()
 			app.persist()
 	elif mode == "upgrade":

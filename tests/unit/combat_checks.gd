@@ -1,6 +1,7 @@
 extends RefCounted
 
 static func run(suite: SceneTree) -> void:
+	test_target_changes(suite)
 	test_roles_and_escapes(suite)
 	test_core(suite)
 	test_road_junctions(suite)
@@ -259,3 +260,13 @@ static func test_target_lock(suite: SceneTree) -> void:
 			g.combat.effects.clear()
 			g.combat.tick(Balance.STEP)
 			suite.check(not g.combat.target_locks.has(id) and g.combat.effects.filter(func(fx): return fx.kind == "shot")[0].target_id == c.id, label + " releases lock when changing to First")
+
+static func test_target_changes(suite: SceneTree) -> void:
+	var game: VigilState = suite.legacy_core_fixture(41)
+	var id := game.economy.build("rapid", "0,0", 0)
+	suite.check(game.set_tower_target(id, "most_hp"), "Shared target action accepts Most HP")
+	game.combat.target_locks[id] = 123
+	suite.check(game.set_tower_target(id, "most_hp") and game.combat.target_locks[id] == 123, "Reapplying a target mode preserves its lock")
+	suite.check(not game.set_tower_target(id, "invalid") and game.combat.target_locks[id] == 123, "Invalid mode preserves targeting state")
+	suite.check(game.set_tower_target(id, "first") and not game.combat.target_locks.has(id), "Changing mode immediately releases the old lock")
+	suite.check(not game.set_tower_target("missing", "last"), "Missing towers reject targeting changes")
