@@ -19,6 +19,12 @@ var detail: Label
 func _ready() -> void:
 	name = "DeveloperControls"
 	add_theme_constant_override("separation", 12)
+	var add_gold := UI.button("Add 1,000,000 gold", func():
+		game.data.balance = minf(Balance.MAX_MONEY, game.data.balance + 1_000_000.0)
+		changed.emit()
+	)
+	add_gold.name = "AddMillionGold"
+	add_child(add_gold)
 	var tab_row := HFlowContainer.new()
 	tab_row.add_theme_constant_override("separation", 8)
 	add_child(tab_row)
