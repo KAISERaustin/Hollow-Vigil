@@ -83,6 +83,10 @@ A tower tier node's `stats()` resolves its own tier through the base tower exact
 
 Nodes never retain the owning game, visual objects, live enemy dictionaries or mutable progress. Parents point upward; child discovery uses the registry, avoiding parent/child reference cycles. Factories construct records; services still validate ownership, affordability, stale actions and save contracts.
 
+## Shared tower presentation
+
+Campaign and Infinite Worlds instantiate the same `VigilTowerActions`, `VigilTowerDialog`, relic picker and tower move components. The campaign screen supplies the active mission's `game` and `field` plus the host callbacks for persistence, selection and feedback. The shared dialogs accept a `Control` host rather than requiring the Infinite Worlds application. Add tower menu features to these shared components, never to a separate campaign management dialog. Campaign only owns its authored socket validation and construction entry point; upgrades, specialization confirmation, equipment, targeting, sales and relocation remain shared transactions. Mission inventory stays isolated from Infinite Worlds, and campaign completion persistence retains its existing semantics.
+
 ## Adding a tower such as Pike
 
 This creates a prototype inheriting Ashneedle's behavior in an isolated catalog:
