@@ -88,6 +88,8 @@ static func trap_focus(root: Control) -> void:
 		controls[i].focus_neighbor_right = controls[i].get_path() if controls[i] is Slider else after
 
 static func keyboard_scroll(scroll: ScrollContainer, description: String) -> void:
+	# Retain wheel, touch and keyboard scrolling without visible menu rails.
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	scroll.focus_mode = Control.FOCUS_ALL
 	scroll.add_theme_stylebox_override("focus", focus_box())
 	scroll.accessibility_name = description + ". Use arrow keys or Page Up and Page Down to scroll."
