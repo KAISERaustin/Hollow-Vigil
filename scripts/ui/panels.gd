@@ -392,7 +392,7 @@ func show_settings() -> void:
 		app.persist()
 	mode = "settings"
 	clear_sheet("Settings")
-	sheet_content.add_child(_player_card())
+	sheet_content.add_child(UI.heading("Gameplay", 18))
 	var campaign_button := UI.button("Campaign", app.show_campaign)
 	campaign_button.name = "OpenCampaign"
 	sheet_content.add_child(UI.action_row("The Last Procession", campaign_button, "Play"))
@@ -401,20 +401,29 @@ func show_settings() -> void:
 	if game.data.has("setup"):
 		sheet_content.add_child(UI.paragraph(game.data.setup.name, 16))
 	sheet_content.add_child(UI.action_row("Saved games", UI.button("Saved games", app.show_save_slots), "Open"))
-	var cloud_button := UI.button("Account & cloud backups", show_cloud_saves)
-	cloud_button.name = "OpenCloudSaves"
-	sheet_content.add_child(UI.action_row("Account & cloud backups", cloud_button, "Open"))
 	if game.is_creative():
+		sheet_content.add_child(UI.heading("Creative mode", 18))
 		var developer := UI.button("Developer Controls", show_developer_controls)
 		developer.name = "OpenDeveloperControls"
 		sheet_content.add_child(UI.action_row("Creative rules", developer, "Edit"))
-	sheet_content.add_child(UI.heading("Preferences & community", 18))
+	sheet_content.add_child(UI.heading("Preferences", 18))
 	var sound_button := UI.button("Sound", show_sound_settings)
 	sound_button.name = "OpenSoundSettings"
 	sheet_content.add_child(UI.action_row("Sound", sound_button, "Open"))
+	sheet_content.add_child(UI.heading("Community", 18))
 	var public_button := UI.button("Community builds", app.show_public_builds)
 	public_button.name = "OpenPublicBuilds"
 	sheet_content.add_child(UI.action_row("Community builds", public_button, "Browse"))
+	var upload := UI.button("Upload build", app.show_save_slots.bind(true))
+	upload.name = "UploadBuild"
+	upload.disabled = not game.is_creative()
+	sheet_content.add_child(UI.action_row("Upload build", upload, "Open"))
+	sheet_content.add_child(UI.heading("Account", 18))
+	sheet_content.add_child(_player_card())
+	var cloud_button := UI.button("Account & cloud backups", show_cloud_saves)
+	cloud_button.name = "OpenCloudSaves"
+	sheet_content.add_child(UI.action_row("Account & cloud backups", cloud_button, "Open"))
+	sheet_content.add_child(UI.heading("Information", 18))
 	var stats := HBoxContainer.new()
 	stats.add_theme_constant_override("separation", 12)
 	sheet_content.add_child(stats)
@@ -431,10 +440,6 @@ func show_settings() -> void:
 	sheet_content.add_child(UI.rule())
 	sheet_content.add_child(UI.heading("Reset this game", 18))
 	sheet_content.add_child(UI.action_row("Reset progress", UI.accent_button("Reset progress", show_reset_confirmation, UI.DANGER), "Reset"))
-	var upload := UI.button("Upload build", app.show_save_slots.bind(true))
-	upload.name = "UploadBuild"
-	upload.disabled = not game.is_creative()
-	sheet_content.add_child(UI.action_row("Upload build", upload, "Open"))
 
 func show_sound_settings() -> void:
 	mode = "sound"
