@@ -77,6 +77,10 @@ The real HTTP runner passed 21 checks including authenticated upload/readback, t
 
 Final whole-game validation passed **32,278 checks with zero failures** after the concurrent Orchard fixture update. Touch scrolling, safe row text, explicit Sync, and numeric input/step controls passed at all three sizes using the headless interaction path. The rendered mobile runner was interrupted after its window stopped advancing during concurrent GUI tests; save-layout screenshots and the actual menu playthrough were verified separately. Supabase security advisors returned zero findings.
 
+## Concurrent work included at delivery
+
+Repository policy requires including all pending work. This delivery also preserves the concurrent Orchard and campaign implementation. A newly added campaign runner completed **915 checks with one failure**, `Campaign checkpoint survives a disk round trip`. That separate checkpoint path needs follow-up in the campaign work; the game-slot/cloud acceptance results above do not cover it. The existing full gameplay suite passed before this additional campaign runner was evaluated.
+
 ## Limits and follow-up
 
 - This validates the updated local desktop source and deployed Supabase backend. The user's installed iPhone **1.0.5** remains an older client; an updated iOS build must be distributed and tested on the phone before claiming its issue is resolved there.
