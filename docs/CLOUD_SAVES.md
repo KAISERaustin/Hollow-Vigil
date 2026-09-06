@@ -143,3 +143,15 @@ failures are no longer confused with this email-provider error. A server-generat
 OTP can exercise the actual client/Auth/RPC flow without sending email, but is not
 evidence that email delivery is working. Public email sign-in still requires a
 custom SMTP provider; no sender credentials or subscription were configured here.
+
+
+Current verification: 37 codec checks, 32 service checks, 20 live Godot HTTPS
+checks, the rollback-only SQL contract, seven generated gameplay fixtures, and
+30,451 gameplay regression checks passed. The full cloud screen and masked panel
+also rendered successfully at 390 × 844. Security Advisor returned no findings.
+The live run used the existing owner account with an admin-generated OTP because
+normal email requests returned HTTP 429 `over_email_send_rate_limit`. The two
+worlds created by this debugging session were removed after verification; the
+pre-existing cloud world and player saves were preserved. No physical second-device
+or iOS release test was performed. Email delivery under the exhausted quota remains
+an external limitation, so this is not a claim of production-ready public sign-in.
