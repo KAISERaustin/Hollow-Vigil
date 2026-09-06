@@ -118,7 +118,8 @@ func run() -> void:
 		await Harness.capture(app, "relic-list-" + str(dimensions.x))
 		var list := app.tower_dialog.find_child("EquipmentList", true, false)
 		check(list.get_child_count() == app.game.data.relics.size(), "Inventory shows one row per owned piece")
-		for row in list.get_children():
+		for entry in list.get_children():
+			var row := entry.get_child(0)
 			check(row.get_child(0).get_global_rect().end.x <= row.get_child(1).get_global_rect().position.x, "Equipment name stays left of its icon at " + str(dimensions))
 		var replacement := app.tower_dialog.find_child("Relic_90,90", true, false) as Button
 		app.tower_dialog.scroll.ensure_control_visible(replacement)

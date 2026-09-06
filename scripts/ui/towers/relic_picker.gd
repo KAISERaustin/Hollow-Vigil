@@ -33,6 +33,7 @@ static func build(dialog) -> void:
 		remove.size_flags_horizontal = Control.SIZE_SHRINK_END
 		remove.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		summary_row.add_child(remove)
+	dialog.equipment_summary.add_child(UI.rule())
 	dialog.body.add_child(UI.heading("Inventory", 18))
 	var list := VBoxContainer.new()
 	list.name = "EquipmentList"
@@ -43,9 +44,12 @@ static func build(dialog) -> void:
 		dialog.body.add_child(UI.paragraph("No equipment collected yet.", 14))
 	for relic_id in inventory:
 		var kind: String = inventory[relic_id]
+		var entry := VBoxContainer.new()
+		entry.add_theme_constant_override("separation", 8)
+		list.add_child(entry)
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 12)
-		list.add_child(row)
+		entry.add_child(row)
 		var item_name := UI.heading(Relics.DEFINITIONS[kind].name, 16)
 		item_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		item_name.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -59,3 +63,4 @@ static func build(dialog) -> void:
 		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		button.draw.connect(func(): Art.draw(button, kind, button.size * 0.5))
 		row.add_child(button)
+		entry.add_child(UI.rule())
