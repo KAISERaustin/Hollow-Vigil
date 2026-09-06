@@ -27,9 +27,16 @@ static func build(dialog) -> void:
 	equipped_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	equipped_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	summary_row.add_child(equipped_name)
-	dialog.body.add_child(UI.paragraph("One relic per tower. Equip or transfer freely. Replaced relics return to your collection, and selling a tower keeps its relic.", 14))
+	if equipped_kind != "":
+		var remove := UI.button("×", dialog.request_equipment_removal, 44)
+		remove.name = "RemoveEquipment"
+		remove.tooltip_text = "Remove equipment"
+		remove.custom_minimum_size.x = 44
+		remove.size_flags_horizontal = Control.SIZE_SHRINK_END
+		summary_row.add_child(remove)
+	dialog.body.add_child(UI.heading("Your equipment", 18))
+	dialog.body.add_child(UI.paragraph("Choose equipment for this tower. Replaced equipment returns to your inventory.", 14))
 	var group := ButtonGroup.new()
-	add_choice(dialog, group, "", "Empty slot · Remove equipment", "")
 	for kind in Relics.DEFINITIONS:
 		var definition: Dictionary = Relics.DEFINITIONS[kind]
 		var card := PanelContainer.new()
@@ -56,11 +63,11 @@ static func build(dialog) -> void:
 				continue
 			found = true
 			var owner := Relics.owner(data, relic_id)
-			var text: String = "Equip · Found at " + relic_id
+			var text: String = "Equipment available"
 			if owner == dialog.tower_id:
-				text = "Equipped here · Found at " + relic_id
+				text = "Currently equipped"
 			elif owner != "":
-				text = "Transfer from %s #%s" % [Balance.tower_stats(data.towers[owner], dialog.app.game.tuning).name, owner]
+				text = "Transfer from " + Balance.tower_stats(data.towers[owner], dialog.app.game.tuning).name
 			add_choice(dialog, group, relic_id, text, owner, stack)
 		if not found:
 			stack.add_child(UI.paragraph("Defeat " + Balance.BOSSES[kind].name + " to discover this relic.", 14))

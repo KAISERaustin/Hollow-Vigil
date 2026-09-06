@@ -183,6 +183,26 @@ func open_action(action: String) -> void:
 	(confirm if action == "info" else cancel).grab_focus()
 	UI.trap_focus(card)
 
+func request_equipment_removal() -> void:
+	if mode != "equipment" or relic_original == "":
+		return
+	mode = "equipment_remove"
+	for child in body.get_children():
+		body.remove_child(child)
+		child.queue_free()
+	rebuild_status = UI.label("", 14)
+	body.add_child(rebuild_status)
+	body.add_child(UI.heading("Remove equipment?", 20))
+	body.add_child(UI.paragraph("Are you sure you want to remove this equipment? It will return to your inventory.", 16))
+	equipment_summary.find_child("RemoveEquipment", true, false).hide()
+	confirm.text = "Remove equipment"
+	cancel.pressed.disconnect(dismiss)
+	cancel.pressed.connect(func(): open_action("equipment"))
+	cancel.grab_focus()
+	refresh()
+	call_deferred("fit_dialog")
+	UI.trap_focus(card)
+
 func stat(grid: GridContainer, title: String, value: float, next: float, decimals: int = 1, suffix: String = "") -> void:
 	var stack := VBoxContainer.new()
 	stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -221,6 +241,8 @@ func refresh() -> void:
 	rebuild_status.visible = remaining > 0.0
 	rebuild_status.text = "Rebuilding · " + Balance.rebuild_time_text(remaining)
 	var disabled: bool = (mode in ["upgrade", "move"] and (app.game.data.balance < cost or remaining > 0.0)) or (mode == "upgrade" and tower_level >= Balance.MAX_TOWER_LEVEL)
+	if mode == "equipment":
+		disabled = relic_choice == relic_original
 	if disabled != confirm.disabled:
 		confirm.disabled = disabled
 		UI.trap_focus(card)
@@ -234,8 +256,9 @@ func commit(opened_revision: int) -> void:
 		return
 	if mode == "info":
 		dismiss()
-	elif mode == "equipment":
-		if app.game.economy.equip_relic(tower_id, relic_choice, relic_original, relic_owner):
+	elif mode in ["equipment", "equipment_remove"]:
+		var removing := mode == "equipment_remove"
+		if app.game.economy.equip_relic(tower_id, "" if removing else relic_choice, relic_original, "" if removing else relic_owner):
 			dismiss()
 			app.field.queue_redraw()
 			app.persist()

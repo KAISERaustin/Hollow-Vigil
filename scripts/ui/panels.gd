@@ -322,7 +322,7 @@ func show_entrance(id: String) -> void:
 		sheet_content.add_child(status)
 	sheet_content.add_child(UI.paragraph(Balance.rift_description(style, game.tuning) + ("" if Balance.exclusive_portal(style) else " Applies to every enemy from this rift for its entire journey."), 14))
 	var revision := sheet_revision
-	var traffic := UI.button("Traffic · MAX" if traffic_maxed else "Increase traffic  ·  " + UI.exact_money(game.economy.traffic_cost(id)) + " gold", func():
+	var traffic := UI.button("Spawn rate · MAX" if traffic_maxed else "Increased spawn rate  ·  " + UI.exact_money(game.economy.traffic_cost(id)) + " gold", func():
 		if revision == sheet_revision and game.economy.buy_traffic(id, int(r.traffic)):
 			app.persist()
 			show_entrance(id)
@@ -335,7 +335,7 @@ func show_entrance(id: String) -> void:
 		var s: Dictionary = Balance.ENEMIES[kind]
 		var unlocked: bool = kind in r.unlocks
 		var price: float = Balance.UNLOCK_COSTS[kind]
-		var b := UI.button(s.name + (" · Attuned" if unlocked else " · Attune · " + UI.exact_money(price) + " gold"), func():
+		var b := UI.button(s.name + ("" if unlocked else " · " + UI.exact_money(price) + " gold"), func():
 			if revision == sheet_revision and game.economy.unlock(id, kind):
 				app.persist()
 				show_entrance(id)
