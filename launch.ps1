@@ -100,6 +100,7 @@ try {
             Invoke-Godot -Name 'mobile-equipment' -EngineArguments @('--script', 'res://tests/rendered/relic_runner.gd')
         }
         if ($StyleTests -or $Check) {
+            Invoke-Godot -Name 'campaign-hud' -EngineArguments @('--script', 'res://tests/rendered/campaign_hud_runner.gd')
             Invoke-Godot -Name 'parchment-corners' -EngineArguments @('--script', 'res://tests/rendered/parchment_corner_runner.gd')
             Invoke-Godot -Name 'wave-menu' -EngineArguments @('--script', 'res://tests/rendered/wave_menu_runner.gd')
             Invoke-Godot -Name 'build-cards' -EngineArguments @('--script', 'res://tests/rendered/build_cards_runner.gd')

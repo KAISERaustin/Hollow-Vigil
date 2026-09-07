@@ -28,6 +28,7 @@ func run() -> void:
 	app.show_campaign()
 	var campaign: Control = app.campaign
 	campaign.set_process(false)
+	campaign.progress.allow_all = true
 	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = viewport
 		root.content_scale_size = viewport

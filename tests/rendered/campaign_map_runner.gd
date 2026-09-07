@@ -66,7 +66,7 @@ func run() -> void:
 							var rect := Rect2(map.labels[index].position + label.position, Vector2(minf(width, label.size.x), label.size.y))
 							if label.horizontal_alignment == HORIZONTAL_ALIGNMENT_RIGHT: rect.position.x += label.size.x - rect.size.x
 							if rect.grow(4).has_point(point): clear_text = false
-				check(clear_text, "Winding trail stays clear of level text")
+				check(clear_text, "Winding trail stays clear of level %d text at %d" % [index+1, viewport.x])
 			var capture := root.get_texture().get_image()
 			var color := VigilTerrainArt.ground_color(Catalog.CHAPTERS[chapter].style)
 			var sample := capture.get_pixel(1, roundi(map.global_position.y + bounds.position.y + 10))
