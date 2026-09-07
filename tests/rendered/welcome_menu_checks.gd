@@ -20,11 +20,10 @@ func run() -> void:
 		await settle()
 		var menu: Control = app.slot_menu
 		check(menu.find_child("ScreenTitle",true,false).text == "Hollow Vigil", "Startup title")
-		var campaign: Button = menu.find_child("OpenCampaign",true,false)
-		var infinite: Button = menu.find_child("OpenInfinite",true,false)
-		var mode_center := (campaign.get_global_rect().position.y + infinite.get_global_rect().end.y) * 0.5
-		check(absf(mode_center - menu.scroll.get_global_rect().get_center().y) < 3, "Modes centered in shared page content")
-		for id in ["OpenCampaign", "OpenInfinite"]:
+		var welcome: Control = menu.find_child("WelcomeMenu",true,false)
+		check(welcome.crest.position.y >= 0, "Startup crest is not clipped")
+		check(welcome.caption.get_rect().end.y <= welcome.size.y, "Caption fits composition")
+		for id in ["OpenCampaign", "OpenInfinite", "MainSettings"]:
 			var button: Button = menu.find_child(id,true,false)
 			check(menu.scroll.get_global_rect().encloses(button.get_global_rect()), id + " fits " + str(viewport))
 			check(absf(button.get_global_rect().get_center().x - viewport.x * 0.5) < 2, id + " horizontally centered")

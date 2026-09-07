@@ -60,18 +60,25 @@ func configure(campaign: Callable, infinite: Callable, settings: Callable = Call
 	caption.add_theme_color_override("font_color", Color("574329"))
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(caption)
-	resized.connect(arrange)
+	# Container minimums settle after the first resize, especially on cold startup.
+	# Reflow when the button stack settles as well as when the viewport changes.
+	resized.connect(arrange, CONNECT_DEFERRED)
+	modes.minimum_size_changed.connect(arrange, CONNECT_DEFERRED)
 	call_deferred("arrange")
 
 func arrange() -> void:
 	var width := size.x
 	var height := size.y
-	# Anchor the composition to the buttons, with bounded gaps on tall screens.
+	# Center the complete composition, keeping every element inside its bounds.
 	var buttons_height := modes.get_combined_minimum_size().y
-	var modes_top := (height - buttons_height) * 0.5
-	var title_top := modes_top - 98
-	var crest_height := minf(180, height * 0.22)
-	crest.position = Vector2(0, title_top + 8 - crest_height)
+	var art_space := maxf(0, height - buttons_height - 168)
+	var crest_height := minf(180, art_space * 0.48)
+	var battlefield_height := minf(200, art_space * 0.52)
+	var composition_height := crest_height + 98 + buttons_height + 22 + battlefield_height + 48
+	var top := maxf(0, (height - composition_height) * 0.5)
+	var title_top := top + crest_height
+	var modes_top := title_top + 98
+	crest.position = Vector2(0, top)
 	crest.size = Vector2(width, crest_height)
 	title.add_theme_font_size_override("font_size", mini(42, int(width / 7.6)))
 	title.position = Vector2(0, title_top)
@@ -82,7 +89,7 @@ func arrange() -> void:
 	modes.size = Vector2(button_width, buttons_height)
 	modes.position = Vector2((width - button_width) * 0.5, modes_top)
 	battlefield.position = Vector2(0, modes_top + buttons_height + 22)
-	battlefield.size = Vector2(width, minf(200, minf(height * 0.26, height - battlefield.position.y - 48)))
+	battlefield.size = Vector2(width, battlefield_height)
 	caption.position = Vector2(0, battlefield.position.y + battlefield.size.y + 24)
 	caption.size = Vector2(width, 24)
 	footer_rule.position = Vector2(0, battlefield.position.y + battlefield.size.y + 4)
