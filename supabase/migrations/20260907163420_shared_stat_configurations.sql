@@ -1,12 +1,21 @@
 -- Keep existing build IDs, retry semantics and RLS; add typed catalog entries.
 create or replace function public.shared_configuration_kind(configuration jsonb)
-returns text language sql immutable security invoker set search_path = '' as $$
-  select case configuration->>'format'
+returns text language plpgsql immutable security invoker set search_path = '' as $$
+declare snapshot jsonb;
+begin
+  snapshot := (configuration->>'payload')::jsonb;
+  if jsonb_typeof(snapshot) is distinct from 'object' then return ''; end if;
+  if configuration->>'format' = 'hollow-vigil-campaign-build-v1' and (
+    jsonb_typeof(snapshot->'level') is distinct from 'number'
+    or (snapshot->>'level')::numeric not between 0 and 19) then return ''; end if;
+  return case configuration->>'format'
     when 'hollow-vigil-creative-build-v1' then 'world'
     when 'hollow-vigil-stat-configuration-v1' then 'stats'
     when 'hollow-vigil-campaign-build-v1' then
-      case when (configuration->>'payload')::jsonb ? 'loadout' then 'campaign_build' else 'campaign_stats' end
+      case when snapshot ? 'loadout' then 'campaign_build' else 'campaign_stats' end
     else '' end;
+exception when others then return '';
+end;
 $$;
 
 create or replace function public.publish_public_build(build_id uuid, configuration jsonb, exported_at timestamptz)
@@ -92,7 +101,8 @@ language sql stable security invoker set search_path = '' as $$
   select b.id, b.title, b.description, b.author_name, b.created_at
   from public.public_builds b
   where public.shared_configuration_kind(b.configuration) = content_kind
-    and (level_index < 0 or ((b.configuration->>'payload')::jsonb->>'level')::numeric = level_index)
+    and (level_index < 0 or case when public.shared_configuration_kind(b.configuration) in ('campaign_build', 'campaign_stats')
+      then ((b.configuration->>'payload')::jsonb->>'level')::numeric = level_index else false end)
   order by b.published_at desc, b.id desc
   limit 20 offset (greatest(0, least(page_number, 1000000))::bigint * 20);
 $$;

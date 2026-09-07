@@ -24,6 +24,11 @@ var pending_cost := 0.0
 var upgrade_quote: Label
 var branch_bar: Control
 var chosen_branch := ""
+var framing_signature: Array = []
+
+func reset_framing() -> void:
+	framing_signature.clear()
+	field.camera_framing.cancel()
 
 func cancel_upgrade() -> void:
 	pending_tower = ""
@@ -65,6 +70,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func _ready() -> void:
 	field.tower_selection_changed.connect(cancel_upgrade)
+	field.tower_selection_changed.connect(reset_framing)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	upgrade_quote = UI.paragraph("", 14)
@@ -98,6 +104,7 @@ func refresh() -> void:
 	visible = not blocked and field.state.data.towers.has(field.selected_tower)
 	if not visible:
 		cancel_upgrade()
+		reset_framing()
 		return
 	var tower: Dictionary = field.state.data.towers[field.selected_tower]
 	var relic_kind := preload("res://scripts/gameplay/progression/relics.gd").kind(field.state.data, tower)
@@ -141,6 +148,7 @@ func refresh() -> void:
 		upgrade_quote.size.x = maxf(1.0, field.size.x - 24.0)
 		upgrade_quote.size.y = upgrade_quote.get_combined_minimum_size().y
 		upgrade_quote.position = Vector2(12, field.size.y - upgrade_quote.size.y - 12)
+	frame_controls(tower)
 	var center := field.screen(VigilWorld.pad_position(tower.region, tower.pad))
 	if not Rect2(Vector2.ZERO, field.size).has_point(center):
 		hide()
@@ -150,6 +158,29 @@ func refresh() -> void:
 		var button: Button = buttons[action]
 		button.scale = Vector2.ONE * field.zoom
 		button.position = center + (ACTION_OFFSETS[action] - BUTTON_SIZE * 0.5) * field.zoom
+
+func frame_controls(tower: Dictionary) -> void:
+	if field.size.x <= 20.0 or field.size.y <= 20.0:
+		return
+	var available := Rect2(Vector2.ZERO, field.size).grow(-10.0)
+	if upgrade_quote.visible:
+		available.size.y = upgrade_quote.position.y - 10.0 - available.position.y
+		# Wrapped text needs a layout frame when it is first assigned a width.
+		if available.size.y <= 0.0:
+			return
+	var radius: float = Balance.tower_stats(tower, field.state.tuning).range
+	var signature := [field.state, field.selected_tower, tower.region, tower.pad, tower.level, radius, available]
+	if signature == framing_signature:
+		return
+	framing_signature = signature
+	var center := VigilWorld.pad_position(tower.region, tower.pad)
+	var bounds := Rect2(center - Vector2.ONE * radius, Vector2.ONE * radius * 2.0)
+	for action in ACTION_OFFSETS:
+		bounds = bounds.merge(Rect2(center + ACTION_OFFSETS[action] - BUTTON_SIZE * 0.5, BUTTON_SIZE))
+	if branch_bar.visible:
+		for x in [-64, 64]:
+			bounds = bounds.merge(Rect2(center + Vector2(x, 78) - BUTTON_SIZE * 0.5, BUTTON_SIZE))
+	field.frame_world_rect(bounds, available)
 
 func draw_icon(button: Button, action: String) -> void:
 	var center := button.size * 0.5

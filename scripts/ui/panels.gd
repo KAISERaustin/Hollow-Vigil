@@ -291,6 +291,7 @@ func show_tower() -> void:
 	prices.clear()
 	mode = "tower"
 	app.tower_actions.blocked = false
+	app.tower_actions.reset_framing()
 	app.tower_actions.refresh()
 	app.update_hud()
 

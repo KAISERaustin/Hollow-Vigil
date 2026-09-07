@@ -34,7 +34,7 @@ var save_notice: Label
 var socket_dialog := false
 var waves_dialog := false
 var shared_setups: Dictionary = {}
-var configuration_picker: RefCounted
+var configuration_picker: Node
 var active_overrides: Dictionary = {}
 
 # Host the same tower components against the mission state.
@@ -183,13 +183,14 @@ func clear_page(next: String) -> void:
 	dialog.hide()
 	accumulator = 0.0
 
-func header(title: String, back: Callable) -> HBoxContainer:
+func header(title: String, back: Callable, button_size: float = 48) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	layout.add_child(row)
-	var button := UI.button("←", back, 48)
+	var button := UI.button("←", back, button_size)
 	button.name = "CampaignBack"
-	button.custom_minimum_size.x = 48
+	button.custom_minimum_size.x = button_size
+	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	button.accessibility_name = "Back"
 	row.add_child(button)
@@ -296,7 +297,7 @@ func show_battle() -> void:
 	clear_page("battle")
 	paused = false
 	observed_phase = run.phase
-	var title_row := header("%02d · %s" % [run.mission.index+1,run.mission.name], show_map)
+	var title_row := header("%02d · %s" % [run.mission.index+1,run.mission.name], show_map, UI.TOOLBAR_BUTTON_SIZE)
 	pause_button = UI.playback_button(func():
 		paused = not paused
 		update_time_controls()
@@ -577,6 +578,10 @@ func _notification(what: int) -> void:
 		save_progress()
 
 func go_back() -> void:
+	if is_instance_valid(app.slot_menu) and app.slot_menu.visible:
+		var back: Button = app.slot_menu.find_child("BackButton", true, false)
+		if back != null: back.pressed.emit()
+		return
 	if is_instance_valid(tower_dialog) and tower_dialog.visible:
 		tower_dialog.dismiss()
 	elif is_instance_valid(tower_move) and tower_move.visible:
@@ -639,16 +644,22 @@ func configuration_menu() -> Control:
 	return app.slot_menu
 
 func show_configuration_picker(index: int, kind: String) -> void:
+	var was_paused := paused
+	paused = true
 	var menu := configuration_menu()
+	if is_instance_valid(configuration_picker): configuration_picker.queue_free()
 	configuration_picker = preload("res://scripts/ui/configuration_picker.gd").new()
+	menu.add_child(configuration_picker)
 	configuration_picker.menu = menu
 	configuration_picker.kind = kind
 	configuration_picker.level = index
 	configuration_picker.back = func():
 		menu.view_revision += 1
 		menu.hide()
+		paused = was_paused
 	configuration_picker.create = func():
 		menu.hide()
+		paused = was_paused
 		show_level_balance(index)
 	configuration_picker.selected = func(entry: Dictionary):
 		shared_setups[index] = VigilSaveSlots.CampaignBuild.decode(entry.code)

@@ -14,6 +14,9 @@ func run() -> void:
 		var board := preload("res://scripts/campaign/board.gd").new()
 		board.run = preload("res://scripts/campaign/run.gd").new(index)
 		board.size = Vector2(390, 530)
+		# The campaign host owns selection in response to board input signals.
+		board.socket_picked.connect(board.select_socket)
+		board.empty_picked.connect(board.clear_selection)
 		root.add_child(board)
 		check(board is Battlefield, "Campaign inherits the original battlefield")
 		for viewport in [Vector2(360, 300), Vector2(540, 650), Vector2(1200, 500)]:

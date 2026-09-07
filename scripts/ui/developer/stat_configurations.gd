@@ -6,11 +6,13 @@ const Controls = preload("res://scripts/ui/developer/developer_controls.gd")
 var menu: Control
 var slot := -1
 var draft: VigilState
-var picker: RefCounted
+var picker: Node
 
 func show_page(target_slot: int = -1) -> void:
 	slot = target_slot
+	if is_instance_valid(picker): picker.queue_free()
 	picker = preload("res://scripts/ui/configuration_picker.gd").new()
+	menu.add_child(picker)
 	picker.menu = menu
 	picker.back = menu.show_creation.bind(slot, false) if slot >= 0 else menu.show_slots
 	picker.create = show_editor.bind({})

@@ -187,48 +187,8 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 	for r in d.regions.values():
 		if r.has("boss") and r.boss.status == "active" and not valid_boss_road(r.boss, d.regions):
 			return false
-	const Relics = preload("res://scripts/gameplay/progression/relics.gd")
-	var inventory: Variant = d.get("relics", {})
-	if not inventory is Dictionary:
+	if not valid_loadout(d, max_tower_level):
 		return false
-	for relic_id in inventory:
-		if not relic_id is String or not inventory[relic_id] is String or not Relics.DEFINITIONS.has(inventory[relic_id]):
-			return false
-		var parts: PackedStringArray = relic_id.split("#")
-		if parts.size() > 2 or not valid_coordinate(parts[0]) or (parts.size() == 2 and parts[1] != inventory[relic_id]):
-			return false
-	var equipped := {}
-	var occupied := {}
-	for id in d.towers:
-		var t = d.towers[id]
-		if not t is Dictionary or not id is String or not id.is_valid_int():
-			return false
-		if int(id) < 1 or str(int(id)) != id:
-			return false
-		for field in ["id", "kind", "region", "pad", "level", "earnings", "cooldown", "angle"]:
-			if not t.has(field):
-				return false
-		if t.id != id or int(id) >= d.next_tower or not Balance.TOWERS.has(t.kind) or not d.regions.has(t.region):
-			return false
-		if version == Balance.VERSION:
-			var branch: Variant = t.get("branch", "")
-			if not branch is String or (t.level == 4 and not Balance.valid_branch(t.kind, branch)) or (t.level != 4 and branch != ""):
-				return false
-		if not number(t.pad, 0, 3, true) or not number(t.level, 1, max_tower_level, true) or not number(t.earnings) or not number(t.cooldown, 0, maxf(10.0, Balance.TUNING_FIELDS.towers.period.max)) or not number(t.angle, -TAU, TAU):
-			return false
-		var relic_id: Variant = t.get("relic", "")
-		if not relic_id is String or (relic_id != "" and (not inventory.has(relic_id) or equipped.has(relic_id))):
-			return false
-		if relic_id != "":
-			equipped[relic_id] = true
-		var socket := str(t.region) + "/" + str(int(t.pad))
-		if not t.get("target_mode", "first") is String or not Balance.TARGET_MODES.has(t.get("target_mode", "first")):
-			return false
-		if t.has("rebuild_remaining") and not number(t.rebuild_remaining, 0, Balance.MAX_REBUILD_SECONDS):
-			return false
-		if occupied.has(socket):
-			return false
-		occupied[socket] = true
 	# Parent links describe purchase history, not enemy routes. Validate them
 	# separately now that movement can also use non-parent neighbors.
 	var rooted := {"0,0": true}
@@ -316,3 +276,50 @@ func valid_boss_road(b: Dictionary, regions: Dictionary, seed_value: int = -1) -
 	var pos := Vector2(b.pos[0], b.pos[1])
 	var segment := int(b.segment)
 	return pos.distance_to(Geometry2D.get_closest_point_to_segment(pos, expected[segment-1], expected[segment])) <= 0.01
+
+# Shared tower/equipment validation for world snapshots and campaign setups.
+func valid_loadout(d: Dictionary, max_tower_level: int = 4) -> bool:
+	if not d.get("towers") is Dictionary or not d.get("regions") is Dictionary or not number(d.get("next_tower"), 1, 1.0e15, true) or not number(d.get("balance")): return false
+	const Relics = preload("res://scripts/gameplay/progression/relics.gd")
+	var inventory: Variant = d.get("relics", {})
+	if not inventory is Dictionary:
+		return false
+	for relic_id in inventory:
+		if not relic_id is String or not inventory[relic_id] is String or not Relics.DEFINITIONS.has(inventory[relic_id]):
+			return false
+		var parts: PackedStringArray = relic_id.split("#")
+		if parts.size() > 2 or not valid_coordinate(parts[0]) or (parts.size() == 2 and parts[1] != inventory[relic_id]):
+			return false
+	var equipped := {}
+	var occupied := {}
+	for id in d.towers:
+		var t = d.towers[id]
+		if not t is Dictionary or not id is String or not id.is_valid_int():
+			return false
+		if int(id) < 1 or str(int(id)) != id:
+			return false
+		for field in ["id", "kind", "region", "pad", "level", "earnings", "cooldown", "angle"]:
+			if not t.has(field):
+				return false
+		if t.id != id or int(id) >= d.next_tower or not Balance.TOWERS.has(t.kind) or not d.regions.has(t.region):
+			return false
+		if d.version == Balance.VERSION:
+			var branch: Variant = t.get("branch", "")
+			if not branch is String or (t.level == 4 and not Balance.valid_branch(t.kind, branch)) or (t.level != 4 and branch != ""):
+				return false
+		if not number(t.pad, 0, 3, true) or not number(t.level, 1, max_tower_level, true) or not number(t.earnings) or not number(t.cooldown, 0, maxf(10.0, Balance.TUNING_FIELDS.towers.period.max)) or not number(t.angle, -TAU, TAU):
+			return false
+		var relic_id: Variant = t.get("relic", "")
+		if not relic_id is String or (relic_id != "" and (not inventory.has(relic_id) or equipped.has(relic_id))):
+			return false
+		if relic_id != "":
+			equipped[relic_id] = true
+		var socket := str(t.region) + "/" + str(int(t.pad))
+		if not t.get("target_mode", "first") is String or not Balance.TARGET_MODES.has(t.get("target_mode", "first")):
+			return false
+		if t.has("rebuild_remaining") and not number(t.rebuild_remaining, 0, Balance.MAX_REBUILD_SECONDS):
+			return false
+		if occupied.has(socket):
+			return false
+		occupied[socket] = true
+	return true

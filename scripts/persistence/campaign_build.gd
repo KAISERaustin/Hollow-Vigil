@@ -17,10 +17,13 @@ static func encode(index: int, overrides: Dictionary, game: VigilState, title: S
 
 static func decode(code: String) -> Dictionary:
 	if code.to_utf8_buffer().size() > Stats.MAX_BYTES: return {}
-	var envelope: Variant = JSON.parse_string(code)
+	var parser := JSON.new()
+	if parser.parse(code) != OK: return {}
+	var envelope: Variant = parser.data
 	if not envelope is Dictionary or envelope.size() != 3 or envelope.get("format") != FORMAT or not envelope.get("payload") is String: return {}
 	if envelope.get("checksum") != envelope.payload.sha256_text(): return {}
-	var value: Variant = JSON.parse_string(envelope.payload)
+	if parser.parse(envelope.payload) != OK: return {}
+	var value: Variant = parser.data
 	return value if valid(value) else {}
 
 static func valid(value: Variant) -> bool:
@@ -35,7 +38,7 @@ static func valid(value: Variant) -> bool:
 	for key in ["towers", "next_tower", "relics", "balance"]:
 		if not value.loadout.has(key): return false
 		snapshot[key] = value.loadout[key]
-	if not VigilSaveStore.new().valid_data(snapshot): return false
+	if not VigilSaveStore.new().valid_loadout(snapshot): return false
 	for tower in snapshot.towers.values():
 		var allowed := false
 		for socket in run.mission.sockets:

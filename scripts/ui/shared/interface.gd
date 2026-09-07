@@ -18,6 +18,7 @@ const OBJECT_TITLE := 24
 const GAP := 12
 const PADDING := 16
 const TARGET := 48
+const TOOLBAR_BUTTON_SIZE := 50
 const SANS = preload("res://assets/fonts/NotoSans.ttf")
 const SERIF = preload("res://assets/fonts/NotoSerif.ttf")
 const text_scale := 1.0
@@ -300,8 +301,8 @@ static func toggle_button(enabled: bool, action: Callable) -> Button:
 	return control
 
 static func playback_button(action: Callable, fast_forward: bool = false) -> Button:
-	var control := button("", action, 32)
-	control.custom_minimum_size = Vector2(32, 32)
+	var control := button("", action, TOOLBAR_BUTTON_SIZE)
+	control.custom_minimum_size = Vector2.ONE * TOOLBAR_BUTTON_SIZE
 	control.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	control.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	control.draw.connect(func():

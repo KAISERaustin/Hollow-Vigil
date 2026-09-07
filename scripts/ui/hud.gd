@@ -51,7 +51,7 @@ func build_header() -> void:
 	toolbar.name = "HeaderToolbar"
 	toolbar.add_theme_constant_override("separation", 12)
 	header.add_child(toolbar)
-	var settings := UI.button("", func(): settings_requested.emit(), 50)
+	var settings := UI.button("", func(): settings_requested.emit(), UI.TOOLBAR_BUTTON_SIZE)
 	settings.name = "SettingsButton"
 	settings.accessibility_description = "Settings"
 	settings.accessibility_name = "Settings"
@@ -66,12 +66,12 @@ func build_header() -> void:
 		settings.draw_polyline(outline, UI.TEXT, 2.0, true)
 		settings.draw_arc(center, 4.0, 0.0, TAU, 24, UI.TEXT, 2.0, true)
 	)
-	settings.custom_minimum_size.x = 50
+	settings.custom_minimum_size.x = UI.TOOLBAR_BUTTON_SIZE
 	settings.size_flags_horizontal = Control.SIZE_FILL
 	toolbar.add_child(settings)
-	pause_button = UI.button("", func(): pause_requested.emit(), 50)
+	pause_button = UI.button("", func(): pause_requested.emit(), UI.TOOLBAR_BUTTON_SIZE)
 	pause_button.name = "PauseButton"
-	pause_button.custom_minimum_size.x = 50
+	pause_button.custom_minimum_size.x = UI.TOOLBAR_BUTTON_SIZE
 	pause_button.size_flags_horizontal = Control.SIZE_FILL
 	pause_button.draw.connect(func():
 		var center := pause_button.size * 0.5
@@ -82,9 +82,9 @@ func build_header() -> void:
 				pause_button.draw_rect(Rect2(center + Vector2(x, -10), Vector2(5, 20)), UI.TEXT)
 	)
 	toolbar.add_child(pause_button)
-	speed_button = UI.button("2x", func(): speed_requested.emit(), 50)
+	speed_button = UI.button("2x", func(): speed_requested.emit(), UI.TOOLBAR_BUTTON_SIZE)
 	speed_button.name = "SpeedButton"
-	speed_button.custom_minimum_size.x = 50
+	speed_button.custom_minimum_size.x = UI.TOOLBAR_BUTTON_SIZE
 	speed_button.size_flags_horizontal = Control.SIZE_FILL
 	speed_button.toggle_mode = true
 	toolbar.add_child(speed_button)

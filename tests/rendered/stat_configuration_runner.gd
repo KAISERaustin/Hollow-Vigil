@@ -52,13 +52,8 @@ func run() -> void:
 	controls.inputs.hp.value = 555.0
 	check(app.game.tuning.enemies.basic.hp == 444.0, "Editing a copy leaves active Survival rules unchanged")
 	menu.stat_browser.show_page()
-	menu.find_child("ImportStatConfiguration", true, false).pressed.emit()
-	menu.find_child("StatImportCode", true, false).text = "broken"
-	menu.find_child("ConfirmStatImport", true, false).pressed.emit()
-	check(menu.message.text.begins_with("Invalid") and menu.slots.stat_configurations().size() == 1, "Malformed import shows error and preserves library")
-	menu.find_child("StatImportCode", true, false).text = code
-	menu.find_child("ConfirmStatImport", true, false).pressed.emit()
-	check(menu.slots.stat_configurations().size() == 2, "Import creates an independent configuration")
+	check(menu.find_child("ImportStatConfiguration", true, false) == null, "Stats selection does not require pasted codes")
+	check(menu.find_child("CommunityConfigurations", true, false) != null and menu.find_child("OfflineConfigurations", true, false) != null, "Stats offers local and community sources")
 	for slot in range(3):
 		for suffix in ["", ".tmp", ".bak"]: DirAccess.remove_absolute(menu.slots.path_for(slot) + suffix)
 	var directory := DirAccess.open(menu.slots.configurations_path())

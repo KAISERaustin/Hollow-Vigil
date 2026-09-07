@@ -279,7 +279,7 @@ func show_export(source: VigilState = null, campaign: Dictionary = {}, return_to
 	includes.add_item("Stats only")
 	includes.item_selected.connect(func(index: int): export_stats_only = index == 1)
 	content.add_child(includes)
-	content.add_child(UI.heading("Build name", 18))
+	content.add_child(UI.heading("Title", 18))
 	var title := LineEdit.new()
 	title.name = "SetupName"
 	title.placeholder_text = "For example, Stronger enemies"
@@ -312,7 +312,7 @@ func save_build(title: LineEdit, description: TextEdit, publish: bool) -> void:
 	var build_name := title.text.strip_edges()
 	var details := description.text
 	if build_name.is_empty() or details.length() > 4000:
-		message.text = "Enter a build name and keep the description to 4,000 characters or fewer."
+		message.text = "Enter a title and keep the description to 4,000 characters or fewer."
 		scroll.scroll_vertical = 0
 		return
 	var code: String

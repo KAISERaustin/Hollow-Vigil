@@ -4,6 +4,7 @@ class Catalog extends Node:
 	signal changed
 	var configuration: Dictionary
 	var fail := false
+	var outbox: Array = []
 	func list_page(page: int) -> Dictionary:
 		if fail: return {"ok": false}
 		var rows := []
@@ -28,10 +29,7 @@ func run() -> void:
 	var catalog := Catalog.new()
 	root.add_child(catalog)
 	app.public_builds = catalog
-	app.panels.show_settings()
-	var open := app.panels.find_child("OpenPublicBuilds", true, false)
-	check(open != null, "Settings exposes Public Builds")
-	open.pressed.emit()
+	check(app.show_save_slots(), "Saved games opens the community entry point")
 	var menu: Control = app.slot_menu
 	menu.slots.base_path = "user://public-build-ui-%d" % Time.get_ticks_usec()
 	var source := VigilState.new()
@@ -46,11 +44,11 @@ func run() -> void:
 		check(menu.find_child("SelectPublicBuild0", true, false) != null, "Public selection available")
 		var back: Button = menu.header.get_child(0)
 		check(back.text == "←" and back.accessibility_name == "Back to new game", "Public browser uses accessible header back arrow")
-		var header_position: Vector2 = back.global_position
 		menu.scroll.scroll_vertical = 100
 		await frame()
-		check(back.global_position == header_position, "Back arrow stays visible while builds scroll")
 		menu.scroll.scroll_vertical = 0
+		await frame()
+		check(menu.card.get_global_rect().encloses(back.get_global_rect()), "Back navigation is reachable at the top of the shared scrolling page")
 		if not DisplayServer.get_name() == "headless":
 			await RenderingServer.frame_post_draw
 			root.get_texture().get_image().save_png("res://artifacts/public-builds-%d.png" % viewport.x)

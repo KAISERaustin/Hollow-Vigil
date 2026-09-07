@@ -2,6 +2,7 @@ class_name Battlefield
 extends Control
 
 const RegionQuery = preload("res://scripts/rendering/terrain/region_query.gd")
+const CameraFraming = preload("res://scripts/rendering/camera_framing.gd")
 
 const AttackEffects = preload("res://scripts/rendering/effects/attack_effects.gd")
 
@@ -17,6 +18,7 @@ signal tower_selection_changed
 
 var state: VigilState
 var camera := Vector2.ZERO
+var camera_framing := CameraFraming.new()
 var zoom := 1.0
 var unrestricted_camera := false
 var show_health_numbers := false
@@ -25,6 +27,7 @@ var selected_tower := "":
 		var changed := selected_tower != value
 		selected_tower = value
 		if changed:
+			camera_framing.cancel()
 			tower_selection_changed.emit()
 		queue_redraw()
 var selected_pad := -1
@@ -92,6 +95,7 @@ func on_tower_upgraded(region: String, pad: int, kind: String) -> void:
 var simulation_rate := 1.0
 
 func _process(delta: float) -> void:
+	advance_camera_framing(delta)
 	enforce_camera_limits()
 	bind_upgrade_effects()
 	if upgrade_poofs.is_empty():
@@ -120,6 +124,29 @@ func screen(pos: Vector2) -> Vector2:
 
 func world(pos: Vector2) -> Vector2:
 	return (pos - size * 0.5) / zoom + camera
+
+func frame_world_rect(content: Rect2, available: Rect2) -> void:
+	if content.size.x <= 0.0 or content.size.y <= 0.0 or available.size.x <= 0.0 or available.size.y <= 0.0:
+		return
+	# Preserve zoom unless the subject is physically larger than the viewport.
+	var fit_zoom := minf(available.size.x / content.size.x, available.size.y / content.size.y)
+	var destination_zoom := minf(zoom, maxf(0.01 if unrestricted_camera else minimum_zoom(), fit_zoom))
+	var on_screen := Rect2((content.position - camera) * destination_zoom + size * 0.5, content.size * destination_zoom)
+	var destination := camera + CameraFraming.correction(on_screen, available) / destination_zoom
+	if not unrestricted_camera:
+		var bounds := camera_bounds()
+		var half_view := size / (2.0 * destination_zoom)
+		destination = destination.clamp(bounds.position + half_view, bounds.end - half_view)
+	camera_framing.begin(camera, destination, zoom, destination_zoom)
+
+func advance_camera_framing(delta: float) -> void:
+	if not camera_framing.active:
+		return
+	camera = camera_framing.advance(delta)
+	zoom = camera_framing.zoom
+	enforce_camera_limits()
+	camera_changed.emit()
+	queue_redraw()
 
 # Use an envelope so protruding tiles never produce restrictive corner cutouts.
 func camera_bounds() -> Rect2:
@@ -150,6 +177,7 @@ func set_unrestricted_camera(enabled: bool) -> void:
 	enforce_camera_limits()
 
 func set_zoom(value: float, pivot: Vector2) -> void:
+	camera_framing.cancel()
 	var before := world(pivot)
 	zoom = clampf(value, 0.01, 100.0) if unrestricted_camera else clampf(value, minimum_zoom(), maxf(1.65, minimum_zoom()))
 	camera += before - world(pivot)
@@ -168,6 +196,7 @@ func _on_gui_input(event: InputEvent) -> void:
 			set_zoom(zoom / 1.1, event.position)
 		elif event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
+				camera_framing.cancel()
 				mouse_down = true
 				dragged = false
 				start = event.position
@@ -186,6 +215,7 @@ func _on_gui_input(event: InputEvent) -> void:
 		previous = event.position
 	elif event is InputEventScreenTouch:
 		if event.pressed:
+			camera_framing.cancel()
 			touches[event.index] = event.position
 			if touches.size() == 1:
 				start = event.position

@@ -1,4 +1,4 @@
-extends RefCounted
+extends Node
 ## Shared local/community catalog for any portable configuration family.
 const UI = preload("res://scripts/ui/shared/interface.gd")
 var menu: Control
@@ -12,7 +12,7 @@ func show_page(community: bool = false, page: int = 0) -> void:
 	menu.clear("Community stats" if community and kind.ends_with("stats") else "Choose stats" if kind.ends_with("stats") else "Choose campaign build")
 	var revision: int = menu.view_revision
 	menu.add_back(UI.button("Back", back))
-	menu.content.add_child(UI.paragraph("Choose a configuration by its title and description. Stats start a fresh game; builds also include towers and equipment.", 14))
+	menu.content.add_child(UI.paragraph("Choose gameplay rules for a fresh start, with no towers or progress." if kind.ends_with("stats") else "Choose a campaign setup with towers, equipment and gameplay rules.", 14))
 	var sources := HBoxContainer.new()
 	menu.content.add_child(sources)
 	for source in [false, true]:

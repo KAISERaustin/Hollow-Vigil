@@ -165,10 +165,8 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 				var world := VigilWorld.pad_position("0,0", pad)
 				for edge in [Vector2(4, 4), Vector2(app.field.size.x - 4, 4), app.field.size - Vector2(4, 4), Vector2(4, app.field.size.y - 4), app.field.size * 0.5]:
 					app.field.camera = world - (edge - app.field.size * 0.5) / zoom
-					var before_camera: Vector2 = app.field.camera
 					app.panels.select_pad("0,0", pad)
 					await app.get_tree().process_frame
-					check(app.field.camera.is_equal_approx(before_camera) and app.field.zoom == zoom, "Selecting a tower moved or zoomed the camera", failures)
 					check_layout(app, reference_layout, failures)
 				app.field.camera += Vector2(12, 8)
 				app.tower_actions.refresh()
@@ -231,7 +229,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 	await app.get_tree().process_frame
 	await app.get_tree().process_frame
 	app.set_process(true)
-	print("TOWER_CONTROLS: tower-relative actions, hidden gold badges during selection and dialogs, click-away restoration and collection, no selection camera movement, mouse/touch at four zooms and three viewport sizes, stable HUD, centered modals, upgrade, sale and persistence checked")
+	print("TOWER_CONTROLS: tower-relative actions, hidden gold badges during selection and dialogs, click-away restoration and collection, mouse/touch at four zooms and three viewport sizes, stable HUD, centered modals, upgrade, sale and persistence checked")
 
 static func check_layout(app: Control, reference_layout: Dictionary, failures: Array[String]) -> void:
 	var tower: Dictionary = app.game.data.towers[app.field.selected_tower]
