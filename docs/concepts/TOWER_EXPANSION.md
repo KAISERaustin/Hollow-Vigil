@@ -1,10 +1,10 @@
 # Four additional tower families
 
-September 7, 2026 · Visual concepts for review · Mechanics and figures are proposals, not playable content or tested balance.
+September 7, 2026 · Visual concepts for review · This brief records the proposed designs; its figures are playtest candidates, not a balance certification or implementation status report.
 
 ![Four level-one tower concepts beside the existing roster](tower-expansion/level-one-concepts.png)
 
-The current playable catalog contains Ashneedle (rapid single-target darts), Pyre (area blasts), Obelisk (heavy single-target orbs), and Stormspire (up to five lightning targets). Their branches already cover slowing, poison, burning ground, knockback, seeking fragments, repeated-hit curses, lightning arcs, and charged stuns. These four proposals add different decisions: line alignment, return trajectories, team damage support, and storing damage on a road before enemies arrive.
+The original four-tower lineup consists of Ashneedle (rapid single-target darts), Pyre (area blasts), Obelisk (heavy single-target orbs), and Stormspire (up to five lightning targets). Their branches already cover slowing, poison, burning ground, knockback, seeking fragments, repeated-hit curses, lightning arcs, and charged stuns. These four concepts add different decisions: line alignment, return trajectories, team damage support, and storing damage on a road before enemies arrive.
 
 The proposal follows the existing progression: **level 1 → level 2 → level 3 → choose one of two permanent level-4 branches**. Level 4 remains the cap. Each new family would use the same placement sockets, gold, targeting controls, equipment ownership, relocation, and save rules as the existing towers.
 
@@ -89,7 +89,7 @@ Damage, range and cycle upgrades beyond level one should be tuned using the exis
 
 ## Reusable implementation plan after concept selection
 
-All four inherit the shared Tower content node and plus-sign placement rules. The current `scripts/content/catalogs/towers.gd` remains unchanged by this proposal. Add definitions there only when implementing playable content; the registry would supply their inherited level nodes and permanent branch nodes.
+All four inherit the shared Tower content node and plus-sign placement rules. Playable definitions belong in `scripts/content/catalogs/towers.gd`; the registry supplies their inherited level nodes and permanent branch nodes. The preview renderer is separate from that catalog, so reviewing or regenerating these sheets does not register gameplay content.
 
 Compose the new capabilities as reusable attribute/component objects, with configuration separate from live state:
 
