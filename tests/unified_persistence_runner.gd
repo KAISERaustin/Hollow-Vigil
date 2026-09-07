@@ -161,7 +161,9 @@ func test_wave_and_equipment() -> void:
 	check(not partial.is_empty(), "Incompatible group count remains readable for review")
 	check(not Build.compose_campaign(partial, {}).ok, "Timing cannot silently replace enemy composition")
 	var selected := {"timing": true, "composition": true, "resources": true, "rewards": true, "layout": true}
+	check(Build.capture("campaign", level.game, levels, "level", 0, {"layout": true}, "Layout only", "").is_empty(), "Campaign cannot export only layout or equipment")
 	var build := Build.capture("campaign", level.game, levels, "level", 0, selected, "Wave and layout", "")
+	check(selected.has("layout") and level.game.data.relics == {"0,0": "warden"}, "Export filtering leaves source contents and owned equipment untouched")
 	check(not build.is_empty() and not build.contents.has("layout"), "Campaign export strips requested layout while keeping wave content")
 	if not build.is_empty():
 		var composed := Build.compose_campaign(Build.decode(Build.encode(build)), {})

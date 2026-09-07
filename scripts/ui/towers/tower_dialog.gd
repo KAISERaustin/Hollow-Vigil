@@ -73,10 +73,10 @@ func _ready() -> void:
 	header_close = UI.close_button(func():
 		if mode == "equipment_detail": open_action("equipment")
 		else: dismiss()
-	, 44)
+	, UI.TARGET)
 	header_close.name = "CloseEquipment"
 	header_close.accessibility_description = "Close"
-	header_close.custom_minimum_size.x = 44
+	header_close.custom_minimum_size.x = UI.TARGET
 	header_close.size_flags_horizontal = Control.SIZE_SHRINK_END
 	header_close.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	identity.add_child(header_close)

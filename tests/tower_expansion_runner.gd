@@ -62,7 +62,10 @@ func transactions() -> void:
 			var socket: int = campaign.mission.sockets[0].index
 			check(campaign.build(socket, kind), "Campaign builds " + kind)
 			check(campaign.upgrade(socket) and campaign.upgrade(socket) and campaign.upgrade(socket, branch), "Campaign progression " + branch)
-			check(campaign.game.storage.valid_data(campaign.game.data), "Campaign tower data valid " + branch)
+			var checkpoint := campaign.checkpoint()
+			check(Campaign.valid_checkpoint(checkpoint), "Campaign checkpoint valid " + branch)
+			var restored = Campaign.from_checkpoint(checkpoint)
+			check(restored != null and restored.game.data.towers.values()[0].branch == branch, "Campaign checkpoint roundtrip " + branch)
 
 func piercing() -> void:
 	var g := setup("ironspike")
@@ -76,12 +79,11 @@ func piercing() -> void:
 	check(victims[3].hp == 10000.0 and off_lane.hp == 10000.0, "Pierce cap and lane collision exclude other enemies")
 	check(g.combat.line_projectiles.is_empty(), "Completed straight projectile expires")
 	g = setup("ironspike", 4, "needle_battery")
-	var target := enemy(g, Vector2(90, -30))
 	g.set_tower_tier_stat("ironspike:needle_battery", "projectile_width", 40.0)
+	var target := enemy(g, Vector2(90, -30))
 	fire_component(g, target)
 	check(g.combat.line_projectiles.size() == 3, "Battery launches three parallel projectiles")
 	Lines.advance(g.combat, 1.0)
-	print("BATTERY DEBUG hp=", target.hp, " stats=", Balance.tower_stats(g.data.towers["1"], g.tuning))
 	check(is_equal_approx(target.hp, 9972.0), "Overlapping volley hits one victim only once")
 	g = setup("ironspike", 4, "siegebreaker")
 	target = enemy(g, Vector2(60, -30))
