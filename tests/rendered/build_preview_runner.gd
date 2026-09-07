@@ -18,6 +18,36 @@ func frame() -> void:
 		await process_frame
 	await RenderingServer.frame_post_draw
 
+func initial_preview(host: Control, select: Callable, close: Callable, label: String) -> void:
+	var field: Battlefield = host.field
+	field.set_process(false)
+	var funds: float = host.game.data.balance
+	var towers: int = host.game.data.towers.size()
+	# The initial marker also appears when the first tower is unaffordable.
+	host.game.data.balance = 0
+	select.call()
+	await frame()
+	var cards: Node = host.find_child("TowerCards", true, false).get_node("Cards")
+	var first_kind: String = cards.get_child(0).get_meta("tower_kind")
+	var portrait: Node2D = field.build_preview.portrait
+	check(field.preview_kind == first_kind, label + " immediately previews the first listed tower")
+	check(is_instance_valid(portrait) and portrait.is_visible_in_tree(), label + " renders preview before choosing a card")
+	check(is_equal_approx(portrait.self_modulate.a, 0.7), label + " renders at 70 percent opacity")
+	var position := VigilWorld.pad_position(field.selected_region, field.selected_pad)
+	check(portrait.position.is_equal_approx(field.screen(position)), label + " places preview at the clicked socket")
+	check(portrait.scale.is_equal_approx(Vector2.ONE * field.zoom), label + " scales preview with the battlefield")
+	check(host.game.data.balance == 0 and host.game.data.towers.size() == towers, label + " initial preview never builds or spends")
+	var menu: Control = field.build_preview.menu
+	check(menu.find_child("TowerDetails", true, false) == null, label + " leaves the icon picker open")
+	if label.ends_with("390"):
+		for step in range(40):
+			field._process(1.0 / 60.0)
+			await frame()
+		root.get_texture().get_image().save_png("res://artifacts/initial-build-preview-%s.png" % label)
+	close.call()
+	check(not portrait.visible and field.preview_kind.is_empty(), label + " closing clears the preview")
+	host.game.data.balance = funds
+
 func exercise(host: Control, select: Callable, close: Callable, menu: Control, label: String) -> void:
 	var field: Battlefield = host.field
 	field.set_process(false)
@@ -77,6 +107,15 @@ func run() -> void:
 	app.game.data.balance = 100000
 	app.game.expand("1,0")
 	await frame()
+	for mode in ["creative", "survival"]:
+		app.game.data.mode = mode
+		for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
+			root.size = viewport
+			root.content_scale_size = viewport
+			await frame()
+			app.panels.selection_kind = "heavy"
+			await initial_preview(app, func(): app.panels.select_pad("0,0", 1), app.panels.close_sheet, "infinite-%s-%d" % [mode, viewport.x])
+			await initial_preview(app, func(): app.panels.select_pad("1,0", 2), app.panels.close_sheet, "infinite-%s-other-%d" % [mode, viewport.x])
 	await exercise(app, func(): app.panels.select_pad("0,0", 1), app.panels.close_sheet, app.panels, "infinite")
 	app.panels.select_pad("0,0", 1)
 	await frame()
@@ -90,6 +129,15 @@ func run() -> void:
 	app.show_campaign()
 	var campaign: Control = app.campaign
 	campaign.set_process(false)
+	for mode in ["creative", "survival"]:
+		campaign.mode = mode
+		campaign.start_mission(0)
+		for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
+			root.size = viewport
+			root.content_scale_size = viewport
+			await frame()
+			await initial_preview(campaign, func(): campaign.show_socket(campaign.run.mission.sockets[1].index), campaign.close_dialog, "campaign-%s-%d" % [mode, viewport.x])
+			await initial_preview(campaign, func(): campaign.show_socket(campaign.run.mission.sockets[2].index), campaign.close_dialog, "campaign-%s-other-%d" % [mode, viewport.x])
 	campaign.start_mission(0)
 	await frame()
 	var socket: int = campaign.run.mission.sockets[1].index

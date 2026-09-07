@@ -37,15 +37,28 @@ func minimum_zoom(field: Control, normal: float) -> float:
 	var bounds: Rect2 = field.camera_bounds()
 	return maxf(field.size.x / bounds.size.x, field.size.y / bounds.size.y)
 
-static func menu_height(field: Control, content_height: float = 0.0) -> float:
-	# Fit tower information while retaining a preview above the sheet. The host
-	# still bounds unusual future content to its available battlefield/safe area.
-	return maxf(clampf(field.size.y * 0.5, 260.0, 380.0), content_height)
+func camera_padding(field: Control) -> float:
+	if not is_instance_valid(menu) or not menu.is_visible_in_tree():
+		return 0.0
+	# A content-sized menu can leave a short preview on small phones. Derive its
+	# temporary camera margin from the same subject and viewport used for framing.
+	var available := preview_area(field)
+	var subject := preview_bounds(field)
+	if not available.has_area() or not subject.has_area():
+		return 2.0 * Balance.TILE
+	var fit_zoom := minf(available.size.x / subject.size.x, available.size.y / subject.size.y)
+	return maxf(2.0 * Balance.TILE, maxf(field.size.x, field.size.y) / fit_zoom)
 
-func camera_padding() -> float:
-	# Tall cards leave a smaller preview area on short phones. A temporary margin
-	# lets the shared camera fit long-range towers while keeping its bounds valid.
-	return 2.0 * Balance.TILE if is_instance_valid(menu) and menu.is_visible_in_tree() else 0.0
+func preview_area(field: Control) -> Rect2:
+	var available := Rect2(Vector2.ZERO, field.size).grow(-10.0)
+	available.size.y = minf(available.end.y, menu.global_position.y - field.global_position.y - 10.0) - available.position.y
+	return available
+
+func preview_bounds(field: Control) -> Rect2:
+	var center := VigilWorld.pad_position(field.selected_region, field.selected_pad)
+	var radius: float = field.selected_range()
+	var bounds := Rect2(center - Vector2.ONE * radius, Vector2.ONE * radius * 2.0)
+	return bounds.merge(Rect2(center + Vector2(-30, -55), Vector2(60, 75)))
 
 func refresh(field: Control) -> void:
 	if not is_instance_valid(menu):
@@ -53,8 +66,7 @@ func refresh(field: Control) -> void:
 	if not menu.is_visible_in_tree() or field.selected_pad < 0 or field.selected_tower != "":
 		clear(field)
 		return
-	var available := Rect2(Vector2.ZERO, field.size).grow(-10.0)
-	available.size.y = minf(available.end.y, menu.global_position.y - field.global_position.y - 10.0) - available.position.y
+	var available := preview_area(field)
 	var radius: float = field.selected_range()
 	if radius <= 0.0 or available.size.y <= 0.0:
 		return
@@ -62,10 +74,7 @@ func refresh(field: Control) -> void:
 	if next == signature:
 		return
 	signature = next
-	var center := VigilWorld.pad_position(field.selected_region, field.selected_pad)
-	var bounds := Rect2(center - Vector2.ONE * radius, Vector2.ONE * radius * 2.0)
-	bounds = bounds.merge(Rect2(center + Vector2(-30, -55), Vector2(60, 75)))
-	field.frame_world_rect(bounds, available)
+	field.frame_world_rect(preview_bounds(field), available)
 
 func draw(field: Control) -> void:
 	if not is_instance_valid(portrait):

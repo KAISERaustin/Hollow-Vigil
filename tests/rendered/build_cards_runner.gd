@@ -40,6 +40,8 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	var cards := scroll.get_node("Cards")
 	var funds: float = host.game.data.balance
 	var count: int = host.game.data.towers.size()
+	var initial_kind: String = cards.get_child(0).get_meta("tower_kind")
+	check(host.field.preview_kind == initial_kind, label + " opening previews the first listed tower")
 	check(cards.get_child_count() == Balance.TOWERS.size(), label + " includes the complete catalog")
 	check(menu.size.y < 300, label + " fits a compact menu")
 	check(not confirm.is_visible_in_tree(), label + " picker has no Build action before selection")
@@ -51,7 +53,7 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	var overflow := scroll.get_h_scroll_bar().max_value > scroll.get_h_scroll_bar().page
 	await swipe(start, -180)
 	check(scroll.scroll_horizontal > 0 if overflow else scroll.scroll_horizontal == 0, label + " swipes left when the catalog overflows")
-	check(host.field.preview_kind.is_empty() and host.game.data.balance == funds, label + " swipe does not select or spend")
+	check(host.field.preview_kind == initial_kind and host.game.data.balance == funds, label + " swipe preserves the initial preview without spending")
 	var offset := scroll.scroll_horizontal
 	await swipe(scroll.global_position + Vector2(24, 45), 180)
 	check(scroll.scroll_horizontal < offset if overflow else scroll.scroll_horizontal == 0, label + " swipes right when the catalog overflows")

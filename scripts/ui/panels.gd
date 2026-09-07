@@ -2,7 +2,6 @@ class_name VigilPanels
 extends PanelContainer
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
-const BuildPreview = preload("res://scripts/rendering/build_preview.gd")
 const DeveloperControls = preload("res://scripts/ui/developer/developer_controls.gd")
 var app: VigilApp
 var game: VigilState:
@@ -170,8 +169,6 @@ func fit_sheet() -> void:
 	if app.size.y >= 700.0:
 		top = maxf(140.0, top)
 	self.size.y = minf(desired_height, bottom - top)
-	if mode == "build":
-		self.size.y = minf(self.size.y, BuildPreview.menu_height(field, desired_height))
 	self.position.y = bottom - self.size.y
 	UI.trap_focus(self)
 

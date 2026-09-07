@@ -61,7 +61,7 @@ func minimum_zoom() -> float:
 	return build_preview.minimum_zoom(self, maxf(overview_zoom(), maxf(size.x / bounds.size.x, size.y / bounds.size.y)))
 
 func camera_bounds() -> Rect2:
-	return trail_bounds.grow(300 + build_preview.camera_padding())
+	return trail_bounds.grow(300 + build_preview.camera_padding(self))
 
 func reset_view() -> void:
 	camera = trail_bounds.get_center()

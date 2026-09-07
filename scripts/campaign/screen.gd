@@ -1,7 +1,6 @@
 extends ColorRect
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
-const BuildPreview = preload("res://scripts/rendering/build_preview.gd")
 const Catalog = preload("res://scripts/campaign/catalog.gd")
 const Configuration = preload("res://scripts/campaign/configuration.gd")
 const Run = preload("res://scripts/campaign/run.gd")
@@ -203,7 +202,6 @@ func fit() -> void:
 			var height := dialog_card.get_combined_minimum_size().y + dialog_body.get_combined_minimum_size().y
 			if is_instance_valid(board) and board.size.x > 16 and board.size.y > 16:
 				bounds = Rect2(board.global_position - global_position, board.size).grow(-8).intersection(safe)
-				height = minf(height, BuildPreview.menu_height(board, height))
 			dialog_card.size = Vector2(minf(470, bounds.size.x), minf(bounds.size.y, height))
 			dialog_card.position = Vector2(bounds.get_center().x - dialog_card.size.x * 0.5, bounds.end.y - dialog_card.size.y)
 		else:
