@@ -196,9 +196,11 @@ func fit() -> void:
 			dialog_card.size.y = minf(safe.size.y, dialog_card.get_combined_minimum_size().y + dialog_body.get_combined_minimum_size().y)
 		if socket_dialog:
 			var bounds := safe
+			var height := 400.0
 			if is_instance_valid(board) and board.size.x > 16 and board.size.y > 16:
 				bounds = Rect2(board.global_position - global_position, board.size).grow(-8).intersection(safe)
-			dialog_card.size = Vector2(minf(470, bounds.size.x), minf(400, minf(bounds.size.y, board.build_preview.menu_height(board))))
+				height = minf(height, board.build_preview.menu_height(board))
+			dialog_card.size = Vector2(minf(470, bounds.size.x), minf(bounds.size.y, height))
 			dialog_card.position = Vector2(bounds.get_center().x - dialog_card.size.x * 0.5, bounds.end.y - dialog_card.size.y)
 		else:
 			dialog_card.position = safe.position + (safe.size - dialog_card.size) * 0.5
@@ -369,12 +371,12 @@ func show_map() -> void:
 	clear_page("map")
 	if active_campaign_slot >= 0:
 		persist_slot()
-		var heading := header(campaign_save.name, app.show_game_menu)
+		var heading := header(campaign_save.name, app.slot_menu.open_saved_games)
 		var back: Button = heading.get_child(0)
-		back.text = "Menu"
+		back.text = "Saved Games"
 		back.autowrap_mode = TextServer.AUTOWRAP_OFF
-		back.accessibility_name = "Menu"
-		back.name = "GameMenuButton"
+		back.accessibility_name = "Saved Games"
+		back.name = "CampaignSavedGames"
 		heading.move_child(back, heading.get_child_count() - 1)
 	else: header("The Last Procession", show_setup)
 	var cleared := int(progress.data.completed_levels)

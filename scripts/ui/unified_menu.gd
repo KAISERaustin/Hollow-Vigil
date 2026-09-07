@@ -434,6 +434,10 @@ func mark_backup_pending() -> void:
 func live_campaign() -> bool:
 	return is_instance_valid(app.campaign) and app.campaign.active_campaign_slot >= 0
 
+func open_saved_games() -> void:
+	open_game_menu()
+	if release_session(): show_slots()
+
 func open_game_menu() -> void:
 	if not held:
 		game_type = "campaign" if live_campaign() else "infinite"

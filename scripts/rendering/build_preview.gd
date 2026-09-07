@@ -17,13 +17,20 @@ func clear(field: Control) -> void:
 	field.preview_kind = ""
 	field.queue_redraw()
 
-static func menu_height(field: Control) -> float:
-	# Reserve enough map for every catalog choice, so selecting does not resize
-	# the list beneath the player's finger. Short screens scroll the list.
-	var radius := 55.0
-	for kind in Balance.TOWERS:
-		radius = maxf(radius, Balance.Content.tower(kind).stats(1, field.state.tuning).range)
-	return maxf(150.0, field.size.y - radius * 2.0 * field.minimum_zoom() - 44.0)
+func minimum_zoom(field: Control, normal: float) -> float:
+	if not is_instance_valid(menu) or not menu.is_visible_in_tree():
+		return normal
+	# The menu occupies part of the view, so allow a wider overview while it is
+	# open, still keeping the complete viewport inside the map's camera bounds.
+	var bounds: Rect2 = field.camera_bounds()
+	return maxf(field.size.x / bounds.size.x, field.size.y / bounds.size.y)
+
+func menu_height(field: Control) -> float:
+	# Stable list height across choices, with at least one complete card visible.
+	return clampf(field.size.y * 0.5, 220.0, 380.0)
+
+func camera_padding() -> float:
+	return Balance.TILE if is_instance_valid(menu) and menu.is_visible_in_tree() else 0.0
 
 func refresh(field: Control) -> void:
 	if not is_instance_valid(menu):

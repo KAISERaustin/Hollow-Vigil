@@ -163,7 +163,7 @@ func camera_bounds() -> Rect2:
 
 func minimum_zoom() -> float:
 	var bounds := camera_bounds()
-	return maxf(minf(size.x, size.y) / (2.0 * Balance.TILE), maxf(size.x / bounds.size.x, size.y / bounds.size.y))
+	return build_preview.minimum_zoom(self, maxf(minf(size.x, size.y) / (2.0 * Balance.TILE), maxf(size.x / bounds.size.x, size.y / bounds.size.y)))
 
 func enforce_camera_limits() -> void:
 	if unrestricted_camera or state == null or size.x <= 0.0 or size.y <= 0.0:

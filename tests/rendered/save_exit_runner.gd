@@ -95,6 +95,7 @@ func check_campaign_exit() -> void:
 		await press("BeginCampaignMission")
 	check(app.campaign.page == "battle", "Exercise save failure inside Campaign battle")
 	var before := FileAccess.get_file_as_string(menu.campaign_slots.path_for(0))
+	var was_paused: bool = app.campaign.paused
 	app.campaign.campaign_save.name = ""
 	app.show_game_menu()
 	await press("ExitGame")
@@ -102,7 +103,7 @@ func check_campaign_exit() -> void:
 	check_exit_popup_fit()
 	await press("CancelConfirmation")
 	await press("ResumeGame")
-	check(is_instance_valid(app.campaign) and not menu.visible and not app.campaign.paused, "Cancel resumes Campaign")
+	check(is_instance_valid(app.campaign) and not menu.visible and app.campaign.paused == was_paused, "Cancel returns to Campaign with its previous pause state")
 	app.show_game_menu()
 	await press("ExitGame")
 	await press("ConfirmAction")
