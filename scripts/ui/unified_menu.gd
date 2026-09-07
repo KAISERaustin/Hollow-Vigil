@@ -155,7 +155,7 @@ func show_slots() -> void:
 			body.add_child(remove)
 
 func leave_saved_games() -> void:
-	if held and not release_session(): return
+	if not release_session(): return
 	show_main_menu()
 
 func confirm_slot_deletion(type: String, slot: int) -> void:
