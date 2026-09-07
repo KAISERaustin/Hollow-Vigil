@@ -57,6 +57,7 @@ func run() -> void:
 		app.panels.select_pad("0,0", 1)
 		await settle()
 		var choices := app.panels.sheet_content.get_child(0)
+		root.get_texture().get_image().save_png("res://artifacts/infinite-build-" + str(viewport.x) + ".png")
 		check(choices.get_child_count() == Balance.TOWERS.size(), "missing build choices")
 		var build_close := app.panels.find_child("CloseSheet", true, false)
 		var build_revision := app.panels.sheet_revision

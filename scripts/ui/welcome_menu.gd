@@ -10,7 +10,7 @@ var subtitle: Label
 var caption: Label
 var footer_rule: Control
 
-func configure(campaign: Callable, infinite: Callable) -> void:
+func configure(campaign: Callable, infinite: Callable, settings: Callable) -> void:
 	name = "WelcomeMenu"
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -45,6 +45,9 @@ func configure(campaign: Callable, infinite: Callable) -> void:
 	infinite_button.name = "OpenInfinite"
 	infinite_button.accessibility_description = "Open your saved worlds or begin a new one."
 	modes.add_child(infinite_button)
+	var settings_button := UI.gold_button("Settings", settings, 56)
+	settings_button.name = "MainSettings"
+	modes.add_child(settings_button)
 	battlefield = Illustration.new()
 	battlefield.illustration = "battlefield"
 	add_child(battlefield)
@@ -63,7 +66,7 @@ func arrange() -> void:
 	var width := size.x
 	var height := size.y
 	# Anchor the composition to the buttons, with bounded gaps on tall screens.
-	var modes_top := height * 0.5 - 63
+	var modes_top := height * 0.5 - 98
 	var title_top := modes_top - 98
 	var crest_height := minf(180, height * 0.22)
 	crest.position = Vector2(0, title_top + 8 - crest_height)
@@ -74,10 +77,11 @@ func arrange() -> void:
 	subtitle.position = Vector2(0, title_top + 52)
 	subtitle.size = Vector2(width, 24)
 	var button_width := minf(320, width - 16)
-	modes.size = Vector2(button_width, 126)
+	var buttons_height := modes.get_combined_minimum_size().y
+	modes.size = Vector2(button_width, buttons_height)
 	modes.position = Vector2((width - button_width) * 0.5, modes_top)
-	battlefield.position = Vector2(0, modes_top + 126 + 22)
-	battlefield.size = Vector2(width, minf(200, height * 0.26))
+	battlefield.position = Vector2(0, modes_top + buttons_height + 22)
+	battlefield.size = Vector2(width, minf(200, minf(height * 0.26, height - battlefield.position.y - 48)))
 	caption.position = Vector2(0, battlefield.position.y + battlefield.size.y + 24)
 	caption.size = Vector2(width, 24)
 	footer_rule.position = Vector2(0, battlefield.position.y + battlefield.size.y + 4)

@@ -89,9 +89,8 @@ func show_main_menu() -> void:
 	header.hide()
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var welcome := preload("res://scripts/ui/welcome_menu.gd").new()
-	welcome.configure(show_home.bind("campaign"), show_home.bind("infinite"))
+	welcome.configure(show_home.bind("campaign"), show_home.bind("infinite"), func(): show_settings(show_main_menu))
 	content.add_child(welcome)
-	footer.add_child(action("Settings", func(): show_settings(show_main_menu), "MainSettings"))
 
 func show_home(type: String = "") -> void:
 	if not type.is_empty(): game_type = type
