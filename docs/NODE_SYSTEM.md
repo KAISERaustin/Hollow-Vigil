@@ -71,6 +71,8 @@ A tower tier node's `stats()` resolves its own tier through the base tower exact
 
 ## Rules and ownership
 
+The Open World Level node owns `starter_radius` and `starter_style`. World generation reserves a two-tile square around the core for ordinary forest regions and their normal portal roster. Ruins stay outside that square, and the connected biome containing the core has no encounter site. Other forest clusters retain their normal boss. Existing saved territory and encounter records remain owned by persistence.
+
 | Family | Shared behavior | Runtime owner |
 | --- | --- | --- |
 | Tower | Free plus socket on owned land; relic slot; target modes; initial state; tier scaling | Economy authorizes spending, construction, relocation, upgrades and equipment |
@@ -90,6 +92,8 @@ A tower tier node's `stats()` resolves its own tier through the base tower exact
 Nodes never retain the owning game, visual objects, live enemy dictionaries or mutable progress. Parents point upward; child discovery uses the registry, avoiding parent/child reference cycles. Factories construct records; services still validate ownership, affordability, stale actions and save contracts.
 
 ## Shared tower presentation
+
+Campaign and Infinite build menus use `ui/towers/tower_choice.gd`'s shared `build_list` factory. Each card shows the base tower through the battlefield's sentinel renderer, its configured title and exact gold cost. Hosts own selection and construction callbacks; the shared catalog owns card layout and identity. Infinite retains its placement preview and confirmation, while Campaign applies mission affordability before construction.
 
 Tower upgrades use the shared `rendering/effects/construction_effect.gd` presentation component in both game modes. Each battlefield owns independent transient effects; `play` replaces an effect at the same socket, `remove` removes one, and `clear` cleans up when the economy changes. Sales and relocation remove the old owner's effect immediately through the existing economy presentation signal. A solid dust silhouette covers the tower and its full socket platform during the swap, then shrinks to reveal the result without any departing particles. Its 0.5-second clock uses real frame time, independent of pause and simulation speed. Rendering owns the entire effect; gameplay upgrades stay immediate and no animation state is saved.
 

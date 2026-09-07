@@ -164,8 +164,9 @@ func run() -> void:
 	g.combat.sound_requested.connect(record)
 	g.economy.sound_requested.connect(record)
 	for kind in Balance.TOWERS:
+		events.clear()
 		var tower_id := g.economy.build(kind, "0,0", 0)
-		check(events.has("menu_build"), "Successful build produces confirmation")
+		check(events == ["menu_build"], "Every initial tower build emits only the shared construction cue: " + kind)
 		var t: Dictionary = g.data.towers[tower_id]
 		for branch in [kind] + Balance.BRANCHES[kind].keys():
 			events.clear()

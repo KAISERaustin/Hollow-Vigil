@@ -93,7 +93,10 @@ func upgrade(id: String, expected_level: int = -1, branch: String = "") -> bool:
 	t.level += 1
 	if t.level == 4:
 		t.branch = branch
-	sound_requested.emit("menu_upgrade" if branch == "" else "upgrade_" + branch, Vector2.INF)
+	var upgrade_sound: String = Balance.Content.tower(t.kind).rule("upgrade_sound", "")
+	if upgrade_sound.is_empty():
+		upgrade_sound = "menu_upgrade" if branch == "" else "upgrade_" + branch
+	sound_requested.emit(upgrade_sound, Vector2.INF)
 	tower_upgraded.emit(t.region, int(t.pad), t.kind)
 	return true
 

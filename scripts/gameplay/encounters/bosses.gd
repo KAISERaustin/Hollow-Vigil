@@ -7,7 +7,7 @@ const DEFINITIONS = Balance.BOSSES
 
 # Saved encounters retain their identities; new encounters use the tile's biome.
 static func kind_at(id: String, seed_value: int, style: String = "") -> String:
-	if id == "0,0":
+	if VigilWorld.is_starter(id):
 		return ""
 	var biome := Balance.Content.region(style if style != "" else VigilWorld.region_style(id, seed_value))
 	return biome.boss_kind() if biome != null else ""

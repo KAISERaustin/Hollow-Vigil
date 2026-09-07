@@ -64,7 +64,8 @@ func run() -> void:
 			app.panels.content_scroll.ensure_control_visible(choice)
 			await settle()
 			check(app.panels.content_scroll.get_global_rect().grow(1).encloses(choice.get_global_rect()), "build choice unreachable at " + str(viewport))
-			var select := choice.get_child(-1) as Button
+			var select := choice as Button
+			check(select.find_child("TowerPortrait", true, false) != null, "Every build choice shows base tower artwork")
 			select.grab_focus()
 			for repeat in range(2):
 				select.button_pressed = not select.button_pressed
@@ -72,7 +73,7 @@ func run() -> void:
 				await settle()
 				check(app.panels.sheet_revision == build_revision and app.panels.find_child("CloseSheet", true, false) == build_close, "tower selection rebuilt the close button")
 				check(root.gui_get_focus_owner() == select, "tower selection moved focus to close")
-				check(select.button_pressed and select.text == "Selected", "reselecting tower lost selection")
+				check(select.button_pressed, "reselecting tower lost selection")
 				var kind: String = select.get_meta("tower_kind")
 				var definition := Balance.definition("towers", kind, app.game.tuning)
 				check(app.field.preview_kind == kind and app.panels.action_cost == definition.cost and app.panels.action_button.text.begins_with("Build " + definition.name), "tower selection did not update build action")

@@ -514,12 +514,31 @@ func show_build_form() -> void:
 	checklist.game_type = form.game_type
 	checklist.selection = form.contents.duplicate(true)
 	content.add_child(checklist)
-	var summary := UI.paragraph("")
+	var summary := VBoxContainer.new()
+	summary.add_theme_constant_override("separation", 12)
 	summary.name = "IncludedContentsSummary"
 	var update_summary := func():
 		form.contents = checklist.selection.duplicate(true)
 		var preview := {"game_type": form.game_type, "contents": form.contents}
-		summary.text = Build.summary(preview) + "\n" + Build.dependencies(preview) + "\nOmitted contents use original defaults."
+		for child in summary.get_children():
+			summary.remove_child(child)
+			child.queue_free()
+		for group in Build.groups(form.game_type):
+			var key: String = group.id.get_slice("/", 1)
+			var selected: Variant = form.contents.get(key, false)
+			if selected is Array and selected.is_empty(): continue
+			if selected is bool and not selected: continue
+			var section := VBoxContainer.new()
+			section.add_theme_constant_override("separation", 4)
+			section.add_child(UI.heading(group.attribute("name"), 18))
+			if selected is Array:
+				var names: PackedStringArray = []
+				for kind in selected: names.append(Balance.definitions(key)[kind].name)
+				section.add_child(UI.paragraph(", ".join(names)))
+			summary.add_child(section)
+		var notes: String = Build.dependencies(preview)
+		if not notes.is_empty(): summary.add_child(UI.paragraph(notes))
+		summary.add_child(UI.paragraph("Omitted contents use original defaults."))
 	checklist.changed.connect(update_summary)
 	var title := LineEdit.new()
 	title.name = "BuildName"

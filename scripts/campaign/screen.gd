@@ -681,16 +681,11 @@ func show_socket(socket: int) -> void:
 		tower_actions.refresh()
 		return
 	open_dialog("Build a tower", true)
-	for kind in Balance.TOWERS:
-		var stats := Balance.definition("towers", kind, run.game.tuning)
-		var button := TowerChoice.create(kind, stats.name, stats.cost, func():
-			if run.build(socket, kind):
-				board.select_socket(socket)
-				dialog.hide()
-		)
-		button.name = "CampaignBuild_" + kind
-		button.disabled = run.game.data.balance < stats.cost
-		dialog_body.add_child(button)
+	dialog_body.add_child(TowerChoice.build_list(run.game.tuning, func(kind: String):
+		if run.build(socket, kind):
+			board.select_socket(socket)
+			dialog.hide()
+	, "", run.game.data.balance, "CampaignBuild_"))
 
 func show_result() -> void:
 	if reward_transition.active:

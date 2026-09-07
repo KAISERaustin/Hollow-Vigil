@@ -38,6 +38,9 @@ static func at(id: String, seed_value: int) -> Dictionary:
 		boss_tile = Areas.gate(Areas.sector_for(cells[0]), seed_value).id
 	elif style == "mourning_orchard":
 		boss_tile = VigilWorld.Orchard.gate(seed_value)
+	# The entire connected opening biome is free of boss encounters.
+	if cells.has(Vector2i.ZERO):
+		boss_tile = ""
 	cells.make_read_only()
 	var result := {"id": VigilWorld.key(cells[0]), "style": style, "cells": cells, "boss_tile": boss_tile}
 	result.make_read_only()

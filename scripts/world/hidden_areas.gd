@@ -13,11 +13,11 @@ static func cluster(sector: Vector2i, seed_value: int) -> Array[Vector2i]:
 	rng.seed = absi(("hidden-area:" + str(sector) + ":" + str(seed_value)).hash())
 	var origin := sector * SECTOR_SIZE - Vector2i(3, 3)
 	var available: Array[Vector2i] = []
-	for y in range(1, SECTOR_SIZE - 1):
-		for x in range(1, SECTOR_SIZE - 1):
+	for y in range(0 if sector == Vector2i.ZERO else 1, SECTOR_SIZE if sector == Vector2i.ZERO else SECTOR_SIZE - 1):
+		for x in range(0 if sector == Vector2i.ZERO else 1, SECTOR_SIZE if sector == Vector2i.ZERO else SECTOR_SIZE - 1):
 			var cell := origin + Vector2i(x, y)
-			# Leave the core and its first expansion choices clear.
-			if maxi(absi(cell.x), absi(cell.y)) > 1:
+			# The central ruin uses the outer ring beyond the starting forest.
+			if not VigilWorld.is_starter(VigilWorld.key(cell)):
 				available.append(cell)
 	var result: Array[Vector2i] = [available[rng.randi_range(0, available.size() - 1)]]
 	var count := rng.randi_range(4, 5)

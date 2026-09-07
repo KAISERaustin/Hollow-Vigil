@@ -29,11 +29,6 @@
     "cooldown": 0.12,
     "description": "chime; 880 Hz; 0.32s; pitch sweep 0.7"
   },
-  "menu_build": {
-    "category": "menu",
-    "cooldown": 0.12,
-    "description": "wood; 220 Hz; 0.3s; pitch sweep 0.6"
-  },
   "menu_upgrade": {
     "category": "menu",
     "cooldown": 0.12,
@@ -88,6 +83,16 @@
     "category": "menu",
     "cooldown": 0.12,
     "description": "wood; 390 Hz; 0.12s; pitch sweep -0.15"
+  },
+  "menu_build": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "Shared tower construction: heavy masonry impacts, timber braces and low iron resonance; 1.15s"
+  },
+  "upgrade_rapid": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "wood_lock; 145 Hz; 0.36s; pitch sweep 0"
   },
   "shot_rapid": {
     "category": "towers",

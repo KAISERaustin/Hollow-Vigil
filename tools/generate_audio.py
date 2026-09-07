@@ -7,6 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
+import sys
 import wave
 
 ROOT = Path(__file__).resolve().parents[1] / 'assets/audio'
@@ -56,6 +57,15 @@ def cue(name, category, freq, duration, texture='chime', sweep=0, cooldown=0.12)
             limb = 0.32 * math.sin(phase * 0.57) * math.exp(-t * 65)
             rush = low * 4.5 * math.exp(-t * 15)
             v = 0.42 * string + limb + rush
+        elif texture == 'wood_lock':
+            # A padded wooden knock followed by a quieter seating clunk.
+            # Low resonances decay quickly; no rising whistle or bell partials.
+            v = 0.0
+            for onset, strength in ((0.0, 1.0), (0.13, 0.65)):
+                age = t - onset
+                if age >= 0:
+                    hit = min(1.0, age / .012) * math.exp(-age * 25)
+                    v += strength * hit * (math.sin(TAU * freq * age) + .3 * math.sin(TAU * freq * .67 * age) + .7 * low)
         elif texture == 'arrow_impact':
             v = low * 2.8 * math.exp(-t * 28) + 0.45 * math.sin(phase) * math.exp(-t * 55)
         else:
@@ -64,18 +74,54 @@ def cue(name, category, freq, duration, texture='chime', sweep=0, cooldown=0.12)
     write(name, samples, category, cooldown, f'{texture}; {freq} Hz; {duration}s; pitch sweep {sweep}')
 
 
+def tower_construction():
+    """Shared initial placement: masonry, timber braces and a dark iron tail."""
+    duration = 1.15
+    rng = random.Random(74219)
+    samples = []
+    rubble = 0.0
+    for i in range(round(RATE * duration)):
+        t = i / RATE
+        rubble += .18 * (rng.uniform(-1, 1) - rubble)
+        value = 0.0
+        for start, weight in [(0.0, .65), (.105, .8), (.245, 1.0)]:
+            age = t - start
+            if age < 0:
+                continue
+            attack = min(1.0, age / .004)
+            stone = math.sin(TAU * 72 * age + 1.8 * (1 - math.exp(-age * 35))) * math.exp(-age * 15)
+            grit = rubble * 3.2 * math.exp(-age * 22)
+            timber = .25 * math.sin(TAU * 137 * age + .8 * math.sin(TAU * 23 * age)) * math.exp(-age * 19)
+            iron = .12 * (math.sin(TAU * 196 * age) + .4 * math.sin(TAU * 311 * age)) * math.exp(-age * 5)
+            value += weight * attack * (stone + grit + timber + iron)
+        samples.append(value * min(1.0, (duration - t) / .22))
+    write('menu_build', samples, 'menu', .12,
+          'Shared tower construction: heavy masonry impacts, timber braces and low iron resonance; 1.15s')
+
+
+# Rebuild this shared cue without touching separately authored combat assets.
+if __name__ == '__main__' and '--build-only' in sys.argv:
+    CATALOG.update(json.loads((ROOT / 'catalog.json').read_text()))
+    tower_construction()
+    (ROOT / 'catalog.json').write_text(json.dumps(CATALOG, indent=2) + '\n')
+    print('Created shared tower construction audio')
+    sys.exit(0)
+
+
 # Dry UI gestures and a different confirmation motif for each transaction.
 for name, f, d, tex, sweep in [
     ('click', 720, .055, 'wood', -.25), ('open', 420, .13, 'chime', .5),
     ('close', 480, .11, 'wood', -.45), ('select', 640, .09, 'chime', .15),
     ('slider', 860, .04, 'wood', 0), ('collect', 880, .32, 'chime', .7),
-    ('build', 220, .3, 'wood', .6), ('upgrade', 520, .4, 'chime', .8),
+    ('upgrade', 520, .4, 'chime', .8),
     ('sell', 690, .24, 'chime', -.5), ('move', 190, .27, 'wood', .3),
     ('ready', 610, .3, 'chime', .5), ('expand', 260, .65, 'orb', .8),
     ('traffic', 330, .3, 'orb', .4), ('unlock', 740, .4, 'chime', .35),
     ('automation', 960, .25, 'arc', .2), ('reset', 310, .55, 'chime', .6),
     ('return', 550, .6, 'chime', .3), ('notice', 390, .12, 'wood', -.15)]:
     cue('menu_' + name, 'menu', f, d, tex, sweep)
+
+tower_construction()
 
 weapons = {
     'rapid': (260, .16, 'bow', -.18), 'splash': (140, .32, 'fire', -.5),
@@ -86,6 +132,7 @@ weapons = {
     'tempest_web': (1100, .22, 'arc', -.4), 'thunderseal': (530, .18, 'arc', .7),
 }
 impact_overrides = {'rapid': (170, .10, 'arrow_impact', -.12)}
+cue('upgrade_rapid', 'menu', 145, .36, 'wood_lock')
 for name, (f, d, tex, sweep) in weapons.items():
     cue('shot_' + name, 'towers', f, d, tex, sweep, .11)
     if name not in ('electric', 'tempest_web', 'thunderseal'):

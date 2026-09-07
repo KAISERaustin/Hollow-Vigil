@@ -4,6 +4,14 @@ const Bosses = preload("res://scripts/gameplay/encounters/bosses.gd")
 const Fixtures = preload("res://tests/unit/boss_checks.gd")
 
 static func run(t) -> void:
+	for seed_value in [1, 879, 42178]:
+		for y in range(-2, 3):
+			for x in range(-2, 3):
+				var id := VigilWorld.key(Vector2i(x, y))
+				var region := VigilWorld.make_region(id, "0,0", seed_value)
+				t.check(region.style == "forest" and not VigilWorld.is_ruin(id, seed_value), "Opening square is forest without ruin overlays")
+				t.check(Bosses.kind_at(id, seed_value) == "" and Bosses.Clusters.at(id, seed_value).boss_tile == "", "Opening forest cluster has no boss")
+				t.check(VigilWorld.has_rift(id, {id: region}, seed_value) == (id != "0,0"), "Opening tiles retain ordinary portals")
 	var styles := {}
 	for seed_value in [1, 879, 42178]:
 		var visited := {}
@@ -26,7 +34,7 @@ static func run(t) -> void:
 						var neighbor: Vector2i = cell + direction
 						if VigilWorld.region_style(VigilWorld.key(neighbor), seed_value) == cluster.style:
 							t.check(cluster.cells.has(neighbor), "Cluster includes every edge-connected biome tile after overlays")
-				t.check(sites == 1 and cluster.boss_tile != "0,0", "Exactly one non-core boss tile per biome cluster")
+				t.check(sites == (0 if cluster.cells.has(Vector2i.ZERO) else 1) and cluster.boss_tile != "0,0", "One boss per outer biome cluster; none in starting forest")
 				Bosses.Clusters._cache.clear()
 				t.check(Bosses.Clusters.at(VigilWorld.key(cluster.cells[-1]), seed_value) == cluster, "Encounter tile survives cache eviction and reverse discovery")
 	t.check(styles.size() == 6, "Cluster coverage includes all six biomes")

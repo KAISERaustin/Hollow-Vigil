@@ -1,5 +1,8 @@
 extends RefCounted
 
+# Optional presentation assignments inherited by every tier of a tower family.
+const UPGRADE_SOUNDS := {"rapid": "upgrade_rapid"}
+
 const TOWERS := {
 	"rapid": {"name": "Ashneedle", "role": "RAPID", "cost": 60.0, "damage": 6.0, "period": 0.48, "range": 132.0, "splash": 0.0, "color": "e0b568", "description": "Swift pointed darts cut through hollows and wraiths."},
 	"splash": {"name": "Pyre", "role": "SPLASH", "cost": 120.0, "damage": 15.0, "period": 1.5, "range": 126.0, "splash": 46.0, "color": "db8d73", "description": "Flame waves burst on impact, striking every enemy within the blast radius."},

@@ -226,27 +226,10 @@ func show_build() -> void:
 	clear_sheet("Build")
 	if game.economy.needs_first_property():
 		sheet_content.add_child(UI.paragraph("Buy your first property before building a tower. Close this panel and select a neighboring territory marked + to buy it for 100 gold. You will have 180 gold left for towers.", 14))
-	var row := VBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
+	var row := preload("res://scripts/ui/towers/tower_choice.gd").build_list(game.tuning, func(kind: String):
+		select_build_kind(kind, sheet_content.get_child(-1) as VBoxContainer)
+	, selection_kind)
 	sheet_content.add_child(row)
-	for kind in Balance.TOWERS:
-		var definition := Balance.definition("towers", kind, game.tuning)
-		var b := UI.button(definition.name + " · " + UI.exact_money(definition.cost) + " gold", func(): select_build_kind(kind, row), 48)
-		b.add_theme_font_size_override("font_size", UI.type_size(14))
-		for state in ["normal", "hover", "pressed", "disabled"]:
-			var style := UI.box(UI.SURFACE)
-			style.content_margin_left = 12
-			style.content_margin_right = 12
-			b.add_theme_stylebox_override(state, style)
-		b.set_meta("tower_kind", kind)
-		b.toggle_mode = true
-		b.set_pressed_no_signal(selection_kind == kind)
-		var selected := UI.box(UI.GOLD)
-		selected.content_margin_left = 12
-		selected.content_margin_right = 12
-		b.add_theme_stylebox_override("pressed", selected)
-		b.add_theme_stylebox_override("hover_pressed", selected)
-		row.add_child(UI.action_row(definition.name + " · " + UI.exact_money(definition.cost) + " gold", b, "Select"))
 	var s := Balance.definition("towers", selection_kind, game.tuning)
 	action_cost = s.cost
 	var revision := sheet_revision
@@ -273,10 +256,9 @@ func select_build_kind(kind: String, choices: VBoxContainer) -> void:
 	# Keep the header, focus and scroll position intact when changing a choice.
 	selection_kind = kind
 	field.preview_kind = kind
-	for row in choices.get_children():
-		var choice := row.get_child(-1) as Button
+	for child in choices.get_children():
+		var choice := child as Button
 		choice.set_pressed_no_signal(choice.get_meta("tower_kind") == kind)
-		choice.text = "Selected" if choice.button_pressed else "Select"
 	var definition := Balance.definition("towers", kind, game.tuning)
 	action_cost = definition.cost
 	action_button.text = "Build " + definition.name + "  ·  " + UI.exact_money(definition.cost) + " gold"
@@ -304,6 +286,8 @@ func show_expansion(id: String) -> void:
 	var biome := Balance.Content.region(VigilWorld.region_style(id, int(game.data.seed)))
 	var cluster := preload("res://scripts/world/biome_clusters.gd").at(id, int(game.data.seed))
 	var boss_text: String = "Cluster boss: " + Balance.BOSSES[biome.boss_kind()].name + ". One encounter for this biome cluster."
+	if cluster.boss_tile == "":
+		boss_text = "Starting forest: normal portal spawns, no boss encounter."
 	if cluster.boss_tile == id:
 		boss_text += " This is its encounter tile."
 	sheet_content.add_child(UI.paragraph(boss_text, 14))

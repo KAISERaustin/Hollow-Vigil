@@ -9,11 +9,18 @@ const NEW_STYLES = preload("res://scripts/content/catalogs/world.gd").NEW_STYLES
 const ALL_STYLES = preload("res://scripts/content/catalogs/world.gd").ALL_STYLES
 const Orchard = preload("res://scripts/world/mourning_orchard.gd")
 
+static func is_starter(id: String) -> bool:
+	var radius: int = Balance.Content.catalog().get_node("level/open_world").rule("starter_radius")
+	var cell := coord(id)
+	return maxi(absi(cell.x), absi(cell.y)) <= radius
+
 static func is_ruin(id: String, seed_value: int) -> bool:
 	var areas = preload("res://scripts/world/hidden_areas.gd")
 	return areas.cluster(areas.sector_for(coord(id)), seed_value).has(coord(id))
 
 static func region_style(id: String, seed_value: int) -> String:
+	if is_starter(id):
+		return Balance.Content.catalog().get_node("level/open_world").rule("starter_style")
 	if Orchard.cluster(seed_value).has(coord(id)):
 		return Orchard.STYLE
 	if is_ruin(id, seed_value):

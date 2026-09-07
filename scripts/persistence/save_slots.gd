@@ -239,6 +239,15 @@ func shared_configurations(kind: String) -> Array[Dictionary]:
 		if not entry.is_empty() and (entry.get("kind") == kind or kind == "all"): result.append(entry)
 	return result
 
+func delete_shared(code: String) -> bool:
+	var directory := DirAccess.open(configurations_path())
+	if directory == null: return true
+	for filename in directory.get_files():
+		if filename.get_extension() not in ["hvbuild", "hvstats", "hvcampaign", "hvshared"]: continue
+		var path := configurations_path().path_join(filename)
+		if FileAccess.get_file_as_string(path) == code and DirAccess.remove_absolute(path) != OK: return false
+	return true
+
 func reusable_entry(entry: Dictionary) -> Dictionary:
 	if entry.has("build"): return entry
 	var code: String = entry.get("code", "")

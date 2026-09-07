@@ -17,6 +17,7 @@ var due := 3.0
 var retry_delay := 15.0
 var status := "Saved on this device. Sign in for automatic private backups."
 var last_account := ""
+var deleted_builds := {}
 
 func _ready() -> void:
 	var config := ConfigFile.new()
@@ -99,6 +100,13 @@ func sync_now() -> void:
 	var ok := true
 	status = "Backing up saved games and My builds…"
 	changed.emit()
+	var deleted: Dictionary = await cloud._rpc("list_deleted_private_builds", {})
+	if owner != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
+	if not deleted.get("ok", false) or not deleted.get("data") is Array: _finish(false, epoch); return
+	deleted_builds.clear()
+	for hash in deleted.data: deleted_builds[hash] = true
+	for entry in slots.shared_configurations("all"):
+		if deleted_builds.has(entry.code.sha256_text()) and not slots.delete_shared(entry.code): _finish(false, epoch); return
 	for item in local_games():
 		var key: String = item.game_type + ":" + str(item.slot)
 		if conflicts.has(key): continue
@@ -216,3 +224,34 @@ func recovery_games() -> Array:
 		var snapshot: Dictionary = campaign if not campaign.is_empty() else slots.storage.read_candidate(path)
 		if not snapshot.is_empty(): result.append({"game_type": type, "snapshot": snapshot, "path": path})
 	return result
+
+func delete_recovery(path: String) -> bool:
+	# Only enumerated recovery files can be deleted, never an active slot or arbitrary path.
+	for entry in recovery_games():
+		if entry.path == path: return DirAccess.remove_absolute(path) == OK
+	return false
+
+func delete_cloud_record(endpoint: String, payload: Dictionary, owner: String) -> bool:
+	if busy or cloud.busy or not cloud.signed_in() or owner != cloud.player_id: return false
+	busy = true
+	cloud.busy = true
+	var epoch: int = cloud.generation
+	var response: Dictionary = await cloud._rpc(endpoint, payload)
+	busy = false
+	if epoch == cloud.generation: cloud.busy = false
+	return owner == cloud.player_id and epoch == cloud.generation and response.get("ok", false) and response.get("data") == true
+
+func delete_game(remote: Dictionary, owner: String) -> bool:
+	if not await delete_cloud_record("delete_private_game", {"game_type": remote.game_type, "slot_number": int(remote.slot_number), "expected_revision": int(remote.revision)}, owner): return false
+	var key: String = remote.game_type + ":" + str(remote.slot_number)
+	var snapshot: Dictionary = campaign_slots.summary(int(remote.slot_number)) if remote.game_type == "campaign" else slots.summary(int(remote.slot_number))
+	_account().games[key] = {"revision": 0, "hash": fingerprint(snapshot)}
+	conflicts.erase(key)
+	remote_games.erase(remote)
+	return _save_state()
+
+func delete_build(code: String, owner: String) -> bool:
+	if busy or cloud.busy: return false
+	if owner != "":
+		if not await delete_cloud_record("delete_private_build", {"build_hash": code.sha256_text()}, owner): return false
+	return slots.delete_shared(code)

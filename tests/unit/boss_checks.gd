@@ -39,7 +39,7 @@ static func run(suite: SceneTree) -> void:
 		var kind := Balance.Content.region(style).boss_kind()
 		suite.check(Balance.BOSSES.has(kind) and not kinds.has(kind), "Every biome has a distinct registered boss: " + style)
 		kinds[kind] = true
-		suite.check(Bosses.kind_at("1,0", 879, style) == kind, "Saved tile style selects its biome boss")
+		suite.check(Bosses.kind_at("10,0", 879, style) == kind, "Saved tile style selects its biome boss")
 	suite.check(kinds.size() == 6 and Bosses.kind_at("0,0",879) == "", "Six biome bosses with no starting-core encounter")
 	legacy_encounters(suite)
 	for kind in Bosses.TYPES:

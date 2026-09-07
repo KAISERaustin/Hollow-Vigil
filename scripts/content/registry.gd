@@ -155,7 +155,7 @@ func _populate() -> void:
 func _populate_towers() -> void:
 	for kind in Towers.TOWERS:
 		var tower_type := TowerNode.new("tower/" + kind, get_node("tower"), Towers.TOWERS[kind],
-			{"kind": kind, "upgrades": Towers.TOWER_UPGRADES[kind], "branches": Towers.BRANCHES[kind], "abilities": Towers.ABILITIES, "multipliers": Towers.BRANCH_STAT_MULTIPLIERS})
+			{"kind": kind, "upgrade_sound": Towers.UPGRADE_SOUNDS.get(kind, ""), "upgrades": Towers.TOWER_UPGRADES[kind], "branches": Towers.BRANCHES[kind], "abilities": Towers.ABILITIES, "multipliers": Towers.BRANCH_STAT_MULTIPLIERS})
 		_add(tower_type, "towers", kind)
 		_add(ProjectileNode.new("projectile/" + kind, get_node("projectile"), Towers.PROJECTILES[kind], {"kind": kind}), "projectiles", kind)
 		var previous: ContentNode = tower_type
@@ -212,7 +212,7 @@ func _populate_world(root: ContentNode) -> void:
 
 func _populate_levels(root: ContentNode) -> void:
 	var level_root := _add(LevelNode.new("level", root))
-	var open_world := _add(LevelNode.new("level/open_world", level_root, {}, {"finite_waves": false, "expansion": true}))
+	var open_world := _add(LevelNode.new("level/open_world", level_root, {}, {"finite_waves": false, "expansion": true, "starter_radius": 2, "starter_style": "forest"}))
 	_add(LevelNode.new("level/session", open_world, Levels.SESSION, {"kind": "start", "tuning_category": "session"}), "session", "start")
 	_add(LevelNode.new("level/creative", open_world, {}, {"developer_controls": true}))
 	_add(LevelNode.new("level/survival", open_world, {}, {"developer_controls": false}))
