@@ -284,6 +284,7 @@ func header(title: String, back: Callable) -> BoxContainer:
 	caption.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	caption.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	caption.autowrap_mode = TextServer.AUTOWRAP_OFF
+	caption.clip_text = true
 	row.add_child(caption)
 	return row
 
@@ -418,6 +419,8 @@ func show_map() -> void:
 		var menu := UI.button("Menu", app.show_game_menu)
 		menu.name = "CampaignMapMenu"
 		menu.accessibility_name = "Campaign menu"
+		menu.custom_minimum_size.x = 76
+		menu.autowrap_mode = TextServer.AUTOWRAP_OFF
 		menu.size_flags_horizontal = Control.SIZE_SHRINK_END
 		menu.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		heading.add_child(menu)
@@ -697,21 +700,7 @@ func session_levels() -> Dictionary:
 		var setup := level_setup(index)
 		result[str(index)] = {"overrides": setup.overrides.duplicate(true)}
 		if setup.has("loadout"): result[str(index)].loadout = setup.loadout.duplicate(true)
-	# Continue opens the map without constructing a run. Its saved layout must
-	# still be exportable; a retained live run supplies newer placements.
-	var checkpoint: Dictionary = campaign_save.get("checkpoint", {})
-	if not checkpoint.is_empty():
-		result[str(int(checkpoint.level))].loadout = session_loadout(checkpoint.state)
-	if run != null and page in ["battle", "map"]:
-		result[str(int(run.mission.index))].loadout = session_loadout(run.game.data)
 	return result
-
-func session_loadout(state: Dictionary) -> Dictionary:
-	var loadout := {}
-	for key in ["towers", "next_tower", "relics", "balance"]:
-		var value: Variant = state.get(key, {})
-		loadout[key] = value.duplicate(true) if value is Dictionary else value
-	return loadout
 
 func show_waves() -> void:
 	open_dialog("Waves")

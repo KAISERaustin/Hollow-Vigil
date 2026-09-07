@@ -9,7 +9,7 @@ const GROUPS = preload("res://scripts/content/catalogs/build_groups.gd")
 const STAT_GROUPS := ["enemies", "bosses", "towers", "gear", "rifts"]
 
 static func groups(game_type: String) -> Array:
-	return Balance.Content.catalog().children("build_contents").filter(func(node): return node.rule("game_type") in ["both", game_type])
+	return Balance.Content.catalog().children("build_contents").filter(func(node): return node.rule("export_game_type", node.rule("game_type")) in ["both", game_type])
 
 static func all_contents(game_type: String, option: String = "") -> Dictionary:
 	var selected := {}
@@ -104,6 +104,11 @@ static func clean_regions(data: Dictionary, all_tiles: bool) -> Dictionary:
 	return result
 
 static func capture(game_type: String, source: VigilState, levels: Dictionary, scope: String, level: int, contents: Dictionary, title: String, description: String) -> Dictionary:
+	# Export availability is separate from validation so old builds stay readable.
+	contents = contents.duplicate(true)
+	var available := all_contents(game_type)
+	for key in contents.keys():
+		if not available.has(key): contents.erase(key)
 	var value := {"version": 2, "setup": {"name": title.strip_edges(), "description": description}, "game_type": game_type,
 		"scope": scope if game_type == "campaign" else "all", "level": level if game_type == "campaign" and scope == "level" else -1,
 		"contents": contents.duplicate(true), "data": {}}

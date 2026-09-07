@@ -24,6 +24,15 @@ static func draw(canvas: CanvasItem, fx: Dictionary, origin: Vector2, target: Ve
 		var travel: float = origin.distance_to(target) / maxf(zoom, 0.01) * progress
 		wake(canvas, fx.tower_kind, minf(travel, 58.0 if fx.tower_kind == "heavy" else 44.0), age, color)
 		match fx.tower_kind:
+			"hex_lantern":
+				VigilTerrainArt.polygon(canvas, PackedVector2Array([Vector2(-8,0),Vector2(0,-5),Vector2(8,0),Vector2(0,5)]), color, 1.5)
+				canvas.draw_line(Vector2(0,-3), Vector2(0,3), VigilTerrainArt.INK, 2, true)
+			"moonwheel":
+				preload("res://scripts/rendering/actors/expansion_tower_art.gd").crescent(canvas, Vector2.ZERO, 9, color)
+			"ironspike":
+				VigilTerrainArt.polygon(canvas, PackedVector2Array([Vector2(-12,-1),Vector2(4,-1),Vector2(4,-4),Vector2(12,0),Vector2(4,4),Vector2(4,1),Vector2(-12,1)]), color, 1.5)
+			"caltrop_keep":
+				preload("res://scripts/rendering/actors/expansion_tower_art.gd").spike(canvas, Vector2.ZERO, 7)
 			"heavy":
 				if fx.get("fragment", false):
 					canvas.draw_circle(Vector2.ZERO, 13.0, Color(color, 0.16))

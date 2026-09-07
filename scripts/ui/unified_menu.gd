@@ -600,7 +600,7 @@ func open_saved_build_form(entry: Dictionary) -> void:
 		if not composed.ok: notice(composed.get("error", "This build has incompatible contents.")); return
 		levels = composed.levels
 	form = {"game_type": build.game_type, "game": source, "levels": levels, "scope": build.scope, "level": int(build.level),
-		"contents": build.contents.duplicate(true), "name": build.setup.name, "description": build.setup.description, "return": show_detail}
+		"contents": Build.all_contents("campaign") if build.game_type == "campaign" else build.contents.duplicate(true), "name": build.setup.name, "description": build.setup.description, "return": show_detail}
 	form_saved_code = entry.code
 	pending_publish = ""
 	show_build_form()

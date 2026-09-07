@@ -90,7 +90,7 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	var vertical := scroll.get_parent().get_parent() as ScrollContainer
 	if vertical == null:
 		vertical = host.panels.content_scroll
-	check_details(details, vertical, label)
+	await check_details(details, vertical, label)
 	check(back.is_visible_in_tree() and menu.get_global_rect().encloses(back.get_global_rect()) and menu.get_global_rect().encloses(confirm.get_global_rect()), label + " navigation and Build stay visible")
 	back.pressed.emit()
 	await settle()
@@ -118,7 +118,7 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 		await settle()
 		details = menu.find_child("TowerDetails", true, false)
 		var kind: String = choice.get_meta("tower_kind")
-		check_details(details, vertical, label + " " + kind + " " + str(root.size))
+		await check_details(details, vertical, label + " " + kind + " " + str(root.size))
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://artifacts/build-polished-%s-%s-%d.png" % [label, kind, root.size.x])
 		back.pressed.emit()
@@ -138,9 +138,18 @@ func check_details(details: Control, viewport: ScrollContainer, context: String)
 	check(details.find_child("TowerLevel", true, false).text == "Level 1", context + " uses a standalone level heading")
 	check(details.find_child("Stat_range", true, false) == null, context + " omits range from build details")
 	check(details.get_node("TowerStats").find_child("Stat_period", true, false) != null and details.find_children("Stat_period", "Label", true, false).size() == 1, context + " shows attack interval once inside the stat grid")
-	check(viewport.scroll_vertical == 0 and viewport.get_v_scroll_bar().max_value <= viewport.get_v_scroll_bar().page + 1, context + " fits all details without scrolling")
-	for content in details.find_children("*", "Label", true, false):
-		check(viewport.get_global_rect().grow(1).encloses(content.get_global_rect()), context + " shows complete " + content.name)
+	check(viewport.scroll_vertical == 0, context + " opens details at the top")
+	check(viewport.get_h_scroll_bar().max_value <= viewport.get_h_scroll_bar().page + 1, context + " fits cards without horizontal scrolling")
+	for cell: PanelContainer in details.get_node("TowerStats").get_children():
+		for content: Label in cell.find_children("*", "Label", true, false):
+			check(cell.get_global_rect().grow(1).encloses(content.get_global_rect()) and content.get_visible_line_count() == content.get_line_count(), context + " keeps complete stat text inside its card")
+	var grid := details.get_node("TowerStats")
+	var last: Control = grid.get_child(grid.get_child_count() - 1)
+	viewport.scroll_vertical = 100000
+	await settle()
+	check(viewport.get_global_rect().grow(1).encloses(last.get_global_rect()), context + " scroll reaches the final stat card")
+	viewport.scroll_vertical = 0
+	await settle()
 
 func run() -> void:
 	var app := VigilApp.new()

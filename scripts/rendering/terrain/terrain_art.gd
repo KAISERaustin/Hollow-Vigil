@@ -93,12 +93,17 @@ static func sentinel_portrait(canvas: CanvasItem, kind: String, at: Vector2, zoo
 	var bounds := Rect2()
 	if kind == "splash":
 		bounds = preload("res://scripts/rendering/actors/fire_tower_art.gd").PORTRAIT_BOUNDS
+	elif kind in ["ironspike", "moonwheel", "hex_lantern", "caltrop_keep"]:
+		bounds = Rect2(-34, -70, 68, 84)
 	if bounds.has_area() and frame.has_area():
 		zoom = minf(zoom, minf(frame.size.x / bounds.size.x, frame.size.y / bounds.size.y))
 		at = frame.get_center() - bounds.get_center() * zoom
 	sentinel(canvas, kind, at, zoom, level, branch)
 
 static func sentinel(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, level: int = 1, branch: String = "") -> void:
+	if kind in ["ironspike", "moonwheel", "hex_lantern", "caltrop_keep"]:
+		preload("res://scripts/rendering/actors/expansion_tower_art.gd").draw(canvas, kind, at, zoom, level, branch)
+		return
 	if level == 4 and Balance.valid_branch(kind, branch):
 		preload("res://scripts/rendering/actors/tower_branches.gd").draw(canvas, branch, at, zoom)
 		return

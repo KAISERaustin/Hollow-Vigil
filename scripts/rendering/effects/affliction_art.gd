@@ -13,6 +13,12 @@ static func poisoned(enemy: Dictionary, time: float) -> bool:
 	return false
 
 static func draw(canvas: CanvasItem, enemy: Dictionary, at: Vector2, zoom: float, time: float) -> void:
+	for status in enemy.get("gear_status", {}).values():
+		if status.type == "expose" and status.until > time:
+			var eye := at + Vector2(0, -22) * zoom
+			Art.shape(canvas, [Vector2(-7,0), Vector2(0,-4), Vector2(7,0), Vector2(0,4)], eye, Vector2.ONE * zoom, Color("c28cab"), zoom)
+			canvas.draw_line(eye + Vector2(0,-2)*zoom, eye + Vector2(0,2)*zoom, Art.INK, 1.5*zoom, true)
+			break
 	if enemy.get("slow_until", 0.0) > time:
 		draw_frost(canvas, enemy, at, zoom, time)
 	if not poisoned(enemy, time):

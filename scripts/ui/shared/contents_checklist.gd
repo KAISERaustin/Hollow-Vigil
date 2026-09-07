@@ -19,6 +19,7 @@ func rebuild() -> void:
 	for key in Build.GROUPS.OPTIONS:
 		var option: Dictionary = Build.GROUPS.OPTIONS[key]
 		var members := Build.all_contents(game_type, key)
+		if members.is_empty(): continue
 		var title: String = option.get(game_type + "_name", option.name)
 		var choice := check_box(title, selection.has_all(members.keys()), func(enabled: bool):
 			if enabled: selection.merge(members.duplicate(true), true)

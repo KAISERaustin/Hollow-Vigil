@@ -3,6 +3,10 @@ extends "res://tests/rendered/campaign_runner.gd"
 const Choice = preload("res://scripts/ui/towers/tower_choice.gd")
 const UI = preload("res://scripts/ui/shared/interface.gd")
 
+func _initialize() -> void:
+	preload("res://tests/support/timeout.gd").arm(self, 300.0)
+	call_deferred("run")
+
 func settle() -> void:
 	for tick in 10: await process_frame
 
@@ -28,6 +32,12 @@ func verify_preview(host: Control, tower: Dictionary, context: String) -> void:
 	check(details.get_node("TowerStats") != null and details.find_child("TowerLevel", true, false).text == level_label, context + " uses the build details at the next level")
 	check(details.find_child("TowerDescription", true, false).text == Balance.tower_description(after), context + " describes the previewed tier")
 	check(dialog.heading.text == after.name, context + " names the previewed tower")
+	var grid := details.get_node("TowerStats") as GridContainer
+	check(grid.find_child("Stat_period", true, false) != null and details.find_children("Stat_period", "Label", true, false).size() == 1, context + " shows the interval once inside the grid")
+	for cell: PanelContainer in grid.get_children():
+		check(cell.get_theme_stylebox("panel").border_width_left == UI.OUTLINE, context + " uses the shared stat card border")
+		for caption: Label in cell.find_children("*", "Label", true, false):
+			check(cell.get_global_rect().grow(1).encloses(caption.get_global_rect()) and caption.get_visible_line_count() == caption.get_line_count(), context + " keeps stat text inside its card")
 	for key in after:
 		if key == "cost" or not (after[key] is int or after[key] is float): continue
 		var number := details.find_child("Stat_" + key, true, false) as Label
@@ -46,6 +56,19 @@ func verify_preview(host: Control, tower: Dictionary, context: String) -> void:
 	check(dialog.scroll.get_h_scroll_bar().max_value <= dialog.scroll.get_h_scroll_bar().page + 1, context + " has no horizontal overflow")
 	if tower.level == Balance.MAX_TOWER_LEVEL:
 		check(dialog.confirm.disabled and dialog.confirm.text == "Max level", context + " prevents a fifth level")
+
+func verify_scroll(host: Control, context: String) -> void:
+	var dialog: VigilTowerDialog = host.tower_dialog
+	var grid := dialog.body.find_child("TowerStats", true, false)
+	var last: Control = grid.get_child(grid.get_child_count() - 1)
+	dialog.scroll.scroll_vertical = 100000
+	await process_frame
+	await process_frame
+	check(dialog.scroll.get_global_rect().grow(1).encloses(last.get_global_rect()), context + " scroll reaches the final stat card")
+	check(dialog.card.get_global_rect().encloses(dialog.confirm.get_global_rect()) and dialog.card.get_global_rect().encloses(dialog.header_close.get_global_rect()), context + " keeps purchase and close pinned while scrolling")
+	dialog.scroll.scroll_vertical = 0
+	await process_frame
+	await process_frame
 
 func exercise(host: Control, select: Callable, tower: Dictionary, context: String) -> void:
 	for touch in [false, true]:
@@ -84,9 +107,12 @@ func exercise(host: Control, select: Callable, tower: Dictionary, context: Strin
 						await settle()
 						verify_preview(host, tower, context + " " + branch)
 						check(host.game.data.balance == gold and tower.level == level and tower.branch.is_empty(), context + " specialization selection only previews")
-				if kind == "rapid" and level in [1, 3]:
+						await RenderingServer.frame_post_draw
+						root.get_texture().get_image().save_png("res://artifacts/upgrade-cards-%s-%s-%d.png" % [context, branch, viewport.x])
+				if level in [1, 3]:
 					await RenderingServer.frame_post_draw
-					root.get_texture().get_image().save_png("res://artifacts/upgrade-preview-%s-%d-%d.png" % [context, level, viewport.x])
+					root.get_texture().get_image().save_png("res://artifacts/upgrade-preview-%s-%s-%d-%d.png" % [context, kind, level, viewport.x])
+				await verify_scroll(host, "%s %s level %d %s" % [context, kind, level, viewport])
 				host.tower_dialog.dismiss()
 				check(host.tower_actions.visible, context + " closing exposes existing tower controls")
 	# Tuned deltas and guarded purchases use the active mode's economy.

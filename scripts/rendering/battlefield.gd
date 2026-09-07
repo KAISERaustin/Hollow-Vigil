@@ -424,6 +424,7 @@ func _draw() -> void:
 		if visible_rect.has_point(screen(VigilWorld.pad_position(t.region, t.pad))):
 			draw_tower(t)
 	build_preview.draw(self)
+	preload("res://scripts/rendering/effects/tower_component_art.gd").draw(self)
 	draw_upgrade_poofs()
 	for fx in state.combat.effects:
 		var fade: float = fx.life / fx.max_life
