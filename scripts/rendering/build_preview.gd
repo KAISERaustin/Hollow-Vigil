@@ -38,8 +38,8 @@ func minimum_zoom(field: Control, normal: float) -> float:
 	return maxf(field.size.x / bounds.size.x, field.size.y / bounds.size.y)
 
 static func menu_height(field: Control) -> float:
-	# Stable list height across choices, with at least one complete card visible.
-	return clampf(field.size.y * 0.5, 220.0, 380.0)
+	# Reserve the complete 112px card strip plus the header and pinned Build action.
+	return clampf(field.size.y * 0.5, 260.0, 380.0)
 
 func camera_padding() -> float:
 	return Balance.TILE if is_instance_valid(menu) and menu.is_visible_in_tree() else 0.0

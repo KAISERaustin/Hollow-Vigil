@@ -44,6 +44,7 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	check(menu.size.y < 300, label + " fits a compact menu")
 	check(menu.get_global_rect().encloses(confirm.get_global_rect()), label + " keeps Build visible")
 	check(scroll.get_global_rect().size.y >= 112 and scroll.scroll_vertical == 0, label + " fits tall cards without vertical scrolling")
+	check(scroll.get_parent().get_parent().get_global_rect().grow(1).encloses(scroll.get_global_rect()), label + " parent viewport shows complete cards")
 	var start := scroll.global_position + Vector2(scroll.size.x - 24, 45)
 	await swipe(start, -180)
 	check(scroll.scroll_horizontal > 0, label + " swipes left across button contents")
@@ -67,6 +68,10 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	Input.parse_input_event(key)
 	await settle()
 	check(scroll.scroll_horizontal == 0, label + " keyboard returns to first card")
+	var first := cards.get_child(0) as Button
+	await touch(first.get_global_rect().get_center(), true)
+	await touch(first.get_global_rect().get_center(), false)
+	await settle()
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://artifacts/build-cards-%s-%d.png" % [label, root.size.x])
 	# An additional card extends the strip without changing its height or host.
