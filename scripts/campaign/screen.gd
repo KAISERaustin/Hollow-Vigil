@@ -819,9 +819,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		go_back()
 		get_viewport().set_input_as_handled()
 
-func close() -> void:
+func close(save_before_close: bool = true) -> void:
 	clear_selection()
-	if page == "battle":
+	if save_before_close and page == "battle":
 		save_progress()
 	closed.emit()
 	queue_free()

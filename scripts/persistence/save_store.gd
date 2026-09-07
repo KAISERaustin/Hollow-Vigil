@@ -126,7 +126,10 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 				return false
 	if d.settings.has("developer_balance") and not Balance.valid_tuning(d.settings.developer_balance):
 		return false
-	if not number(d.camera[0], -1.0e12, 1.0e12) or not number(d.camera[1], -1.0e12, 1.0e12) or not number(d.camera[2], 0.42, 1.65):
+	# Camera limits depend on the viewport and Creative's unrestricted mode.
+	# Persist finite positive zoom; the battlefield enforces current view limits
+	# on restore. The old fixed range rejected ordinary camera changes as progress.
+	if not number(d.camera[0], -1.0e12, 1.0e12) or not number(d.camera[1], -1.0e12, 1.0e12) or not number(d.camera[2], 0.0, 1.0e12) or d.camera[2] <= 0.0:
 		return false
 	if d.has("cloud"):
 		if not d.cloud is Dictionary or not number(d.cloud.get("revision"), 0, 1.0e15, true) or not d.cloud.get("include_audio") is bool:

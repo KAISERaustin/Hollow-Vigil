@@ -49,4 +49,3 @@ static func details(c: CanvasItem, kind: String, at: Vector2, zoom: float, level
 					a.shape(c,[Vector2(side*12,5),Vector2(side*24,2),Vector2(side*23,-27),Vector2(side*19,-34),Vector2(side*18,-4)],at,z,a.LILAC,w)
 					a.disk(c,at+Vector2(side*21,-32)*z,4*zoom,blue,2*zoom)
 					c.draw_polyline(PackedVector2Array([at+Vector2(side*19,-36)*z,at+Vector2(side*10,-43)*z,at+Vector2(side*12,-48)*z,at+Vector2(0,-45)*z]),blue,2.5*zoom,true)
-				a.shape(c,[Vector2(1,-55),Vector2(-6,-43),Vector2(-1,-43),Vector2(-3,-35),Vector2(7,-47),Vector2(2,-47)],at,z,a.PAPER,1.5*zoom)

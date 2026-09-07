@@ -467,15 +467,25 @@ func resume_game() -> void:
 	held = false
 
 func exit_game() -> void:
+	var saved := true
 	if live_campaign():
-		if not app.campaign.persist_slot(): notice("Couldn't save this Campaign. Keep it open and try again."); return
-		app.campaign.close()
+		saved = app.campaign.persist_slot()
 	else:
 		app.persist()
-		if not app.game.save_error.is_empty(): notice("Couldn't save this game. Keep it open and try again."); return
+		saved = app.game.save_error.is_empty()
+	if not saved:
+		confirm("Exit without saving?", "We couldn't save your latest progress. If you exit now, changes since your last successful save may be lost. Any earlier save will be kept.\n\nCancel to keep playing or try saving again.", "Exit anyway", finish_exit.bind(false))
+		return
+	finish_exit(true)
+
+func finish_exit(saved: bool) -> void:
+	if live_campaign():
+		# The exit attempt already saved, or the player explicitly chose to leave.
+		app.campaign.close(false)
+	else:
 		app.slot_active = false
 		app.game.suspended = true
-	mark_backup_pending()
+	if saved: mark_backup_pending()
 	held = false
 	show_home()
 

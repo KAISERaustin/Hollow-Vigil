@@ -3,7 +3,7 @@ extends RefCounted
 const UI = preload("res://scripts/ui/shared/interface.gd")
 
 static func create(kind: String, title: String, cost: float, action: Callable, level: int = 1, branch: String = "", reach: float = -1.0) -> Button:
-	var button := UI.button("", action, 56)
+	var button := UI.button("", action, 56, true)
 	button.accessibility_name = "%s · %s gold" % [title, UI.exact_money(cost)]
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

@@ -99,7 +99,6 @@ static func sentinel(canvas: CanvasItem, kind: String, at: Vector2, zoom: float,
 			for side in [-1, 1]:
 				shape(canvas, [Vector2(side * 7, -15), Vector2(side * 18, -25), Vector2(side * 14, -40), Vector2(side * 10, -28), Vector2(side * 4, -23)], at, z, blue, w)
 			disk(canvas, at + Vector2(0, -29) * z, 7 * zoom, blue, w)
-			shape(canvas, [Vector2(2, -38), Vector2(-5, -27), Vector2(0, -27), Vector2(-2, -19), Vector2(6, -31), Vector2(1, -31)], at, z, PAPER, zoom)
 		_:
 			shape(canvas, [Vector2(-13, 7), Vector2(-10, -29), Vector2(0, -43), Vector2(10, -29), Vector2(13, 7)], at, z, LILAC, w)
 			shape(canvas, [Vector2(0, -25), Vector2(5, -18), Vector2(0, -11), Vector2(-5, -18)], at, z, INK, zoom)

@@ -265,7 +265,7 @@ static func value(text: String, pixels: int = 24) -> Label:
 	l.add_theme_font_override("font", font(700))
 	return l
 
-static func button(text: String, action: Callable, height: float = 48) -> Button:
+static func button(text: String, action: Callable, height: float = 48, highlight_selection: bool = false) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.custom_minimum_size.y = maxf(TARGET, height)
@@ -273,14 +273,14 @@ static func button(text: String, action: Callable, height: float = 48) -> Button
 	b.accessibility_name = text
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.pressed.connect(action)
-	var pressed := box(SURFACE)
+	var pressed := box(GOLD if highlight_selection else SURFACE)
 	pressed.content_margin_top += 1
 	pressed.content_margin_bottom -= 1
 	b.add_theme_stylebox_override("pressed", pressed)
 	b.add_theme_stylebox_override("hover_pressed", pressed)
 	b.add_theme_stylebox_override("focus", focus_box())
 	b.draw.connect(func():
-		if b.toggle_mode and b.button_pressed:
+		if b.toggle_mode and b.button_pressed and not highlight_selection:
 			b.draw_line(Vector2(12, b.size.y - 8), Vector2(b.size.x - 12, b.size.y - 8), BORDER, 2)
 	)
 	return b
