@@ -24,6 +24,33 @@ static func run(t) -> void:
 	gear_in_combat(t)
 	campaign_and_portable_builds(t)
 	component_families(t)
+	boss_and_effect_limits(t)
+
+static func boss_and_effect_limits(t) -> void:
+	var f := live_fixture(t, "ironspike", 4, "siegebreaker")
+	f.enemy.boss = true
+	f.enemy.kind = "warden"
+	f.enemy.shield = 50.0
+	var shot: Dictionary = f.game.combat.Projectiles.make_shot(f.game.combat, f.tower, f.origin, f.enemy, Balance.tower_stats(f.tower))
+	shot.fx.pos = f.enemy.pos
+	f.game.combat.resolve_shot(shot, f.enemy)
+	t.check(f.enemy.shield == 0 and f.enemy.hp == 999960.0, "Siegebreaker bonus is absorbed by the actual boss shield before health")
+	for kind in ["ironspike", "moonwheel", "caltrop_keep"]:
+		var normal := live_fixture(t, kind)
+		var full := live_fixture(t, kind)
+		for index in range(100): full.game.combat.add_effect({"kind": "death", "pos": Vector2.ZERO, "life": 100.0, "max_life": 100.0, "color": "ffffff"})
+		for tick in range(120):
+			normal.game.combat.tick(Balance.STEP)
+			full.game.combat.tick(Balance.STEP)
+		t.check(normal.enemy.hp == full.enemy.hp and normal.tower.cooldown == full.tower.cooldown, kind + " damage and cadence survive a saturated cosmetic pool")
+		# Pool recycling gives a fresh enemy identity and clears prior status.
+		var old_id: int = normal.enemy.id
+		normal.game.combat.hit(normal.enemy, normal.enemy.hp + 1, "1")
+		normal.game.combat.recycle_dead_enemies()
+		var replacement: Dictionary = t.enemy(normal.game, normal.origin + Vector2(1000, 1000))
+		replacement.stun_until = 100.0
+		for tick in range(30): normal.game.combat.tick(Balance.STEP)
+		t.check(replacement.id != old_id and replacement.hp == replacement.max_hp and replacement.get("gear_status", {}).is_empty(), kind + " cannot hit a recycled enemy outside its trajectory or trap")
 
 static func cadence_and_audio(t) -> void:
 	var audio := Director.new()

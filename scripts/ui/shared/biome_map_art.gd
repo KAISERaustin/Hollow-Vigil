@@ -96,12 +96,14 @@ static func layout(profile: Dictionary, bounds: Rect2, reserved: Array[Rect2], r
 		if best.has_area():
 			result.append({"kind":profile.landmarks[index],"rect":best,"major":true})
 			occupied.append(best)
+	var natural_index := 0
 	for attempt in range(420):
 		if result.size()>=int(bounds.size.x/10): break
 		var width := rng.randf_range(48,88)
 		var rect := Rect2(Vector2(rng.randf_range(5,bounds.size.x-width-5),rng.randf_range(bounds.position.y+132,bounds.end.y-width*0.9-5)),Vector2(width,width*0.9))
 		if not clear_site(rect,bounds,occupied,roads): continue
-		var kind: String = profile.scenery[attempt%profile.scenery.size()]
+		var kind: String = profile.scenery[natural_index%profile.scenery.size()]
+		natural_index+=1
 		result.append({"kind":kind,"rect":rect,"major":false})
 		occupied.append(rect.grow(-2))
 	# Fine environmental marks occupy remaining clearings without competing with

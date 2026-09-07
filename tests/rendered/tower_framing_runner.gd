@@ -70,8 +70,13 @@ func exercise(host: Control, id: String, select: Callable, label: String) -> voi
 					actions.refresh()
 					var destination := field.camera_framing.target
 					if field.camera_framing.active:
+						var before_zoom: float = field.zoom
+						var zoom_distance := absf(field.camera_framing.target_zoom - before_zoom)
 						field._process(0.1)
-						check(field.camera.distance_to(before) > 0 and field.camera.distance_to(before) < destination.distance_to(before) * 0.25, label + " eases into drift")
+						if not before.is_equal_approx(destination):
+							check(field.camera.distance_to(before) > 0 and field.camera.distance_to(before) < destination.distance_to(before) * 0.25, label + " eases into drift")
+						elif zoom_distance > 0.00001:
+							check(absf(field.zoom - before_zoom) > 0 and absf(field.zoom - before_zoom) < zoom_distance * 0.25, label + " eases into zoom-only framing")
 					settle(field, actions)
 					var available_size := field.size - Vector2(20, 20)
 					if actions.upgrade_quote.visible:

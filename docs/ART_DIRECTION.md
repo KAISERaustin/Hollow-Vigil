@@ -67,6 +67,29 @@ Call `refresh_paths()` after changing a region appearance in editor tools or fix
 
 ## Cleared campaign landmarks
 
+The September 7 landscape upgrade applies the portals, Moonwheel and Caltrop
+Keep's structural detail throughout all six campaign chapters. The map is an
+illustrated landscape with cut-stone watchposts, timber mills, foundries, bell
+towers, lunar observatories, ruined keeps and orchard shrines. Use layered flat
+materials, masonry courses, roof seams, iron brackets and carved crests. This
+campaign scenery exception supersedes the three-tiny-symbol terrain limit above;
+Infinite terrain density remains unchanged. Biome contours, groves, crags, graves,
+streams, moats and lava channels establish places around the winding trail.
+Bridges follow actual route intersections. Numbered illustrated destinations
+remain the level controls; passive scenery never receives input.
+
+`content/catalogs/chapter_maps.gd` assigns reusable landscape recipes to the
+Chapter Level nodes through the removable `map_landscape` presentation component.
+`rendering/terrain/map_landmark_art.gd` and `map_nature_art.gd` own drawing parts;
+`ui/shared/biome_map_art.gd` owns deterministic placement and crossing geometry.
+Reserve full artwork bounds, label text and controls when reflowing. Cache layout
+per map instance, with no random redraw changes or state on shared definitions.
+All thirty level IDs, unlocks, saves, waves and rewards remain unchanged.
+`tests/rendered/campaign_landscape_runner.gd` verifies component isolation and
+artwork bounds, and exports every full chapter at 360, 390 and 540 units plus
+`artifacts/campaign-landscape-gallery.png`. The map runner also checks landscape
+clearance, phone/landscape navigation and both ends of every chapter.
+
 The campaign world map uses six edge-to-edge biome sections with native scenery, winding ink-bordered trails and one shared 3-unit divider between sections. This user-requested map exception removes the parchment page background and chapter cards. Keep title/Back navigation fixed above the scroll viewport. See the Campaign world map recipe in `UI_STYLE_GUIDE.md`; ordinary dialogs still use the shared parchment system.
 
 Completed levels use `scripts/campaign/cleared_level_art.gd`, a stateless shared drawing component composed by `level_marker.gd`. Broken parchment stone, scattered masonry and an ochre beacon replace the intact marker; chapter bosses use collapsed gate jambs with the same beacon. Numbers remain readable and completion comes only from campaign progress. Flames are flat and static, with no glow or particles. Unfinished destinations retain their existing artwork. Regenerate mobile reference captures with `--script res://tests/previews/cleared_map_preview.gd`.

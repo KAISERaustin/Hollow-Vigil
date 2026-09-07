@@ -57,7 +57,7 @@ func run() -> void:
 			var scenery: Array = map.landscapes[chapter].sites
 			check(scenery.filter(func(site):return site.major).size()==4,"Every chapter retains four substantial scenery landmarks")
 			check(scenery.filter(func(site):return site.kind!="ground_marks").size()>=9,"Every chapter has a populated landscape at %d"%viewport.x)
-			var obstacles := map.chapter_roads(chapter)
+			var obstacles: Array[PackedVector2Array] = map.chapter_roads(chapter)
 			obstacles.append(Map.MapArt.waterway(bounds))
 			for site in scenery:
 				check(Map.MapArt.clear_site(site.rect,bounds,map.chapter_reserved(chapter),obstacles),"Scenery clears labels, destinations, trails and water at %d / chapter %d"%[viewport.x,chapter+1])

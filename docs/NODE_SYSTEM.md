@@ -159,6 +159,18 @@ To ship a tower, add its rows to `scripts/content/catalogs/towers.gd`: `TOWERS`,
 
 ## Other extensions
 
+### Campaign landscape presentation
+
+Chapter Level nodes compose the stateless `presentation/map_landscape` component
+in their `map_landscape` slot. `catalogs/chapter_maps.gd` supplies assignments for
+architecture, natural scenery, materials and biome accents. The component returns
+independent presentation data; `with_component()` and `without_component()` allow
+replacement and removal without changing sibling chapters or the parent. The map
+owns placement, responsive layout caches, labels and input. Native rendering kits
+draw the assigned objects and reuse the portal and tower motifs. This attachment
+has no simulation hooks or saved runtime state. Verify its bounds and isolation
+with `tests/rendered/campaign_landscape_runner.gd`.
+
 ### Biome bosses
 
 Every region subtype supplies `boss_kind()` from `catalogs/world.gd`'s `BIOME_BOSSES`. Forest uses Briarbound Warden, Ashen Forge uses Cinder Reliquary, Drowned Crypt uses Drowned Bell, Bloodmoon Sanctuary uses Eclipse Prior, Castle Ruin uses Ruined King, and Mourning Orchard uses Mourning Matriarch. Each connected biome cluster has exactly one seeded encounter tile, independent of purchase order. The shared world cluster service uses visible terrain after castle and Orchard overlays, so disconnected patches are separate clusters. Only purchasing the encounter tile awakens its boss. Castle gates retain their discovery encounter; the Orchard uses its seeded entrance. Other tiles in the cluster never awaken additional bosses. The starting core is excluded from encounter selection.

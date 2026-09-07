@@ -152,6 +152,16 @@ beside the actions; keep the complete composition scrollable on small screens.
 
 ### Campaign world map
 
+The detailed landscape revision uses 960-unit chapters with illustrated level
+destinations and the existing short chapter story. Compose the Chapter node's
+`map_landscape` recipe with the shared architectural and natural drawing kits.
+Keep readable text clear of the full scenery bounds, riverbanks and trail
+crossings. Artwork may be denser than Infinite terrain; its detail follows the
+portals, Moonwheel and Caltrop Keep. Number plaques retain the shared 3-unit border,
+and all destinations retain at least 48-unit touch targets. Cleared rubble/beacons,
+current pointers, locked labels and fixed Back/Menu controls keep their meaning.
+See `ART_DIRECTION.md` for the drawing and rendered validation contract.
+
 The September 7 campaign-map revision is an explicit exception to parchment page backgrounds. Fill the scrolling map edge to edge with the six native Infinite biome colors and scenery. Adjoining chapters share one 3-unit black divider, drawn over trail crossings; omit card frames, rounded chapter corners, parchment gutters and mode availability subtitles. Keep the title and 48-unit Back control in a fixed, safe-area-aware header. Use winding trails that avoid readable level labels and preserve completed, current and locked states. `biome_map_art.gd` owns reusable trail and scenery drawing; `world_map.gd` supplies the authored Level catalog and progression. Validate return navigation, scrolling and label clearance at phone and landscape sizes with `tests/rendered/campaign_map_runner.gd`.
 
 ### Persistent HUD

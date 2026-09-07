@@ -124,9 +124,9 @@ func chapter_roads(chapter: int) -> Array[PackedVector2Array]:
 	var first := chapter * 5
 	var top := chapter * CHAPTER_HEIGHT
 	if chapter > 0:
-		var entrance := PackedVector2Array([Vector2(size.x - 16, top), Vector2(size.x - 16, top + 76)])
-		var approach := Vector2(point(first).x + 48, top + 90)
-		entrance.append_array(MapArt.curve(entrance[-1], approach, Vector2(size.x - 16, top + 90), approach + Vector2(24, 0)))
+		var entrance := PackedVector2Array([Vector2(size.x - 16, top), Vector2(size.x - 16, top + 128)])
+		var approach := Vector2(point(first).x + 48, top + 142)
+		entrance.append_array(MapArt.curve(entrance[-1], approach, Vector2(size.x - 16, top + 142), approach + Vector2(24, 0)))
 		entrance.append_array(MapArt.curve(approach, point(first), approach - Vector2(48, 0), point(first) - Vector2(0, 28)))
 		roads.append(entrance)
 	for index in range(first + 1, first + 5):

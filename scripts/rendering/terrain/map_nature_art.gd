@@ -61,7 +61,7 @@ static func draw(c: CanvasItem, kind: String, rect: Rect2, profile: Dictionary) 
 			if kind=="slag":
 				c.draw_polyline(PackedVector2Array([Vector2(-11,-20),Vector2(-18,-6),Vector2(-7,0),Vector2(-15,12)]),A.CORAL,3,true)
 		"tombs":
-			for item in [Vector2(-25,-22),Vector2(12,-32),Vector2(32,0),Vector2(-4,10)]:
+			for item in [Vector2(-25,-22),Vector2(12,-32),Vector2(32,0),Vector2(-4,7)]:
 				A.shape(c,[Vector2(-13,0),Vector2(3,-5),Vector2(17,5),Vector2(1,12)],item,Vector2.ONE,stone_color.darkened(0.15),1.5)
 				A.shape(c,[Vector2(-10,1),Vector2(-10,-21),Vector2(0,-28),Vector2(8,-21),Vector2(8,1)],item,Vector2.ONE,stone_color,1.8)
 				Kit.line(c,item+Vector2(-1,-19),item+Vector2(-1,-4),1.6)
