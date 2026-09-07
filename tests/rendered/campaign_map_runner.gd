@@ -51,7 +51,6 @@ func run() -> void:
 		for chapter in Catalog.CHAPTERS.size():
 			campaign.page_scroll.scroll_vertical = roundi(chapter * Map.CHAPTER_HEIGHT)
 			await frame()
-			print("MAP SCROLL ", viewport, " chapter ", chapter, " actual ", campaign.page_scroll.scroll_vertical, " range ", campaign.page_scroll.get_v_scroll_bar().max_value, " map ", map.global_position, " layout ", campaign.layout.get_combined_minimum_size(), " visible ", campaign.layout.visible, " scroll size ", campaign.page_scroll.size, " layout size ", campaign.layout.size, " top_level ", campaign.layout.top_level)
 			check(back.get_global_rect() == back_bounds, "Back remains fixed while scrolling")
 			var bounds: Rect2 = map.chapter_rect(chapter)
 			check(bounds.encloses(map.headings[chapter].get_rect()), "Chapter title fits its biome")
@@ -59,6 +58,15 @@ func run() -> void:
 				check(bounds.encloses(map.nodes[index].get_rect()), "Level marker fits its biome")
 				check(bounds.encloses(map.labels[index].get_rect()), "Level label fits its biome")
 				check(not map.nodes[index].get_rect().intersects(map.labels[index].get_rect()), "Level text does not overlap its marker")
+				var clear_text := true
+				for road in map.chapter_roads(chapter):
+					for point in road:
+						for label: Label in map.labels[index].get_children():
+							var width := label.get_theme_font("font").get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, label.get_theme_font_size("font_size")).x
+							var rect := Rect2(map.labels[index].position + label.position, Vector2(minf(width, label.size.x), label.size.y))
+							if label.horizontal_alignment == HORIZONTAL_ALIGNMENT_RIGHT: rect.position.x += label.size.x - rect.size.x
+							if rect.grow(4).has_point(point): clear_text = false
+				check(clear_text, "Winding trail stays clear of level text")
 			var capture := root.get_texture().get_image()
 			var color := VigilTerrainArt.ground_color(Catalog.CHAPTERS[chapter].style)
 			var sample := capture.get_pixel(1, roundi(map.global_position.y + bounds.position.y + 10))

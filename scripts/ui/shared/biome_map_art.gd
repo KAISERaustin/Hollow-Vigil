@@ -3,11 +3,13 @@ extends RefCounted
 const Art = preload("res://scripts/rendering/terrain/terrain_art.gd")
 const UI = preload("res://scripts/ui/shared/interface.gd")
 
-static func curve(from: Vector2, to: Vector2) -> PackedVector2Array:
+static func curve(from: Vector2, to: Vector2, departure: Vector2 = Vector2.INF, arrival: Vector2 = Vector2.INF) -> PackedVector2Array:
 	var bend := (to.y - from.y) * 0.55
+	if departure == Vector2.INF: departure = from + Vector2(0, bend)
+	if arrival == Vector2.INF: arrival = to - Vector2(0, bend)
 	var points := PackedVector2Array()
 	for step in range(33):
-		points.append(from.bezier_interpolate(from + Vector2(0, bend), to - Vector2(0, bend), to, step / 32.0))
+		points.append(from.bezier_interpolate(departure, arrival, to, step / 32.0))
 	return points
 
 static func trail(canvas: CanvasItem, points: PackedVector2Array, completed: bool) -> void:

@@ -244,7 +244,7 @@ func clear_page(next: String) -> void:
 	page = next
 	parchment.visible = next not in ["map", "battle"]
 	map_navigation.visible = next == "map"
-	color = VigilTerrainArt.ground_color("forest") if next == "map" else UI.PANEL
+	color = VigilTerrainArt.ground_color(Catalog.CHAPTERS[-1].style) if next == "map" else UI.PANEL
 	for child in map_heading.get_children():
 		map_heading.remove_child(child)
 		child.queue_free()
