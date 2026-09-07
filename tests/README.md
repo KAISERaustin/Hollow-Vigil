@@ -6,6 +6,21 @@ Use the root `launch.ps1` commands documented in the README. `-Check` runs headl
 
 ## Coverage
 
+### Unified menus, reusable builds and private backups
+
+`./launch.ps1 -UnifiedTests` runs the complete redesign checks, also included in `-Check`:
+
+- `unified_persistence_runner.gd`: all 255 Infinite and 1,023 Campaign nonempty group selections, individual registered enemy/boss/tower types, omitted defaults, cross-game and level scope, placement/wave dependencies, exactly three slots per game type, complete wave-start recovery and unreadable/replaced saves.
+- `private_backups_runner.gd`: asynchronous transport checks for all six games and My builds, complete custom rules/towers/gear/checkpoints, second-device recovery, offline retries, stale revisions, explicit local/cloud choices and account-change guards. It verifies that automatic private backup never publishes to Community.
+- `rendered/unified_menu_runner.gd`: actual mouse events through both game types at 360×640, 390×844 and 540×960. Covers home, saved games, new-game review and replacement, private/Community libraries and pagination, save/share and account return, failed-share Retry, draft Apply/Cancel, held Resume versus saved Continue, Survival locks, Backups and recovery confirmation. Screenshots use `artifacts/unified-*.png`.
+- `rendered/recovery_menu_runner.gd`: the local Recovery copies browser at the same three sizes in both game types. Opens a recovery card, confirms or cancels empty-slot restore and named replacement, preserves other slots, verifies the replaced game remains recoverable, and blocks restoring over the held active game. Also activates Recover My builds against the account transport fixture.
+
+`./launch.ps1 -MobileTests` also runs that workflow through native touch events and dropdown interaction via `rendered/mobile_playthrough_runner.gd`, alongside dedicated navigation, equipment and upgrade checks. These are desktop event simulations, not installed-phone acceptance.
+
+`unified_cloud_contracts.sql` is a live, rollback-only database check. Run it through the Hollow Vigil project SQL connection. It uses synthetic users and real authenticated roles to verify complete snapshots, six-slot limits, idempotent retries, conflicts, library and Community APIs, and private-account isolation. All fixtures are rolled back; no real account data is used. The generated client payloads are available in the ignored `artifacts/unified-cloud-fixtures.json` after the persistence runner.
+
+### Gameplay and shared components
+
 - `content_node_runner.gd` / `unit/content_node_checks.gd`: content inheritance, subtype overrides, immutable catalogs, duplicate registration guards, fresh instance state, placement/equipment rules, pooled enemies, boss defenses, gear counters and campaign wave order. Included in the main headless suite. See `docs/NODE_SYSTEM.md` for the extension guide.
 
 - `unit/enemy_checks.gd`: Lantern Keeper attunement pricing and guards, every unlock combination, normal spawning, movement, lethal damage, once-only bounty and save reload. Mixed-traffic balance and crowded-world tests include all four enemies.

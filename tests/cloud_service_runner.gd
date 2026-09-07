@@ -131,7 +131,7 @@ func run() -> void:
 	s.responses.append({"ok":false,"code":0,"data":null})
 	await s.sync_now()
 	check(s.signed_in() and s.pending.mutation == queued, "Offline refresh preserves credentials and queued save")
-	check(s.status.begins_with("Offline"), "Offline refresh is not reported as expired sign-in")
+	check(s.status.begins_with("Unable to connect.") and not s.status.contains("Sign in again"), "Offline refresh is reported as a connection issue, not expired sign-in")
 	s.responses.append({"ok":false,"code":429,"data":null})
 	await s.sync_now()
 	check(s.signed_in() and s.pending.mutation == queued, "Rate-limited refresh preserves sign-in and queued save")

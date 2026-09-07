@@ -87,6 +87,7 @@ Run from the repository:
 - `tests/unified_persistence_runner.gd`: all nonempty content-group combinations, selected registered types, cross-game stat transfer, defaults, dependency failures, six-slot isolation, complete Campaign checkpoints and recovery.
 - `tests/private_backups_runner.gd`: an asynchronous transport fixture for all six slots, complete customized Campaigns, second-device library recovery, offline retry, conflicts, account changes and absence of automatic publication.
 - `tests/rendered/unified_menu_runner.gd`: native menu workflows at 360×640, 390×844 and 540×960, including form preservation, replacement/restore choices and matching HUD controls.
+- `tests/rendered/recovery_menu_runner.gd`: native local-recovery browser, empty/occupied destination confirmations, held-game protection and Recover My builds at the same sizes.
 
 Execute `tests/unified_cloud_contracts.sql` through the project SQL connection. It creates synthetic identities inside one transaction, uses real authenticated roles and JWT claims, verifies all six complete snapshots, idempotency, stale revisions, null/fourth-slot rejection, private-library recovery, Community publishing and owner isolation, then rolls back every fixture. A successful result is `Unified cloud contracts passed; all fixtures rolled back`.
 

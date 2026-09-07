@@ -81,6 +81,7 @@ try {
             Invoke-Godot -Name 'unified-persistence' -EngineArguments @('--headless', '--script', 'res://tests/unified_persistence_runner.gd')
             Invoke-Godot -Name 'private-backups' -EngineArguments @('--headless', '--script', 'res://tests/private_backups_runner.gd')
             Invoke-Godot -Name 'unified-menu' -EngineArguments @('--script', 'res://tests/rendered/unified_menu_runner.gd')
+            Invoke-Godot -Name 'recovery-menu' -EngineArguments @('--script', 'res://tests/rendered/recovery_menu_runner.gd')
         }
         if ($Smoke -or $Check) {
             Invoke-Godot -Name 'visual' -EngineArguments @('--script', 'res://tests/rendered/visual_runner.gd')

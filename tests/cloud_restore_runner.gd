@@ -33,18 +33,18 @@ func run() -> void:
 	app.cloud.refresh_token = "synthetic"
 	app.cloud.status = "Saved to cloud · revision 3"
 	app.activate_slot(next, 0)
-	check(not app.cloud.linked() and app.cloud.status.contains("has not been uploaded"), "Switching to an unlinked save clears stale sync-success message")
+	check(not app.cloud.linked() and app.cloud.status.contains("back up automatically") and not app.cloud.status.contains("revision 3"), "Switching saves clears the previous game's success message and describes automatic backups")
 	var next_path: String = next.save_path
 	app.show_save_slots()
 	app.slot_active = false
 	app.slot_menu.show_slots()
-	var empty_button := app.slot_menu.find_child("SaveSlot2", true, false) as Button
-	check(empty_button.text == "New game", "Empty restore destination initially offers New game")
+	var empty_button := app.slot_menu.find_child("NewGameSlot2", true, false) as Button
+	check(empty_button != null and empty_button.text == "New game", "Empty restore destination initially offers New game")
 	app.cloud.backup_slot = 1
 	app.cloud.game = app.backup_game(1, true)
 	app.restore_cloud_progress(snapshot.duplicate(true), wid, 3)
-	var restored_button := app.slot_menu.find_child("SaveSlot2", true, false) as Button
-	check(restored_button.text == "Continue game" and not restored_button.disabled, "Inactive cloud restore immediately refreshes the saved-game action")
+	var restored_button := app.slot_menu.find_child("ContinueGameSlot2", true, false) as Button
+	check(restored_button != null and restored_button.text == "Continue game" and not restored_button.disabled, "Inactive cloud restore immediately refreshes the saved-game action")
 	check(app.slot_menu.slots.summary(1).cloud.world_id == wid, "Refreshed restore action points to the durable cloud world")
 	var restored_path: String = app.slot_menu.slots.path_for(1)
 	app.audio.set_suspended(true)

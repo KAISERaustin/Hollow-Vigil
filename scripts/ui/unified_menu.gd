@@ -833,7 +833,8 @@ func review_restore() -> void:
 			footer.add_child(action("Keep this device's version", keep_device_version, "KeepDeviceVersion"))
 			footer.add_child(action("Use cloud version", func(): confirm("Use cloud version?", "Replace this device's progress for “%s” with the reviewed cloud version?" % game_name(local, destination), "Restore backup", apply_restore), "UseCloudVersion", true))
 			return
-		content.add_child(UI.paragraph("This will replace the different game “%s” in slot %d." % [game_name(local, destination), destination + 1]))
+		var same_game := session_identity(local, type) == session_identity(remote, type)
+		content.add_child(UI.paragraph("This will recover earlier progress for “%s” in slot %d." % [game_name(local, destination), destination + 1] if same_game else "This will replace the different game “%s” in slot %d." % [game_name(local, destination), destination + 1]))
 		if restore_choice.source == "cloud" and destination == int(restore_choice.slot_number):
 			footer.add_child(action("Keep this device's version", func(): confirm("Replace the cloud game?", "Keep “%s” on this device and replace the cloud backup “%s”?" % [game_name(local, destination), game_name(remote)], "Keep this device's version", keep_device_version), "KeepDeviceVersion"))
 	footer.add_child(action("Restore backup", func():

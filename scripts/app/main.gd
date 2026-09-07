@@ -644,7 +644,7 @@ func activate_slot(next: VigilState, slot: int) -> void:
 	cloud.include_audio = game.data.get("cloud", {}).get("include_audio", false)
 	cloud._load_pending()
 	if cloud.signed_in():
-		cloud._say("Backup revision %d. Choose Upload to replace it." % int(game.data.cloud.revision) if cloud.linked() else "This save has not been uploaded to this account. Choose Upload to create its backup.")
+		cloud._say("Signed in. Saved games and My builds back up automatically. Open Backups to see this game's status.")
 	audio.bind_game()
 	accumulator = 0.0
 	save_timer = 0.0

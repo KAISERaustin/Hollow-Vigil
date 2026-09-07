@@ -78,6 +78,11 @@ func run() -> void:
 		check(app.hud.collect_button.get_global_rect().end.x <= viewport.x, "Collect button fits " + str(viewport))
 	# A frozen real combat tick exposes all simultaneous lightning branches.
 	app.game.data.towers.clear()
+	app.game.combat.enemies.clear()
+	app.game.combat.effects.clear()
+	app.game.combat.scripted_spawns = true
+	# The generic heavy enemy belongs to the forest portal roster.
+	app.game.data.regions["1,0"].style = "forest"
 	app.game.data.balance = 10000.0
 	var electric: String = app.game.economy.build("electric", "0,0", 0)
 	app.game.economy.upgrade(electric)
@@ -85,6 +90,8 @@ func run() -> void:
 	var source := VigilWorld.pad_position("0,0", 0)
 	for index in range(5):
 		var enemy: Dictionary = app.game.combat.spawn("1,0", "heavy")
+		check(not enemy.is_empty(), "Lightning target spawns through its registered portal roster")
+		if enemy.is_empty(): continue
 		enemy.pos = source + Vector2.from_angle(-2.8 + index * 0.7) * 105.0
 		enemy.path = [enemy.pos, enemy.pos + Vector2(1000, 0)]
 	app.game.combat.tick(Balance.STEP)
