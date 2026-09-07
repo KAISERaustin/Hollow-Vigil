@@ -3,76 +3,113 @@ extends Control
 const Catalog = preload("res://scripts/campaign/catalog.gd")
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Art = preload("res://scripts/rendering/terrain/terrain_art.gd")
+const MapArt = preload("res://scripts/ui/shared/biome_map_art.gd")
 const Marker = preload("res://scripts/campaign/level_marker.gd")
+const CHAPTER_HEIGHT := 536.0
+const CHAPTER_NUMERALS := ["I", "II", "III", "IV", "V", "VI"]
 signal level_picked(index: int)
 var progress: RefCounted
 var nodes: Array[Button] = []
+var labels: Array[VBoxContainer] = []
+var headings: Array[VBoxContainer] = []
 
 func _ready() -> void:
-	# The final chapter ends at 1785; add 3 to the page's 12-pixel inset
-	# so the bottom clearance matches the 15-pixel gap between chapters.
-	custom_minimum_size = Vector2(280, 1788)
+	name = "CampaignWorldMap"
+	custom_minimum_size = Vector2(280, Catalog.CHAPTERS.size() * CHAPTER_HEIGHT)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mouse_filter = Control.MOUSE_FILTER_PASS
+	for chapter in Catalog.CHAPTERS.size():
+		var heading := VBoxContainer.new()
+		heading.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		heading.add_theme_constant_override("separation", 4)
+		heading.add_child(UI.label("CHAPTER " + CHAPTER_NUMERALS[chapter], UI.META, UI.TEXT))
+		heading.add_child(UI.heading(Catalog.CHAPTERS[chapter].name, 24))
+		add_child(heading)
+		headings.append(heading)
 	for index in range(Catalog.COUNT):
 		var button := Marker.new()
 		button.number = index + 1
 		button.completed = index < progress.data.completed_levels
 		button.current = not progress.allow_all and progress.unlocked(index) and index == int(progress.data.completed_levels)
 		if index % 5 == 4:
-			button.gate = Catalog.CHAPTERS[int(index / 5.0)].gate_art
+			button.gate = Catalog.CHAPTERS[int(index / 5.0)].get("gate_art")
+			button.gate_style = Catalog.CHAPTERS[int(index / 5.0)].style
 		button.pressed.connect(func(): level_picked.emit(index))
 		button.name = "CampaignLevel%d" % (index + 1)
 		button.disabled = not progress.unlocked(index)
 		button.accessibility_name = "Level %d: %s. %s" % [index + 1, Catalog.MISSIONS[index].name, "Current level" if button.current else ("Locked" if button.disabled else ("Completed" if button.completed else "Ready"))]
 		add_child(button)
 		nodes.append(button)
+		var identity := VBoxContainer.new()
+		identity.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		identity.add_theme_constant_override("separation", 4)
+		var title := UI.heading(Catalog.MISSIONS[index].name, 14)
+		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		identity.add_child(title)
+		var detail := "Current" if button.current else ("Cleared · Lit" if button.completed else ("Locked" if button.disabled else "Ready"))
+		if index % 5 == 4: detail += " · Boss"
+		identity.add_child(UI.label(detail, UI.META, UI.TEXT))
+		add_child(identity)
+		labels.append(identity)
 	resized.connect(arrange)
 	arrange()
+
+func chapter_rect(chapter: int) -> Rect2:
+	return Rect2(0, chapter * CHAPTER_HEIGHT, size.x, CHAPTER_HEIGHT)
 
 func point(index: int) -> Vector2:
 	var chapter := int(index / 5.0)
 	var within := index % 5
-	var x := [0.22, 0.42, 0.70, 0.30, 0.80][within] as float
-	return Vector2(size.x * x, chapter * 450 + (370 if within == 4 else 115 + within * 70))
+	var x: float = [0.22, 0.74, 0.26, 0.70, 0.77][within]
+	# A reversed middle bend gives neighboring biomes their own trail rhythm.
+	if chapter % 2 == 1 and within < 4: x = 1.0 - x
+	return Vector2(size.x * x, chapter * CHAPTER_HEIGHT + 126 + within * 84)
 
 func arrange() -> void:
+	for chapter in headings.size():
+		headings[chapter].position = Vector2(UI.PADDING, chapter * CHAPTER_HEIGHT + 20)
+		headings[chapter].size = Vector2(size.x - UI.PADDING * 2 - 28, 64)
 	for index in range(nodes.size()):
-		nodes[index].size = Vector2(80,120) if index % 5 == 4 else Vector2(54,54)
+		var boss := index % 5 == 4
+		nodes[index].size = Vector2(80,120) if boss else Vector2(54,54)
 		nodes[index].position = point(index) - nodes[index].size * 0.5
+		var right := point(index).x < size.x * 0.5
+		var start := point(index).x + 36 if right else float(UI.PADDING)
+		var width := size.x - start - UI.PADDING if right else point(index).x - UI.PADDING - (52 if boss else 36)
+		labels[index].position = Vector2(start, point(index).y - 22)
+		labels[index].size = Vector2(width, 58)
+		for label: Label in labels[index].get_children():
+			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if right else HORIZONTAL_ALIGNMENT_RIGHT
 	queue_redraw()
 
+func chapter_roads(chapter: int) -> Array[PackedVector2Array]:
+	var roads: Array[PackedVector2Array] = []
+	var first := chapter * 5
+	var top := chapter * CHAPTER_HEIGHT
+	if chapter > 0:
+		var entrance := PackedVector2Array([Vector2(size.x - 16, top), Vector2(size.x - 16, top + 76)])
+		entrance.append_array(MapArt.curve(entrance[-1], point(first)))
+		roads.append(entrance)
+	for index in range(first + 1, first + 5):
+		roads.append(MapArt.curve(point(index - 1), point(index)))
+	if chapter < Catalog.CHAPTERS.size() - 1:
+		roads.append(MapArt.curve(point(first + 4), Vector2(size.x - 16, top + CHAPTER_HEIGHT)))
+	return roads
+
 func _draw() -> void:
-	for chapter in range(4):
-		var top := chapter * 450.0
-		var palette := Art.ground_color(Catalog.CHAPTERS[chapter].style)
-		var panel := Rect2(0, top, size.x, 435)
-		draw_style_box(UI.surface(palette.lightened(0.1), UI.OUTLINE, 22), panel)
-		# Chapter artwork shares the authored map coordinates; keep the frame
-		# visible and draw all navigation and labels over the background.
-		var background: Texture2D = Catalog.CHAPTERS[chapter].get("map_art")
-		if background != null:
-			draw_texture_rect(background, panel.grow(-2), false)
-		draw_string(UI.font(600), Vector2(16, top + 28), "CHAPTER %s" % ["I", "II", "III", "IV"][chapter], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, UI.MUTED)
-		draw_string(UI.font(600,true), Vector2(16, top + 55), Catalog.CHAPTERS[chapter].name, HORIZONTAL_ALIGNMENT_LEFT, size.x-24, 20, UI.TEXT)
-		for i in range(5):
-			var index := chapter * 5 + i
-			var at := point(index)
-			if index > 0:
-				var previous := point(index-1)
-				var color := UI.GOLD if index <= progress.data.completed_levels else palette.darkened(0.3)
-				var road := PackedVector2Array([previous, Vector2(previous.x, (previous.y+at.y)*0.5), Vector2(at.x,(previous.y+at.y)*0.5), at])
-				if i == 0:
-					# Pass around the chapter heading, leaving its text unobstructed.
-					road = PackedVector2Array([previous, Vector2(previous.x,previous.y+32), Vector2(size.x-10,previous.y+32), Vector2(size.x-10,at.y-34), Vector2(at.x,at.y-34), at])
-				draw_polyline(road, color, 5, true)
-			var right := at.x < size.x*0.5
-			var origin := Vector2(at.x+34 if right else 12.0, at.y-4)
-			if i == 4:
-				origin = Vector2(16, top + 391)
-			var width := size.x-origin.x-10 if right else at.x-46
-			var title: String = Catalog.MISSIONS[index].name
-			draw_string(UI.font(600), origin, title, HORIZONTAL_ALIGNMENT_LEFT, width, 12, UI.TEXT if progress.unlocked(index) else UI.MUTED)
-			var completed: bool = index < progress.data.completed_levels
-			var current: bool = index < nodes.size() and nodes[index].current
-			var detail := "CURRENT · BOSS" if current and i == 4 else ("CURRENT" if current else ("Cleared · Lit" if completed else ("Ready · BOSS" if i == 4 and progress.unlocked(index) else ("Ready" if progress.unlocked(index) else "Locked"))))
-			draw_string(UI.font(700 if current else 400), origin+Vector2(0,20), detail, HORIZONTAL_ALIGNMENT_LEFT, width, 11, UI.TEXT if completed or current else UI.MUTED)
+	for chapter in Catalog.CHAPTERS.size():
+		var bounds := chapter_rect(chapter)
+		var style: String = Catalog.CHAPTERS[chapter].style
+		draw_rect(bounds, Art.ground_color(style))
+		var roads := chapter_roads(chapter)
+		var reserved: Array[Rect2] = [headings[chapter].get_rect()]
+		for index in range(chapter * 5, chapter * 5 + 5):
+			reserved.append(nodes[index].get_rect())
+			reserved.append(labels[index].get_rect())
+		MapArt.scenery(self, style, bounds, reserved, roads, chapter + 71)
+		for road in roads:
+			var destination := clampi(roundi((road[-1].y - bounds.position.y - 126) / 84.0), 0, 5) + chapter * 5
+			MapArt.trail(self, road, destination <= progress.data.completed_levels and not progress.allow_all)
+		# Abutting biomes share exactly one border, including road crossings.
+		if chapter > 0:
+			draw_rect(Rect2(0, bounds.position.y, size.x, UI.OUTLINE), UI.BORDER)

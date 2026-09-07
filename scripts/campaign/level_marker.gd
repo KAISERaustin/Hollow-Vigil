@@ -6,6 +6,10 @@ var number := 1
 var completed := false
 var current := false
 var gate: Texture2D
+var gate_style := ""
+
+func is_gate() -> bool:
+	return gate != null or not gate_style.is_empty()
 
 func _ready() -> void:
 	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
@@ -28,16 +32,19 @@ func _draw() -> void:
 	if completed:
 		if active:
 			draw_style_box(UI.surface(Color(0,0,0,0), UI.OUTLINE, 4), Rect2(Vector2.ZERO, size))
-		ClearedArt.draw(self, offset, gate != null)
-		if gate != null:
+		ClearedArt.draw(self, offset, is_gate())
+		if is_gate():
 			var plaque := Rect2(size.x * 0.5 - 18, size.y - 21, 36, 22)
 			draw_style_box(UI.surface(paper, UI.OUTLINE, 2), plaque)
 			draw_string(UI.font(600), plaque.position + Vector2(6, 16), str(number), HORIZONTAL_ALIGNMENT_CENTER, 24, 14, UI.TEXT)
 		else:
 			draw_string(UI.font(600), Vector2(9,40)+offset, str(number), HORIZONTAL_ALIGNMENT_CENTER, 26, 16, UI.TEXT)
 		return
-	if gate != null:
-		draw_texture_rect(gate, Rect2(Vector2.ZERO, size), false)
+	if is_gate():
+		if gate != null:
+			draw_texture_rect(gate, Rect2(Vector2.ZERO, size), false)
+		else:
+			preload("res://scripts/rendering/actors/rift_art.gd").draw(self, gate_style, Vector2(size.x * 0.5, 68) + offset, 0.9)
 		var plaque := Rect2(size.x * 0.5 - 18, size.y - 21, 36, 22)
 		draw_style_box(UI.surface(paper, UI.OUTLINE, 2), plaque)
 		draw_string(UI.font(600), plaque.position + Vector2(6, 16), str(number), HORIZONTAL_ALIGNMENT_CENTER, 24, 14, UI.TEXT)

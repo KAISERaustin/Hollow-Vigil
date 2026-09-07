@@ -10,25 +10,32 @@ static func card(slot: int, title: String, mode: String, description: String, st
 	body.add_theme_constant_override("separation", UI.GAP)
 	var panel := UI.info_card(body, UI.SURFACE, UI.CARD_PADDING)
 	panel.name = "SavedGameCard" + str(slot + 1)
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", UI.CARD_GAP)
-	body.add_child(header)
 	var slot_label := UI.heading("Slot %d" % (slot + 1), UI.CAPTION)
-	slot_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(slot_label)
-	if not mode.is_empty(): header.add_child(UI.label(mode, UI.CAPTION, UI.MUTED))
+	body.add_child(slot_label)
 	var identity := VBoxContainer.new()
 	identity.add_theme_constant_override("separation", UI.CARD_GAP)
 	body.add_child(identity)
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", UI.CARD_GAP)
+	var identity_card := UI.info_card(header)
+	identity_card.name = "GameIdentityCard"
+	identity.add_child(identity_card)
 	var heading := UI.heading(title, 18)
 	heading.name = "GameTitle"
-	identity.add_child(heading)
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	heading.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	header.add_child(heading)
+	if not mode.is_empty():
+		var mode_label := UI.heading(mode, 18)
+		mode_label.name = "GameMode"
+		mode_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		mode_label.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		header.add_child(mode_label)
 	if not description.is_empty():
 		var detail := UI.paragraph(description)
 		detail.name = "GameDescription"
 		identity.add_child(detail)
 	if not stats.is_empty():
-		body.add_child(UI.rule())
 		var values := GridContainer.new()
 		values.name = "GameProgress"
 		values.columns = 2

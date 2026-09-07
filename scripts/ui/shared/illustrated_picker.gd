@@ -84,6 +84,8 @@ func get_popup() -> PopupPanel:
 func choose(index: int) -> void:
 	if disabled or is_item_disabled(index): return
 	select(index)
+	# A selection callback may replace this page and detach the popup.
+	popup.set_input_as_handled()
 	popup.hide()
 	item_selected.emit(index)
 

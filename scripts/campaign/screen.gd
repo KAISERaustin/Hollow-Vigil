@@ -16,6 +16,9 @@ var configuration := Configuration.new()
 var run: RefCounted
 var layout: VBoxContainer
 var page_scroll: ScrollContainer
+var map_navigation: ColorRect
+var map_heading: VBoxContainer
+var parchment: TextureRect
 var board: Control
 var status: Label
 var gold: Label
@@ -134,7 +137,8 @@ func _ready() -> void:
 	name = "Campaign"
 	color = UI.PANEL
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(UI.fullscreen_parchment())
+	parchment = UI.fullscreen_parchment()
+	add_child(parchment)
 	theme = UI.theme()
 	if active_campaign_slot < 0: progress.load_progress()
 	if is_instance_valid(app) and not app.load_saved_progress:
@@ -165,6 +169,14 @@ func _ready() -> void:
 	page_scroll.follow_focus = true
 	UI.keyboard_scroll(page_scroll, "Campaign menus")
 	add_child(page_scroll)
+	map_navigation = ColorRect.new()
+	map_navigation.name = "CampaignMapNavigation"
+	map_navigation.color = VigilTerrainArt.ground_color("forest")
+	add_child(map_navigation)
+	map_heading = UI.margin(map_navigation, UI.SCREEN_PADDING)
+	map_navigation.draw.connect(func():
+		map_navigation.draw_rect(Rect2(0, map_navigation.size.y - UI.OUTLINE, map_navigation.size.x, UI.OUTLINE), UI.BORDER)
+	)
 	resized.connect(fit)
 	preload("res://scripts/ui/shared/mobile_layout.gd").attach(self)
 	_build_dialog()
@@ -184,7 +196,15 @@ func _ready() -> void:
 
 func fit() -> void:
 	var safe := UI.safe_rect(self).grow(-UI.SCREEN_PADDING)
-	if page == "battle":
+	if page == "map":
+		var map_safe := UI.safe_rect(self)
+		var header_height := UI.TARGET + UI.SCREEN_PADDING * 2 + UI.OUTLINE
+		map_navigation.position = map_safe.position
+		map_navigation.size = Vector2(map_safe.size.x, header_height)
+		page_scroll.position = map_safe.position + Vector2(0, header_height)
+		page_scroll.size = Vector2(map_safe.size.x, maxf(0, map_safe.size.y - header_height))
+		map_navigation.queue_redraw()
+	elif page == "battle":
 		layout.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		layout.offset_left = safe.position.x
 		layout.offset_top = safe.position.y
@@ -214,6 +234,13 @@ func clear_page(next: String) -> void:
 	clear_selection()
 	clear_tower_ui()
 	page = next
+	parchment.visible = next != "map"
+	map_navigation.visible = next == "map"
+	color = VigilTerrainArt.ground_color("forest") if next == "map" else UI.PANEL
+	for child in map_heading.get_children():
+		map_heading.remove_child(child)
+		child.queue_free()
+	layout.add_theme_constant_override("separation", 0 if next == "map" else 10)
 	board = null
 	for child in layout.get_children():
 		layout.remove_child(child)
@@ -234,7 +261,7 @@ func clear_page(next: String) -> void:
 func header(title: String, back: Callable) -> BoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", UI.GAP)
-	layout.add_child(row)
+	(map_heading if page == "map" else layout).add_child(row)
 	var button := UI.back_button("Back", back)
 	button.name = "CampaignBack"
 	row.add_child(button)
@@ -376,30 +403,31 @@ func show_map() -> void:
 		back.name = "CampaignSavedGames"
 	else: header("The Last Procession", show_setup)
 	var cleared := int(progress.data.completed_levels)
-	layout.add_child(UI.paragraph("Creative · All levels available" if can_author() else "Survival · %d / %d levels completed" % [cleared, Catalog.COUNT], 13))
 	var world := WorldMap.new()
 	world.progress = progress
 	world.level_picked.connect(show_briefing)
 	layout.add_child(world)
 	if active_campaign_slot >= 0:
-		if cleared == 20: layout.add_child(UI.paragraph("Every sanctuary burns again. Replay any level."))
 		return
+	var footer := UI.margin(layout, UI.SCREEN_PADDING)
+	footer.get_parent().size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	footer.add_theme_constant_override("separation", UI.GAP)
 	var balancing := UI.button("Campaign balancing", show_balancing_levels)
 	balancing.name = "CampaignBalancing"
 	balancing.visible = can_author()
-	layout.add_child(balancing)
+	footer.add_child(balancing)
 	var reset := UI.button("Reset campaign progress", confirm_progress_reset)
 	reset.name = "ResetCampaignProgress"
 	reset.visible = not can_author()
-	layout.add_child(reset)
+	footer.add_child(reset)
 	var backups := UI.button("Account & backups", func(): app.show_backups())
 	backups.name = "CampaignBackups"
-	layout.add_child(backups)
+	footer.add_child(backups)
 	save_notice = UI.paragraph(progress.last_error, 12)
 	save_notice.visible = not progress.last_error.is_empty()
-	layout.add_child(save_notice)
-	if cleared == 20:
-		layout.add_child(UI.paragraph("Dawn reaches the capital. Every sanctuary burns again. Replay any level to perfect your vigil.", 15))
+	footer.add_child(save_notice)
+	if cleared == Catalog.COUNT:
+		footer.add_child(UI.paragraph("Every sanctuary burns again. Replay any level to perfect your vigil.", 15))
 
 func show_briefing(index: int) -> void:
 	if not progress.unlocked(index):
