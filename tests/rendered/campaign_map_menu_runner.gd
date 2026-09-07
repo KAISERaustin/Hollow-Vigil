@@ -81,14 +81,18 @@ func run() -> void:
 	app.cloud = network
 	app.public_builds.cloud = network
 	app.private_backups.cloud = network
+	app.private_backups.enabled = false
 	app.campaign_backup.cloud = network
 	previous.queue_free()
 	for viewport in [Vector2i(360,640), Vector2i(390,844), Vector2i(540,960), Vector2i(844,390)]:
 		root.size = viewport
 		root.content_scale_size = viewport
 		menu.campaign_slots.base_path = app.game.save_path + "-" + str(viewport.x)
-		var sibling: Dictionary = menu.campaign_slots.create(2, "creative", "Other slot")
+		menu.campaign_slots.create(2, "creative", "Other slot")
+		var sibling: Dictionary = menu.campaign_slots.summary(2)
 		for mode in ["creative", "survival"]:
+			network.refresh_token = ""
+			print("CAMPAIGN MAP MENU: %s at %dx%d" % [mode, viewport.x, viewport.y])
 			var slot := 0 if mode == "creative" else 1
 			var saved: Dictionary = menu.campaign_slots.create(slot, mode, "OG Testing " + mode.capitalize(), {"0": {"overrides": {"gold": 777}}})
 			var checkpoint_run := Run.new(0, {"gold": 777}, mode)
@@ -149,6 +153,7 @@ func run() -> void:
 			check(not menu.prepared_form().contents.has("layout"), "Rules-only export omits layouts")
 			await capture(mode + "-one-level")
 			var publications_before: int = network.publications.size()
+			network.refresh_token = "fixture"
 			await press("ShareToCommunity")
 			check(network.publications.size() == publications_before + 1 and menu.pending_publish.is_empty(), "Explicit Community action publishes through the fixture service")
 			await press("BackButton")

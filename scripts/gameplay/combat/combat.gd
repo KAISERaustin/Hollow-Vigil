@@ -72,7 +72,7 @@ func _init(shared_data: Dictionary, transactions: VigilEconomy, shared_paths: Di
 	data = shared_data
 	economy = transactions
 	economy.relic_changed.connect(clear_relic_progress)
-	economy.tower_changed.connect(func(id): TowerComponents.clear(self, id))
+	economy.tower_changed.connect(clear_tower_components)
 	paths = shared_paths
 	rng.randomize()
 
@@ -408,6 +408,9 @@ func clear_relic_progress(id: String) -> void:
 
 func set_tower_definition(id: String, definition) -> bool:
 	return TowerComponents.set_definition(self, id, definition)
+
+func clear_tower_components(id: String) -> void:
+	TowerComponents.clear(self, id)
 
 ## Planning advances only preparable tower components, never enemies or income.
 func prepare_defenses(delta: float) -> void:
