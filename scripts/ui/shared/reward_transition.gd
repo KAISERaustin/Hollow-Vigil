@@ -79,9 +79,16 @@ func _draw() -> void:
 func _cloud(center: Vector2, scale_factor: float) -> void:
 	var points := PackedVector2Array()
 	# A single outlined scalloped silhouette, using the game's flat palette.
-	for i in range(65):
-		var angle := TAU * float(i) / 64.0
-		var scallop := 1.0 + 0.12 * cos(angle * 8.0)
-		points.append(center + Vector2(cos(angle) * 124, sin(angle) * 36) * scallop * scale_factor)
+	for i in range(129):
+		var angle := TAU * float(i) / 128.0
+		var direction := Vector2(cos(angle), sin(angle))
+		var radius := 0.0
+		for lobe in [Vector3(-64, 8, 38), Vector3(-28, -12, 46), Vector3(22, -18, 50), Vector3(65, 8, 36), Vector3(0, 14, 44)]:
+			var offset := Vector2(lobe.x, lobe.y)
+			var projection := direction.dot(offset)
+			var discriminant: float = lobe.z * lobe.z - offset.length_squared() + projection * projection
+			if discriminant >= 0.0:
+				radius = maxf(radius, projection + sqrt(discriminant))
+		points.append(center + direction * radius * scale_factor)
 	draw_colored_polygon(points, UI.PANEL)
 	draw_polyline(points, UI.BORDER, 3.0, true)
