@@ -2,6 +2,7 @@ extends ColorRect
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Catalog = preload("res://scripts/campaign/catalog.gd")
+const Configuration = preload("res://scripts/campaign/configuration.gd")
 const Run = preload("res://scripts/campaign/run.gd")
 const Progress = preload("res://scripts/campaign/progress.gd")
 const Board = preload("res://scripts/campaign/board.gd")
@@ -10,6 +11,7 @@ const TowerChoice = preload("res://scripts/ui/towers/tower_choice.gd")
 signal closed
 var app: VigilApp
 var progress := Progress.new()
+var configuration := Configuration.new()
 var run: RefCounted
 var layout: VBoxContainer
 var page_scroll: ScrollContainer
@@ -23,7 +25,7 @@ var page := "map"
 var paused := false
 var speed := 1.0
 var accumulator := 0.0
-var selected := -1
+var observed_phase := ""
 var dialog: ColorRect
 var dialog_card: PanelContainer
 var dialog_body: VBoxContainer
@@ -57,10 +59,23 @@ func collection_effect(amount: float) -> void:
 	toast("Collected %s gold" % UI.exact_money(amount))
 
 func close_sheet() -> void:
-	selected = -1
-	board.selected_tower = ""
-	tower_actions.blocked = false
-	tower_actions.refresh()
+	clear_selection()
+
+func clear_selection() -> void:
+	if is_instance_valid(dialog) and socket_dialog:
+		dialog.hide()
+	if is_instance_valid(tower_dialog) and tower_dialog.visible:
+		tower_dialog.dismiss(false)
+	if is_instance_valid(tower_move):
+		tower_move.cancel()
+	if is_instance_valid(board):
+		board.clear_selection()
+	selection_region = ""
+	selection_pad = -1
+	selection_tower = ""
+	if is_instance_valid(tower_actions):
+		tower_actions.blocked = false
+		tower_actions.refresh()
 
 func show_tower() -> void:
 	for socket in run.mission.sockets:
@@ -98,6 +113,9 @@ func _ready() -> void:
 	add_child(UI.fullscreen_parchment())
 	theme = UI.theme()
 	progress.load_progress()
+	if is_instance_valid(app) and not app.load_saved_progress:
+		configuration.path = app.game.save_path + ".campaign-configuration-test"
+	configuration.load_configuration()
 	layout = VBoxContainer.new()
 	layout.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	layout.offset_left = 12
@@ -143,6 +161,7 @@ func fit() -> void:
 			dialog_card.position = safe.position + (safe.size - dialog_card.size) * 0.5
 
 func clear_page(next: String) -> void:
+	clear_selection()
 	clear_tower_ui()
 	page = next
 	board = null
@@ -194,6 +213,12 @@ func show_map() -> void:
 		var next := UI.gold_button("Play level %d" % (cleared + 1), start_mission.bind(cleared), 48)
 		next.name = "ContinueCampaign"
 		layout.add_child(next)
+	var balancing := UI.button("Campaign balancing", show_balancing_levels)
+	balancing.name = "CampaignBalancing"
+	layout.add_child(balancing)
+	var reset := UI.button("Reset campaign progress", confirm_progress_reset)
+	reset.name = "ResetCampaignProgress"
+	layout.add_child(reset)
 	var backups := UI.button("Account & backups", func(): app.show_backups())
 	backups.name = "CampaignBackups"
 	layout.add_child(backups)
@@ -207,12 +232,12 @@ func show_briefing(index: int) -> void:
 	if not progress.unlocked(index):
 		return
 	clear_page("briefing")
-	run = Run.new(index)
+	run = Run.new(index, configuration.overrides(index))
 	header("%02d · %s" % [index+1, run.mission.name], show_map)
 	layout.add_child(UI.paragraph(Catalog.CHAPTERS[int(index / 5.0)].story, 14))
 	add_board(false)
 	layout.add_child(UI.paragraph(run.mission.brief, 15))
-	layout.add_child(UI.paragraph("%d waves  ·  %d starting gold  ·  20 flame" % [run.mission.waves.size(), run.mission.gold], 13))
+	layout.add_child(UI.paragraph("%d waves  ·  %s starting gold  ·  %d flame" % [run.mission.waves.size(), UI.exact_money(run.mission.gold), run.mission.flame], 13))
 	var details := UI.button("Preview waves", show_waves, 48)
 	layout.add_child(details)
 	var start := UI.gold_button("Begin mission", start_mission.bind(index), 50)
@@ -222,7 +247,7 @@ func show_briefing(index: int) -> void:
 func start_mission(index: int) -> void:
 	if not progress.unlocked(index):
 		return
-	run = Run.new(index)
+	run = Run.new(index, configuration.overrides(index))
 	connect_run()
 	show_battle()
 	save_progress()
@@ -254,7 +279,7 @@ func play_run_sound(cue: String, sound_position: Vector2) -> void:
 func show_battle() -> void:
 	clear_page("battle")
 	paused = false
-	selected = -1
+	observed_phase = run.phase
 	var title_row := header("%02d · %s" % [run.mission.index+1,run.mission.name], show_map)
 	pause_button = UI.playback_button(func():
 		paused = not paused
@@ -308,8 +333,7 @@ func add_board(interactive: bool) -> void:
 	board.custom_minimum_size.y = 140 if interactive else 240
 	board.socket_picked.connect(show_socket)
 	board.empty_picked.connect(func():
-		selected = -1
-		board.tower_selection_changed.emit()
+		clear_selection()
 		if socket_dialog:
 			dialog.hide()
 	)
@@ -340,12 +364,16 @@ func refresh() -> void:
 		return
 	gold.text = "%s gold" % Balance.money(run.game.data.balance)
 	var shown_wave := mini(run.wave+1, run.mission.waves.size())
-	status.text = "Flame %d / 20   ·   Wave %d / %d%s" % [run.health, shown_wave, run.mission.waves.size(), " · Prepare" if run.phase == "planning" else ""]
+	status.text = "Flame %d / %d   ·   Wave %d / %d%s" % [run.health, run.mission.flame, shown_wave, run.mission.waves.size(), " · Prepare" if run.phase == "planning" else ""]
 	wave_button.disabled = run.phase != "planning"
 	wave_button.text = "Start wave %d" % (run.wave+1) if run.phase == "planning" else "%d enemies remaining" % (run.game.combat.enemies.size() + run.schedule.size() - run.next_spawn)
 	if run.phase in ["victory", "defeat"]:
 		wave_button.text = "Sanctuary restored" if run.phase == "victory" else "The flame went out"
-	board.selected_tower = run.tower_at(selected) if selected >= 0 else ""
+	if observed_phase != run.phase:
+		observed_phase = run.phase
+		clear_selection()
+	elif board.selected_tower != "" and not run.game.data.towers.has(board.selected_tower):
+		clear_selection()
 	if is_instance_valid(tower_dialog):
 		tower_dialog.refresh()
 	board.simulation_rate = speed
@@ -367,11 +395,18 @@ func show_waves() -> void:
 	var preview := VBoxContainer.new()
 	preview.add_theme_constant_override("separation", 4)
 	dialog_body.add_child(preview)
+	var reports := Configuration.wave_reports(run.mission)
 	for index in range(run.mission.waves.size()):
 		var section := VBoxContainer.new()
 		section.add_theme_constant_override("separation", 2)
 		preview.add_child(section)
 		section.add_child(UI.heading("Wave %d%s" % [index+1, " · Cleared" if index < run.wave else ""], 16))
+		var report: Dictionary = reports[index]
+		section.add_child(UI.paragraph("%d enemies · %s total health · %s wave gold · Last spawn %.2fs" % [report.spawn_count, UI.exact_money(report.total_spawn_health), UI.exact_money(report.completion_gold), report.last_spawn_seconds], 13))
+		if index > 0:
+			var previous: Dictionary = reports[index - 1]
+			section.add_child(UI.paragraph("From previous wave: %+d enemies · %+.2f total health · %+.2f completion gold" % [report.spawn_count - previous.spawn_count, report.total_spawn_health - previous.total_spawn_health, report.completion_gold - previous.completion_gold], 13))
+		section.add_child(UI.button("Wave %d balancing details" % (index + 1), show_wave_balance.bind(index)))
 		var counts := {}
 		for group in run.mission.waves[index]:
 			counts[group[0]] = int(counts.get(group[0], 0)) + int(group[1])
@@ -395,17 +430,13 @@ func show_waves() -> void:
 func show_socket(socket: int) -> void:
 	if not run.editable() or not Balance.Content.level(run.mission.index).allows_socket(socket):
 		return
-	selected = socket
-	board.selected = socket
-	board.selected_region = Catalog.socket(socket).region
-	board.selected_pad = Catalog.socket(socket).pad
-	board.selected_tower = run.tower_at(socket)
-	var id: String = run.tower_at(socket)
-	board.tower_selection_changed.emit()
 	if board.moving_tower != "":
 		var destination := Catalog.socket(socket)
 		tower_move.place(destination.region, destination.pad)
 		return
+	clear_selection()
+	board.select_socket(socket)
+	var id: String = run.tower_at(socket)
 	if not id.is_empty():
 		dialog.hide()
 		tower_actions.blocked = false
@@ -416,6 +447,7 @@ func show_socket(socket: int) -> void:
 		var stats := Balance.definition("towers", kind, run.game.tuning)
 		var button := TowerChoice.create(kind, stats.name, stats.cost, func():
 			if run.build(socket, kind):
+				board.select_socket(socket)
 				dialog.hide()
 		)
 		button.name = "CampaignBuild_" + kind
@@ -423,11 +455,7 @@ func show_socket(socket: int) -> void:
 		dialog_body.add_child(button)
 
 func show_result() -> void:
-	if is_instance_valid(tower_dialog):
-		tower_dialog.dismiss(false)
-		tower_move.cancel()
-		board.selected_tower = ""
-		selected = -1
+	clear_selection()
 	save_progress()
 	var won: bool = run.phase == "victory"
 	open_dialog("Sanctuary restored" if won else "The flame went out")
@@ -464,7 +492,7 @@ func _build_dialog() -> void:
 	dialog_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	dialog_title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(dialog_title)
-	var close_button := UI.button("×",func(): dialog.hide(),48)
+	var close_button := UI.button("×", close_dialog,48)
 	close_button.name = "CloseCampaignDialog"
 	close_button.accessibility_name = "Close and return to campaign"
 	close_button.custom_minimum_size.x = 48
@@ -487,7 +515,13 @@ func _build_dialog() -> void:
 	)
 	dialog.hide()
 
+func close_dialog() -> void:
+	dialog.hide()
+	clear_selection()
+
 func open_dialog(title: String, for_socket: bool = false) -> void:
+	if not for_socket:
+		clear_selection()
 	waves_dialog = false
 	dialog.z_index = 101
 	socket_dialog = for_socket
@@ -529,7 +563,7 @@ func go_back() -> void:
 	elif is_instance_valid(tower_move) and tower_move.visible:
 		tower_move.cancel()
 	elif dialog.visible:
-		dialog.hide()
+		close_dialog()
 	elif page != "map":
 		show_map()
 	else:
@@ -541,7 +575,86 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func close() -> void:
+	clear_selection()
 	if page == "battle":
 		save_progress()
 	closed.emit()
 	queue_free()
+
+func show_balancing_levels() -> void:
+	open_dialog("Campaign balancing")
+	for index in range(Catalog.COUNT):
+		var choose := UI.button("%02d · %s" % [index + 1, Catalog.level(index).name], show_level_balance.bind(index))
+		choose.name = "BalanceLevel" + str(index + 1)
+		dialog_body.add_child(choose)
+
+func show_level_balance(index: int) -> void:
+	open_dialog("Level configuration")
+	var editor := preload("res://scripts/campaign/balance_panel.gd").new()
+	editor.store = configuration
+	editor.index = index
+	editor.export_requested.connect(show_level_export.bind(index))
+	dialog_body.add_child(editor)
+
+func show_level_export(index: int) -> void:
+	var code := Configuration.export_level(index, configuration.overrides(index))
+	open_dialog("Level %d balancing export" % (index + 1))
+	dialog_body.add_child(UI.paragraph("Saved configuration with defaults, effective statistics, wave schedules and changes. Copy the code to transfer or inspect it.", 14))
+	var export_code := TextEdit.new()
+	export_code.name = "CampaignExportCode"
+	export_code.text = code
+	export_code.editable = false
+	export_code.custom_minimum_size.y = 220
+	export_code.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	dialog_body.add_child(export_code)
+	var copy := UI.button("Copy export code", func():
+		DisplayServer.clipboard_set(code)
+		toast("Campaign level export copied.")
+	)
+	copy.name = "CopyCampaignExport"
+	dialog_body.add_child(copy)
+	dialog_body.add_child(UI.button("Back to level configuration", show_level_balance.bind(index)))
+
+func show_wave_balance(wave: int) -> void:
+	var report := Configuration.wave_reports(run.mission)[wave]
+	open_dialog("Wave %d balancing" % (wave + 1))
+	for group in report.groups:
+		dialog_body.add_child(UI.paragraph("%s × %d · Lane %s
+Delay %.2fs · Interval %.2fs
+Spawn health %.2f · Speed %.2f · Defeat gold %.2f" % [group.name, group.count, String.chr(65 + group.lane), group.delay_seconds, group.interval_seconds, group.spawn_health, group.move_speed, group.gold_per_defeat], 14))
+	dialog_body.add_child(UI.heading("Changes from previous wave", 18))
+	if wave == 0:
+		dialog_body.add_child(UI.paragraph("Opening wave. These are the level's initial wave values.", 14))
+	else:
+		var changes: Dictionary = report.changes_from_previous_wave
+		for key in changes:
+			if key in ["effective_stats", "enemy_counts", "spawn_groups"]: continue
+			var change: Dictionary = changes[key]
+			dialog_body.add_child(UI.paragraph("%s: %.2f → %.2f (%+.2f)" % [key.replace("_", " ").capitalize(), change.before, change.after, change.delta], 14))
+		if changes.has("spawn_groups"):
+			dialog_body.add_child(UI.paragraph("Spawn composition, timing or lane assignments changed. Current groups are listed above; exports include both waves.", 14))
+		for kind in changes.get("enemy_counts", {}):
+			var change: Dictionary = changes.enemy_counts[kind]
+			var name: String = Balance.definition("bosses" if Balance.BOSSES.has(kind) else "enemies", kind).name
+			dialog_body.add_child(UI.paragraph("%s count: %d → %d (%+d)" % [name, change.before, change.after, change.delta], 14))
+		for category in changes.get("effective_stats", {}):
+			for kind in changes.effective_stats[category]:
+				for stat in changes.effective_stats[category][kind]:
+					var change: Dictionary = changes.effective_stats[category][kind][stat]
+					dialog_body.add_child(UI.paragraph("%s · %s: %.2f → %.2f" % [Balance.definitions(category)[kind].name, Balance.field_limits(category, kind, stat).label, change.before, change.after], 14))
+		if changes.is_empty(): dialog_body.add_child(UI.paragraph("No numeric changes from the previous wave.", 14))
+	dialog_body.add_child(UI.button("Back to all waves", show_waves))
+
+func confirm_progress_reset() -> void:
+	var popup := preload("res://scripts/ui/shared/confirmation_popup.gd").new()
+	popup.name = "CampaignResetConfirmation"
+	add_child(popup)
+	popup.configure("Reset campaign progress?", "Return to level 1 on this device. Your account, cloud backups, Infinite Worlds, equipment and balancing settings are kept.", "Reset progress", func():
+		if not progress.reset_progress():
+			popup.show_error(progress.last_error)
+			return
+		# Discard the old run before any navigation or focus event can save it.
+		run = null
+		popup.hide()
+		show_map()
+	)

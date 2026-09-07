@@ -11,7 +11,7 @@ const STEP := 0.05
 const HISTORY_SECONDS := 180.0
 const OFFLINE_FACTOR := 0.8
 const MAX_OFFLINE_SECONDS := 604800.0 # Seven-day guard against large forward clock jumps.
-const STARTING_GOLD := 280.0 # First territory costs 100, leaving 180 for defenses.
+const STARTING_GOLD = preload("res://scripts/content/catalogs/levels.gd").STARTING_GOLD
 const BASE_SPAWN_PERIOD := 4.25 # 40% of the former 1.7-second spawn rate at every traffic tier.
 const TRAFFIC_INCREMENT := 0.25
 const MAX_TRAFFIC_LEVEL := 12
@@ -129,6 +129,13 @@ static func fields_for(category: String, kind: String) -> Dictionary:
 			result[stat] = field_limits(category, kind, stat)
 	return result
 
+static func editable_fields_for(category: String, kind: String) -> Dictionary:
+	var result := fields_for(category, kind)
+	var retired: Dictionary = preload("res://scripts/content/catalogs/tuning.gd").RETIRED_FIELDS
+	for stat in retired.get(category, {}).get(kind, []):
+		result.erase(stat)
+	return result
+
 # Legacy base tuning scales some upgrades beyond the base slider's ceiling.
 # Those inherited values must remain representable as independent tier values.
 static func field_limits(category: String, kind: String, stat: String) -> Dictionary:
@@ -213,6 +220,7 @@ static func tower_description(resolved: Dictionary) -> String:
 	for field in resolved:
 		if resolved[field] is float or resolved[field] is int:
 			values[field] = String.num(float(resolved[field]), 2)
+	values.poison_dps = String.num(resolved.damage * resolved.get("dot_multiplier", 0.0), 2)
 	values.burn_dps = String.num(resolved.damage * resolved.get("burn_multiplier", 0.0), 2)
 	for prefix in ["fragment", "curse", "arc"]:
 		values[prefix + "_percent"] = String.num(resolved.get(prefix + "_multiplier", 0.0) * 100.0, 2)
@@ -277,3 +285,29 @@ static func enemy_kind(unlocks: Array, roll: float) -> String:
 		if roll < cumulative:
 			return kind
 	return "basic"
+
+static func merge_tuning(defaults: Dictionary, overrides: Dictionary) -> Dictionary:
+	var result := defaults.duplicate(true)
+	for category in overrides:
+		if not result.has(category): result[category] = {}
+		for kind in overrides[category]:
+			if not result[category].has(kind): result[category][kind] = {}
+			result[category][kind].merge(overrides[category][kind], true)
+	return result
+
+# Editor, override comparison and exports share the same resolved tier values.
+static func configuration_value(category: String, kind: String, stat: String, tuning: Dictionary = {}) -> float:
+	if category != "towers": return tuned_value(category, kind, stat, tuning)
+	var node := Content.catalog().find("towers", kind)
+	var base: String = node.rule("base_kind", kind)
+	var level: int = node.rule("level", 1)
+	var branch: String = node.rule("branch", "")
+	if stat == "cost":
+		return upgrade_cost({"kind": base, "level": level - 1}, tuning, branch) if level > 1 else tuned_value(category, kind, stat, tuning)
+	return stats(base, level, tuning, branch)[stat]
+
+static func rift_health_multiplier(style: String, tuning: Dictionary = {}) -> float:
+	return 1.0 + rift_strength(style, tuning) / 100.0 if style == "ashen_forge" else 1.0
+
+static func rift_speed_multiplier(style: String, tuning: Dictionary = {}) -> float:
+	return 1.0 + rift_strength(style, tuning) / 100.0 if style == "drowned_crypt" else 1.0

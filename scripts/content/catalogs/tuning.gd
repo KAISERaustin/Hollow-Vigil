@@ -1,6 +1,7 @@
 extends RefCounted
 
 const TUNING_FIELDS := {
+	"session": {"starting_gold": {"label": "Starting gold", "suffix": " gold", "min": 0.0, "max": 1000000000000.0, "step": 1.0}},
 	"gear": {
 		"echo_delay": {"label":"Echo delay","suffix":" s","min":0,"max":10,"step":0.01},
 		"damage_per_stack": {"label":"Damage per stack","suffix":"%","min":0,"max":100,"step":1},
@@ -67,6 +68,8 @@ const TUNING_FIELDS := {
 		"payout": {"label": "Gold per defeat", "suffix": " gold", "min": 0.0, "max": 10000.0, "step": 1.0}
 	},
 	"towers": {
+		"duration": {"label":"Poison duration","suffix":" s","min":0,"max":60,"step":0.1},
+		"dot_multiplier": {"label":"Poison damage per second / hit damage","suffix":"×","min":0,"max":20,"step":0.05},
 		"targets": {"label": "Targets per attack", "suffix": "", "min": 1, "max": 50, "step": 1, "integer": true},
 		"slow_percent": {"label": "Slow strength (%)", "suffix": "", "min": 0, "max": 100, "step": 1},
 		"slow_duration": {"label": "Slow duration (s)", "suffix": "", "min": 0, "max": 60, "step": 0.1},
@@ -94,3 +97,6 @@ const TUNING_FIELDS := {
 		"splash": {"label": "Blast radius", "suffix": " units", "min": 0.0, "max": 300.0, "step": 1.0}
 	}
 }
+
+# Accepted when reading old configurations, but no longer gameplay controls.
+const RETIRED_FIELDS := {"towers": {"rapid:thorn_volley": ["arrow_count", "fan_angle"]}}

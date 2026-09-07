@@ -155,7 +155,7 @@ func _create_enemy(id: String, kind: String, route: Array[Vector2], style: Strin
 	return e
 
 func rift_health_multiplier(enemy: Dictionary) -> float:
-	return 1.0 + Balance.rift_strength("ashen_forge", tuning) / 100.0 if enemy.get("rift_style", "forest") == "ashen_forge" else 1.0
+	return Balance.rift_health_multiplier(enemy.get("rift_style", "forest"), tuning)
 
 func advance_effects(delta: float) -> void:
 	if not is_finite(delta) or delta <= 0.0:
@@ -195,7 +195,7 @@ func tick(delta: float) -> void:
 		var move: float = (Bosses.speed(e, simulation_time, tuning) if e.get("boss", false) else Balance.tuned_value("enemies", e.kind, "speed", tuning)) * delta
 		match e.get("rift_style", "forest"):
 			"drowned_crypt":
-				move *= 1.0 + Balance.rift_strength("drowned_crypt", tuning) / 100.0
+				move *= Balance.rift_speed_multiplier("drowned_crypt", tuning)
 			"bloodmoon_sanctuary":
 				e.hp = minf(e.max_hp, e.hp + e.max_hp * Balance.rift_strength("bloodmoon_sanctuary", tuning) / 100.0 * delta)
 		var slow := Relics.strength(e, "slow", simulation_time)
@@ -375,9 +375,6 @@ func advance_fire(delta: float) -> void:
 
 func launch_fragments(shot: Dictionary) -> void:
 	Projectiles.launch_fragments(self, shot)
-
-func launch_fan(tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary) -> void:
-	Projectiles.launch_fan(self, tower, origin, target, stats)
 
 func advance_arrow(shot: Dictionary, delta: float, flying: Array[Dictionary]) -> void:
 	Projectiles.advance_arrow(self, shot, delta, flying)

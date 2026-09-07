@@ -29,6 +29,7 @@ func run() -> void:
 	s.game = g
 	s.enabled = false
 	root.add_child(s)
+	s.url = "https://fixture.supabase.co"
 	var failed := s._decode_response([HTTPRequest.RESULT_CANT_CONNECT, 0, [], PackedByteArray()])
 	check(not failed.ok and failed.code == 0, "Network failures skip JSON parsing and remain retryable")
 	check(not s._decode_response([HTTPRequest.RESULT_SUCCESS, 200, [], "<html>gateway error</html>".to_utf8_buffer()]).ok, "Malformed successful response is rejected without engine errors")
@@ -145,7 +146,7 @@ func run() -> void:
 	s.sign_out()
 	check(not s.signed_in() and s.pending.is_empty(), "Sign-out clears tokens and in-memory upload")
 	check(g.save(), "Offline play saves after sign-out")
-	for suffix in ["", ".bak", ".tmp", ".cloud-outbox", ".cloud-outbox.tmp"]:
+	for suffix in ["", ".bak", ".tmp", ".cloud-outbox", ".cloud-outbox.tmp", ".account-session-test", ".account-session-test.tmp"]:
 		if FileAccess.file_exists(g.save_path + suffix):
 			DirAccess.remove_absolute(g.save_path + suffix)
 	s.queue_free()

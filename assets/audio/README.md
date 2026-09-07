@@ -1,7 +1,7 @@
 # Hollow Vigil audio
 
 Original synthesis-only audio, authored for this game. No third-party recordings,
-voice models, sample packs, or music licenses are required. Rebuild all 79 cues
+voice models, sample packs, or music licenses are required. Rebuild the cue catalog
 and the score with `python3 tools/generate_audio.py` (Python standard library).
 Run `python3 tools/validate_audio.py` to check uniqueness, peaks and loop continuity.
 `catalog.json` records each cue's texture, envelope duration, pitch, category and
@@ -17,8 +17,8 @@ cooldown. Godot imports the committed mono 22,050 Hz / 16-bit WAV files.
 | Pyre | Low filtered flame launch and burst. |
 | Obelisk | Resonant orb launch and impact. |
 | Stormspire | Brief modulated electrical crackle, once per volley rather than once per target. |
-| Frostneedle | Bright ice needle and glasslike impact. |
-| Thorn Volley | Wider woody rush and center-arrow impact; fan arrows do not multiply launch sounds. |
+| Frostneedle | Lower 380 Hz bow attack and 239.4 Hz impact replace the piercing chime; the specialization purchase cue is unchanged. |
+| Poison Arrow | Woody rush and a single aimed-arrow impact, using the stable thorn_volley audio IDs. |
 | Cinderfield | Smoldering flame launch, impact and separate ground ignition. |
 | Rupture Pyre | Deeper pressure burst and heavy impact accompanying knockback. |
 | Grave Echo | Rising spectral orb, impact and fragment scatter. |
@@ -55,7 +55,7 @@ sounds below combat. A private mix bus uses a smooth look-ahead limiter at -1 dB
 to prevent clipping at maximum slider settings; the bus is removed on app exit.
 
 Audio signals are independent of the cosmetic effect pool and never use combat
-RNG. The audio director rebinds after progress reset. There is no ambient rift
+RNG. Repeated shots, impacts, enemy deaths and boss footsteps receive an independent playback pitch ratio from 0.9 to 1.1. Music, UI and other boss cues retain their assigned pitch. Missing streams are skipped. The audio director rebinds after progress reset. There is no ambient rift
 spawn noise or per-damage-tick sound: those would dominate a developed idle map.
 
 ## Verification

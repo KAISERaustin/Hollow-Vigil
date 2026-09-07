@@ -27,7 +27,7 @@ func add_developer_gold() -> bool:
 	data.balance = minf(Balance.MAX_MONEY, data.balance + 1_000_000.0)
 	return true
 
-func _init(seed_value: int = 0, play_mode: String = "creative") -> void:
+func _init(seed_value: int = 0, play_mode: String = "creative", starting_rules: Dictionary = {}) -> void:
 	rng.randomize()
 	var world_seed := seed_value if seed_value != 0 else int(rng.randi())
 	data = {
@@ -38,6 +38,9 @@ func _init(seed_value: int = 0, play_mode: String = "creative") -> void:
 		"active_seconds": 0.0, "settings": {"low_power": false},
 		"camera": [0.0, 0.0, 1.0]
 	}
+	if not starting_rules.is_empty() and Balance.valid_tuning(starting_rules):
+		data.settings.developer_balance = starting_rules.duplicate(true)
+		data.balance = Balance.tuned_value("session", "start", "starting_gold", tuning)
 	economy = VigilEconomy.new(data)
 	combat = VigilCombat.new(data, economy, paths)
 	refresh_paths()
@@ -110,6 +113,12 @@ func apply_balance(candidate: Dictionary) -> bool:
 		return true
 	var previous := tuning
 	data.settings.developer_balance = candidate.duplicate(true)
+	var previous_gameplay := previous.duplicate(true)
+	var next_gameplay := candidate.duplicate(true)
+	previous_gameplay.erase("session")
+	next_gameplay.erase("session")
+	if previous_gameplay == next_gameplay:
+		return true # New-session resources do not change current production.
 	combat.Relics.apply_balance(combat, previous, tuning)
 	# Preserve remaining health percentage and progress toward the next shot.
 	for enemy in combat.enemies:
@@ -194,7 +203,7 @@ func save(now: float = -1.0) -> bool:
 	return ok
 
 func reset_progress() -> bool:
-	var fresh := VigilState.new(0, data.get("mode", "creative"))
+	var fresh := VigilState.new(0, data.get("mode", "creative"), tuning if not is_creative() else {})
 	# Imported Survival rules stay fixed even when restarting progress.
 	if not is_creative():
 		fresh.data.settings.developer_balance = tuning.duplicate(true)

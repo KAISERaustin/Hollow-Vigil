@@ -46,8 +46,11 @@ func run() -> void:
 		app.slot_menu.show_slots()
 	app.slot_menu.show_creation(0)
 	await frame()
+	var starting_gold: SpinBox = app.slot_menu.find_child("StartingGold", true, false)
+	starting_gold.get_line_edit().text = "4321"
 	app.slot_menu.find_child("CreateSave", true, false).pressed.emit()
 	await frame()
+	check(app.game.data.balance == 4321.0 and app.game.tuning.session.start.starting_gold == 4321.0, "Typed starting gold is committed before creating the session")
 	check(app.slot_active and app.game.is_creative() and not app.slot_menu.visible, "Create Creative activates slot")
 	app.show_save_slots()
 	await frame()
@@ -60,6 +63,13 @@ func run() -> void:
 	app.panels.show_settings()
 	check(app.panels.find_child("OpenDeveloperControls", true, false) != null, "Creative exposes editor")
 	check(app.panels.find_child("OpenSoundSettings", true, false) != null, "Settings has sound submenu")
+	app.panels.show_developer_controls()
+	var controls = app.panels.find_child("DeveloperControls", true, false)
+	controls.show_category("session")
+	check(controls.inputs.starting_gold.value == 4321.0, "Existing customization editor shows saved starting gold")
+	controls.inputs.starting_gold.value = 7654.0
+	check(app.game.data.balance == 4321.0, "Changing future starting gold preserves current resources")
+	app.panels.show_settings()
 	app.panels.show_sound_settings()
 	check(app.panels.mode == "sound", "Sound submenu opens")
 	app.panels.show_settings()
@@ -119,6 +129,14 @@ func run() -> void:
 	await frame()
 	check(not slots.occupied(1) and not app.slot_active, "Confirm frees the active slot")
 	check(app.slot_menu.find_child("ScreenTitle", true, false).text == "Saved games", "Archive returns to refreshed Saved games")
+	app.audio.set_suspended(true)
+	app.audio.music.stop()
+	app.audio.music.stream = null
+	for pool in app.audio.voices.values():
+		for voice in pool:
+			voice.stop()
+			voice.stream = null
+	await create_timer(0.1).timeout
 	app.queue_free()
 	await process_frame
 	for slot in range(3):

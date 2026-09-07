@@ -13,12 +13,16 @@ var message: Label
 var upload_revision := -1
 var view_revision := 0
 var public_browser: RefCounted
+var stat_browser: RefCounted
 var creation_mode := "creative"
+var starting_rules: Dictionary = {}
 var selected_configuration: Dictionary = {}
 
 func _ready() -> void:
 	public_browser = preload("res://scripts/ui/public_builds_panel.gd").new()
 	public_browser.menu = self
+	stat_browser = preload("res://scripts/ui/developer/stat_configurations.gd").new()
+	stat_browser.menu = self
 	app.public_builds.changed.connect(func():
 		if is_instance_valid(message) and upload_revision == view_revision:
 			message.text = app.public_builds.status
@@ -137,8 +141,10 @@ func show_slots() -> void:
 func show_creation(slot: int, reset: bool = true) -> void:
 	if reset:
 		creation_mode = "creative"
+		starting_rules = {}
 		selected_configuration = {}
 	clear("New game")
+	message.hide()
 	add_back(UI.button("Back to saved games", show_slots))
 	content.add_child(UI.paragraph("Slot %d · Choose a world and a mode." % (slot + 1), 14))
 	content.add_child(UI.heading("1. Starting world", 18))
@@ -156,6 +162,9 @@ func show_creation(slot: int, reset: bool = true) -> void:
 	var community := UI.button("Community", show_public_builds.bind(slot))
 	community.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sources.add_child(community)
+	var stats_button := UI.button("Stats", show_stat_configurations.bind(slot))
+	stats_button.name = "ChooseStatConfiguration"
+	sources.add_child(stats_button)
 	if not selected_configuration.is_empty():
 		content.add_child(UI.button("Use a fresh world instead", func():
 			selected_configuration = {}
@@ -163,9 +172,30 @@ func show_creation(slot: int, reset: bool = true) -> void:
 		))
 	content.add_child(UI.rule())
 	content.add_child(UI.heading("2. Choose your mode", 18))
+	var starting_gold := SpinBox.new()
+	starting_gold.name = "StartingGold"
+	var limits := Balance.field_limits("session", "start", "starting_gold")
+	starting_gold.min_value = limits.min
+	starting_gold.max_value = limits.max
+	starting_gold.step = limits.step
+	var selected_code: String = selected_configuration.get("code", "")
+	var build_rules: Dictionary = slots.decode_build(selected_code).get("settings", {}).get("developer_balance", {})
+	var stat_rules := VigilSaveSlots.Stats.decode(selected_code)
+	if not stat_rules.is_empty(): build_rules = stat_rules.tuning
+	starting_gold.value = Balance.tuned_value("session", "start", "starting_gold", Balance.merge_tuning(build_rules, starting_rules))
+	starting_gold.accessibility_name = "Starting gold"
+	starting_gold.value_changed.connect(func(value: float):
+		starting_rules = Balance.merge_tuning(starting_rules, {"session": {"start": {"starting_gold": value}}})
+	)
+	var gold_row := UI.number_row("Starting gold", starting_gold)
+	gold_row.visible = creation_mode == "creative"
+	content.add_child(gold_row)
 	var create := UI.button("Start %s game" % creation_mode.capitalize(), func():
-		var game := slots.create(slot, creation_mode, selected_configuration.get("code", ""))
-		if game == null: message.text = slots.error
+		starting_gold.apply()
+		var game := slots.create(slot, creation_mode, selected_configuration.get("code", ""), starting_rules)
+		if game == null:
+			message.text = slots.error
+			message.show()
 		else: app.activate_slot(game, slot)
 	)
 	create.name = "CreateSave"
@@ -179,6 +209,7 @@ func show_creation(slot: int, reset: bool = true) -> void:
 	for game_mode in ["creative", "survival"]:
 		var button := UI.button(game_mode.capitalize(), func():
 			creation_mode = game_mode
+			gold_row.visible = game_mode == "creative"
 			create.text = "Start %s game" % game_mode.capitalize()
 			mode_help.text = descriptions[game_mode]
 		)
@@ -189,7 +220,7 @@ func show_creation(slot: int, reset: bool = true) -> void:
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		modes.add_child(button)
 	content.add_child(mode_help)
-	content.add_child(UI.paragraph("Both modes save automatically and support private cloud backups.", 13))
+	content.move_child(gold_row, content.get_child_count() - 1)
 	footer.add_child(create)
 
 func add_card(title: String) -> VBoxContainer:
@@ -352,3 +383,6 @@ func add_action(button: Button) -> void:
 	elif caption.begins_with("Choose"): caption = "Choose"
 	elif caption.begins_with("Use"): caption = "Use"
 	content.add_child(UI.action_row(button.text, button, caption))
+
+func show_stat_configurations(slot: int = -1) -> void:
+	stat_browser.show_page(slot)

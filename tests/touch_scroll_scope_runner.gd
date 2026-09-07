@@ -1,0 +1,28 @@
+extends "res://tests/test_runner.gd"
+const TouchScroll = preload("res://scripts/ui/shared/touch_scroll.gd")
+
+func run() -> void:
+	var scroll := ScrollContainer.new()
+	root.add_child(scroll)
+	TouchScroll.attach(scroll)
+	var layout := VBoxContainer.new()
+	scroll.add_child(layout)
+	var first := Button.new()
+	layout.add_child(first)
+	check(first.mouse_filter == Control.MOUSE_FILTER_PASS, "Buttons inside scroll allow gestures")
+	layout.reparent(root, false)
+	check(first.mouse_filter == Control.MOUSE_FILTER_STOP, "Reparenting restores original button input boundary")
+	var second := Button.new()
+	layout.add_child(second)
+	check(second.mouse_filter == Control.MOUSE_FILTER_STOP, "Stale scroll observer cannot change new battlefield controls")
+	layout.reparent(scroll, false)
+	check(first.mouse_filter == Control.MOUSE_FILTER_PASS and second.mouse_filter == Control.MOUSE_FILTER_PASS, "Returning to scroll prepares controls again")
+	var nested := ScrollContainer.new()
+	layout.add_child(nested)
+	var nested_button := Button.new()
+	nested.add_child(nested_button)
+	check(nested_button.mouse_filter == Control.MOUSE_FILTER_STOP, "Nested scroll retains its own gesture boundary")
+	scroll.queue_free()
+	await process_frame
+	print("TOUCH SCROLL SCOPE: %d checks, %d failures" % [checks, failures.size()])
+	quit(0 if failures.is_empty() else 1)

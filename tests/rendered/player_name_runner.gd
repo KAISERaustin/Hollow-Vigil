@@ -17,6 +17,10 @@ class AccountApp extends VigilApp:
 		add_child(cloud)
 		cloud.url = "https://example.supabase.co"
 		cloud.key = "sb_publishable_fixture"
+		campaign_backup = preload("res://scripts/cloud/campaign_backup.gd").new()
+		campaign_backup.cloud = cloud
+		campaign_backup.progress = campaign_progress
+		add_child(campaign_backup)
 
 var failures := 0
 
@@ -52,8 +56,9 @@ func run() -> void:
 		await frame()
 		var card := app.panels.find_child("PlayerNameCard", true, false) as PanelContainer
 		var label := card.find_child("SettingsPlayerName", true, false) as Label
-		check(label.text == app.cloud.display_name and label.horizontal_alignment == HORIZONTAL_ALIGNMENT_CENTER, "Account name centered")
+		check(label.text == app.cloud.display_name and label.horizontal_alignment == HORIZONTAL_ALIGNMENT_RIGHT, "Account name uses compact header alignment")
 		check(app.panels.sheet_content.get_child(0) == card, "Player card comes first")
+		check(card.get_theme_stylebox("panel").shadow_size == 0, "Settings cards have no shadow")
 		check(app.panels.content_scroll.get_global_rect().encloses(card.get_global_rect()), "Long name card fits mobile settings")
 		app.cloud.display_name = "Éowyn Starfall"
 		app.cloud.changed.emit()

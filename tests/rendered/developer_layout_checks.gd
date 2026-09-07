@@ -79,7 +79,7 @@ func run() -> void:
 		var controls := app.panels.find_child("DeveloperControls", true, false)
 		check_header("home " + str(dimensions))
 		await capture("home-" + str(dimensions.x))
-		for category in ["bosses", "rifts", "enemies", "towers", "gear"]:
+		for category in controls.categories:
 			app.panels.content_scroll.ensure_control_visible(controls.tabs[category])
 			await settle()
 			await Harness.tap(app, controls.tabs[category].get_global_rect().get_center(), dimensions.x == 360)
@@ -132,5 +132,5 @@ func run() -> void:
 		check(not app.panels.visible, "Close button dismisses Developer Controls")
 	app.queue_free()
 	await process_frame
-	print("DEVELOPER_LAYOUT: %d checks, %d failures; all five categories, every type and tower tier at three viewport sizes" % [checks, failures.size()])
+	print("DEVELOPER_LAYOUT: %d checks, %d failures; all registered categories, every type and tower tier at three viewport sizes" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)

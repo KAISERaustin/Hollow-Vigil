@@ -5,17 +5,17 @@ const ShotFactory = preload("res://scripts/gameplay/combat/shot_factory.gd")
 # Stateless operations; VigilCombat owns the runtime data and simulation clock.
 
 static func launch_shot(combat: VigilCombat, tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary, primary: bool = true) -> void:
-	if tower.get("branch", "") == "thorn_volley":
-		combat.launch_fan(tower, origin, target, stats)
 	var fx := ShotFactory.shot(tower.kind, origin, target.pos, stats, target.id)
 	fx.tower_id = tower.id
 	fx.branch = tower.get("branch", "")
 	combat.add_effect(fx)
 	var shot := {"fx": fx, "remaining": fx.flight, "target_id": target.id,
 		"tower_id": tower.id, "branch": tower.get("branch", ""), "damage": stats.damage, "radius": stats.splash}
+	shot.base_damage = stats.damage
+	var ability := Balance.Content.ability(shot.branch)
+	shot.ability_effects = ability.impact_effects(stats) if primary and ability != null else []
 	shot.relic_pierce = primary and stats.get("relic_pierce", false)
 	if primary:
-		shot.base_damage = stats.damage
 		shot.damage *= stats.get("relic_damage_multiplier", 1.0)
 		shot.radius = maxf(shot.radius, stats.get("relic_radius", 0.0))
 		shot.gear_effects = stats.get("gear_effects", []).duplicate(true)
@@ -121,21 +121,6 @@ static func launch_fragments(combat: VigilCombat, shot: Dictionary) -> void:
 			break
 	for index in range(count, limit):
 		combat.add_effect({"kind": "shard_fade", "pos": shot.fx.pos, "direction": Vector2.from_angle(index * TAU / limit), "life": 0.35, "max_life": 0.35, "color": "c3a0ed"})
-
-static func launch_fan(combat: VigilCombat, tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary) -> void:
-	var muzzle: Vector2 = origin + Balance.PROJECTILES[tower.kind].muzzle
-	var angle := muzzle.angle_to_point(target.pos)
-	var count := int(stats.arrow_count)
-	for index in range(count - 1):
-		var slot := index if index < floori(count / 2.0) else index + 1
-		var fraction := float(slot) / maxf(1.0, count - 1)
-		var offset: float = (fraction - 0.5) * stats.fan_angle
-		var end: Vector2 = muzzle + Vector2.from_angle(angle + offset) * stats.range
-		var fx := ShotFactory.shot(tower.kind, origin, end, stats, -1, true)
-		fx.erase("target_id")
-		fx.tower_id = tower.id
-		combat.add_effect(fx)
-		combat.pending_shots.append({"fx": fx, "remaining": fx.flight, "target_id": -1, "tower_id": tower.id, "damage": stats.damage, "radius": 0.0, "ballistic": true, "elapsed": 0.0})
 
 static func advance_arrow(combat: VigilCombat, shot: Dictionary, delta: float, flying: Array[Dictionary]) -> void:
 	var start: Vector2 = shot.fx.from.lerp(shot.fx.pos, minf(1.0, shot.elapsed / shot.fx.flight))

@@ -127,12 +127,12 @@
   "shot_frostneedle": {
     "category": "towers",
     "cooldown": 0.11,
-    "description": "chime; 1800 Hz; 0.15s; pitch sweep -0.2"
+    "description": "bow; 380 Hz; 0.15s; pitch sweep -0.2"
   },
   "impact_frostneedle": {
     "category": "towers",
     "cooldown": 0.16,
-    "description": "chime; 1134.0 Hz; 0.195s; pitch sweep 0.2"
+    "description": "bow; 239.4 Hz; 0.195s; pitch sweep 0.2"
   },
   "upgrade_frostneedle": {
     "category": "menu",

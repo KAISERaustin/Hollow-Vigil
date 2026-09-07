@@ -16,9 +16,11 @@ var accepted_events := 0
 var bus_name: StringName
 var master_bus_name: StringName
 var combat: VigilCombat
+var pitch_rng := RandomNumberGenerator.new()
 var economy: VigilEconomy
 
 func _ready() -> void:
+	pitch_rng.randomize()
 	# A private mix bus prevents independent app instances from sharing settings.
 	bus_name = StringName("VigilAudio_" + str(get_instance_id()))
 	master_bus_name = StringName(str(bus_name) + "_Master")
@@ -33,7 +35,7 @@ func _ready() -> void:
 	limiter.ceiling_db = -1.0
 	AudioServer.add_bus_effect(bus, limiter)
 	for cue in CATALOG:
-		streams[cue] = load("res://assets/audio/" + cue + ".wav")
+		streams[cue] = load_stream(cue)
 	for category in LIMITS:
 		voices[category] = []
 		for index in range(LIMITS[category]):
@@ -42,16 +44,18 @@ func _ready() -> void:
 			add_child(player)
 			voices[category].append(player)
 	music = AudioStreamPlayer.new()
-	var loop: AudioStreamWAV = streams.lantern_watch.duplicate()
-	loop.loop_mode = AudioStreamWAV.LOOP_FORWARD
-	loop.loop_begin = 0
-	loop.loop_end = roundi(loop.get_length() * loop.mix_rate)
-	music.stream = loop
+	if streams.get("lantern_watch") is AudioStreamWAV:
+		var loop: AudioStreamWAV = streams.lantern_watch.duplicate()
+		loop.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		loop.loop_begin = 0
+		loop.loop_end = roundi(loop.get_length() * loop.mix_rate)
+		music.stream = loop
 	music.bus = bus_name
 	add_child(music)
 	bind_game()
 	apply_mix()
-	music.play()
+	if music.stream != null:
+		music.play()
 	app.field.picked.connect(func(_region, _pad): play("menu_select"))
 	app.field.core_picked.connect(func(): play("menu_open"))
 	app.field.entrance_picked.connect(func(_region): play("menu_open"))
@@ -61,6 +65,10 @@ func _ready() -> void:
 		observe_control(node)
 	for node in app.find_children("*", "Slider", true, false):
 		observe_control(node)
+
+func load_stream(cue: String) -> AudioStream:
+	var path := "res://assets/audio/" + cue + ".wav"
+	return load(path) as AudioStream if ResourceLoader.exists(path) else null
 
 func bind_game() -> void:
 	if combat != null and combat.sound_requested.is_connected(play_game_sound):
@@ -156,7 +164,7 @@ func audible_at(source: Control, position: Vector2) -> bool:
 	return not position.is_finite() or Rect2(Vector2.ZERO, source.size).has_point(source.screen(position))
 
 func play(cue: String, position: Vector2 = Vector2.INF, source_field: Control = null, active_when: Callable = Callable()) -> void:
-	if not CATALOG.has(cue) or suspended:
+	if not CATALOG.has(cue) or streams.get(cue) == null or suspended:
 		return
 	if not active_when.is_null() and (not active_when.is_valid() or not active_when.call()):
 		return
@@ -179,6 +187,7 @@ func play(cue: String, position: Vector2 = Vector2.INF, source_field: Control = 
 		if player.playing:
 			continue
 		player.stream = streams[cue]
+		player.pitch_scale = playback_pitch(cue)
 		if player.has_meta("active_when"):
 			player.remove_meta("active_when")
 		if not active_when.is_null():
@@ -196,6 +205,11 @@ func play(cue: String, position: Vector2 = Vector2.INF, source_field: Control = 
 		last_category[category] = elapsed
 		accepted_events += 1
 		return # Full pools drop events instead of queuing a delayed combat roar.
+
+func playback_pitch(cue: String) -> float:
+	# Pitch scale is a ratio; keep each repeated combat playback within 0.9–1.1.
+	var varied := cue.begins_with("shot_") or cue.begins_with("impact_") or cue.begins_with("death_") or (cue.begins_with("boss_") and cue.ends_with("_step"))
+	return pitch_rng.randf_range(0.9, 1.1) if varied else 1.0
 
 func observe_control(node: Node) -> void:
 	if not app.is_ancestor_of(node):

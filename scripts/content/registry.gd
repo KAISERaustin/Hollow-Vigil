@@ -164,7 +164,10 @@ func _populate_towers() -> void:
 			var stats := tower_type.scaled_stats(4, {}, branch)
 			stats.cost = Towers.BRANCHES[kind][branch].cost
 			_add(TowerNode.new("tower/" + kind + "/" + branch, previous, stats, {"kind": kind + ":" + branch, "base_kind": kind, "branch": branch, "level": 4}, {"level": 4, "branch": branch}), "towers", kind + ":" + branch)
-			_add(AbilityNode.new("ability/" + branch, get_node("ability"), Towers.ABILITIES[branch], {"tower": kind}), "abilities", branch)
+			var components := []
+			for component in Towers.COMPONENTS.get(branch, []):
+				components.append({"slot": component, "component": find("attributes", component), "config": {}})
+			_add(AbilityNode.new("ability/" + branch, get_node("ability"), Towers.ABILITIES[branch], {"tower": kind, "components": components}), "abilities", branch)
 
 func _populate_actors() -> void:
 	for family in Actors.FAMILIES:
@@ -201,6 +204,7 @@ func _populate_world(root: ContentNode) -> void:
 func _populate_levels(root: ContentNode) -> void:
 	var level_root := _add(LevelNode.new("level", root))
 	var open_world := _add(LevelNode.new("level/open_world", level_root, {}, {"finite_waves": false, "expansion": true}))
+	_add(LevelNode.new("level/session", open_world, Levels.SESSION, {"kind": "start", "tuning_category": "session"}), "session", "start")
 	_add(LevelNode.new("level/creative", open_world, {}, {"developer_controls": true}))
 	_add(LevelNode.new("level/survival", open_world, {}, {"developer_controls": false}))
 	var campaign := _add(LevelNode.new("level/campaign", level_root, {}, {"finite_waves": true, "expansion": false, "max_health": Levels.MAX_HEALTH}))

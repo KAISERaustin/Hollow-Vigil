@@ -5,6 +5,8 @@ signal layout_changed
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const SELECTOR_ARROW = preload("res://assets/ui/selector_arrow.svg")
+var categories: Array[String] = ["session", "bosses", "rifts", "enemies", "towers", "gear"]
+var configuration_only := false
 var game: VigilState
 var field: Battlefield
 var category := "enemies"
@@ -38,6 +40,7 @@ func _ready() -> void:
 	)
 	add_gold.name = "AddMillionGold"
 	general.add_child(UI.action_row(add_gold.text, add_gold, "Add"))
+	add_gold.get_parent().visible = not configuration_only
 	if field != null:
 		var free_camera := UI.button("Unrestricted zoom and pan", func(): pass)
 		free_camera.name = "UnrestrictedCamera"
@@ -59,7 +62,7 @@ func _ready() -> void:
 	category_list.name = "BalanceCategories"
 	add_child(category_list)
 	move_child(category_list, 0)
-	for section in ["bosses", "rifts", "enemies", "towers", "gear"]:
+	for section in categories:
 		var tab := UI.button(section.capitalize(), show_category.bind(section))
 		tab.name = section.capitalize() + "Category"
 		tabs[section] = tab
@@ -221,6 +224,9 @@ func populate_tiers() -> void:
 
 func show_fields() -> void:
 	refresh_identity()
+	if category == "session":
+		hint.text = "New sessions · Auto-saved"
+		detail.text = "Starting gold is used when creating a game with these rules. Current gold is unchanged."
 	if category == "towers":
 		hint.text = "Tier %d · Live changes · Auto-saved" % selected_level
 		detail.text = "Edit this tier independently. Costs are for building tier 1 or purchasing the selected upgrade. Specialization effects appear below combat stats."
@@ -230,11 +236,13 @@ func show_fields() -> void:
 		detail.text = "Changes apply on the next attack. Launched shots and active effects keep their values. Root cooldowns retain their remaining proportion; stack limits update immediately. Removing or transferring gear clears its active effects."
 	if category == "rifts":
 		detail.text = Balance.rift_description(selected_kind, game.tuning) + " Set to 0 to disable. Health adjustments preserve remaining health percentage."
+	if configuration_only:
+		hint.text = hint.text.replace("Live changes", "Draft").replace("Auto-saved", "Save configuration to keep edits")
 	inputs.clear()
 	for child in fields.get_children():
 		fields.remove_child(child)
 		child.queue_free()
-	for stat in Balance.fields_for(category, editing_kind()):
+	for stat in Balance.editable_fields_for(category, editing_kind()):
 		add_number(stat)
 	# Scrolling follows focus as players move between exact-value fields.
 	call_deferred("refresh_focus")
@@ -243,6 +251,7 @@ func refresh_identity() -> void:
 	var definition: Dictionary = Balance.definitions(category)[editing_kind()]
 	identity_title.text = definition.name
 	match category:
+		"session": description.text = "Choose the starting resources for new games made with these rules."
 		"enemies": description.text = definition.description
 		"towers":
 			identity_title.text = Balance.TOWERS[selected_kind].name + " · Tier " + str(selected_level)
@@ -306,11 +315,7 @@ func add_number(stat: String) -> void:
 	)
 
 func current_value(stat: String) -> float:
-	if category == "towers" and stat != "cost":
-		return Balance.stats(selected_kind, selected_level, game.tuning, selected_branch)[stat]
-	if category == "towers" and stat == "cost" and selected_level > 1:
-		return Balance.upgrade_cost({"kind": selected_kind, "level": selected_level - 1}, game.tuning, selected_branch)
-	return Balance.tuned_value(category, editing_kind(), stat, game.tuning)
+	return Balance.configuration_value(category, editing_kind(), stat, game.tuning)
 
 func refresh_focus() -> void:
 	if is_inside_tree():

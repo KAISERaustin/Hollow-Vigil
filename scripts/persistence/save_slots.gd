@@ -1,6 +1,7 @@
 class_name VigilSaveSlots
 extends RefCounted
 
+const Stats = preload("res://scripts/persistence/stat_configuration.gd")
 const COUNT := 3
 const BUILD_FORMAT := "hollow-vigil-creative-build-v1"
 var base_path := "user://vigil"
@@ -24,18 +25,30 @@ func summary(slot: int) -> Dictionary:
 			best = candidate
 	return best
 
-func create(slot: int, mode: String, build_code: String = "") -> VigilState:
+func create(slot: int, mode: String, build_code: String = "", starting_rules: Dictionary = {}) -> VigilState:
 	error = ""
-	if slot < 0 or slot >= COUNT or occupied(slot) or mode not in ["creative", "survival"]:
+	if slot < 0 or slot >= COUNT or occupied(slot) or mode not in ["creative", "survival"] or not Balance.valid_tuning(starting_rules):
 		error = "Choose an empty save slot and a game mode."
 		return null
-	var game := VigilState.new(0, mode)
+	var game := VigilState.new(0, mode, starting_rules)
 	game.save_path = path_for(slot)
 	if not build_code.is_empty():
+		var configuration := Stats.decode(build_code)
+		if not configuration.is_empty():
+			game = VigilState.new(0, mode, Balance.merge_tuning(configuration.tuning, starting_rules))
+			game.save_path = path_for(slot)
+			game.data.setup = configuration.setup.duplicate(true)
+			if not game.save():
+				error = game.save_error
+				return null
+			return game
 		var snapshot := decode_build(build_code)
 		if snapshot.is_empty():
 			error = "This is not a valid Creative build. Copy the complete export code."
 			return null
+		snapshot.settings.developer_balance = Balance.merge_tuning(snapshot.settings.get("developer_balance", {}), starting_rules)
+		if snapshot.settings.developer_balance.get("session", {}).get("start", {}).has("starting_gold"):
+			snapshot.balance = Balance.tuned_value("session", "start", "starting_gold", snapshot.settings.developer_balance)
 		snapshot.mode = mode
 		snapshot.sequence = 0
 		snapshot.last_accounted = Time.get_unix_time_from_system()
@@ -115,10 +128,21 @@ func save_configuration(game: VigilState, title: String, description: String) ->
 	if code.is_empty():
 		error = "Enter a configuration name and save from a Creative world."
 		return false
+	return _save_configuration_code(code, "hvbuild")
+
+func save_stat_configuration(tuning: Dictionary, title: String, description: String = "") -> bool:
+	var code := Stats.encode(tuning, title, description)
+	if code.is_empty():
+		error = "Enter a name and valid gameplay statistics."
+		return false
+	return _save_configuration_code(code, "hvstats")
+
+func _save_configuration_code(code: String, extension: String) -> bool:
+	error = ""
 	if DirAccess.make_dir_recursive_absolute(configurations_path()) != OK:
 		error = "Couldn't create the configuration library. Please try again."
 		return false
-	var path := configurations_path().path_join(str(Time.get_unix_time_from_system()).replace(".", "-") + "-" + str(Time.get_ticks_usec()) + ".hvbuild")
+	var path := configurations_path().path_join(str(Time.get_unix_time_from_system()).replace(".", "-") + "-" + str(Time.get_ticks_usec()) + "." + extension)
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		error = "Couldn't save the configuration. Please try again."
@@ -146,4 +170,19 @@ func configurations() -> Array[Dictionary]:
 		var snapshot := decode_build(code)
 		if not snapshot.is_empty():
 			result.append({"name": snapshot.setup.name, "description": snapshot.setup.description, "code": code})
+	return result
+
+func stat_configurations() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var directory := DirAccess.open(configurations_path())
+	if directory == null: return result
+	var files := directory.get_files()
+	files.sort()
+	files.reverse()
+	for filename in files:
+		if filename.get_extension() != "hvstats": continue
+		var code := FileAccess.get_file_as_string(configurations_path().path_join(filename))
+		var configuration := Stats.decode(code)
+		if not configuration.is_empty():
+			result.append({"name": configuration.setup.name, "description": configuration.setup.description, "code": code})
 	return result

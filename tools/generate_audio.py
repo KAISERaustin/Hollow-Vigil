@@ -80,7 +80,7 @@ for name, f, d, tex, sweep in [
 weapons = {
     'rapid': (260, .16, 'bow', -.18), 'splash': (140, .32, 'fire', -.5),
     'heavy': (180, .38, 'orb', -.35), 'electric': (760, .12, 'arc', -.6),
-    'frostneedle': (1800, .15, 'chime', -.2), 'thorn_volley': (920, .19, 'wood', -.6),
+    'frostneedle': (380, .15, 'bow', -.2), 'thorn_volley': (920, .19, 'wood', -.6),
     'cinderfield': (110, .44, 'fire', -.4), 'rupture_pyre': (78, .42, 'fire', -.7),
     'grave_echo': (290, .44, 'orb', .4), 'doomstone': (85, .48, 'orb', -.3),
     'tempest_web': (1100, .22, 'arc', -.4), 'thunderseal': (530, .18, 'arc', .7),
@@ -92,7 +92,7 @@ for name, (f, d, tex, sweep) in weapons.items():
         impact = impact_overrides.get(name, (f * .63, min(.35, d * 1.3), tex, -sweep))
         cue('impact_' + name, 'towers', *impact, cooldown=.16)
     if name not in ('rapid', 'splash', 'heavy', 'electric'):
-        cue('upgrade_' + name, 'menu', f * 1.2, .55, tex, .8)
+        cue('upgrade_' + name, 'menu', 2160.0 if name == 'frostneedle' else f * 1.2, .55, 'chime' if name == 'frostneedle' else tex, .8)
 for name, f, d, tex in [('seal', 120, .45, 'arc'), ('fragments', 980, .25, 'chime'), ('ignite', 95, .5, 'fire')]:
     cue('power_' + name, 'towers', f, d, tex, -.3, .3)
 for name, f, tex in [('basic', 240, 'wood'), ('fast', 620, 'air'), ('heavy', 100, 'wood'), ('lantern', 960, 'chime'), ('shade', 380, 'air'), ('sentinel', 150, 'orb'), ('ruin_knight', 125, 'chime'), ('sepulcher', 58, 'wood'), ('briarling', 460, 'wood'), ('veil_widow', 510, 'air'), ('coffinbound', 72, 'wood')]:

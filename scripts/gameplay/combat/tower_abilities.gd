@@ -30,6 +30,9 @@ static func branch_hit(combat: VigilCombat, shot: Dictionary, enemy: Dictionary)
 	combat.hit(enemy, damage, shot.tower_id, branch, false, pierce)
 	if enemy.dead:
 		return
+	for entry in shot.get("ability_effects", []):
+		if combat.data.towers[shot.tower_id].get("branch", "") == branch and node != null and node.owns_effect(entry.config):
+			entry.attribute.impact(combat, shot, enemy, entry.config)
 	match branch:
 		"frostneedle":
 			enemy.slow_until = combat.simulation_time + ability.slow_duration

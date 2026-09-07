@@ -131,10 +131,10 @@ static func test_shared_projectiles(suite: SceneTree) -> void:
 	var tower: Dictionary = game.data.towers["1"]
 	var target: Dictionary = fixtures.enemy(game, Vector2(100, 0))
 	var stats := Balance.tower_stats(tower)
-	game.combat.launch_fan(tower, Vector2.ZERO, target, stats)
+	game.combat.launch_shot(tower, Vector2.ZERO, target, stats)
 	var ordinary := factory.shot(tower.kind, Vector2.ZERO, target.pos, stats)
 	for arrow in game.combat.pending_shots:
-		suite.check(arrow.fx.from == ordinary.from, "Volley and aimed arrow share the same muzzle")
-		suite.check(is_equal_approx(arrow.fx.flight, stats.range / Balance.PROJECTILES.rapid.speed), "Volley flight uses the shared projectile speed")
-		suite.check(is_equal_approx(arrow.fx.life - arrow.fx.flight, ordinary.life - ordinary.flight), "Volley and aimed arrow share impact duration")
+		suite.check(arrow.fx.from == ordinary.from, "Poison Arrow uses the shared muzzle")
+		suite.check(is_equal_approx(arrow.fx.flight, ordinary.flight), "Poison Arrow uses the shared projectile speed")
+		suite.check(is_equal_approx(arrow.fx.life - arrow.fx.flight, ordinary.life - ordinary.flight), "Poison Arrow uses the shared impact duration")
 	fixtures.free()

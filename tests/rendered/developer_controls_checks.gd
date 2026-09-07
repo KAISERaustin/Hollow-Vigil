@@ -13,8 +13,8 @@ static func run(app: VigilApp, harness: Script, failures: Array[String]) -> void
 		return
 	await settle(app)
 	var controls := app.panels.find_child("DeveloperControls", true, false)
-	if controls.category_list.get_child_count() != 5 or controls.editor.visible:
-		failures.append("Developer home must show five categories and no editor")
+	if controls.category_list.get_child_count() != controls.categories.size() or controls.editor.visible:
+		failures.append("Developer home must show every registered category and no editor")
 	await harness.capture(app, "developer-categories")
 	app.panels.content_scroll.ensure_control_visible(controls.tabs.enemies)
 	await settle(app)
@@ -66,7 +66,7 @@ static func run(app: VigilApp, harness: Script, failures: Array[String]) -> void
 		for index in range(controls.selector.item_count):
 			controls.selector.select(index)
 			controls.selector.item_selected.emit(index)
-			if controls.inputs.size() != Balance.fields_for(category, controls.selected_kind).size():
+			if controls.inputs.size() != Balance.editable_fields_for(category, controls.selected_kind).size():
 				failures.append("A unit type is missing balance inputs")
 			for stat in controls.inputs:
 				var input: SpinBox = controls.inputs[stat]

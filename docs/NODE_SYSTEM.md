@@ -15,7 +15,7 @@ graph TD
     Ashneedle --> Tier2[Level 2]
     Tier2 --> Tier3[Level 3]
     Tier3 --> Frostneedle
-    Tier3 --> ThornVolley[Thorn Volley]
+    Tier3 --> ThornVolley[Poison Arrow]
     Entity --> Enemy
     Enemy --> Forest
     Enemy --> Forge
@@ -137,3 +137,11 @@ Tuning schemas live in `catalogs/tuning.gd`. Balance remains the compatibility A
 ## Validation
 
 `tests/content_node_runner.gd` covers inheritance, subtype construction, nested-state isolation, registry guards, placement, equipment, pooling, boss effects and level/wave rules. The same checks run in `tests/test_runner.gd`. Run campaign and save-slot suites for shared level/mode changes. `tools/check_structure.py` checks resource links and dependency boundaries.
+
+## Portable and campaign configuration
+
+The `session/start` Level node owns fresh-session resources. Its `starting_gold` field uses the same tuning schema as other gameplay statistics; changing it does not change an existing world's balance. Stat configurations serialize only validated tuning and descriptive metadata. A fresh session composes these rules before creating its world.
+
+Campaign configuration derives authored Level and Wave nodes with sparse per-level and per-wave overrides. The level catalog owns resource and spawn-group field bounds; the editor and validator consume those definitions. Shared `Balance.configuration_value()` resolves effective statistics for both editors and deterministic per-level reports. Campaign progress, campaign authoring configuration and world slots remain separate stores.
+
+Poison Arrow retains the stable `thorn_volley` branch ID. Its Ability node composes the existing `attribute/damage_over_time` component; gear and other assigned abilities can use that same behavior. Component configuration is captured at projectile launch, while each target stores its own timed effect under the source tower and component slot. Repeated hits from one source refresh that effect; independent sources remain independent. Removing or replacing the component, changing specialization or removing its owner expires its effects. Legacy spread fields remain accepted for compatibility but are retired from editable fields and effective-stat reports.

@@ -40,9 +40,11 @@ static func test_first_loop(suite: SceneTree) -> void:
 	var upgraded := Balance.stats("rapid", 2)
 	suite.check(upgraded.damage > old.damage and upgraded.period < old.period and upgraded.range > old.range, "Upgrade improves damage, speed, and reach")
 	suite.check(not g.economy.upgrade("1", 1), "Repeated stale upgrade action does not charge again")
+	# Continuous rifts vary each interval by up to ten percent. Assert the
+	# guaranteed count, rather than depending on randomly short intervals.
 	var born := g.combat.enemy_serial
 	suite.advance(g, 30)
-	suite.check(g.combat.enemy_serial >= born + int(floor(30.0 / Balance.traffic_period(0))), "Spawns continue with no wave break")
+	suite.check(g.combat.enemy_serial >= born + int(floor(30.0 / (g.economy.spawn_period("-1,0") * 1.1))), "Spawns continue with no wave break")
 	suite.check(g.data.kills > earned / 5.0, "Combat keeps earning after an upgrade")
 	print("PASS GROUP: first playable loop")
 

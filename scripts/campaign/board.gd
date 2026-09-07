@@ -26,6 +26,7 @@ func _ready() -> void:
 		trail_bounds = trail_bounds.expand(socket.position)
 	trail_bounds = trail_bounds.grow(55)
 	super._ready()
+	clear_selection()
 	# The original cached terrain renderer accepts authored geometry. Only the
 	# roads and sockets differ; all ground, scenery and actor art stays shared.
 	terrain_layer.hide()
@@ -87,17 +88,25 @@ func tap(point: Vector2) -> void:
 			distance = candidate
 			nearest = socket.index
 	if nearest >= 0:
-		selected = nearest
-		var socket := Catalog.socket(nearest)
-		selected_region = socket.region
-		selected_pad = socket.pad
-		selected_tower = run.tower_at(nearest)
 		socket_picked.emit(nearest)
 	else:
-		selected = -1
-		selected_pad = -1
-		selected_tower = ""
 		empty_picked.emit()
+
+func select_socket(index: int) -> void:
+	selected = index
+	var socket := Catalog.socket(index)
+	selected_region = socket.region
+	selected_pad = socket.pad
+	selected_tower = run.tower_at(index)
+	tower_selection_changed.emit()
+	queue_redraw()
+
+func clear_selection() -> void:
+	selected = -1
+	selected_pad = -1
+	selected_region = ""
+	selected_tower = ""
+	tower_selection_changed.emit()
 	queue_redraw()
 
 func earnings_badge_visible(_tower: Dictionary) -> bool:

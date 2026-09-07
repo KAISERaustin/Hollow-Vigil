@@ -40,9 +40,10 @@ static func build(dialog) -> void:
 	list.add_theme_constant_override("separation", 12)
 	dialog.body.add_child(list)
 	var inventory: Dictionary = data.get("relics", {})
-	if inventory.is_empty():
-		dialog.body.add_child(UI.paragraph("No equipment collected yet.", 14))
-	for relic_id in inventory:
+	var available := Relics.available(data)
+	if available.is_empty():
+		dialog.body.add_child(UI.paragraph("No available equipment. Unequip an item to return it to inventory.", 14))
+	for relic_id in available:
 		var kind: String = inventory[relic_id]
 		var entry := VBoxContainer.new()
 		entry.add_theme_constant_override("separation", 8)

@@ -395,9 +395,6 @@ func _settings_card(tint: Color) -> PanelContainer:
 	var card := PanelContainer.new()
 	card.mouse_filter = Control.MOUSE_FILTER_PASS
 	var style := UI.surface(tint, 3, 10)
-	style.shadow_color = Color(UI.BORDER, 0.18)
-	style.shadow_offset = Vector2(0, 4)
-	style.shadow_size = 2
 	card.add_theme_stylebox_override("panel", style)
 	return card
 
@@ -459,6 +456,11 @@ func show_settings() -> void:
 		var developer := UI.button("Developer Controls", show_developer_controls)
 		developer.name = "OpenDeveloperControls"
 		sheet_content.add_child(UI.action_row("Creative rules", developer, "Edit"))
+	var stats_button := UI.button("Stat configurations", func():
+		if app.show_save_slots(): app.slot_menu.show_stat_configurations()
+	)
+	stats_button.name = "OpenStatConfigurations"
+	sheet_content.add_child(UI.action_row("Custom gameplay stats", stats_button, "Open"))
 	sheet_content.add_child(UI.heading("Preferences", 18))
 	var sound_button := UI.button("Sound", show_sound_settings)
 	sound_button.name = "OpenSoundSettings"

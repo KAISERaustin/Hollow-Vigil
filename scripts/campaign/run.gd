@@ -1,5 +1,6 @@
 extends RefCounted
 
+const Configuration = preload("res://scripts/campaign/configuration.gd")
 const Catalog = preload("res://scripts/campaign/catalog.gd")
 signal changed
 signal finished
@@ -14,8 +15,9 @@ var schedule: Array[Dictionary] = []
 var next_spawn := 0
 var finish_pending := false
 
-func _init(index: int = 0) -> void:
-	mission = Catalog.level(index)
+func _init(index: int = 0, overrides: Dictionary = {}) -> void:
+	mission = Configuration.resolve(index, overrides)
+	health = int(mission.flame)
 	game = VigilState.new(81000 + index, "survival")
 	game.data.balance = float(mission.gold)
 	game.data.settings.developer_balance = mission.tuning.duplicate(true)
@@ -36,7 +38,8 @@ func _init(index: int = 0) -> void:
 func start_wave() -> bool:
 	if phase != "planning" or wave >= mission.waves.size():
 		return false
-	schedule = Balance.Content.wave(mission.index, wave).schedule()
+	game.data.settings.developer_balance = mission.wave_rules[wave].tuning.duplicate(true)
+	schedule = Configuration.schedule(mission, wave)
 	next_spawn = 0
 	wave_time = 0.0
 	phase = "wave"
@@ -69,7 +72,7 @@ func tick(delta: float) -> void:
 	elif next_spawn == schedule.size() and game.combat.enemies.is_empty():
 		wave += 1
 		# A single transition pays each cleared wave exactly once.
-		game.data.balance += mission.reward
+		game.data.balance += mission.wave_rules[wave - 1].reward
 		phase = "victory" if wave == mission.waves.size() else "planning"
 		game.combat.pending_shots.clear()
 		game.combat.burning_ground.clear()

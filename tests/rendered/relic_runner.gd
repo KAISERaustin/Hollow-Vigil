@@ -72,12 +72,10 @@ func run() -> void:
 		app.field.selected_tower = towers[1]
 		await frame()
 		await Harness.tap(app, app.tower_actions.buttons.equipment.get_global_rect().get_center(), touch)
-		choice = dialog.find_child("Relic_90,90", true, false)
-		dialog.scroll.ensure_control_visible(choice)
-		await frame()
-		await Harness.tap(app, choice.get_global_rect().get_center(), touch)
-		check(dialog.confirm.text == "Transfer equipment", "Details offer transfer for an owned piece")
-		await Harness.tap(app, dialog.confirm.get_global_rect().get_center(), touch)
+		check(dialog.find_child("Relic_90,90", true, false) == null, "Equipment on another tower is excluded from available inventory")
+		# Supported service transfers remain atomic and invalidate open pickers.
+		check(app.game.economy.equip_relic(towers[1], "90,90", "", towers[0]), "Transfer keeps authoritative ownership")
+		dialog.refresh()
 		check(not app.game.data.towers[towers[0]].has("relic") and app.game.data.towers[towers[1]].relic == "90,90", "Transfer moves one piece without duplication")
 		dialog.open_action("equipment")
 		await frame()
@@ -90,11 +88,19 @@ func run() -> void:
 		await Harness.tap(app, dialog.confirm.get_global_rect().get_center(), touch)
 		check(not app.game.data.towers[towers[1]].has("relic") and app.game.data.relics.has("90,90"), "Confirmed removal returns equipment to inventory")
 		check(not app.game.storage.read_candidate(app.game.save_path).towers[towers[1]].has("relic"), "Removal persists")
+		check(dialog.find_child("Relic_90,90", true, false) != null, "Unequipped item immediately reappears")
+		dialog.show_equipment_details("90,90")
+		app.game.economy.equip_relic(towers[2], "90,90", "")
+		dialog.refresh()
+		check(dialog.mode == "equipment" and dialog.find_child("Relic_90,90", true, false) == null, "Stale detail selection is cleared when availability changes")
+		app.game.economy.equip_relic(towers[2], "", "90,90")
+		dialog.refresh()
 		dialog.dismiss()
 	for index in range(4):
 		app.game.economy.equip_relic(towers[index], str(90 + index) + ",90", "")
 	app.field.selected_tower = ""
 	await Harness.capture(app, "relic-equipped-towers")
+	app.game.economy.equip_relic(towers[0], "", "90,90")
 	app.field.selected_tower = towers[3]
 	for dimensions in [Vector2i(360,640), Vector2i(390,844), Vector2i(768,1024)]:
 		root.size = dimensions
@@ -117,7 +123,7 @@ func run() -> void:
 		check(equipped_name.get_global_rect().end.y <= app.tower_dialog.scroll.get_global_rect().position.y, "Equipped summary stays above the scrolling collection")
 		await Harness.capture(app, "relic-list-" + str(dimensions.x))
 		var list := app.tower_dialog.find_child("EquipmentList", true, false)
-		check(list.get_child_count() == app.game.data.relics.size(), "Inventory shows one row per owned piece")
+		check(list.get_child_count() == Relics.available(app.game.data).size(), "Inventory shows only available pieces")
 		for entry in list.get_children():
 			var row := entry.get_child(0)
 			check(row.get_child(0).get_global_rect().end.x <= row.get_child(1).get_global_rect().position.x, "Equipment name stays left of its icon at " + str(dimensions))

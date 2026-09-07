@@ -32,7 +32,7 @@ Costs are the individual branch purchase. Both choices for a tower cost the same
 | Base tower | Branch | Base damage | Interval (s) | Range | Blast radius | Upgrade gold | Total investment | Sell gold |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | Ashneedle | Frostneedle | 15 | 0.30 | 160 | 0 | 180 | 400 | 200 |
-| Ashneedle | Thorn Volley | 15 per arrow | 0.30 | 160 | 0 | 180 | 400 | 200 |
+| Ashneedle | Poison Arrow | 15 direct + poison | 0.30 | 160 | 0 | 180 | 400 | 200 |
 | Pyre | Cinderfield | 27 | 1.10 | 154 | 66 | 320 | 760 | 380 |
 | Pyre | Rupture Pyre | 54 | 1.50 | 154 | 66 | 320 | 760 | 380 |
 | Obelisk | Grave Echo | 110 | 0.90 | 189 | 0 | 360 | 880 | 440 |
@@ -41,7 +41,7 @@ Costs are the individual branch purchase. Both choices for a tower cost the same
 | Stormspire | Thunderseal | 7 | 0.30 | 173 | 0 | 300 | 760 | 380 |
 
 - **Frostneedle:** 25% movement slow for 2 seconds. Hits refresh duration without stacking. Blue body, icy crown, pale needles, and enemy frost rings.
-- **Thorn Volley:** five arrows; the center tracks its target and all retain level-3 damage. Outer arrows travel at fixed offsets of ±0.24 and ±0.48 radians, hit the first enemy on their path, and can miss. Green thorn armor and a five-pronged launcher.
+- **Poison Arrow:** one aimed arrow deals 15 direct damage and applies 5 damage per second for 3 seconds by default. Hits from the same tower refresh duration without stacking; different towers own independent poison. Damage and duration use shared tuning. The stable `thorn_volley` branch ID, existing upgrade ownership and green artwork are retained; old spread fields remain readable but no longer affect gameplay.
 - **Cinderfield:** 3-second burning patches deal 12 damage per second. Same-tower overlapping patches refresh and never stack damage on an enemy. Different towers own independent fire. Dark cracked basin, molten orange fire, glowing scorch marks.
 - **Rupture Pyre:** pushes victims 20 world units backward along their road, or 5 for Revenants. One-second immunity prevents repeated pushes. Reinforced iron brazier and expanding orange shockwaves.
 - **Grave Echo:** up to five seeking fragments, each dealing 20% of the original hit (22 by default), target distinct enemies within 90 units of impact. They exclude the original target and never split again; unused fragments fade. Fractured violet crystal with five floating shards and curved trails.
@@ -51,9 +51,9 @@ Costs are the individual branch purchase. Both choices for a tower cost the same
 
 ## Validation and saves
 
-The selected branch persists through saving and relocation and contributes to sale/refund investment. Old level-1–3 saves remain valid. Version-1 high-level towers still migrate to level 3 with full refunds for the removed upgrades using original individually rounded prices, requiring an explicit new branch purchase. Migration remains idempotent and preserves stored earnings. Charges, curses, slows, and fire are transient combat state.
+The selected branch persists through saving and relocation and contributes to sale/refund investment. Old level-1–3 saves remain valid. Version-1 high-level towers still migrate to level 3 with full refunds for the removed upgrades using original individually rounded prices, requiring an explicit new branch purchase. Migration remains idempotent and preserves stored earnings. Charges, curses, slows, fire and poison are transient combat state.
 
-`tests/branch_runner.gd` checks branch transactions, save roundtrips, effects, immunity, fan collisions, and distinct fragment/arc targets. `tests/rendered/branch_visual_runner.gd` checks both preview buttons with mouse/touch, compact layouts, and purchasing, and produces `artifacts/level-four-branches.png`. Both run through `launch.ps1 -Check`.
+`tests/branch_runner.gd` checks branch transactions, save roundtrips, effects, immunity, Poison Arrow hits, and distinct fragment/arc targets. `tests/rendered/branch_visual_runner.gd` checks both preview buttons with mouse/touch, compact layouts, and purchasing, and produces `artifacts/level-four-branches.png`. Both run through `launch.ps1 -Check`.
 
 `tests/unit/tower_balance_checks.gd` retains deterministic level-1–3 balance scenarios across three seeds, four approaches, basic openings, and mixed traffic at base/maximum density. These scenarios spawn for two minutes and drain for 30 seconds. `artifacts/tower-balance.csv` reports clear percentage and gold per minute for that cohort. This benchmark does not predict every placement, and the new branches have not yet received equivalent long-form balance tuning.
 

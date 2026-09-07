@@ -28,6 +28,11 @@ func rebuild() -> void:
 	if not service.signed_in():
 		name_draft = ""
 		name_edited = false
+		if service.has_saved_session():
+			var retry := UI.button("Retry sign-in", service.restore_session)
+			retry.name = "RetryAccountSession"
+			retry.disabled = service.busy
+			add_child(retry)
 		var address := LineEdit.new()
 		address.name = "CloudEmail"
 		address.placeholder_text = "Email address"
@@ -45,7 +50,7 @@ func rebuild() -> void:
 			code.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_DEFAULT
 			add_child(code)
 			add_child(_button("Sign in", func(): service.verify_link(code.text)))
-		add_child(UI.paragraph("No password is needed. Sign in again after restarting the game. Offline play always works.", 12))
+		add_child(UI.paragraph("No password is needed. Your sign-in is remembered on this device until you sign out. Offline play always works.", 12))
 		return
 	if confirmation_world != "":
 		add_child(UI.paragraph("Replace the game in the selected Infinite slot with this cloud backup? This also restores its Creative or Survival mode and rules. Your current game is kept in a local recovery file. Separate progress is not merged.", 14))

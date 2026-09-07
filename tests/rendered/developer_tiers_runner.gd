@@ -30,7 +30,7 @@ func run() -> void:
 			controls.tier_selector.select(tier)
 			controls.tier_selector.item_selected.emit(tier)
 			var key: String = controls.editing_kind()
-			if controls.inputs.size() != Balance.fields_for("towers", key).size():
+			if controls.inputs.size() != Balance.editable_fields_for("towers", key).size():
 				failures.append("Missing attributes for " + key)
 			for stat in controls.inputs:
 				var numeric := controls.fields.find_child(stat + "Value", true, false) as SpinBox

@@ -1,6 +1,7 @@
 extends "res://tests/test_runner.gd"
 
 func run() -> void:
+	check_starting_gold()
 	var slots := VigilSaveSlots.new()
 	slots.base_path = "user://mode-tests-" + str(Time.get_ticks_usec())
 	var creative := slots.create(0, "creative")
@@ -46,3 +47,27 @@ func run() -> void:
 		clean_test_save(slots.path_for(slot))
 	print("Save modes: ", checks, " checks; ", failures.size(), " failures")
 	quit(0 if failures.is_empty() else 1)
+
+func check_starting_gold() -> void:
+	var rules := {"session": {"start": {"starting_gold": 12345.0}}}
+	var slots := VigilSaveSlots.new()
+	slots.base_path = "user://starting-gold-" + str(Time.get_ticks_usec())
+	var game := slots.create(0, "creative", "", rules)
+	check(game != null and game.data.balance == 12345.0, "Creative starts with the selected gold")
+	rules.session.start.starting_gold = 1.0
+	check(game.tuning.session.start.starting_gold == 12345.0, "Starting rules belong to each session")
+	check(game.set_balance_stat("session", "start", "starting_gold", 777.0), "Creative editor accepts starting gold")
+	check(game.data.balance == 12345.0, "Editing starting gold does not overwrite earned gold")
+	check(game.save(), "Starting gold setting persists")
+	var reloaded := VigilState.new()
+	reloaded.save_path = game.save_path
+	check(reloaded.load_save() and reloaded.tuning.session.start.starting_gold == 777.0 and reloaded.data.balance == 12345.0, "Existing save retains resources and starting configuration")
+	var exported := slots.export_build(game, "Configured start")
+	var next := slots.create(1, "creative", exported)
+	check(next != null and next.data.balance == 777.0, "New Creative session applies starting gold from custom rules")
+	check(VigilState.new().data.balance == Balance.STARTING_GOLD, "Fresh defaults unchanged")
+	check(not game.set_balance_stat("session", "start", "starting_gold", -1.0) and not game.set_balance_stat("session", "start", "starting_gold", INF), "Invalid starting gold rejected")
+	check(slots.create(2, "creative", "", {"session": {"start": {"starting_gold": "bad"}}}) == null and not slots.occupied(2), "Malformed starting configuration cannot create a save")
+	var zero := slots.create(2, "creative", "", {"session": {"start": {"starting_gold": 0.0}}})
+	check(zero != null and zero.data.balance == 0.0, "Zero starting gold supported")
+	for slot in range(3): clean_test_save(slots.path_for(slot))

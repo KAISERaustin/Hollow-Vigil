@@ -1,5 +1,18 @@
 extends RefCounted
 
+const STARTING_GOLD := 280.0 # First property and an opening defense.
+const SESSION := {"name": "Starting resources", "starting_gold": STARTING_GOLD}
+const CONFIGURATION_FIELDS := {
+	"gold": {"label": "Starting gold", "min": 0.0, "max": 1000000000000.0, "step": 1.0},
+	"flame": {"label": "Sanctuary flame", "min": 1.0, "max": 10000.0, "step": 1.0, "integer": true},
+	"reward": {"label": "Gold per cleared wave", "min": 0.0, "max": 1000000.0, "step": 1.0}
+}
+const GROUP_FIELDS := {
+	1: {"label": "Enemy count", "min": 1, "max": 1000, "step": 1, "integer": true},
+	2: {"label": "Entrance lane (0 = A)", "min": 0, "max": 31, "step": 1, "integer": true},
+	3: {"label": "Spawn delay (seconds)", "min": 0, "max": 3600, "step": 0.1},
+	4: {"label": "Spawn interval (seconds)", "min": 0.05, "max": 120, "step": 0.05}
+}
 const COUNT := 20
 const MAX_HEALTH := 20
 const BOARD := Rect2(-310, -660, 620, 800)

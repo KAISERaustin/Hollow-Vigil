@@ -1,6 +1,11 @@
 extends Node
 
 signal changed
+signal session_refreshed(result: Dictionary)
+const SessionStore = preload("res://scripts/cloud/session_store.gd")
+var session_store := SessionStore.new()
+var session_notice := ""
+var refreshing_session := false
 signal restore_requested(snapshot: Dictionary, world_id: String, revision: int)
 const Codec = preload("res://scripts/cloud/cloud_codec.gd")
 const CONFIG_PATH := "res://supabase/client.cfg"
@@ -27,10 +32,14 @@ var enabled := true
 
 func _ready() -> void:
 	var cfg := ConfigFile.new()
-	if cfg.load(CONFIG_PATH) == OK:
+	if url.is_empty() and cfg.load(CONFIG_PATH) == OK:
 		url = str(cfg.get_value("supabase", "url", "")).trim_suffix("/")
 		key = str(cfg.get_value("supabase", "publishable_key", ""))
 	include_audio = game.data.get("cloud", {}).get("include_audio", false)
+	if not enabled and session_store.path == SessionStore.DEFAULT_PATH:
+		session_store.path = game.save_path + ".account-session-test"
+	if enabled and configured():
+		call_deferred("restore_session")
 
 func configured() -> bool:
 	return url.begins_with("https://") and key.begins_with("sb_publishable_")
@@ -46,7 +55,7 @@ func _process(_delta: float) -> void:
 	pass
 
 func _say(message: String) -> void:
-	status = message
+	status = message + ("\n" + session_notice if signed_in() and not session_notice.is_empty() else "")
 	changed.emit()
 
 func send_code(address: String) -> void:
@@ -60,8 +69,10 @@ func send_code(address: String) -> void:
 		_say("Enter your email address.")
 		return
 	busy = true
+	var epoch := generation
 	_say("Sending sign-in code…")
 	var result := await _request("/auth/v1/otp", {"email": address, "create_user": true}, false)
+	if epoch != generation: return
 	busy = false
 	if result.ok:
 		email = address
@@ -85,8 +96,10 @@ func verify_link(link: String) -> void:
 		_say("Enter the eight-digit email code, or copy the sign-in link without opening it first.")
 		return
 	busy = true
+	var epoch := generation
 	_say("Signing in…")
 	var result := await _request("/auth/v1/verify", credentials, false)
+	if epoch != generation: return
 	if result.ok and _accept_session(result.data):
 		_load_pending()
 		busy = false
@@ -114,13 +127,18 @@ func parse_sign_in_link(link: String) -> Dictionary:
 func _accept_session(data: Variant) -> bool:
 	if not data is Dictionary or not data.get("user") is Dictionary or not Codec.valid_uuid(data.user.get("id")):
 		return false
-	if not data.get("access_token") is String or not data.get("refresh_token") is String:
+	if not SessionStore.valid_token(data.get("access_token")) or not SessionStore.valid_token(data.get("refresh_token")):
+		return false
+	var lifetime: Variant = data.get("expires_in", 3600)
+	if not (lifetime is float or lifetime is int) or not is_finite(lifetime) or lifetime < 1 or lifetime > 604800:
 		return false
 	access_token = data.access_token
 	refresh_token = data.refresh_token
 	player_id = data.user.id
 	display_name = _user_name(data.user)
-	expires_at = Time.get_unix_time_from_system() + float(data.get("expires_in", 3600))
+	email = str(data.user.get("email", email))
+	expires_at = Time.get_unix_time_from_system() + float(lifetime)
+	session_notice = "" if session_store.save_session(url, refresh_token) else session_store.last_error
 	return true
 
 static func valid_player_name(value: Variant) -> bool:
@@ -159,8 +177,12 @@ func save_player_name(value: String) -> void:
 		_say(_error(result))
 
 func sign_out() -> void:
-	# No account tokens are stored on disk. Invalidate in-flight callbacks too.
+	# Clear device credentials and invalidate in-flight callbacks together.
 	generation += 1
+	session_store.clear()
+	session_notice = ""
+	expires_at = 0.0
+	email = ""
 	access_token = ""
 	refresh_token = ""
 	player_id = ""
@@ -169,13 +191,15 @@ func sign_out() -> void:
 	conflict.clear()
 	pending.clear()
 	busy = false
-	_say("Signed out. Your local progress is safe and cloud uploads are stopped.")
+	_say("Signed out. Your local progress is safe and cloud uploads are stopped." if session_store.last_error.is_empty() else session_store.last_error)
 
 func refresh_worlds() -> void:
 	if busy or not signed_in():
 		return
 	busy = true
+	var epoch := generation
 	var result := await _rpc("list_saves", {})
+	if epoch != generation: return
 	busy = false
 	if result.ok and result.data is Array:
 		worlds = result.data
@@ -201,6 +225,7 @@ func sync_now() -> void:
 	if busy or not linked() or not conflict.is_empty() or game.save_blocked:
 		return
 	busy = true
+	var epoch := generation
 	_say("Saving to cloud…")
 	var meta: Dictionary = game.data.cloud
 	if pending.is_empty():
@@ -220,6 +245,7 @@ func sync_now() -> void:
 			_say("Couldn't queue the cloud save. Local progress is safe.")
 			return
 	var result := await _rpc("publish_save", {"payload": pending.payload, "expected_revision": pending.expected_revision, "mutation": pending.mutation})
+	if epoch != generation: return
 	if result.ok and result.data is Dictionary and result.data.get("status") == "ok":
 		meta.revision = int(result.data.revision)
 		meta.include_audio = include_audio
@@ -254,8 +280,10 @@ func restore_world(world_id: String) -> void:
 	if busy or not signed_in() or not Codec.valid_uuid(world_id):
 		return
 	busy = true
+	var epoch := generation
 	_say("Reading cloud save…")
 	var result := await _rpc("read_save", {"world": world_id})
+	if epoch != generation: return
 	if result.ok and result.data is Dictionary and result.data.get("payload") is Dictionary:
 		var snapshot := codec.decode(result.data.payload, game.data.settings, game.data.camera, include_audio)
 		if not snapshot.is_empty():
@@ -277,22 +305,59 @@ func restore_completed(ok: bool) -> void:
 	else:
 		_say("Couldn't restore the cloud save. Your previous progress is preserved.")
 
+func restore_session() -> void:
+	if busy or signed_in() or not configured(): return
+	var saved := session_store.read_session(url)
+	if saved.is_empty():
+		if not session_store.last_error.is_empty(): _say(session_store.last_error)
+		return
+	busy = true
+	var epoch := generation
+	refresh_token = saved
+	expires_at = 0.0
+	_say("Restoring sign-in…")
+	var result := await _ensure_session()
+	if epoch != generation: return
+	busy = false
+	if result.ok:
+		_load_pending()
+		await refresh_worlds()
+	else:
+		_say("Couldn't restore sign-in right now. Your saved sign-in is kept. Choose Retry sign-in when you're online." if int(result.get("code", 0)) not in [400, 401, 403] else _error(result))
+
+func has_saved_session() -> bool:
+	return not refresh_token.is_empty() and not signed_in()
+
 func _ensure_session() -> Dictionary:
-	if Time.get_unix_time_from_system() >= expires_at - 60.0:
-		var refreshed := await _request("/auth/v1/token?grant_type=refresh_token", {"refresh_token": refresh_token}, false)
-		if not refreshed.ok:
-			# Network/rate-limit failures are retryable, not expired sessions.
-			if int(refreshed.code) in [400, 401, 403]:
-				sign_out()
-				return {"ok": false, "code": 401, "data": null}
-			return refreshed
-		if not _accept_session(refreshed.data):
+	if refresh_token.is_empty(): return {"ok": false, "code": 401, "data": null}
+	if not access_token.is_empty() and Time.get_unix_time_from_system() < expires_at - 60.0:
+		return {"ok": true}
+	var epoch := generation
+	if refreshing_session:
+		var shared: Dictionary = await session_refreshed
+		return shared if epoch == generation else {"ok": false, "code": 0, "data": null}
+	refreshing_session = true
+	var refreshed := await _request("/auth/v1/token?grant_type=refresh_token", {"refresh_token": refresh_token}, false)
+	if epoch != generation:
+		refreshed = {"ok": false, "code": 0, "data": null}
+	elif refreshed.ok:
+		if _accept_session(refreshed.data):
+			refreshed = {"ok": true}
+		else:
 			sign_out()
-			return {"ok": false, "code": 401, "data": null}
-	return {"ok": true}
+			refreshed = {"ok": false, "code": 401, "data": null}
+	elif int(refreshed.code) in [400, 401, 403]:
+		# Preserve retryable network/rate-limit failures; discard revoked credentials.
+		sign_out()
+		refreshed = {"ok": false, "code": 401, "data": null}
+	refreshing_session = false
+	session_refreshed.emit(refreshed)
+	return refreshed
 
 func _rpc(function: String, body: Dictionary) -> Dictionary:
+	var epoch := generation
 	var session := await _ensure_session()
+	if epoch != generation: return {"ok": false, "code": 0, "data": null}
 	if not session.ok:
 		return session
 	return await _request("/rest/v1/rpc/" + function, body, true)

@@ -36,7 +36,7 @@ const TOWER_UPGRADES := {
 const BRANCHES := {
 	"rapid": {
 		"frostneedle": {"name": "Frostneedle", "color": "96d6e6", "cost": 180.0, "description": "Ice needles slow enemies by {slow_percent}% for {slow_duration} seconds. Repeated hits refresh the slow; they never stack."},
-		"thorn_volley": {"name": "Thorn Volley", "color": "93b979", "cost": 180.0, "description": "Fires {arrow_count} arrows in a wide fan, each dealing {damage} damage. The center aims at the target; fixed-angle outer arrows can hit surrounding enemies, but often miss."}
+		"thorn_volley": {"name": "Poison Arrow", "color": "93b979", "cost": 180.0, "description": "Arrows poison their target for {duration} seconds, dealing {poison_dps} damage each second. Hits from this tower refresh the poison without stacking."}
 	},
 	"splash": {
 		"cinderfield": {"name": "Cinderfield", "color": "f19b57", "cost": 320.0, "description": "Blasts leave burning ground for {burn_duration} seconds at {burn_dps} damage per second. Overlapping fire from this tower refreshes without stacking."},
@@ -60,7 +60,7 @@ const BRANCH_STAT_MULTIPLIERS := {
 
 const ABILITIES := {
 	"frostneedle": {"slow_percent": 25.0, "slow_duration": 2.0},
-	"thorn_volley": {"arrow_count": 5, "fan_angle": 0.96},
+	"thorn_volley": {"duration": 3.0, "dot_multiplier": 0.3333333333333333, "arrow_count": 5, "fan_angle": 0.96},
 	"cinderfield": {"burn_duration": 3.0, "burn_multiplier": 0.4444444444444444},
 	"rupture_pyre": {"push_distance": 20.0, "push_immunity": 1.0},
 	"grave_echo": {"fragment_count": 5, "fragment_range": 90.0, "fragment_multiplier": 0.2},
@@ -68,3 +68,7 @@ const ABILITIES := {
 	"tempest_web": {"arc_range": 60.0, "arc_multiplier": 0.5},
 	"thunderseal": {"seal_hits": 5, "seal_damage": 3.0, "stun_duration": 0.4, "stun_immunity": 2.0}
 }
+
+# Stable branch IDs keep existing saves and build codes readable. Legacy fan
+# fields are accepted but no longer used by Poison Arrow.
+const COMPONENTS := {"thorn_volley": ["damage_over_time"]}

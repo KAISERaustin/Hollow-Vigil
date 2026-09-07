@@ -32,6 +32,7 @@ var target_choice := "first"
 var relic_choice := ""
 var relic_original := ""
 var relic_owner := ""
+var equipment_state := ""
 
 func _ready() -> void:
 	name = "TowerDialog"
@@ -50,7 +51,7 @@ func _ready() -> void:
 	portrait.custom_minimum_size = Vector2(48, 64)
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	portrait.draw.connect(func():
-		if mode == "equipment_detail":
+		if mode == "equipment_detail" and app.game.data.relics.has(relic_choice):
 			preload("res://scripts/rendering/actors/relic_art.gd").draw(portrait, app.game.data.relics[relic_choice], portrait.size * 0.5)
 		else:
 			VigilTerrainArt.sentinel(portrait, tower_kind, Vector2(24, 51), 0.85, tower_level, tower_branch)
@@ -117,6 +118,7 @@ func open_action(action: String) -> void:
 	relic_original = tower.get("relic", "")
 	relic_choice = relic_original
 	relic_owner = preload("res://scripts/gameplay/progression/relics.gd").owner(app.game.data, relic_choice)
+	equipment_state = equipment_fingerprint()
 	portrait.queue_redraw()
 	tower_level = int(tower.level)
 	cost = Balance.upgrade_cost(tower, app.game.tuning) if action == "upgrade" else 0.0
@@ -216,7 +218,7 @@ func open_action(action: String) -> void:
 
 func show_equipment_details(relic_id: String) -> void:
 	const Relics = preload("res://scripts/gameplay/progression/relics.gd")
-	if mode != "equipment" or not app.game.data.relics.has(relic_id):
+	if mode != "equipment" or not app.game.data.relics.has(relic_id) or not Relics.owner(app.game.data, relic_id).is_empty():
 		return
 	mode = "equipment_detail"
 	relic_choice = relic_id
@@ -302,10 +304,16 @@ func fit_dialog() -> void:
 func refresh() -> void:
 	if not visible:
 		return
+	if mode.begins_with("equipment") and app.field.selected_tower != tower_id:
+		dismiss(false)
+		return
 	if not app.game.data.towers.has(tower_id) or app.game.data.towers[tower_id].level != tower_level:
 		dismiss()
 		return
 	var tower: Dictionary = app.game.data.towers[tower_id]
+	if mode.begins_with("equipment") and equipment_state != equipment_fingerprint():
+		open_action("equipment")
+		return
 	var remaining: float = tower.get("rebuild_remaining", 0.0)
 	rebuild_status.visible = remaining > 0.0
 	rebuild_status.text = "Rebuilding · " + Balance.rebuild_time_text(remaining)
@@ -319,6 +327,12 @@ func refresh() -> void:
 		confirm.text = "Max level"
 	elif mode == "sell":
 		confirm.text = "Sell · +" + UI.exact_money(refund + app.game.data.towers[tower_id].earnings) + " gold"
+
+func equipment_fingerprint() -> String:
+	var assignments := {}
+	for id in app.game.data.towers:
+		assignments[id] = app.game.data.towers[id].get("relic", "")
+	return JSON.stringify([app.game.data.get("relics", {}), assignments])
 
 func commit(opened_revision: int) -> void:
 	if not visible or opened_revision != revision:

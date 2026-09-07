@@ -80,17 +80,23 @@ func flush() -> bool:
 	data.sequence += 1
 	return write(path, data)
 
+func reset_progress() -> bool:
+	return _replace_progress(0, "reset")
+
 func restore_completed_levels(completed: int) -> bool:
+	return _replace_progress(completed, "cloud")
+
+func _replace_progress(completed: int, reason: String) -> bool:
 	if completed < 0 or completed > Catalog.COUNT:
 		return false
 	var sequence := int(data.sequence)
-	var archive := path + ".before-cloud-" + str(Time.get_ticks_usec())
+	var archive := path + ".before-" + reason + "-" + str(Time.get_ticks_usec())
 	# Preserve even unreadable originals before a deliberate recovery.
 	for suffix in ["", ".tmp", ".bak"]:
 		var candidate := read_candidate(path + suffix)
 		sequence = maxi(sequence, int(candidate.get("sequence", 0)))
 		if FileAccess.file_exists(path + suffix) and DirAccess.copy_absolute(path + suffix, archive + suffix) != OK:
-			last_error = "Couldn't preserve the current campaign. Restore was cancelled."
+			last_error = "Couldn't preserve the current campaign. Your progress is unchanged."
 			return false
 	var replacement := {"version": 2, "sequence": sequence + 1, "completed_levels": completed}
 	if not write(path, replacement):

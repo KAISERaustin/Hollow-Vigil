@@ -24,6 +24,13 @@ static func owner(data: Dictionary, relic_id: String) -> String:
 			return tower.id
 	return ""
 
+static func available(data: Dictionary) -> Array[String]:
+	var result: Array[String] = []
+	for relic_id in data.get("relics", {}):
+		if owner(data, relic_id).is_empty():
+			result.append(relic_id)
+	return result
+
 static func migrate(data: Dictionary) -> void:
 	if not data.has("relics"):
 		data.relics = {}
@@ -120,6 +127,12 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 		var statuses: Dictionary = enemy.get("gear_status", {})
 		for key in statuses.keys():
 			var status: Dictionary = statuses[key]
+			if status.has("ability"):
+				var tower: Dictionary = combat.data.towers.get(status.owner, {})
+				var ability := Balance.Content.ability(status.ability)
+				if tower.get("branch", "") != status.ability or ability == null or not ability.owns_effect(status):
+					statuses.erase(key)
+					continue
 			if not enemy.dead and status.type == "dot" and combat.data.towers.has(status.owner):
 				var elapsed := clampf(status.until - (combat.simulation_time - delta), 0.0, delta)
 				combat.hit(enemy, status.damage * elapsed, status.owner, "", status.fire)
@@ -133,7 +146,7 @@ static func clear(combat: VigilCombat, tower_id: String) -> void:
 		var statuses: Dictionary = enemy.get("gear_status", {})
 		var had_root := false
 		for key in statuses.keys():
-			if statuses[key].owner == tower_id:
+			if statuses[key].owner == tower_id and not statuses[key].has("ability"):
 				had_root = had_root or statuses[key].type == "root"
 				statuses.erase(key)
 		if had_root:

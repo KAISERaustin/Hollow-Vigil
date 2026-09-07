@@ -14,13 +14,16 @@ static func run(suite: SceneTree) -> void:
 		for gear_kind in Relics.BOSS_DROPS[kind]:
 			expected[Relics.drop_id(boss.source, gear_kind, kind)] = gear_kind
 		suite.check(game.data.relics == expected and game.combat.relic_drops.size() == 3, "Boss grants exactly three identity-bound relics once: " + kind)
+		suite.check(boss.source in Relics.available(game.data), "Newly awarded equipment is available")
 		suite.check(game.economy.equip_relic(id, boss.source, ""), "Every boss drop can be equipped")
+		suite.check(boss.source not in Relics.available(game.data), "Equipped equipment is excluded")
 		var second := game.economy.build("rapid", "0,0", 1)
 		game.data.regions[boss.source].history[id] = 100.0
 		game.combat.relic_progress[id] = {"attacks": 3}
 		suite.check(not game.economy.equip_relic(second, boss.source, "", ""), "Stale owner cannot transfer an equipped relic")
 		suite.check(game.economy.equip_relic(second, boss.source, "", id), "Explicit transfer succeeds")
 		suite.check(not game.data.towers[id].has("relic") and not game.combat.relic_progress.has(id) and not game.data.regions[boss.source].history.has(id), "Transfer releases old slot, charges and demonstrated income")
+		suite.check(boss.source not in Relics.available(game.data), "Transferred equipment remains unavailable")
 		var snapshot := game.snapshot(1000)
 		suite.check(game.storage.valid_data(snapshot), "Equipped relic snapshot validates")
 		var broken := snapshot.duplicate(true)
@@ -40,7 +43,9 @@ static func run(suite: SceneTree) -> void:
 		suite.check(restored.load_save(1001) and restored.data.relics == game.data.relics and restored.data.towers[second].relic == boss.source, "Inventory and ownership survive reload")
 		suite.check(restored.economy.upgrade(second) and restored.data.towers[second].relic == boss.source, "Upgrade retains equipment")
 		suite.check(restored.economy.relocate(second, "0,0", 2) and restored.data.towers[second].relic == boss.source, "Relocation retains equipment")
+		suite.check(boss.source not in Relics.available(restored.data), "Saved equipped ownership controls availability")
 		restored.economy.sell(second)
+		suite.check(boss.source in Relics.available(restored.data), "Selling the owner makes equipment available")
 		suite.check(restored.data.relics.has(boss.source) and Relics.owner(restored.data, boss.source) == "", "Selling returns equipment to collection")
 		game.data.erase("relics")
 		game.data.towers[second].erase("relic")

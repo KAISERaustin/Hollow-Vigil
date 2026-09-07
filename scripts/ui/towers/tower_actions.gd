@@ -123,12 +123,21 @@ func refresh() -> void:
 	elif tower.get("rebuild_remaining", 0.0) > 0.0:
 		upgrade.accessibility_description = "Rebuilding"
 	upgrade.accessibility_name = upgrade.accessibility_description
-	upgrade_quote.visible = pending_tower != ""
+	upgrade_quote.visible = tower.level < Balance.MAX_TOWER_LEVEL
 	refresh_branches(tower)
 	if upgrade_quote.visible:
-		upgrade_quote.text = "Upgrade to level %d · %s gold\nTap the checkmark to confirm." % [pending_level + 1, UI.exact_money(pending_cost)]
-		if pending_level == 3:
-			upgrade_quote.text = "%s · %s gold\nTap the checkmark to confirm." % [Balance.BRANCHES[tower.kind][chosen_branch].name, UI.exact_money(pending_cost)]
+		if pending_tower != "":
+			upgrade_quote.text = "Upgrade to level %d · %s gold\nTap the checkmark to confirm." % [pending_level + 1, UI.exact_money(pending_cost)]
+			if pending_level == 3:
+				upgrade_quote.text = "%s · %s gold\nTap the checkmark to confirm." % [Balance.BRANCHES[tower.kind][chosen_branch].name, UI.exact_money(pending_cost)]
+		elif tower.level == 3:
+			var lines := PackedStringArray()
+			var options: Array = Balance.BRANCHES[tower.kind].keys()
+			for index in range(options.size()):
+				lines.append("%s · %s · %s gold" % ["← Left" if index == 0 else "Right →", Balance.BRANCHES[tower.kind][options[index]].name, UI.exact_money(Balance.upgrade_cost(tower, field.state.tuning, options[index]))])
+			upgrade_quote.text = "\n".join(lines)
+		else:
+			upgrade_quote.text = "Upgrade to level %d · %s gold" % [int(tower.level) + 1, UI.exact_money(cost)]
 		upgrade_quote.size.x = maxf(1.0, field.size.x - 24.0)
 		upgrade_quote.size.y = upgrade_quote.get_combined_minimum_size().y
 		upgrade_quote.position = Vector2(12, field.size.y - upgrade_quote.size.y - 12)
