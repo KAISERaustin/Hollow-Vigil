@@ -747,6 +747,7 @@ func show_socket(socket: int) -> void:
 		if board.preview_kind.is_empty() or not dialog_actions.is_visible_in_tree():
 			return
 		if run.build(socket, board.preview_kind):
+			build_selection.show_choices()
 			board.build_preview.clear(board)
 			board.select_socket(socket)
 			dialog.hide()

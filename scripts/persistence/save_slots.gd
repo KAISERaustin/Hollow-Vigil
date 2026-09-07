@@ -278,5 +278,12 @@ func reusable_entry(entry: Dictionary) -> Dictionary:
 		var contents := Reusable.all_contents("campaign")
 		if kind == "campaign_stats": contents.erase("layout")
 		build = Reusable.capture("campaign", null, levels, "all" if kind == "campaign" else "level", int(legacy.get("level", -1)), contents, entry.name, entry.description)
+		# Reading an older library entry preserves its original contents. New
+		# saves and shares pass through capture again and omit these layouts.
+		if not build.is_empty() and kind != "campaign_stats":
+			for index in levels:
+				if levels[index].has("loadout"):
+					build.contents.layout = true
+					build.data.levels[index].layout = Reusable.clean_loadout(levels[index].loadout)
 	if build.is_empty(): return {}
 	return shared_entry(Reusable.encode(build))

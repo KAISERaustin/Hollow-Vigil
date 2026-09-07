@@ -4,7 +4,7 @@ const TowerChoice = preload("res://scripts/ui/towers/tower_choice.gd")
 
 # Each menu host remembers its own catalog choice, independently of the visible
 # preview. Closing or moving that preview must not erase navigation history.
-# A completed Campaign upgrade returns navigation to the cards via show_choices.
+# A completed Campaign build or upgrade returns to the cards via show_choices.
 var kind := ""
 var details_open := false
 var session: WeakRef

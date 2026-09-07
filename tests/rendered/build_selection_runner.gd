@@ -67,6 +67,8 @@ func exercise(host: Control, campaign: bool, select_first: Callable, select_next
 	await settle()
 	verify_selection(host, campaign, "heavy", label + " unaffordable")
 	check(confirm(host, campaign).disabled, label + " restores affordability on the new slot")
+	confirm(host, campaign).pressed.emit()
+	check(host.game.data.towers.size() == count and host.panels.build_selection.details_open, label + " failed construction preserves the detail page")
 	host.game.data.balance = funds
 	if campaign: host.close_dialog()
 	else: host.panels.close_sheet()
@@ -87,16 +89,30 @@ func exercise(host: Control, campaign: bool, select_first: Callable, select_next
 	# Build must use the latest destination, never the previously selected slot.
 	var destination_region: String = field.selected_region
 	var destination_pad: int = field.selected_pad
-	confirm(host, campaign).pressed.emit()
+	await preload("res://tests/rendered/visual_smoke.gd").tap(host, confirm(host, campaign).get_global_rect().get_center(), label.ends_with("survival"))
 	await settle()
 	var id: String = host.game.economy.tower_at(destination_region, destination_pad)
 	check(not id.is_empty() and host.game.data.towers[id].kind == "electric", label + " builds the remembered kind at the latest slot")
 	check(host.game.data.towers.size() == count + 1 and is_equal_approx(host.game.data.balance, funds - Balance.definition("towers", "electric", host.game.tuning).cost), label + " constructs and charges exactly once")
 	check(field.preview_kind.is_empty(), label + " construction clears the temporary preview")
+	if campaign:
+		check(host.tower_actions.visible and not host.dialog.visible and field.selected_tower == id, label + " successful build keeps the new tower controls open")
 	select_first.call()
 	await settle()
-	verify_selection(host, campaign, "electric", label + " after construction")
+	verify_selection(host, campaign, "electric", label + " after construction", not campaign)
 	root.get_texture().get_image().save_png("res://artifacts/remembered-build-%s.png" % label)
+	if campaign:
+		for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
+			root.size = viewport
+			root.content_scale_size = viewport
+			select_first.call()
+			await settle()
+			verify_selection(host, true, "electric", label + " card menu after building " + str(viewport), false)
+			check(host.dialog_title.text == "Build a tower" and host.dialog_card.find_child("TowerDetails", true, false) == null, label + " next empty slot opens cards without tower details")
+			check(Rect2(Vector2.ZERO, Vector2(viewport)).encloses(host.dialog_card.get_global_rect()), label + " post-build cards fit the phone")
+			root.get_texture().get_image().save_png("res://artifacts/build-cards-after-construction-%s-%d.png" % [label, viewport.x])
+		choose(host, "electric", true)
+		await settle()
 	# Inspecting an occupied slot must not overwrite the last build-menu choice.
 	select_next.call()
 	await settle()
