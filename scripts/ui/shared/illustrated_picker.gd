@@ -89,6 +89,15 @@ func show_popup() -> void:
 		row.name = "ChoiceRow_" + str(index)
 		row.custom_minimum_size.y = 76
 		rows.add_child(row)
+	# Reserve the same action column for every row, including the longer
+	# selected caption. Selection must never shift artwork or label widths.
+	var action_width := 88.0
+	for row in rows.get_children():
+		var action := row.get_child(row.get_child_count() - 1) as Button
+		action_width = maxf(action_width, action.get_combined_minimum_size().x)
+	for row in rows.get_children():
+		var action := row.get_child(row.get_child_count() - 1) as Button
+		action.custom_minimum_size.x = action_width
 	var available := get_viewport_rect().size - Vector2(24, 24)
 	popup.popup_centered(Vector2i(minf(480, available.x), minf(560, available.y)))
 	scroll.scroll_vertical = 0
