@@ -18,12 +18,15 @@ var retry_delay := 15.0
 var status := "Saved on this device. Sign in for automatic private backups."
 var last_account := ""
 var deleted_builds := {}
+var hidden_builds := {}
 
 func _ready() -> void:
 	var config := ConfigFile.new()
 	if config.load(state_path) == OK:
 		var saved: Variant = config.get_value("backups", "accounts", {})
 		if saved is Dictionary: state = saved
+		var hidden: Variant = config.get_value("backups", "hidden_builds", {})
+		if hidden is Dictionary: hidden_builds = hidden
 
 func _process(delta: float) -> void:
 	if not enabled or busy: return
@@ -51,6 +54,7 @@ func _account() -> Dictionary:
 func _save_state() -> bool:
 	var config := ConfigFile.new()
 	config.set_value("backups", "accounts", state)
+	config.set_value("backups", "hidden_builds", hidden_builds)
 	return config.save(state_path + ".tmp") == OK and DirAccess.rename_absolute(state_path + ".tmp", state_path) == OK
 
 func local_games() -> Array:
@@ -75,6 +79,7 @@ func game_status(type: String, slot: int) -> String:
 	if conflicts.has(key): return "Saved on this device · Choose which version to keep in Backups"
 	var saved: Dictionary = campaign_slots.summary(slot) if type == "campaign" else slots.summary(slot)
 	var known: Dictionary = _account().games.get(key, {})
+	if known.get("revision", -1) == 0 and not saved.is_empty() and known.get("hash") == fingerprint(saved): return "Saved on this device · Cloud backup deleted; new progress will back up"
 	if not saved.is_empty() and known.get("hash") == fingerprint(saved): return "Saved on this device · Private backup up to date"
 	return "Saved on this device · Private backup pending"
 
@@ -152,6 +157,7 @@ func sync_now() -> void:
 			if not response.get("ok", false) or not response.get("data") is Array: ok = false; break
 			for entry in response.data:
 				if not entry.get("configuration") is String or entry.get("build_hash") != entry.configuration.sha256_text(): ok = false; break
+				if hidden_builds.has(entry.build_hash): continue
 				if not local_builds.has(entry.build_hash):
 					if not slots.save_shared(entry.configuration): ok = false; break
 					local_builds[entry.build_hash] = true
@@ -254,4 +260,6 @@ func delete_build(code: String, owner: String) -> bool:
 	if busy or cloud.busy: return false
 	if owner != "":
 		if not await delete_cloud_record("delete_private_build", {"build_hash": code.sha256_text()}, owner): return false
+	hidden_builds[code.sha256_text()] = true
+	if not _save_state(): return false
 	return slots.delete_shared(code)

@@ -80,6 +80,8 @@ try {
         if ($UnifiedTests -or $Check) {
             Invoke-Godot -Name 'unified-persistence' -EngineArguments @('--headless', '--script', 'res://tests/unified_persistence_runner.gd')
             Invoke-Godot -Name 'private-backups' -EngineArguments @('--headless', '--script', 'res://tests/private_backups_runner.gd')
+            Invoke-Godot -Name 'backup-deletion' -EngineArguments @('--headless', '--script', 'res://tests/backup_deletion_runner.gd')
+            Invoke-Godot -Name 'backup-delete-ui' -EngineArguments @('--script', 'res://tests/rendered/backup_deletion_menu_runner.gd')
             Invoke-Godot -Name 'unified-menu' -EngineArguments @('--script', 'res://tests/rendered/unified_menu_runner.gd')
             Invoke-Godot -Name 'recovery-menu' -EngineArguments @('--script', 'res://tests/rendered/recovery_menu_runner.gd')
         }

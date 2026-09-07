@@ -44,6 +44,23 @@ func run() -> void:
 	check(backup.slots.save_shared(code), "Simulate stale device build copy")
 	await backup.sync_now()
 	check(backup.slots.shared_configurations("all").is_empty() and cloud.accounts[cloud.player_id].builds.is_empty(), "Account tombstone removes stale copy instead of reuploading")
+	var offline_code := Build.encode(Build.capture("infinite", world, {}, "all", -1, {"enemies": ["basic"]}, "Offline deletion", ""))
+	check(backup.slots.save_shared(offline_code), "Write offline deletion fixture")
+	await backup.sync_now()
+	cloud.refresh_token = ""
+	check(await backup.delete_build(offline_code, ""), "Offline local deletion succeeds")
+	cloud.refresh_token = "fixture"
+	await backup.sync_now()
+	check(backup.slots.shared_configurations("all").is_empty(), "Signing in does not restore locally deleted build")
+	check(cloud.accounts[cloud.player_id].builds.size() == 1, "Device-only deletion preserves cloud copy")
+	var restored := Backup.new()
+	var restored_path: String = backup.state_path
+	restored.state_path = restored_path
+	restored.enabled = false
+	restored.cloud = cloud
+	root.add_child(restored)
+	check(restored.hidden_builds.has(offline_code.sha256_text()), "Local deletion survives service restart")
+	restored.queue_free()
 	backup.queue_free()
 	cloud.queue_free()
 	print("BACKUP DELETION: %d checks, %d failures" % [checks, failures.size()])

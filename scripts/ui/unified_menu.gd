@@ -321,7 +321,7 @@ func show_library() -> void:
 	if not library_community:
 		for entry in slots.shared_configurations("all"):
 			var converted := slots.reusable_entry(entry)
-			converted.source_code = entry.code
+			if not converted.is_empty(): converted.source_code = entry.code
 			if not converted.is_empty() and Build.compatible(converted.build, game_type): library_entries.append(converted)
 		show_library_entries()
 		return
