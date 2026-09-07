@@ -1100,31 +1100,7 @@ func show_level_export(index: int) -> void:
 func show_wave_balance(wave: int) -> void:
 	var report := Configuration.wave_reports(run.mission)[wave]
 	open_dialog("Wave %d balancing" % (wave + 1))
-	for group in report.groups:
-		dialog_body.add_child(UI.paragraph("%s × %d · Lane %s
-Delay %.2fs · Interval %.2fs
-Spawn health %.2f · Speed %.2f · Defeat gold %.2f" % [group.name, group.count, String.chr(65 + group.lane), group.delay_seconds, group.interval_seconds, group.spawn_health, group.move_speed, group.gold_per_defeat], 14))
-	dialog_body.add_child(UI.heading("Changes from previous wave", 18))
-	if wave == 0:
-		dialog_body.add_child(UI.paragraph("Opening wave. These are the level's initial wave values.", 14))
-	else:
-		var changes: Dictionary = report.changes_from_previous_wave
-		for key in changes:
-			if key in ["effective_stats", "enemy_counts", "spawn_groups"]: continue
-			var change: Dictionary = changes[key]
-			dialog_body.add_child(UI.paragraph("%s: %.2f → %.2f (%+.2f)" % [key.replace("_", " ").capitalize(), change.before, change.after, change.delta], 14))
-		if changes.has("spawn_groups"):
-			dialog_body.add_child(UI.paragraph("Spawn composition, timing or lane assignments changed. Current groups are listed above; exports include both waves.", 14))
-		for kind in changes.get("enemy_counts", {}):
-			var change: Dictionary = changes.enemy_counts[kind]
-			var enemy_name: String = Balance.definition("bosses" if Balance.BOSSES.has(kind) else "enemies", kind).name
-			dialog_body.add_child(UI.paragraph("%s count: %d → %d (%+d)" % [enemy_name, change.before, change.after, change.delta], 14))
-		for category in changes.get("effective_stats", {}):
-			for kind in changes.effective_stats[category]:
-				for stat in changes.effective_stats[category][kind]:
-					var change: Dictionary = changes.effective_stats[category][kind][stat]
-					dialog_body.add_child(UI.paragraph("%s · %s: %.2f → %.2f" % [Balance.definitions(category)[kind].name, Balance.field_limits(category, kind, stat).label, change.before, change.after], 14))
-		if changes.is_empty(): dialog_body.add_child(UI.paragraph("No numeric changes from the previous wave.", 14))
+	dialog_body.add_child(preload("res://scripts/ui/shared/wave_balance.gd").content(report))
 	add_dialog_back("Back to all waves", show_waves)
 
 func confirm_progress_reset() -> void:

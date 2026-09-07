@@ -6,6 +6,16 @@ const UI = preload("res://scripts/ui/shared/interface.gd")
 func settle() -> void:
 	for tick in 10: await process_frame
 
+func select_preview(host: Control, select: Callable) -> void:
+	select.call()
+	if host.tower_actions.upgrade_in_dialog:
+		check(not host.tower_dialog.visible and host.tower_actions.visible, "Campaign selection exposes controls without opening upgrade details")
+		if host.game.data.towers[host.field.selected_tower].level == Balance.MAX_TOWER_LEVEL:
+			check(host.tower_actions.buttons.upgrade.disabled, "Campaign maximum tier locks the upgrade control")
+			host.tower_dialog.open_action("preview")
+		else:
+			host.tower_actions.buttons.upgrade.pressed.emit()
+
 func verify_preview(host: Control, tower: Dictionary, context: String) -> void:
 	var dialog: VigilTowerDialog = host.tower_dialog
 	check(dialog.visible and dialog.mode == "preview", context + " opens upgrade details directly")
@@ -46,7 +56,13 @@ func exercise(host: Control, select: Callable, tower: Dictionary, context: Strin
 		var point: Vector2 = host.field.global_position + host.field.screen(VigilWorld.pad_position(tower.region, tower.pad))
 		await Harness.tap(host, point, touch)
 		await settle()
-		check(host.tower_dialog.visible and host.tower_dialog.mode == "preview", context + " actual mouse/touch tower tap opens upgrade details")
+		if host.tower_actions.upgrade_in_dialog:
+			check(not host.tower_dialog.visible and host.tower_actions.visible, context + " actual mouse/touch tower tap shows controls only")
+			check(not host.tower_actions.upgrade_quote.visible and not host.tower_actions.branch_bar.visible, context + " hides inline upgrade banner and branch controls")
+			await Harness.tap(host, host.tower_actions.buttons.upgrade.get_global_rect().get_center(), touch)
+			await settle()
+		check(host.tower_dialog.visible and host.tower_dialog.mode == "preview", context + " actual mouse/touch opens upgrade details through its mode entry point")
+		check(not host.tower_actions.visible, context + " preview hides all surrounding actions")
 		host.tower_dialog.dismiss()
 	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = viewport
@@ -58,7 +74,7 @@ func exercise(host: Control, select: Callable, tower: Dictionary, context: Strin
 				tower.level = level
 				tower.branch = str(Balance.BRANCHES[kind].keys()[0]) if level == 4 else ""
 				var gold: float = host.game.data.balance
-				select.call()
+				select_preview(host, select)
 				await settle()
 				verify_preview(host, tower, "%s %s level %d %s" % [context, kind, level, viewport])
 				check(host.game.data.balance == gold and tower.level == level, context + " opening spends nothing and does not upgrade")
@@ -78,7 +94,7 @@ func exercise(host: Control, select: Callable, tower: Dictionary, context: Strin
 	tower.level = 1
 	tower.branch = ""
 	host.game.data.settings.developer_balance = {"towers": {"rapid": {"damage": 10.0, "period": 1.0}, "rapid:2": {"damage": 18.0, "period": 0.5, "cost": 123.0}}}
-	select.call()
+	select_preview(host, select)
 	await settle()
 	var dialog: VigilTowerDialog = host.tower_dialog
 	check(dialog.body.find_child("Change_damage", true, false).text == "+8", context + " damage delta follows tuned tiers")
@@ -113,17 +129,19 @@ func exercise(host: Control, select: Callable, tower: Dictionary, context: Strin
 	await Harness.tap(host, dialog.confirm.get_global_rect().get_center(), context == "campaign")
 	await settle()
 	check(tower.level == 2 and host.game.data.balance == 9876.0, context + " explicit purchase charges the displayed quote once")
+	if host.tower_actions.upgrade_in_dialog:
+		check(not dialog.visible and not host.tower_actions.visible and host.field.selected_tower.is_empty(), context + " purchase closes details and clears selection")
 	dialog.commit(old_revision)
 	check(tower.level == 2 and host.game.data.balance == 9876.0, context + " repeated old action cannot purchase again")
 	tower.level = 3
-	select.call()
+	select_preview(host, select)
 	dialog.find_child("Preview_thorn_volley", true, false).pressed.emit()
 	await settle()
 	var quote := Balance.upgrade_cost(tower, host.game.tuning, "thorn_volley")
 	gold = host.game.data.balance
 	dialog.confirm.pressed.emit()
 	check(tower.level == 4 and tower.branch == "thorn_volley" and host.game.data.balance == gold - quote, context + " buys only the previewed specialization")
-	select.call()
+	select_preview(host, select)
 	dialog.confirm.pressed.emit()
 	check(tower.level == 4, context + " maximum level cannot be purchased")
 	dialog.dismiss()

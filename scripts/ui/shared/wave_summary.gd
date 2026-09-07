@@ -58,7 +58,12 @@ static func card(report: Dictionary, status: String, details: Callable, edit: Ca
 		actions.add_child(edit_button)
 	return panel
 
-static func enemy_row(kind: String, count: int) -> PanelContainer:
+static func enemy_row(kind: String, count: int, detail: String = "") -> PanelContainer:
+	var panel := UI.info_card(enemy_identity(kind, count, detail))
+	panel.name = "EnemyCard_" + kind
+	return panel
+
+static func enemy_identity(kind: String, count: int, detail: String = "") -> HBoxContainer:
 	var boss := Balance.BOSSES.has(kind)
 	var definition := Balance.definition("bosses" if boss else "enemies", kind)
 	var row := HBoxContainer.new()
@@ -72,7 +77,7 @@ static func enemy_row(kind: String, count: int) -> PanelContainer:
 	identity.add_theme_constant_override("separation", 0)
 	row.add_child(identity)
 	identity.add_child(UI.heading(str(definition.name), UI.CAPTION))
-	identity.add_child(UI.paragraph(str(definition.get("role", "Boss")).split(" · ")[-1].capitalize(), UI.META))
+	identity.add_child(UI.paragraph(detail if not detail.is_empty() else str(definition.get("role", "Boss")).split(" · ")[-1].capitalize(), UI.META))
 	var quantity := UI.value("×%d" % count, 18)
 	quantity.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	quantity.accessibility_name = "%d %s" % [count, definition.name]
@@ -80,6 +85,4 @@ static func enemy_row(kind: String, count: int) -> PanelContainer:
 	badge.size_flags_horizontal = Control.SIZE_SHRINK_END
 	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(badge)
-	var panel := UI.info_card(row)
-	panel.name = "EnemyCard_" + kind
-	return panel
+	return row

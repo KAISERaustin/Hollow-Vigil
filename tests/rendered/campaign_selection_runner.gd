@@ -29,7 +29,7 @@ func run() -> void:
 	screen.tower_dialog.open_action("info")
 	screen.show_socket(second)
 	check(screen.board.selected == second and screen.board.selected_tower == screen.run.tower_at(second), "Selecting another tower replaces battlefield selection")
-	check(screen.tower_dialog.visible and screen.tower_dialog.mode == "preview" and screen.tower_dialog.tower_id == screen.run.tower_at(second), "Selecting another tower replaces the previous dialog with its upgrade preview")
+	check(not screen.tower_dialog.visible and screen.tower_actions.visible, "Selecting another tower closes the previous dialog and shows its controls")
 	screen.board.empty_picked.emit()
 	cleared(screen, "Tap away")
 	screen.show_socket(first)

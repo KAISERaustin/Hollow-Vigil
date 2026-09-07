@@ -25,8 +25,8 @@ func run() -> void:
 			var socket: Dictionary = screen.run.mission.sockets[0]
 			screen.run.build(socket.index, "rapid")
 			screen.show_socket(socket.index)
-			check(screen.tower_dialog.visible and screen.tower_dialog.mode == "preview", "Tower selection opens its upgrade preview")
-			screen.tower_dialog.dismiss()
+			check(not screen.tower_dialog.visible and screen.tower_actions.visible, "Tower selection shows only its surrounding controls")
+			check(not screen.tower_actions.upgrade_quote.visible, "Tower selection omits the bottom upgrade notification")
 			await frame()
 			var tower: Dictionary = screen.game.data.towers[screen.run.tower_at(socket.index)]
 			var upgrade: Button = screen.tower_actions.buttons.upgrade
@@ -36,34 +36,50 @@ func run() -> void:
 			var before: float = screen.game.data.balance
 			var quote := Balance.upgrade_cost(tower, screen.game.tuning)
 			await click_action(app, upgrade, touch)
-			check(tower.level == 1 and screen.tower_actions.pending_tower == tower.id and screen.game.data.balance == before, context + " first tap only arms")
+			check(tower.level == 1 and screen.tower_dialog.visible and screen.tower_dialog.mode == "preview" and screen.game.data.balance == before, context + " upgrade button opens comparison without spending")
+			check(not screen.tower_actions.visible and screen.tower_actions.pending_tower.is_empty(), context + " preview hides surrounding buttons without a checkmark")
+			check(screen.tower_dialog.confirm.text.contains(str(int(quote)) + " gold"), context + " confirmation shows the exact cost")
+			await click_action(app, screen.tower_dialog.header_close, touch)
+			check(not screen.tower_dialog.visible and screen.tower_actions.visible and tower.level == 1 and screen.game.data.balance == before, context + " close restores controls without purchasing")
 			await click_action(app, upgrade, touch)
-			check(tower.level == 2 and screen.game.data.balance == before - quote, context + " second tap purchases upgrade")
+			var old_revision: int = screen.tower_dialog.revision
+			await click_action(app, screen.tower_dialog.confirm, touch)
+			check(tower.level == 2 and screen.game.data.balance == before - quote, context + " panel action purchases upgrade")
+			screen.tower_dialog.commit(old_revision)
+			check(tower.level == 2 and screen.game.data.balance == before - quote, context + " duplicate confirmation cannot purchase twice")
+			check(not screen.tower_dialog.visible and not screen.tower_actions.visible and screen.board.selected == -1 and screen.board.selected_tower.is_empty(), context + " purchase clears panel, buttons and range selection")
 			screen.begin_wave()
 			screen.show_socket(socket.index)
-			screen.tower_dialog.dismiss()
 			screen.game.data.balance = 10000.0
 			await click_action(app, upgrade, touch)
+			var wave_time: float = screen.run.wave_time
+			screen._process(0.1)
+			check(not screen.paused and screen.run.wave_time > wave_time and screen.tower_dialog.visible, context + " upgrade comparison keeps campaign running")
+			await click_action(app, screen.tower_dialog.confirm, touch)
+			screen.show_socket(socket.index)
+			check(tower.level == 3 and not upgrade.disabled and not screen.tower_actions.branch_bar.visible, context + " level 3 keeps a single upgrade entry point")
 			await click_action(app, upgrade, touch)
-			check(tower.level == 3 and upgrade.disabled and screen.tower_actions.branch_bar.visible, context + " branches unlock at level 3")
-			var branch: Button = screen.tower_actions.branch_bar.get_child(1)
+			var branch: Button = screen.tower_dialog.find_child("Preview_thorn_volley", true, false)
 			before = screen.game.data.balance
 			quote = Balance.upgrade_cost(tower, screen.game.tuning, "thorn_volley")
 			await click_action(app, branch, touch)
-			check(tower.level == 3 and screen.tower_actions.chosen_branch == "thorn_volley", context + " branch waits for confirmation")
-			await click_action(app, branch, touch)
+			check(tower.level == 3 and screen.tower_dialog.tower_branch == "thorn_volley" and screen.game.data.balance == before, context + " branch only updates the comparison")
+			await click_action(app, screen.tower_dialog.confirm, touch)
 			check(tower.level == 4 and tower.branch == "thorn_volley" and screen.game.data.balance == before - quote, context + " branch purchases once")
+			screen.show_socket(socket.index)
 			check(not screen.game.economy.upgrade(tower.id) and upgrade.disabled, context + " max level stays locked")
 			# The same transaction rejects insufficient gold, rebuilding and stale tiers.
 			tower.level = 1
 			tower.erase("branch")
 			screen.game.data.balance = 0.0
 			screen.tower_actions.refresh()
-			check(upgrade.disabled and not screen.game.economy.upgrade(tower.id), context + " insufficient currency remains blocked")
+			await click_action(app, upgrade, touch)
+			check(screen.tower_dialog.visible and screen.tower_dialog.confirm.disabled and not screen.game.economy.upgrade(tower.id), context + " insufficient currency blocks purchase while keeping comparison readable")
 			screen.game.data.balance = 10000.0
 			tower.rebuild_remaining = 1.0
-			screen.tower_actions.refresh()
-			check(upgrade.disabled and not screen.game.economy.upgrade(tower.id), context + " rebuilding remains blocked")
+			screen.tower_dialog.refresh()
+			check(screen.tower_dialog.confirm.disabled and screen.tower_dialog.rebuild_status.visible and not screen.game.economy.upgrade(tower.id), context + " rebuilding remains blocked")
+			screen.tower_dialog.dismiss()
 			tower.rebuild_remaining = 0.0
 			check(not screen.game.economy.upgrade(tower.id, 2) and not screen.game.economy.upgrade(tower.id, 1, "thorn_volley"), context + " stale tier and unmet branch prerequisite remain blocked")
 			tower.level = 3

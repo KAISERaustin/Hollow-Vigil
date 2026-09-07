@@ -112,10 +112,11 @@ func run() -> void:
 		check(campaign.tower_actions.get_script() == preload("res://scripts/ui/towers/tower_actions.gd"), "Campaign instantiates Infinite Worlds tower actions")
 		campaign.tower_actions.request_upgrade()
 		check(campaign.run.game.data.towers[campaign.run.tower_at(socket.index)].level == 1, "Shared upgrade requires confirmation")
-		campaign.tower_actions.request_upgrade()
+		campaign.tower_dialog.confirm.pressed.emit()
 		await frame()
 		check(campaign.run.game.data.towers[campaign.run.tower_at(socket.index)].level == 2, "Upgrade uses actual campaign gold")
 		var sale_tower: Dictionary = campaign.game.data.towers[campaign.run.tower_at(socket.index)]
+		campaign.show_socket(socket.index)
 		campaign.tower_dialog.open_action("sell")
 		check(campaign.tower_dialog.refund == Balance.invested_cost(sale_tower), "Campaign setup sell dialog quotes full upgraded investment")
 		check(campaign.tower_dialog.confirm.text == "Sell · +120 gold", "Setup sell confirmation displays the full refund")
@@ -201,20 +202,24 @@ func run() -> void:
 	check(tuned_upgrade.accessibility_description.contains("35 gold") and tuned_upgrade.tooltip_text.is_empty(), "Campaign upgrade quote reflects mission tuning")
 	var gold: float = campaign.run.game.data.balance
 	tuned_upgrade.pressed.emit()
-	tuned_upgrade.pressed.emit()
+	campaign.tower_dialog.confirm.pressed.emit()
 	await frame()
 	check(campaign.run.game.data.balance == gold - 35.0, "Campaign upgrade charge matches the displayed tuned price")
 	var tuned_tower: Dictionary = campaign.run.game.data.towers[campaign.run.tower_at(6)]
 	check(Balance.tower_stats(tuned_tower, campaign.run.game.tuning).damage == 20.0, "Campaign combat resolves tuned tier damage")
 	var infinite_balance: float = app.game.data.balance
 	campaign.game.data.balance = 10000.0
+	campaign.show_socket(6)
 	campaign.tower_actions.request_upgrade()
-	campaign.tower_actions.request_upgrade()
+	campaign.tower_dialog.confirm.pressed.emit()
 	check(tuned_tower.level == 3, "Shared campaign upgrade reaches specialization tier")
-	campaign.tower_actions.choose_branch(0)
+	campaign.show_socket(6)
+	campaign.tower_actions.request_upgrade()
+	campaign.tower_dialog.find_child("Preview_frostneedle", true, false).pressed.emit()
 	check(tuned_tower.level == 3, "Specialization waits for confirmation")
-	campaign.tower_actions.choose_branch(0)
+	campaign.tower_dialog.confirm.pressed.emit()
 	check(tuned_tower.level == 4 and tuned_tower.branch == "frostneedle", "Shared branch purchase applies to campaign tower")
+	campaign.show_socket(6)
 	campaign.tower_dialog.open_action("target")
 	campaign.tower_dialog.target_choice = "last"
 	campaign.tower_dialog.confirm.pressed.emit()
