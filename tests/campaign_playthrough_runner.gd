@@ -23,8 +23,8 @@ func run() -> void:
 	check(not code.is_empty(), "Complete playthrough serializes")
 	if code.is_empty(): quit(1); return
 	var value := Playthrough.decode(code)
-	check(value.levels.size() == 20 and value.levels["19"].overrides.gold == 9876, "One build carries all levels")
-	for index in 20:
+	check(value.levels.size() == Configuration.Catalog.COUNT and value.levels["19"].overrides.gold == 9876, "One build carries all levels")
+	for index in Configuration.Catalog.COUNT:
 		var level := Playthrough.level_build(value, index)
 		var survival := Run.new(index, level.overrides, "survival")
 		check(not survival.can_author() and not survival.apply_configuration({"gold": 99999}), "Survival rejects authoring at service boundary")

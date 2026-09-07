@@ -7,9 +7,9 @@ const Progress = preload("res://scripts/campaign/progress.gd")
 func run() -> void:
 	check_setup_refunds()
 	check_effect_cleanup()
-	check(Catalog.MISSIONS.size() == 20, "Campaign contains exactly 20 authored missions")
+	check(Catalog.MISSIONS.size() == Catalog.COUNT, "Campaign contains six complete authored chapters")
 	var layouts := {}
-	for index in range(20):
+	for index in range(Catalog.COUNT):
 		var mission := Catalog.level(index)
 		var fingerprint := str(mission.roads)
 		check(not layouts.has(fingerprint), "Level %d has its own road layout" % (index+1))
@@ -22,7 +22,7 @@ func run() -> void:
 		for wave in mission.waves:
 			check(not wave.is_empty(), "Every wave has enemies")
 			for group in wave:
-				check(group[0] in Balance.CAMPAIGN_KINDS or Balance.BOSSES.has(group[0]), "Authored enemy is supported")
+				check(group[0] in preload("res://scripts/campaign/configuration.gd").spawn_kinds(), "Authored enemy is supported")
 				check(group[1] > 0 and group[2] >= 0 and group[2] < mission.routes.size() and group[3] >= 0 and group[4] > 0, "Wave timing and lane are valid")
 				if Balance.BOSSES.has(group[0]):
 					bosses += group[1]
@@ -109,7 +109,7 @@ func run() -> void:
 	reloaded.load_progress()
 	check(reloaded.data.sequence == migrated_sequence, "Migration is committed once")
 	check(reloaded.restore_completed_levels(2) and reloaded.data.completed_levels == 2, "Explicit cloud restore can replace progress with an older count")
-	check(not reloaded.restore_completed_levels(21), "Out-of-range cloud progress cannot replace local data")
+	check(not reloaded.restore_completed_levels(Catalog.COUNT + 1), "Out-of-range cloud progress cannot replace local data")
 	clean_test_save(progress.path)
 	var sandbox := VigilState.new(42)
 	check(not sandbox.combat.scripted_spawns and sandbox.combat.spawn_on_path("basic",route).is_empty(), "Sandbox does not accept campaign spawns")

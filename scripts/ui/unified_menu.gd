@@ -97,6 +97,9 @@ func show_main_menu() -> void:
 func open_mode(type: String) -> void:
 	game_type = type
 	held = false
+	if game_type == "infinite":
+		show_slots()
+		return
 	for slot in 3:
 		if slot_occupied(slot):
 			show_slots()

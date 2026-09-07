@@ -51,11 +51,11 @@ func run() -> void:
 		await frame()
 		check(Rect2(Vector2.ZERO,Vector2(viewport)).encloses(campaign.page_scroll.get_global_rect()), "World map viewport fits " + str(viewport))
 		await Harness.capture(app,"campaign-map-"+str(viewport.x))
-		for chapter in range(4):
+		for chapter in range(campaign.Catalog.CHAPTERS.size()):
 			var gate: Button = campaign.find_child("CampaignLevel%d" % (chapter * 5 + 5), true, false)
-			check(gate.gate != null and gate.size == Vector2(80,120), "Chapter destination uses its building artwork")
+			check(gate.is_gate() and gate.size == Vector2(80,120), "Chapter destination uses its building artwork")
 			check(gate.position.x > gate.get_parent().size.x * 0.5, "Chapter destination sits at the right end of the road")
-			check(gate.position.y + gate.size.y <= chapter * 450 + 435, "Building destination fits its chapter")
+			check(gate.get_parent().chapter_rect(chapter).encloses(gate.get_rect()), "Building destination fits its chapter")
 		campaign.find_child("CampaignLevel1",true,false).pressed.emit()
 		await frame()
 		check(campaign.page == "briefing", "Campaign node opens the authored mission briefing")
@@ -233,17 +233,17 @@ func run() -> void:
 	check(app.game.data.balance == infinite_balance and not app.game.data.relics.has("campaign-test"), "Campaign tower actions leave Infinite Worlds state unchanged")
 	# Inspect a later-region briefing and the final completion UI independently
 	# of the full legal-combat playthrough covered by campaign_balance_runner.
-	campaign.progress.data.completed_levels = 19
-	campaign.show_briefing(19)
+	campaign.progress.data.completed_levels = campaign.Catalog.COUNT - 1
+	campaign.show_briefing(campaign.Catalog.COUNT - 1)
 	await frame()
 	await Harness.capture(app,"campaign-final-briefing")
-	campaign.start_mission(19)
+	campaign.start_mission(campaign.Catalog.COUNT - 1)
 	campaign.run.phase = "victory"
 	campaign.run.health = campaign.run.mission.flame
 	campaign.show_result()
 	await frame()
-	check(campaign.progress.data.completed_levels == 20 and campaign.dialog.visible, "Final victory saves completion and presents the ending")
-	check(campaign.find_child("NextCampaignLevel",true,false) == null, "Final victory cannot open a nonexistent level 21")
+	check(campaign.progress.data.completed_levels == campaign.Catalog.COUNT and campaign.dialog.visible, "Final victory saves completion and presents the ending")
+	check(campaign.find_child("NextCampaignLevel",true,false) == null, "Final victory cannot open a nonexistent next level")
 	await Harness.capture(app,"campaign-complete")
 	var campaign_path: String = campaign.progress.path
 	campaign.close()

@@ -17,9 +17,9 @@ func run() -> void:
 	app.show_campaign()
 	var screen: Control = app.campaign
 	screen.set_process(false)
-	screen.progress.data.completed_levels = 20
+	screen.progress.data.completed_levels = preload("res://scripts/campaign/catalog.gd").COUNT
 	for touch in [false, true]:
-		for index in range(20):
+		for index in range(preload("res://scripts/campaign/catalog.gd").COUNT):
 			screen.start_mission(index)
 			await frame()
 			var socket: Dictionary = screen.run.mission.sockets[0]

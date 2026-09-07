@@ -24,7 +24,7 @@ func read_candidate(candidate_path: String) -> Dictionary:
 		return {}
 	var parsed: Dictionary = parser.data
 	if parsed.get("version") == 1:
-		if not number(parsed.get("sequence"), 0, 1e15, true) or not parsed.get("medals") is Array or parsed.medals.size() != Catalog.COUNT:
+		if not number(parsed.get("sequence"), 0, 1e15, true) or not parsed.get("medals") is Array or parsed.medals.size() not in [Catalog.LEGACY_COUNT, Catalog.COUNT]:
 			return {}
 		var completed := 0
 		var locked := false

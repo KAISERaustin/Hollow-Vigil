@@ -6,6 +6,7 @@ const SHADE := Color("88685c")
 const IRON := Color("626671")
 const CHAR := Color("494252")
 const EMBER := Color("f19b57")
+const PORTRAIT_BOUNDS := Rect2(-29, -64, 58, 78)
 
 # One stateless masonry/flame kit for every Pyre tier and specialization.
 # Keep the shared socket anchor and projectile outlet at (0, -29).

@@ -16,6 +16,7 @@ func configure(pause: Callable, speed: Callable, menu: Callable, title: String =
 	add_child(menu_button)
 	if title.is_empty():
 		var spacer := Control.new()
+		spacer.name = "GameToolbarSpacer"
 		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		add_child(spacer)
 	else:
@@ -32,6 +33,18 @@ func configure(pause: Callable, speed: Callable, menu: Callable, title: String =
 	speed_button.custom_minimum_size.x = UI.TOOLBAR_BUTTON_SIZE
 	speed_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	add_child(speed_button)
+
+## Compose a continuous action bar using the same playback controls.
+func append_actions(actions: Array[Control]) -> void:
+	var spacer := get_node_or_null("GameToolbarSpacer")
+	if spacer != null:
+		remove_child(spacer)
+		spacer.queue_free()
+	add_theme_constant_override("separation", UI.CARD_GAP)
+	for control in [menu_button, pause_button, speed_button]:
+		control.custom_minimum_size = Vector2.ONE * UI.TARGET
+	for action in actions:
+		add_child(action)
 
 func update_controls(paused: bool, speed: float) -> void:
 	pause_button.set_meta("paused", paused)

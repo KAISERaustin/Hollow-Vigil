@@ -17,7 +17,7 @@ func run() -> void:
 		root.size = dimensions
 		root.content_scale_size = root.size
 		screen.show_balancing_levels()
-		check(screen.dialog_body.get_child_count() == 20, "Every campaign level has balancing controls")
+		check(screen.dialog_body.get_child_count() == preload("res://scripts/campaign/catalog.gd").COUNT, "Every campaign level has balancing controls")
 		screen.find_child("BalanceLevel7", true, false).pressed.emit()
 		await frame()
 		var editor: Control = screen.find_child("CampaignBalancePanel", true, false)

@@ -88,6 +88,16 @@ static func portal(canvas: CanvasItem, at: Vector2, zoom: float, core: bool) -> 
 	ellipse(canvas, center, Vector2(14, 20) * zoom, INK, 2.0 * zoom)
 	canvas.draw_line(center + Vector2(-17, -9) * zoom, center + Vector2(-17, 4) * zoom, PAPER, 2.5 * zoom, true)
 
+## Artwork families can supply framing bounds without putting type rules in UI.
+static func sentinel_portrait(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, frame: Rect2, level: int = 1, branch: String = "") -> void:
+	var bounds := Rect2()
+	if kind == "splash":
+		bounds = preload("res://scripts/rendering/actors/fire_tower_art.gd").PORTRAIT_BOUNDS
+	if bounds.has_area() and frame.has_area():
+		zoom = minf(zoom, minf(frame.size.x / bounds.size.x, frame.size.y / bounds.size.y))
+		at = frame.get_center() - bounds.get_center() * zoom
+	sentinel(canvas, kind, at, zoom, level, branch)
+
 static func sentinel(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, level: int = 1, branch: String = "") -> void:
 	if level == 4 and Balance.valid_branch(kind, branch):
 		preload("res://scripts/rendering/actors/tower_branches.gd").draw(canvas, branch, at, zoom)

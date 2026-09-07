@@ -21,7 +21,7 @@ func run() -> void:
 func check_levels(viewport_size: Vector2i) -> void:
 	root.size = viewport_size
 	root.content_scale_size = root.size
-	for index in range(20):
+	for index in range(preload("res://scripts/campaign/catalog.gd").COUNT):
 		var board := preload("res://scripts/campaign/board.gd").new()
 		board.run = preload("res://scripts/campaign/run.gd").new(index)
 		board.size = Vector2(root.size)

@@ -61,7 +61,7 @@ func _ready() -> void:
 			preload("res://scripts/rendering/actors/relic_art.gd").draw(portrait, app.game.data.relics[relic_choice], portrait.size * 0.5, minf(portrait.size.x, portrait.size.y) / 34.0)
 		else:
 			var shown_level := mini(tower_level + 1, Balance.MAX_TOWER_LEVEL) if mode == "preview" else tower_level
-			VigilTerrainArt.sentinel(portrait, tower_kind, Vector2(20, 41) if mode == "preview" else Vector2(24, 51), 0.65 if mode == "preview" else 0.85, shown_level, tower_branch)
+			VigilTerrainArt.sentinel_portrait(portrait, tower_kind, Vector2(20, 41) if mode == "preview" else Vector2(24, 51), 0.65 if mode == "preview" else 0.85, Rect2(Vector2.ZERO, portrait.size).grow(-2), shown_level, tower_branch)
 	)
 	identity.add_child(portrait)
 	heading = UI.heading("", 24)
@@ -329,16 +329,16 @@ func fit_dialog() -> void:
 		return
 	if mode == "preview":
 		# Match the bottom build sheet, with the purchase outside scrolling content.
-		var safe := UI.safe_rect(app).grow(-12)
+		var preview_safe := UI.safe_rect(app).grow(-12)
 		var field_rect: Rect2 = app.field.get_global_rect()
-		var bottom := minf(safe.end.y, field_rect.end.y - 12)
-		var top := maxf(safe.position.y, field_rect.position.y + 12)
-		card.size.x = minf(460.0, safe.size.x)
+		var bottom := minf(preview_safe.end.y, field_rect.end.y - 12)
+		var top := maxf(preview_safe.position.y, field_rect.position.y + 12)
+		card.size.x = minf(460.0, preview_safe.size.x)
 		footer.vertical = false
-		var chrome: float = identity.get_combined_minimum_size().y + footer.get_combined_minimum_size().y + 2 * UI.SCREEN_PADDING + 8 + 16
-		scroll.custom_minimum_size.y = minf(body.get_combined_minimum_size().y, maxf(40, bottom - top - chrome))
+		var preview_chrome: float = identity.get_combined_minimum_size().y + footer.get_combined_minimum_size().y + 2 * UI.SCREEN_PADDING + 8 + 16
+		scroll.custom_minimum_size.y = minf(body.get_combined_minimum_size().y, maxf(40, bottom - top - preview_chrome))
 		card.size.y = 0
-		card.position = Vector2(safe.position.x + (safe.size.x - card.size.x) * 0.5, bottom - card.size.y)
+		card.position = Vector2(preview_safe.position.x + (preview_safe.size.x - card.size.x) * 0.5, bottom - card.size.y)
 		return
 	var safe := UI.safe_rect(app).grow(-16)
 	card.size.x = minf(460.0, safe.size.x)

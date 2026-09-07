@@ -9,7 +9,7 @@ static func draw(canvas: Control, category: String, kind: String, level: int = 1
 		"bosses": preload("res://scripts/rendering/actors/boss_art.gd").portrait(canvas, kind, center + Vector2(0, 5) * art_scale, 1.1 * art_scale)
 		"rifts": preload("res://scripts/rendering/actors/rift_art.gd").draw(canvas, kind, center + Vector2(0, 20) * art_scale, 1.8 * art_scale)
 		"gear": preload("res://scripts/rendering/actors/relic_art.gd").draw(canvas, kind, center, 3.6 * art_scale)
-		"towers": VigilTerrainArt.sentinel(canvas, kind, center + Vector2(0, 46) * art_scale, 1.7 * art_scale, level, branch)
+		"towers": VigilTerrainArt.sentinel_portrait(canvas, kind, center + Vector2(0, 46) * art_scale, 1.7 * art_scale, Rect2(Vector2.ZERO, canvas.size).grow(-2), level, branch)
 
 static func preview(category: String, kind: String, level: int = 1, branch: String = "") -> Control:
 	var art := Control.new()
@@ -41,9 +41,10 @@ static func profile(category: String, kind: String, tint: Color, level: int = 1,
 			var direction := Vector2.from_angle(index * TAU / 8.0)
 			art.draw_line(center + direction * (radius - 8), center + direction * (radius - 4), tint.darkened(0.3), 1, true)
 		if category == "towers":
-			# Center the silhouette (-42 to +12 around its ground anchor) in the rim.
+			# Preserve the classic anchor; taller artwork supplies its own bounds.
 			var scale := minf(art.size.x, art.size.y) / 144.0
-			VigilTerrainArt.sentinel(art, kind, center + Vector2(0, 25.5) * scale, 1.7 * scale, level, branch)
+			var frame := Rect2(center - Vector2.ONE * radius * 0.86, Vector2.ONE * radius * 1.72)
+			VigilTerrainArt.sentinel_portrait(art, kind, center + Vector2(0, 25.5) * scale, 1.7 * scale, frame, level, branch)
 		else:
 			draw(art, category, kind, level, branch)
 	)

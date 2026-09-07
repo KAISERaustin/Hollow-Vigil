@@ -3,7 +3,7 @@ extends SceneTree
 const Catalog = preload("res://scripts/campaign/catalog.gd")
 const Run = preload("res://scripts/campaign/run.gd")
 const Progress = preload("res://scripts/campaign/progress.gd")
-const STRATEGIES := [0,0,0,0,1,0,0,0,0,8,0,1,0,2,0,1,4,1,1,4]
+const STRATEGIES := [0,0,0,0,1,0,0,0,0,8,0,1,0,2,0,1,4,1,1,4,0,0,0,0,0,0,0,0,0,0]
 var failures := 0
 
 func _initialize() -> void:
@@ -89,7 +89,7 @@ func run() -> void:
 	var report := "level,name,result,core_integrity,gold,seconds\n"
 	var progress := Progress.new()
 	progress.path = "user://campaign-playthrough-" + str(Time.get_ticks_usec()) + ".save"
-	for index in range(20):
+	for index in range(Catalog.COUNT):
 		if not progress.unlocked(index):
 			failures += 1
 			push_error("Previous victory did not unlock level %d" % (index+1))
@@ -116,5 +116,5 @@ func run() -> void:
 	output.close()
 	for suffix in ["", ".tmp", ".bak"]:
 		DirAccess.remove_absolute(progress.path+suffix)
-	print("Campaign reference strategies and progression: %d / 20 passed" % (20-failures))
+	print("Campaign reference strategies and progression: %d / %d passed" % [Catalog.COUNT-failures, Catalog.COUNT])
 	quit(0 if failures == 0 else 1)

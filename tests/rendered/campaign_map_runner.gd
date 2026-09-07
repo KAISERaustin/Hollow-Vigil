@@ -38,6 +38,9 @@ func run() -> void:
 		root.content_scale_size = viewport
 		campaign.show_map()
 		await frame()
+		var focus := root.gui_get_focus_owner()
+		if focus != null: focus.release_focus()
+		await frame()
 		var map: Control = campaign.find_child("CampaignWorldMap", true, false)
 		var back: Button = campaign.find_child("CampaignBack", true, false)
 		var back_bounds := back.get_global_rect()
@@ -48,6 +51,7 @@ func run() -> void:
 		for chapter in Catalog.CHAPTERS.size():
 			campaign.page_scroll.scroll_vertical = roundi(chapter * Map.CHAPTER_HEIGHT)
 			await frame()
+			print("MAP SCROLL ", viewport, " chapter ", chapter, " actual ", campaign.page_scroll.scroll_vertical, " range ", campaign.page_scroll.get_v_scroll_bar().max_value, " map ", map.global_position)
 			check(back.get_global_rect() == back_bounds, "Back remains fixed while scrolling")
 			var bounds: Rect2 = map.chapter_rect(chapter)
 			check(bounds.encloses(map.headings[chapter].get_rect()), "Chapter title fits its biome")

@@ -10,7 +10,7 @@ func check(ok: bool, label: String) -> void:
 		push_error(label)
 
 func run() -> void:
-	for index in range(20):
+	for index in range(preload("res://scripts/campaign/catalog.gd").COUNT):
 		var board := preload("res://scripts/campaign/board.gd").new()
 		board.run = preload("res://scripts/campaign/run.gd").new(index)
 		board.size = Vector2(390, 530)

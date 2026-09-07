@@ -113,7 +113,8 @@ func run() -> void:
 		for type in ["campaign", "infinite"]:
 			menu.show_main_menu()
 			await press("OpenCampaign" if type == "campaign" else "OpenInfinite")
-			check(menu.screen == ("home" if dimensions.x == 360 else "slots") and menu.game_type == type, "Main choices open home for new players and saved games for returning players")
+			var expected_screen := "home" if type == "campaign" and dimensions.x == 360 else "slots"
+			check(menu.screen == expected_screen and menu.game_type == type, "Infinite always opens saved games; Campaign opens home only for new players")
 			if menu.screen == "slots":
 				await press("BackButton")
 				check(menu.screen == "main", "Saved games Back skips game home")

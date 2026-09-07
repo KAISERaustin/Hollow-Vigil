@@ -174,7 +174,8 @@ static func valid(value: Dictionary) -> bool:
 		var composed := infinite_snapshot(value, {}, "creative")
 		return composed.get("ok", false)
 	if value.data.size() != 1 or not value.data.get("levels") is Dictionary: return false
-	var indices: Array = [int(value.level)] if value.scope == "level" else range(Configuration.Catalog.COUNT)
+	if value.scope == "all" and value.data.levels.size() not in [Configuration.Catalog.LEGACY_COUNT, Configuration.Catalog.COUNT]: return false
+	var indices: Array = [int(value.level)] if value.scope == "level" else range(value.data.levels.size())
 	if value.data.levels.size() != indices.size(): return false
 	for index in indices:
 		var entry: Variant = value.data.levels.get(str(index))

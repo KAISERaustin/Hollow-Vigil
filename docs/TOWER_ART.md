@@ -20,6 +20,8 @@ stone and ember seams; Rupture Pyre adds riveted iron piers and a barred furnace
 Both retain the tower silhouette. The battlefield, build previews, portraits
 and upgrade previews all call the shared sentinel renderer. Combat stats,
 projectile outlets, placement and saved tower identities are unchanged.
+The artwork family supplies portrait bounds to `sentinel_portrait`, which
+centers and fits the taller fire crown inside both medallions and dialog headers.
 `tests/previews/fire_tower_preview.gd` renders the family beside existing towers
 and portals, including normal play scale.
 

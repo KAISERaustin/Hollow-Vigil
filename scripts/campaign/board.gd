@@ -7,6 +7,7 @@ var selected := -1
 var interactive := true
 var landscape: Node2D
 var trail_bounds := Rect2()
+var overview_padding := Vector4.ZERO
 var view_zoom: float:
 	get:
 		return zoom / overview_zoom()
@@ -54,7 +55,12 @@ func _ready() -> void:
 	accessibility_name = "Campaign battlefield. Tap a socket to build or manage. Drag to explore, pinch or scroll to zoom."
 
 func overview_zoom() -> float:
-	return maxf(0.01, minf(size.x / maxf(1, trail_bounds.size.x), size.y / maxf(1, trail_bounds.size.y)))
+	var available := overview_rect().size
+	return maxf(0.01, minf(available.x / maxf(1, trail_bounds.size.x), available.y / maxf(1, trail_bounds.size.y)))
+
+func overview_rect() -> Rect2:
+	return Rect2(Vector2(overview_padding.x, overview_padding.y),
+		(size - Vector2(overview_padding.x + overview_padding.z, overview_padding.y + overview_padding.w)).max(Vector2.ONE))
 
 func minimum_zoom() -> float:
 	var bounds := camera_bounds()
@@ -64,8 +70,8 @@ func camera_bounds() -> Rect2:
 	return trail_bounds.grow(300 + build_preview.camera_padding(self))
 
 func reset_view() -> void:
-	camera = trail_bounds.get_center()
 	zoom = minimum_zoom()
+	camera = trail_bounds.get_center() + (size * 0.5 - overview_rect().get_center()) / zoom
 	enforce_camera_limits()
 	queue_redraw()
 

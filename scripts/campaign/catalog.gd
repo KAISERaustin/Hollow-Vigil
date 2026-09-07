@@ -1,6 +1,8 @@
 extends RefCounted
 
 const COUNT = preload("res://scripts/content/catalogs/levels.gd").COUNT
+const LEGACY_COUNT = preload("res://scripts/content/catalogs/levels.gd").LEGACY_COUNT
+const LEVELS_PER_CHAPTER = preload("res://scripts/content/catalogs/levels.gd").LEVELS_PER_CHAPTER
 const MAX_HEALTH = preload("res://scripts/content/catalogs/levels.gd").MAX_HEALTH
 const BOARD = preload("res://scripts/content/catalogs/levels.gd").BOARD
 const CORE = preload("res://scripts/content/catalogs/levels.gd").CORE

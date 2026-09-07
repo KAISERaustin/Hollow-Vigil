@@ -5,7 +5,7 @@ Implemented from `UI_REDESIGN_DRAFT.md`, September 7, 2026. This describes sourc
 ```text
 Hollow Vigil
 ├── Campaign → Saved games if occupied; otherwise Campaign home
-├── Infinite → Saved games if occupied; otherwise Infinite home
+├── Infinite → Saved games (including when all three slots are empty)
 └── Settings → shared Settings
 
 Game home [Campaign or Infinite]

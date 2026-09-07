@@ -52,6 +52,9 @@ var configuration_base := ""
 var active_campaign_slot := -1
 var campaign_save := {}
 var game_toolbar: Control
+var battle_bar: PanelContainer
+var battle_bar_margin: MarginContainer
+var floating_hud: Control
 var reward_transition: Control
 var result_pending := false
 
@@ -206,10 +209,15 @@ func fit() -> void:
 		map_navigation.queue_redraw()
 	elif page == "battle":
 		layout.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		layout.offset_left = safe.position.x
-		layout.offset_top = safe.position.y
-		layout.offset_right = safe.end.x - size.x
-		layout.offset_bottom = safe.end.y - size.y
+		# Terrain reaches every side below the bar; only controls respect insets.
+		if is_instance_valid(battle_bar_margin):
+			var play_safe := UI.safe_rect(self)
+			battle_bar_margin.add_theme_constant_override("margin_left", int(play_safe.position.x) + UI.INSET_PADDING)
+			battle_bar_margin.add_theme_constant_override("margin_right", int(size.x - play_safe.end.x) + UI.INSET_PADDING)
+			battle_bar_margin.add_theme_constant_override("margin_top", int(play_safe.position.y) + UI.INSET_PADDING)
+		if is_instance_valid(floating_hud):
+			floating_hud.fit()
+			board.overview_padding = floating_hud.overview_padding()
 	else:
 		page_scroll.position = safe.position
 		page_scroll.size = safe.size
@@ -234,14 +242,17 @@ func clear_page(next: String) -> void:
 	clear_selection()
 	clear_tower_ui()
 	page = next
-	parchment.visible = next != "map"
+	parchment.visible = next not in ["map", "battle"]
 	map_navigation.visible = next == "map"
 	color = VigilTerrainArt.ground_color("forest") if next == "map" else UI.PANEL
 	for child in map_heading.get_children():
 		map_heading.remove_child(child)
 		child.queue_free()
-	layout.add_theme_constant_override("separation", 0 if next == "map" else 10)
+	layout.add_theme_constant_override("separation", 0 if next in ["map", "battle"] else 10)
 	board = null
+	floating_hud = null
+	battle_bar = null
+	battle_bar_margin = null
 	for child in layout.get_children():
 		layout.remove_child(child)
 		child.queue_free()
@@ -308,7 +319,7 @@ func show_setup() -> void:
 	layout.add_child(UI.paragraph("Choose your campaign build and how you want to play.", 15))
 	layout.add_child(UI.heading("1. Campaign build", 18))
 	layout.add_child(UI.paragraph(selected_build.get("setup", {}).get("name", "The Last Procession"), 18))
-	layout.add_child(UI.paragraph(selected_build.get("setup", {}).get("description", "The original 20-level campaign. Creative keeps your level edits on this device."), 14))
+	layout.add_child(UI.paragraph(selected_build.get("setup", {}).get("description", "%d levels across six biomes. Creative keeps your level edits on this device." % Catalog.COUNT), 14))
 	var sources := HBoxContainer.new()
 	sources.add_theme_constant_override("separation", 8)
 	layout.add_child(sources)
@@ -521,8 +532,17 @@ func show_battle(start_paused: bool = false) -> void:
 	# Restored waves are ready to replay, but playback waits for the player.
 	paused = start_paused
 	observed_phase = run.phase
+	battle_bar = PanelContainer.new()
+	battle_bar.name = "CampaignControlBar"
+	var chrome := UI.chrome()
+	chrome.set_border_width_all(0)
+	chrome.border_width_bottom = UI.OUTLINE
+	battle_bar.add_theme_stylebox_override("panel", chrome)
+	layout.add_child(battle_bar)
+	var bar_content := UI.margin(battle_bar, UI.INSET_PADDING)
+	battle_bar_margin = bar_content.get_parent()
 	game_toolbar = preload("res://scripts/ui/shared/game_toolbar.gd").new()
-	layout.add_child(game_toolbar)
+	bar_content.add_child(game_toolbar)
 	game_toolbar.configure(func():
 		paused = not paused
 		update_time_controls()
@@ -533,63 +553,33 @@ func show_battle(start_paused: bool = false) -> void:
 	pause_button = game_toolbar.pause_button
 	speed_button = game_toolbar.speed_button
 	update_time_controls()
-	var identity := HBoxContainer.new()
-	identity.name = "CampaignIdentity"
-	identity.add_theme_constant_override("separation", UI.CARD_GAP)
-	layout.add_child(identity)
-	var level_card := UI.stat_card("Level", "%02d" % (run.mission.index + 1), 18)
-	level_card.name = "CampaignLevelCard"
-	level_card.custom_minimum_size.x = 64
-	level_card.size_flags_horizontal = Control.SIZE_FILL
-	identity.add_child(level_card)
-	var title := UI.heading(run.mission.name, UI.OBJECT_TITLE)
-	title.name = "CampaignTitle"
-	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var title_card := UI.info_card(title, UI.PANEL, UI.CARD_PADDING)
-	title_card.name = "CampaignTitleCard"
-	identity.add_child(title_card)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", UI.CARD_GAP)
-	layout.add_child(row)
-	gold = UI.value("", 18)
-	gold.name = "CampaignGold"
-	gold.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	gold.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	gold.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var gold_card := UI.info_card(gold)
-	gold_card.name = "CampaignGoldCard"
-	gold_card.custom_minimum_size.y = UI.TARGET
-	row.add_child(gold_card)
-	status = UI.value("", 18)
-	status.name = "CampaignStatus"
-	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	status.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var wave_card := UI.info_card(status)
-	wave_card.name = "CampaignWaveCard"
-	wave_card.custom_minimum_size.y = UI.TARGET
-	row.add_child(wave_card)
-	add_board(true)
-	build_tower_ui()
-	var controls := HBoxContainer.new()
-	controls.add_theme_constant_override("separation", 8)
-	layout.add_child(controls)
-	var waves := UI.button("Waves", show_waves, 48)
+	var waves := UI.toolbar_action("Waves", show_waves)
 	waves.name = "CampaignWaves"
-	waves.custom_minimum_size.x = 80
+	waves.custom_minimum_size.x = 60
 	waves.size_flags_horizontal = Control.SIZE_FILL
-	controls.add_child(waves)
-	var share := UI.button("Share", show_playthrough_share)
-	share.name = "ShareCampaignConfiguration"
-	share.visible = can_author() and active_campaign_slot < 0
-	controls.add_child(share)
-	wave_button = UI.gold_button("", begin_wave, 48)
+	wave_button = UI.toolbar_action("Start wave", begin_wave, true)
+	wave_button.custom_minimum_size.x = 96
 	wave_button.name = "StartCampaignWave"
-	controls.add_child(wave_button)
-	save_notice = UI.paragraph("", 12)
-	save_notice.hide()
-	layout.add_child(save_notice)
+	game_toolbar.append_actions([waves, wave_button])
+	add_board(true)
+	floating_hud = preload("res://scripts/ui/shared/floating_game_hud.gd").new()
+	board.add_child(floating_hud)
+	floating_hud.context.text = "Level %d" % (run.mission.index + 1)
+	floating_hud.title.text = run.mission.name
+	floating_hud.title.name = "CampaignTitle"
+	gold = floating_hud.left_value
+	gold.name = "CampaignGold"
+	status = floating_hud.right_value
+	status.name = "CampaignStatus"
+	save_notice = floating_hud.notice
+	build_tower_ui()
 	refresh()
+	call_deferred("frame_battle")
+
+func frame_battle() -> void:
+	if page != "battle" or not is_instance_valid(board): return
+	fit()
+	board.reset_view()
 
 func add_board(interactive: bool) -> void:
 	board = Board.new()
@@ -606,10 +596,11 @@ func add_board(interactive: bool) -> void:
 			dialog.hide()
 	)
 	layout.add_child(board)
-	var frame := UI.rounded_viewport_frame(UI.PANEL, 3)
-	frame.name = "CampaignMapBorder"
-	frame.z_index = 100
-	board.add_child(frame)
+	if not interactive:
+		var frame := UI.rounded_viewport_frame(UI.PANEL)
+		frame.name = "CampaignMapBorder"
+		frame.z_index = 100
+		board.add_child(frame)
 
 func begin_wave() -> void:
 	if reward_transition.active: return
@@ -635,12 +626,18 @@ func refresh() -> void:
 	var can_start: bool = run.phase == "planning"
 	status.text = "Wave %d / %d" % [shown_wave, run.mission.waves.size()]
 	wave_button.disabled = not can_start or reward_transition.active
-	wave_button.text = "Start wave %d" % (run.wave+1) if can_start else "%d enemies remaining" % (run.game.combat.enemies.size() + run.schedule.size() - run.next_spawn)
+	var remaining := "%d enemies remaining" % (run.game.combat.enemies.size() + run.schedule.size() - run.next_spawn)
+	wave_button.text = "Start wave" if can_start else "In progress"
+	wave_button.accessibility_name = "Start wave %d" % (run.wave + 1) if can_start else remaining
+	floating_hud.detail.text = remaining
+	floating_hud.detail.visible = run.phase == "wave" and not reward_transition.active
 	if run.phase in ["victory", "defeat"]:
-		wave_button.text = "Sanctuary restored" if run.phase == "victory" else "Core integrity depleted"
+		wave_button.text = "Restored" if run.phase == "victory" else "Defeated"
+		wave_button.accessibility_name = "Sanctuary restored" if run.phase == "victory" else "Core integrity depleted"
 	if reward_transition.active:
 		status.text = "Wave %d / %d" % [run.wave, run.mission.waves.size()]
-		wave_button.text = "Wave cleared"
+		wave_button.text = "Cleared"
+		wave_button.accessibility_name = "Wave cleared"
 	if observed_phase != run.phase:
 		observed_phase = run.phase
 		clear_selection()
@@ -712,6 +709,10 @@ func show_waves() -> void:
 		if can_author():
 			edit = show_level_balance.bind(int(run.mission.index), index)
 		preview.add_child(WaveSummary.card(report, state, show_wave_balance.bind(index), edit))
+	if can_author() and active_campaign_slot < 0:
+		var share := UI.button("Share campaign", show_playthrough_share)
+		share.name = "ShareCampaignConfiguration"
+		dialog_actions.add_child(share)
 
 func show_socket(socket: int) -> void:
 	if not run.editable() or not Balance.Content.level(run.mission.index).allows_socket(socket):
@@ -796,8 +797,8 @@ func show_result() -> void:
 	open_dialog("Sanctuary restored" if won else "Core integrity depleted")
 	if won:
 		dialog_body.add_child(UI.paragraph("Core integrity remaining: %d. Level completed. Your progress is saved on this device." % run.health,15))
-		if run.mission.index == 19:
-			dialog_body.add_child(UI.paragraph("The Prior falls. Across the kingdom, twenty sanctuary cores awaken. For the first time in an age, the capital sees dawn.",18))
+		if run.mission.index == Catalog.COUNT - 1:
+			dialog_body.add_child(UI.paragraph("The Matriarch rests. From the forest to the funeral boughs, every sanctuary burns again. The last procession has reached the dawn.",18))
 		else:
 			var next := UI.gold_button("Next level", start_mission.bind(run.mission.index+1),48)
 			next.name = "NextCampaignLevel"

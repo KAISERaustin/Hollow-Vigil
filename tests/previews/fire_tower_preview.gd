@@ -35,5 +35,33 @@ func run() -> void:
 	await process_frame
 	await RenderingServer.frame_post_draw
 	var result := root.get_texture().get_image().save_png("res://artifacts/fire-tower-preview.png")
+	root.get_child(root.get_child_count()-1).queue_free()
+	await process_frame
+	var app := VigilApp.new()
+	app.load_saved_progress = false
+	app.game.save_path = "user://fire-tower-preview.save"
+	root.add_child(app)
+	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	app.set_process(false)
+	app.field.set_process(false)
+	app.game.data.balance = 100000
+	app.game.expand("1,0")
+	var id := app.game.economy.build("splash", "0,0", 1)
+	for viewport in [Vector2i(360,640),Vector2i(390,844),Vector2i(540,960)]:
+		root.size = viewport
+		root.content_scale_size = viewport
+		for level in [1,3,4]:
+			var tower: Dictionary = app.game.data.towers[id]
+			tower.level = level
+			tower.branch = "rupture_pyre" if level == 4 else ""
+			app.panels.select_pad("0,0",1)
+			# Let normal shared camera framing finish above the actual upgrade sheet.
+			for tick in range(30):
+				app.field._process(1.0/60.0)
+				await process_frame
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png("res://artifacts/fire-tower-phone-%d-%d.png" % [level,viewport.x])
+			app.tower_dialog.dismiss()
+	app.free()
 	print("FIRE TOWER PREVIEW: ", error_string(result))
 	quit(0 if result == OK else 1)

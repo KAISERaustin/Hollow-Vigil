@@ -53,7 +53,7 @@ func run() -> void:
 		check(live_enemy.hp == original_hp, "Current enemy survives authoring unchanged")
 		screen.close_dialog()
 		screen.show_playthrough_share()
-		check(app.slot_menu.export_campaign.levels.size() == 20, "Share includes every campaign level")
+		check(app.slot_menu.export_campaign.levels.size() == preload("res://scripts/campaign/catalog.gd").COUNT, "Share includes every campaign level")
 		app.slot_menu.find_child("SetupName", true, false).text = "Phone campaign " + str(dimensions.x)
 		app.slot_menu.find_child("SaveLocalBuild", true, false).pressed.emit()
 		check(app.slot_menu.message.text.contains("Saved on this device"), "Whole campaign saved with shared export UI")
