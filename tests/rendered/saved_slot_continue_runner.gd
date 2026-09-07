@@ -61,7 +61,7 @@ func check_campaign_continue() -> void:
 		value.completed = 2
 		value.checkpoint = saved_run.checkpoint()
 		check(menu.campaign_slots.save_slot(slot, value), "Save Campaign with level checkpoint")
-		var checkpoint: Dictionary = value.checkpoint.duplicate(true)
+		var checkpoint: Dictionary = JSON.parse_string(JSON.stringify(value.checkpoint))
 		for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 			var stored_checkpoint: Dictionary = menu.campaign_slots.summary(slot).checkpoint
 			root.size = dimensions
@@ -80,7 +80,7 @@ func check_campaign_continue() -> void:
 			check(menu.campaign_slots.summary(slot).checkpoint == stored_checkpoint, "Previewing another level preserves saved checkpoint")
 			await press("CampaignLevel3")
 			check(app.campaign.page == "battle" and app.campaign.run.mission.index == 2, "Selecting saved level resumes its battle")
-			check(app.campaign.run.checkpoint() == checkpoint, "Resumed level preserves saved wave and build")
+			check(JSON.parse_string(JSON.stringify(app.campaign.run.checkpoint())) == checkpoint, "Resumed level preserves saved wave and build")
 			check(app.campaign.paused, "Loaded Campaign wave waits for player to start")
 			check(not app.campaign.wave_button.disabled and app.campaign.wave_button.text == "Start wave %d" % (saved_run.wave + 1), "Loaded wave offers Start for its saved wave number")
 			for step in 20: app.campaign._process(0.1)
@@ -95,7 +95,7 @@ func check_campaign_continue() -> void:
 			check(not app.campaign.paused, "Start explicitly releases loaded wave")
 			app.campaign._process(0.1)
 			check(app.campaign.run.wave_time > 0.0 and app.campaign.run.next_spawn > 0, "Wave advances and spawns only after Start")
-			check(app.campaign.run.checkpoint() == checkpoint, "Starting loaded wave preserves the original checkpoint")
+			check(JSON.parse_string(JSON.stringify(app.campaign.run.checkpoint())) == checkpoint, "Starting loaded wave preserves the original checkpoint")
 			var wave_time: float = app.campaign.run.wave_time
 			await press("PauseButton")
 			app.campaign._process(0.1)
