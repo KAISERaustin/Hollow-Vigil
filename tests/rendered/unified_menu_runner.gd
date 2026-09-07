@@ -186,6 +186,21 @@ func run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 func check_rules(type: String) -> void:
+	if type == "campaign":
+		menu.resume_game()
+		var prior_run: RefCounted = app.campaign.run
+		var prior_paused: bool = app.campaign.paused
+		app.campaign.show_level_balance(0)
+		await frames()
+		await press("CancelRules")
+		await press("ConfirmAction")
+		check(not menu.visible and not menu.held, "Direct campaign rule discard returns to gameplay")
+		check(app.campaign.run == prior_run and app.campaign.paused == prior_paused, "Direct rule return preserves battle and pause state")
+		app.campaign.show_level_balance(0)
+		await frames()
+		await press("ApplyRules")
+		check(not menu.visible and not menu.held, "Direct campaign rule apply returns to gameplay")
+		await press("GameMenuButton")
 	await press("EditRules")
 	if type == "campaign": await press("EditLevel1")
 	check(menu.screen == "rules", "Shared rules page opens in " + type)

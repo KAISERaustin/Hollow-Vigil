@@ -49,6 +49,7 @@ func rebuild() -> void:
 			code.custom_minimum_size.y = 48
 			code.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_DEFAULT
 			add_child(code)
+			add_child(preload("res://scripts/ui/shared/clipboard_entry.gd").paste_button(code))
 			add_child(_button("Sign in", func(): service.verify_link(code.text)))
 		add_child(UI.paragraph("No password is needed. Your sign-in is remembered on this device until you sign out. Offline play always works.", 12))
 		return

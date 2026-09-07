@@ -364,6 +364,8 @@ func show_map() -> void:
 		var heading := header(campaign_save.name, app.show_game_menu)
 		var back: Button = heading.get_child(0)
 		back.text = "Menu"
+		back.autowrap_mode = TextServer.AUTOWRAP_OFF
+		back.accessibility_name = "Menu"
 		back.name = "GameMenuButton"
 		heading.move_child(back, heading.get_child_count() - 1)
 	else: header("The Last Procession", show_setup)
@@ -822,7 +824,7 @@ func show_level_balance(index: int, wave_index: int = -1) -> void:
 	if active_campaign_slot >= 0:
 		close_dialog()
 		app.show_game_menu()
-		app.slot_menu.show_campaign_rules(index, wave_index)
+		app.slot_menu.show_campaign_rules(index, wave_index, app.slot_menu.resume_game)
 		return
 	var rules: Dictionary = level_setup(index).overrides
 	if not configuration.save_level(index, rules):

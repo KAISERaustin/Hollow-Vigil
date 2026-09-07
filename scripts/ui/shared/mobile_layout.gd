@@ -4,6 +4,7 @@ extends Node
 const UI = preload("res://scripts/ui/shared/interface.gd")
 var host: Control
 var previous := Rect2()
+var layout_revision := 0
 
 static func attach(control: Control) -> void:
 	if control.has_node("MobileLayout"): return
@@ -21,8 +22,17 @@ func _process(_delta: float) -> void:
 	var current := UI.safe_rect(host)
 	if current.is_equal_approx(previous): return
 	previous = current
+	layout_revision += 1
 	host.resized.emit()
-	reveal_focus.call_deferred()
+	reveal_after_layout(layout_revision)
+
+func reveal_after_layout(revision: int) -> void:
+	# Container sizes and scroll ranges update asynchronously. Revealing during
+	# keyboard animation with the previous range makes the form jump back and forth.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if revision == layout_revision and is_instance_valid(host) and host.is_visible_in_tree():
+		reveal_focus()
 
 func reveal_focus() -> void:
 	var focus := host.get_viewport().gui_get_focus_owner()

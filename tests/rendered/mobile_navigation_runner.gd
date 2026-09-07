@@ -99,6 +99,7 @@ func run() -> void:
 			await check_sound_input()
 			menu.show_account(menu.show_settings)
 			await audit_controls(menu, "account")
+			await check_account_keyboard()
 			menu.show_backups(menu.show_home)
 			await audit_controls(menu, "backups")
 			menu.open_build_form()
@@ -270,6 +271,31 @@ func check_campaign() -> void:
 		campaign.show_result()
 		await audit_controls(campaign.dialog, "victory actions")
 	campaign.close()
+	await settle()
+
+func check_account_keyboard() -> void:
+	var entry: LineEdit = menu.find_child("AccountCode", true, false)
+	if entry == null: return
+	var saved_clipboard := DisplayServer.clipboard_get()
+	entry.text = "old code"
+	DisplayServer.clipboard_set("123456")
+	menu.find_child("PasteSignInCode", true, false).pressed.emit()
+	await settle()
+	check(entry.text == "123456", "Paste replaces the previous sign-in code")
+	DisplayServer.clipboard_set(saved_clipboard)
+	var original_size: Vector2 = menu.card.size
+	entry.grab_focus()
+	for height in [350, 300, 350]:
+		menu.card.size.y = height
+		var observer := menu.get_node("MobileLayout")
+		observer.layout_revision += 1
+		observer.reveal_after_layout(observer.layout_revision)
+		await settle()
+		check(menu.scroll.get_global_rect().grow(1).encloses(entry.get_global_rect()), "Code stays visible after keyboard layout settles")
+		check(menu.find_children("SignIn", "Button", true, false).size() == 1, "Keyboard layout retains one sign-in action")
+		check(entry.text == "123456", "Keyboard layout preserves the code draft")
+	entry.release_focus()
+	menu.card.size = original_size
 	await settle()
 
 func check_sound_input() -> void:

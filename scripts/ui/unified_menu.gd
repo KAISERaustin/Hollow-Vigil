@@ -24,7 +24,7 @@ var form_saved_code := ""
 var account_return: Callable
 var settings_return: Callable
 var backup_return: Callable
-var editor_return: Callable
+var rules_return: Callable
 var editor_game: VigilState
 var rules_editor: Control
 var root_layout: VBoxContainer
@@ -668,6 +668,7 @@ func show_account(return_to: Callable = Callable()) -> void:
 		code.placeholder_text = "Code or sign-in link"
 		style_entry(code)
 		content.add_child(UI.form_field("Sign-in code", code))
+		content.add_child(preload("res://scripts/ui/shared/clipboard_entry.gd").paste_button(code))
 		content.add_child(action("Sign in", func():
 			await app.cloud.verify_link(code.text)
 			if screen == "account": show_account(); notice(app.cloud.status)
@@ -680,12 +681,11 @@ func show_account(return_to: Callable = Callable()) -> void:
 	footer.add_child(action("Done", func(): account_return.call(), "AccountDone", true))
 
 func open_rules() -> void:
-	editor_return = open_game_menu
 	if live_campaign(): show_rule_levels()
 	else: show_infinite_rules()
 
 func show_rule_levels() -> void:
-	page_view("rule_levels", "Edit rules", editor_return)
+	page_view("rule_levels", "Edit rules", open_game_menu)
 	for index in Build.Configuration.Catalog.COUNT:
 		content.add_child(action("%02d · %s" % [index + 1, Build.Configuration.Catalog.level(index).name], show_campaign_rules.bind(index), "EditLevel" + str(index + 1)))
 
@@ -705,7 +705,8 @@ func show_infinite_rules() -> void:
 	, "ApplyRules", true))
 	footer.add_child(action("Cancel", cancel_rules, "CancelRules"))
 
-func show_campaign_rules(index: int, wave: int = -1) -> void:
+func show_campaign_rules(index: int, wave: int = -1, return_to: Callable = Callable()) -> void:
+	rules_return = return_to if return_to.is_valid() else show_rule_levels
 	page_view("rules", "Edit rules", rules_back)
 	var store := Build.Configuration.new()
 	store.data.levels[str(index)] = app.campaign.level_setup(index).overrides.duplicate(true)
@@ -716,7 +717,7 @@ func show_campaign_rules(index: int, wave: int = -1) -> void:
 	rules_editor.shared_page = true
 	if app.campaign.run != null and app.campaign.run.mission.index == index and app.campaign.page == "battle" and app.campaign.run.editable(): rules_editor.live_run = app.campaign.run
 	rules_editor.apply_changes = app.campaign.save_configuration
-	rules_editor.saved.connect(func(): app.campaign.persist_slot(); show_rule_levels())
+	rules_editor.saved.connect(func(): app.campaign.persist_slot(); rules_return.call())
 	content.add_child(rules_editor)
 	footer.add_child(action("Apply changes", func(): rules_editor.save_changes(), "ApplyRules", true))
 	footer.add_child(action("Cancel", cancel_rules, "CancelRules"))
@@ -729,7 +730,7 @@ func rules_back() -> void:
 	else: cancel_rules()
 
 func cancel_rules() -> void:
-	confirm("Discard rule changes?", "Leave this draft and keep the game's existing rules?", "Discard changes", show_rule_levels if live_campaign() else open_game_menu)
+	confirm("Discard rule changes?", "Leave this draft and keep the game's existing rules?", "Discard changes", rules_return if live_campaign() else open_game_menu)
 
 func show_backups(return_to: Callable = Callable()) -> void:
 	if return_to.is_valid(): backup_return = return_to
