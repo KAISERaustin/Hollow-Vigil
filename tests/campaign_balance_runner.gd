@@ -86,7 +86,7 @@ func invest(battle: RefCounted, strategy: int) -> void:
 					return
 
 func run() -> void:
-	var report := "level,name,result,flame,gold,seconds\n"
+	var report := "level,name,result,core_integrity,gold,seconds\n"
 	var progress := Progress.new()
 	progress.path = "user://campaign-playthrough-" + str(Time.get_ticks_usec()) + ".save"
 	for index in range(20):

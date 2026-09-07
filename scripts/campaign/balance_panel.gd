@@ -30,7 +30,7 @@ func _ready() -> void:
 	add_theme_constant_override("separation", 12)
 	draft = store.overrides(index)
 	add_child(UI.paragraph("Level %d · %s" % [index + 1, Configuration.Catalog.level(index).name], 16))
-	add_child(UI.paragraph("Apply changes updates this run and future replays. Existing enemies stay on the field; pending spawns use the new settings. Times are measured from the wave's start. Starting gold and flame apply during initial setup or on restart." if live_run != null else "Changes stay in this draft until you choose Apply changes." if shared_page else "Save changes to use them next time this level starts.", 14))
+	add_child(UI.paragraph("Apply changes updates this run and future replays. Existing enemies stay on the field; pending spawns use the new settings. Times are measured from the wave's start. Starting gold and core integrity apply during initial setup or on restart." if live_run != null else "Changes stay in this draft until you choose Apply changes." if shared_page else "Save changes to use them next time this level starts.", 14))
 	scope_picker = Picker.new()
 	scope_picker.menu_title = "Choose rules scope"
 	scope_picker.name = "CampaignBalanceScope"

@@ -249,7 +249,7 @@ func show_configurations(slot: int) -> void:
 		build.add_child(title_row)
 		if not configuration.description.is_empty():
 			var description_box := PanelContainer.new()
-			description_box.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 2, 10))
+			description_box.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 10))
 			build.add_child(description_box)
 			description_box.add_child(UI.paragraph(configuration.description, 14))
 

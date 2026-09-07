@@ -239,7 +239,7 @@ func run() -> void:
 	await Harness.capture(app,"campaign-final-briefing")
 	campaign.start_mission(19)
 	campaign.run.phase = "victory"
-	campaign.run.health = 20
+	campaign.run.health = campaign.run.mission.flame
 	campaign.show_result()
 	await frame()
 	check(campaign.progress.data.completed_levels == 20 and campaign.dialog.visible, "Final victory saves completion and presents the ending")

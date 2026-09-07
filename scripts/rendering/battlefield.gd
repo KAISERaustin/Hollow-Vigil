@@ -539,7 +539,7 @@ func draw_tower(t: Dictionary) -> void:
 
 static func pill(bg: Color, border: Color, radius: int) -> StyleBox:
 	var s := VigilInterface.box(bg, border, radius)
-	s.set_border_width_all(3)
+	s.set_border_width_all(VigilInterface.OUTLINE)
 	s.set_corner_radius_all(radius)
 	return s
 

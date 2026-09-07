@@ -43,7 +43,7 @@ func _ready() -> void:
 	color = Color(UI.BORDER, 0.65)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	card = PanelContainer.new()
-	card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 4, 0))
+	card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 0))
 	add_child(card)
 	layout = UI.margin(card, UI.SCREEN_PADDING)
 	layout.add_theme_constant_override("separation", 16)

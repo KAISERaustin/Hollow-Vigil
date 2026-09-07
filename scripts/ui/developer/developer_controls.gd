@@ -75,7 +75,7 @@ func _ready() -> void:
 	add_child(editor)
 	var identity := PanelContainer.new()
 	identity.name = "BalanceIdentity"
-	identity.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, 2, 12))
+	identity.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, UI.OUTLINE, 12))
 	editor.add_child(identity)
 	var identity_stack := VBoxContainer.new()
 	identity_stack.add_theme_constant_override("separation", 8)

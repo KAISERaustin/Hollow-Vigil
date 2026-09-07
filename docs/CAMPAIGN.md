@@ -6,9 +6,9 @@ The campaign is a separate tactical world with 20 authored missions. A processio
 
 - Every level begins with its own fixed gold budget and an empty set of authored tower sockets. The four tower families, upgrades, specializations, targeting priorities and sale refunds use the existing combat rules.
 - Roads, entrance lanes, enemy groups, spawn intervals and delays are predefined. Enemies follow the displayed roads even where two routes cross. There is no territory purchase or continuous rift spawning.
-- The sanctuary begins with 20 flame. Hollows, Wraiths and Lantern Keepers consume 1 flame on arrival; Revenants and Abyss Shades consume 2; Crypt Sentinels consume 3. An escaped boss ends the mission.
+- The sanctuary begins with 3 core integrity by default. Hollows, Wraiths and Lantern Keepers reduce core integrity by 1 on arrival; Revenants and Abyss Shades reduce it by 2; Crypt Sentinels reduce it by 3. An escaped boss ends a mission with the default core integrity.
 - Gold from kills is collected immediately. Each completed wave pays its displayed bonus once. Preview all waves before spending, then start each wave when ready. Building, upgrading and selling remain available during combat. Opening a tower dialog or wave preview pauses the battle.
-- Win by clearing every enemy in every wave with flame remaining. A victory records the last beaten level and unlocks the next. Replaying a completed level does not advance progression again. There are no medals.
+- Win by clearing every enemy in every wave with core integrity remaining. A victory records the last beaten level and unlocks the next. Replaying a completed level does not advance progression again. There are no medals.
 - Pause and 2× speed operate independently of the sandbox. On phones, tap a socket to build or manage a tower; use +/− to zoom and drag to pan when zoomed in.
 
 ## The twenty sanctuaries
@@ -42,7 +42,7 @@ Levels 1–5 are forest, 6–10 are Ashen Fortress, 11–15 are Drowned Crypts, 
 
 Campaign stores only the number of sequential levels completed in `user://vigil-campaign.save`, with checked temporary writes and a recovery copy. It is independent of all three Infinite slots and does not import their gold, tuning, relics or offline income.
 
-No active mission or preparation checkpoint is saved. Leaving a level, closing the app or restarting after defeat begins that level again with its initial gold, flame and empty sockets. App interruptions pause active play while the process remains alive. Old saves migrate contiguous medal completions into the completed-level count and retain an original recovery copy; old checkpoints and medal scores are discarded. Unreadable files block ordinary writes and preserve existing copies.
+No active mission or preparation checkpoint is saved. Leaving a level, closing the app or restarting after defeat begins that level again with its initial gold, core integrity and empty sockets. App interruptions pause active play while the process remains alive. Old saves migrate contiguous medal completions into the completed-level count and retain an original recovery copy; old checkpoints and medal scores are discarded. Unreadable files block ordinary writes and preserve existing copies.
 
 Open **Account & backups** to explicitly upload or restore Campaign progress. Signing in, completing a level, restoring or reconnecting never uploads automatically. Failed attempts retry only when requested. See `CAMPAIGN_SAVE_DESIGN.md` for the complete manual backup contract.
 

@@ -123,7 +123,7 @@ func build_interface() -> void:
 	toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	toast_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	toast_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	toast_label.add_theme_stylebox_override("normal", UI.surface(UI.PANEL, 2, 12))
+	toast_label.add_theme_stylebox_override("normal", UI.surface(UI.PANEL, UI.OUTLINE, 12))
 	toast_label.modulate.a = 0.0
 	field = Battlefield.new()
 	field.state = game
@@ -159,7 +159,7 @@ func build_interface() -> void:
 	panels.offset_right = -12
 	panels.offset_bottom = -184
 	panels.offset_top = -484
-	panels.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 4, 0))
+	panels.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 0))
 	reset_scrim = ColorRect.new()
 	reset_scrim.color = Color(UI.BORDER, 0.65)
 	reset_scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -201,7 +201,7 @@ func build_return_popup() -> void:
 	return_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(return_overlay)
 	return_card = PanelContainer.new()
-	return_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 4, 0))
+	return_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 0))
 	return_overlay.add_child(return_card)
 	var content := UI.margin(return_card, 16)
 	content.add_theme_constant_override("separation", 12)

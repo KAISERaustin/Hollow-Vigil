@@ -416,7 +416,7 @@ func return_to_core() -> void:
 func _settings_card(tint: Color) -> PanelContainer:
 	var card := PanelContainer.new()
 	card.mouse_filter = Control.MOUSE_FILTER_PASS
-	var style := UI.surface(tint, 3, 10)
+	var style := UI.surface(tint, UI.OUTLINE, 10)
 	card.add_theme_stylebox_override("panel", style)
 	return card
 

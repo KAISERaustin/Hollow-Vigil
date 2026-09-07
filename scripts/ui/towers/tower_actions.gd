@@ -76,7 +76,7 @@ func _ready() -> void:
 	upgrade_quote = UI.paragraph("", 14)
 	upgrade_quote.name = "UpgradeQuote"
 	upgrade_quote.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	upgrade_quote.add_theme_stylebox_override("normal", UI.surface(UI.PANEL, 2, 12))
+	upgrade_quote.add_theme_stylebox_override("normal", UI.surface(UI.PANEL, UI.OUTLINE, 12))
 	add_child(upgrade_quote)
 	upgrade_quote.hide()
 	for action in ACTION_OFFSETS:

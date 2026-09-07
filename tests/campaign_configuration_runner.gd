@@ -6,7 +6,7 @@ func run() -> void:
 	for index in range(Configuration.Catalog.COUNT):
 		var authored := Configuration.Catalog.level(index)
 		var mission := Configuration.resolve(index)
-		check(mission.gold == authored.gold and mission.reward == authored.reward and mission.waves == authored.waves and mission.tuning == authored.tuning and mission.flame == 20, "Level %d defaults preserved" % (index + 1))
+		check(mission.gold == authored.gold and mission.reward == authored.reward and mission.waves == authored.waves and mission.tuning == authored.tuning and mission.flame == 3, "Level %d starts with 3 core integrity and its authored rules" % (index + 1))
 		for wave in range(mission.waves.size()):
 			check(Configuration.schedule(mission, wave) == Balance.Content.wave(index, wave).schedule(), "Default wave schedule preserved")
 	var custom := {"gold": 999.0, "flame": 30, "reward": 50.0, "tuning": {"towers": {"rapid": {"cost": 120.0}}}, "waves": {"0": {"groups": [["basic", 3, 1, 2.0, 0.5]], "reward": 77.0, "tuning": {"enemies": {"basic": {"hp": 222.0}}, "towers": {"rapid:2": {"cost": 33.0}}}}}}

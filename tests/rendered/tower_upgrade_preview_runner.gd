@@ -85,14 +85,14 @@ func exercise(host: Control, select: Callable, tower: Dictionary, context: Strin
 	check(dialog.body.find_child("Change_fire_rate", true, false).text == "+1", context + " derived fire rate delta is next minus current")
 	check(dialog.body.find_child("Change_dps", true, false).text == "+26", context + " derived DPS delta is next minus current")
 	check(dialog.body.find_child("Change_period", true, false).text == "−0.5 s", context + " shorter intervals show a reduction")
-	host.game.data.relics["preview_lens"] = "warden_lens"
-	tower.relic = "preview_lens"
+	host.game.data.relics["preview_lantern"] = "matriarch_lantern"
+	tower.relic = "preview_lantern"
 	dialog.refresh()
-	check(dialog.body.find_child("Stat_damage", true, false).text == "24.3" and dialog.body.find_child("Change_damage", true, false).text == "+10.8", context + " equipment applies to both sides of the comparison")
+	check(dialog.body.find_child("Stat_range", true, false).text == "184.8 units" and dialog.body.find_child("Change_range", true, false).text == "+16.8 units", context + " equipment applies to both sides of the comparison")
 	tower.relic = ""
-	host.game.data.relics.erase("preview_lens")
+	host.game.data.relics.erase("preview_lantern")
 	dialog.refresh()
-	check(dialog.body.find_child("Change_damage", true, false).text == "+8", context + " removing equipment refreshes the comparison")
+	check(dialog.body.find_child("Change_range", true, false).text == "+14 units", context + " removing equipment refreshes the comparison")
 	var old_revision := dialog.revision
 	host.game.data.settings.developer_balance.towers["rapid:2"].cost = 124.0
 	var gold: float = host.game.data.balance

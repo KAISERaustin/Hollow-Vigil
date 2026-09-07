@@ -43,11 +43,12 @@ func run() -> void:
 	var resumed := Run.new(0)
 	check(resumed.game.combat.enemies.is_empty() and resumed.game.data.towers.is_empty() and resumed.phase == "planning", "An unfinished level starts fresh")
 	var lose := Run.new(0)
+	check(lose.health == 3, "New campaign run starts with 3 core integrity")
 	for i in range(4000):
 		if lose.phase == "planning": lose.start_wave()
 		lose.tick(Balance.STEP)
 		if lose.phase == "defeat": break
-	check(lose.phase == "defeat" and lose.health == 0, "Undefended campaign loses when flame reaches zero")
+	check(lose.phase == "defeat" and lose.health == 0 and lose.game.data.escapes == 3, "Three escaped Hollows deplete default core integrity and lose the level")
 	var frozen: float = lose.game.data.active_seconds
 	lose.tick(5)
 	check(lose.game.data.active_seconds == frozen, "Defeat freezes simulation")
@@ -64,7 +65,7 @@ func run() -> void:
 	bell.pos = bell.path[0]
 	bell.segment = 1
 	bell_run.game.combat.tick(Balance.STEP)
-	check(bell_run.health == 0, "An escaped boss extinguishes the flame")
+	check(bell_run.health == 0, "An escaped boss depletes core integrity")
 	var progress := Progress.new()
 	progress.path = "user://campaign-check-" + str(Time.get_ticks_usec()) + ".save"
 	check(progress.unlocked(0) and not progress.unlocked(1), "Only the first campaign level starts unlocked")

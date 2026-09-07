@@ -22,7 +22,7 @@ static func draw(art: Control, kind: String) -> void:
 		VigilTerrainArt.shape(art, [Vector2(0, -5), Vector2(3, 0), Vector2(0, 5), Vector2(-3, 0)], coin, Vector2.ONE * scale, UI.TEXT, 0)
 		return
 	var frame := Rect2(12, 10, 40, 44)
-	art.draw_style_box(UI.surface(UI.SURFACE, 2, 4), frame)
+	art.draw_style_box(UI.surface(UI.SURFACE, UI.OUTLINE, 4), frame)
 	match kind:
 		"slots":
 			art.draw_rect(Rect2(20, 11, 24, 13), UI.MUTED)

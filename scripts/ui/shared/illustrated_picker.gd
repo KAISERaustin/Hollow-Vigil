@@ -22,7 +22,7 @@ func _ready() -> void:
 	popup = PopupPanel.new()
 	popup.name = "IllustratedSelectionMenu"
 	popup.theme = UI.theme()
-	popup.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 3, 12))
+	popup.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 12))
 	add_child(popup)
 	popup.popup_hide.connect(func():
 		if is_visible_in_tree(): grab_focus()

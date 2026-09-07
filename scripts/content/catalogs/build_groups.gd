@@ -6,7 +6,7 @@ const DEFINITIONS := {
 	"towers": {"name": "Towers", "description": "Stats for selected tower types, including their upgrades and specializations."},
 	"gear": {"name": "Gear", "description": "Values for selected equipment types."},
 	"rifts": {"name": "Rifts", "description": "Effects for selected rift types."},
-	"resources": {"name": "Starting resources", "description": "Starting gold and Campaign sanctuary flame."},
+	"resources": {"name": "Starting resources", "description": "Starting gold and Campaign core integrity."},
 	"layout": {"name": "Tower layout and equipment", "description": "Placed towers, upgrades and equipment. Requires their placement tiles or level sockets."},
 	"terrain": {"name": "Explored tiles", "description": "The explored Infinite map and its portal settings.", "game_type": "infinite"},
 	"timing": {"name": "Wave timing and counts", "description": "Counts, delays and spawn intervals for each wave's groups.", "game_type": "campaign"},

@@ -15,7 +15,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	z_index = 110
 	card = PanelContainer.new()
-	card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 4, 24))
+	card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 24))
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(card)
 	var rows := VBoxContainer.new()
@@ -28,7 +28,7 @@ func _ready() -> void:
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	rows.add_child(subtitle)
 	var badge := PanelContainer.new()
-	badge.add_theme_stylebox_override("panel", UI.surface(UI.GOLD, 2, 12))
+	badge.add_theme_stylebox_override("panel", UI.surface(UI.GOLD, UI.OUTLINE, 12))
 	rows.add_child(badge)
 	reward_label = UI.value("", 24)
 	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

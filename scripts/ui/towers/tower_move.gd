@@ -15,7 +15,7 @@ func _ready() -> void:
 	offset_left = 12
 	offset_right = -12
 	offset_top = 12
-	add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 3, 12))
+	add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 12))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 	add_child(row)

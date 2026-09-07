@@ -426,7 +426,7 @@ func show_briefing(index: int) -> void:
 	layout.add_child(stats)
 	stats.add_child(UI.stat_card("Waves", str(run.mission.waves.size())))
 	stats.add_child(UI.stat_card("Starting gold", UI.exact_money(run.mission.gold)))
-	stats.add_child(UI.stat_card("Flame", str(run.mission.flame)))
+	stats.add_child(UI.stat_card(Configuration.Fields.CONFIGURATION_FIELDS.flame.label, str(run.mission.flame)))
 	var sources := HBoxContainer.new()
 	sources.visible = can_author() and active_campaign_slot < 0
 	sources.add_theme_constant_override("separation", UI.GAP)
@@ -588,7 +588,7 @@ func refresh() -> void:
 	wave_button.disabled = not can_start or reward_transition.active
 	wave_button.text = "Start wave %d" % (run.wave+1) if can_start else "%d enemies remaining" % (run.game.combat.enemies.size() + run.schedule.size() - run.next_spawn)
 	if run.phase in ["victory", "defeat"]:
-		wave_button.text = "Sanctuary restored" if run.phase == "victory" else "The flame went out"
+		wave_button.text = "Sanctuary restored" if run.phase == "victory" else "Core integrity depleted"
 	if reward_transition.active:
 		status.text = "Wave %d / %d" % [run.wave, run.mission.waves.size()]
 		wave_button.text = "Wave cleared"
@@ -744,17 +744,17 @@ func show_result() -> void:
 	clear_selection()
 	save_progress()
 	var won: bool = run.phase == "victory"
-	open_dialog("Sanctuary restored" if won else "The flame went out")
+	open_dialog("Sanctuary restored" if won else "Core integrity depleted")
 	if won:
-		dialog_body.add_child(UI.paragraph("%d flame remains. Level completed. Your progress is saved on this device." % run.health,15))
+		dialog_body.add_child(UI.paragraph("Core integrity remaining: %d. Level completed. Your progress is saved on this device." % run.health,15))
 		if run.mission.index == 19:
-			dialog_body.add_child(UI.paragraph("The Prior falls. Across the kingdom, twenty sanctuaries answer the last flame. For the first time in an age, the capital sees dawn.",18))
+			dialog_body.add_child(UI.paragraph("The Prior falls. Across the kingdom, twenty sanctuary cores awaken. For the first time in an age, the capital sees dawn.",18))
 		else:
 			var next := UI.gold_button("Next level", start_mission.bind(run.mission.index+1),48)
 			next.name = "NextCampaignLevel"
 			dialog_body.add_child(next)
 	else:
-		dialog_body.add_child(UI.paragraph("Restart this level with its original gold and flame. Previously completed levels remain saved.",15))
+		dialog_body.add_child(UI.paragraph("Restart this level with its original gold and core integrity. Previously completed levels remain saved.",15))
 	dialog_body.add_child(UI.button("Restart level", start_mission.bind(run.mission.index),48))
 	dialog_body.add_child(UI.button("World map",show_map,48))
 	if not progress.last_error.is_empty():
@@ -768,7 +768,7 @@ func _build_dialog() -> void:
 	add_child(dialog)
 	dialog_card = PanelContainer.new()
 	dialog_card.minimum_size_changed.connect(func(): call_deferred("fit"))
-	dialog_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 3, 0))
+	dialog_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 0))
 	dialog.add_child(dialog_card)
 	var content := UI.margin(dialog_card, UI.SCREEN_PADDING)
 	content.add_theme_constant_override("separation",10)
@@ -828,7 +828,7 @@ func open_dialog(title: String, for_socket: bool = false) -> void:
 	waves_dialog = false
 	dialog.z_index = 101
 	socket_dialog = for_socket
-	dialog_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 3, 0))
+	dialog_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 0))
 	dialog_body.add_theme_constant_override("separation", 6 if for_socket else 12)
 	dialog.color = Color(0, 0, 0, 0) if for_socket else Color(0.03, 0.04, 0.05, 0.8)
 	dialog.mouse_filter = Control.MOUSE_FILTER_IGNORE if for_socket else Control.MOUSE_FILTER_STOP

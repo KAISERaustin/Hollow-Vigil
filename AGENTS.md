@@ -1,5 +1,13 @@
 # Repository instructions
 
+## UI standard for all future work
+
+- Before adding or changing UI, read [docs/UI_STYLE_GUIDE.md](docs/UI_STYLE_GUIDE.md). Version 2, **Parchment cards**, is the default for future UI requests unless the user explicitly changes the direction. Its visual reference is [docs/references/ui-waves-reference.png](docs/references/ui-waves-reference.png), supplied by the user on September 7, 2026.
+- Preserve the reference's clean cards, compact spacing, bold values above clear labels, and actual game portraits beside identity information when applicable. Use its layout and information hierarchy across new screens, not only Waves.
+- Every visible UI enclosure uses the same thin black border: `VigilInterface.OUTLINE` = **1 UI unit**, color `#000000`. Panels, cards, stat cells, buttons, fields, badges and dividers must not introduce heavier local borders or thicken on interaction. Keep rectangular corners at 4 units (0 for edge-to-edge chrome). World artwork contours remain governed by `docs/ART_DIRECTION.md`.
+- Compose shared helpers in `scripts/ui/shared/interface.gd` and reusable presentation components in `scripts/ui/shared/`; extend those owners before introducing local styles. Use 12-unit card padding, 8-unit inset padding and cell gaps, and 12-unit internal section/action gaps. Keep screen controls at least 48 units high and preserve responsive reflow, scrolling, and input ownership.
+- The new guide supersedes older conflicting instructions about thick structural borders, borderless statistics, or flat UI backgrounds. Keep the guide, its HTML companion, shared tokens, and `docs/ART_DIRECTION.md` consistent. Validate UI work with the relevant rendered checks and visually inspect the result at phone sizes.
+
 ## Reusable node system for every addition
 
 - This is the default architecture for **everything added to the game**, not just attributes: entities, mechanics, abilities, effects, gear, enemies, bosses, towers, levels, world features, progression and the systems connecting them. Integrate each addition into the reusable node/component structure, or introduce a reusable node family when needed. Do not build isolated, one-off implementations that future mechanics cannot reuse.

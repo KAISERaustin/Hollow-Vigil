@@ -60,9 +60,9 @@ All three appear in Developer Controls with editable health, movement speed, bou
 
 ## Campaign: The Last Procession
 
-Open **Campaign · The Last Procession** from Saved games, or play it from Settings. Twenty handcrafted levels cross four regions in a separate campaign world, with predefined roads, planned waves and a boss every fifth level. Each mission starts with fresh gold and 20 flame; enemies reaching the sanctuary consume flame, and an escaped boss ends the mission. Gold is collected automatically. Build and upgrade between or during waves, preview the next threats, and start each wave when ready.
+Open **Campaign · The Last Procession** from Saved games, or play it from Settings. Twenty handcrafted levels cross four regions in a separate campaign world, with predefined roads, planned waves and a boss every fifth level. Each mission starts with fresh gold and 3 core integrity by default; enemies reaching the sanctuary reduce core integrity, and reaching zero ends the mission. Gold is collected automatically. Build and upgrade between or during waves, preview the next threats, and start each wave when ready.
 
-Victories unlock the next level. Earn up to three medals by protecting the flame, and replay levels to improve your best result. Campaign checkpoints and medals save locally, separately from sandbox games. Interrupted waves resume from their preparation checkpoint. See [the campaign guide](docs/CAMPAIGN.md) for all 20 missions, controls and save behavior.
+Victories unlock the next level. Protect core integrity to complete each level, and replay completed levels at any time. Campaign progress saves locally, separately from sandbox games. See [the campaign guide](docs/CAMPAIGN.md) for all 20 missions, controls and save behavior.
 
 ## Developer Controls
 

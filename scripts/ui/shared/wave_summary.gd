@@ -6,13 +6,11 @@ const UI = preload("res://scripts/ui/shared/interface.gd")
 const Portrait = preload("res://scripts/ui/shared/content_portrait.gd")
 
 static func card(report: Dictionary, status: String, details: Callable, edit: Callable = Callable()) -> PanelContainer:
-	var panel := PanelContainer.new()
+	var body := VBoxContainer.new()
+	var panel := UI.info_card(body, UI.SURFACE, UI.CARD_PADDING)
 	panel.name = "WaveSummary" + str(report.wave)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, 2, 12))
-	var body := VBoxContainer.new()
 	body.add_theme_constant_override("separation", UI.GAP)
-	panel.add_child(body)
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", UI.GAP)
 	body.add_child(header)
@@ -28,8 +26,8 @@ static func card(report: Dictionary, status: String, details: Callable, edit: Ca
 	var stats := GridContainer.new()
 	stats.name = "WaveStats"
 	stats.columns = 2
-	stats.add_theme_constant_override("h_separation", 8)
-	stats.add_theme_constant_override("v_separation", 8)
+	stats.add_theme_constant_override("h_separation", UI.CARD_GAP)
+	stats.add_theme_constant_override("v_separation", UI.CARD_GAP)
 	body.add_child(stats)
 	stats.add_child(UI.info_card(UI.stat("Enemies", str(report.spawn_count))))
 	stats.add_child(UI.info_card(UI.stat("Wave gold", UI.exact_money(report.completion_gold))))
@@ -38,7 +36,7 @@ static func card(report: Dictionary, status: String, details: Callable, edit: Ca
 	stats.resized.connect(func(): stats.columns = 4 if stats.size.x >= 400 else 2)
 	var roster := VBoxContainer.new()
 	roster.name = "EnemyRoster"
-	roster.add_theme_constant_override("separation", 8)
+	roster.add_theme_constant_override("separation", UI.CARD_GAP)
 	body.add_child(roster)
 	for kind: String in report.enemy_counts:
 		roster.add_child(enemy_row(kind, int(report.enemy_counts[kind])))
@@ -64,7 +62,7 @@ static func enemy_row(kind: String, count: int) -> PanelContainer:
 	var boss := Balance.BOSSES.has(kind)
 	var definition := Balance.definition("bosses" if boss else "enemies", kind)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
+	row.add_theme_constant_override("separation", UI.CARD_GAP)
 	var art := Portrait.preview("bosses" if boss else "enemies", kind)
 	art.custom_minimum_size = Vector2(48, 48)
 	row.add_child(art)

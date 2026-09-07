@@ -4,7 +4,7 @@ const STARTING_GOLD := 280.0 # First property and an opening defense.
 const SESSION := {"name": "Starting resources", "starting_gold": STARTING_GOLD}
 const CONFIGURATION_FIELDS := {
 	"gold": {"label": "Starting gold", "min": 0.0, "max": 1000000000000.0, "step": 1.0},
-	"flame": {"label": "Sanctuary flame", "min": 1.0, "max": 10000.0, "step": 1.0, "integer": true},
+	"flame": {"label": "Core integrity", "min": 1.0, "max": 10000.0, "step": 1.0, "integer": true},
 	"reward": {"label": "Gold per cleared wave", "min": 0.0, "max": 1000000.0, "step": 1.0}
 }
 const GROUP_FIELDS := {
@@ -14,14 +14,14 @@ const GROUP_FIELDS := {
 	4: {"label": "Spawn interval (seconds)", "min": 0.05, "max": 120, "step": 0.05}
 }
 const COUNT := 20
-const MAX_HEALTH := 20
+const MAX_HEALTH := 3
 const BOARD := Rect2(-310, -660, 620, 800)
 const CORE := Vector2(0, 80)
 const CHAPTERS := [
 	{"name": "The Overgrown Road", "map_art": preload("res://assets/campaign/overgrown-road.svg"), "gate_art": preload("res://assets/campaign/overgrown-road-gate.svg"), "style": "forest", "story": "The last sanctuary has gone dark. Carry its ember beyond the forest."},
 	{"name": "The Ashen Fortress", "map_art": preload("res://assets/campaign/ashen-fortress.svg"), "gate_art": preload("res://assets/campaign/ashen-fortress-gate.svg"), "style": "ashen_forge", "story": "The old watchfires still burn, but something else tends them now."},
 	{"name": "The Drowned Crypts", "map_art": preload("res://assets/campaign/drowned-crypts.svg"), "gate_art": preload("res://assets/campaign/drowned-crypts-gate.svg"), "style": "drowned_crypt", "story": "Beneath the flood, a bell calls the dead back to their posts."},
-	{"name": "The Eclipsed Capital", "map_art": preload("res://assets/campaign/eclipsed-capital.svg"), "gate_art": preload("res://assets/campaign/eclipsed-capital-gate.svg"), "style": "bloodmoon_sanctuary", "story": "One flame remains between the kingdom and a night without end."}
+	{"name": "The Eclipsed Capital", "map_art": preload("res://assets/campaign/eclipsed-capital.svg"), "gate_art": preload("res://assets/campaign/eclipsed-capital-gate.svg"), "style": "bloodmoon_sanctuary", "story": "One core stands between the kingdom and a night without end."}
 ]
 
 # Each road is authored from its entrance to the same sanctuary. Wave groups are
@@ -39,7 +39,7 @@ const MISSIONS := [
 	{"name": "The Old Watch", "brief": "Armored revenants lead the procession. Use an Obelisk for concentrated damage.", "gold": 400, "pads": [0,1,2,3,5,6,9,10,13,14],
 	 "roads": [[[270,-600],[-150,-600],[-150,-450],[150,-450],[150,-150],[0,-150],[0,80]]],
 	 "waves": [[["basic",16,0,0,0.9]], [["heavy",3,0,0,4],["basic",12,0,3,0.8]], [["fast",16,0,0,1]], [["heavy",5,0,0,3.5],["lantern",6,0,4,2]]]},
-	{"name": "Rootbound Gate", "brief": "Break the Warden before it reaches the flame. Cinderfield burns through its root shield.", "gold": 1000, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
+	{"name": "Rootbound Gate", "brief": "Break the Warden before it reaches the core. Cinderfield burns through its root shield.", "gold": 1000, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
 	 "roads": [[[-270,-600],[150,-600],[150,-450],[-150,-450],[-150,-150],[150,-150],[150,0],[0,0],[0,80]]],
 	 "waves": [[["basic",20,0,0,0.7]], [["heavy",5,0,0,3],["fast",12,0,5,1]], [["lantern",12,0,0,1.8]], [["warden",1,0,0,1],["basic",20,0,6,0.9]]]},
 	{"name": "Cinder Causeway", "brief": "Forged enemies have 25% more health. Upgrade a strong firing position early.", "gold": 450, "pads": [0,1,2,3,5,6,9,10,13,14],
@@ -66,7 +66,7 @@ const MISSIONS := [
 	{"name": "The Long Descent", "brief": "Crypt Sentinels endure light fire. Invest in heavy towers and long sightlines.", "gold": 720, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
 	 "roads": [[[270,-610],[-150,-610],[-150,-450],[150,-450],[150,-150],[-150,-150],[-150,0],[0,0],[0,80]]],
 	 "waves": [[["lantern",20,0,0,1]], [["sentinel",6,0,0,3.5]], [["shade",18,0,0,1.1]], [["sentinel",8,0,0,3],["basic",36,0,4,0.45]], [["sentinel",10,0,0,2.8],["shade",16,0,5,1.1]]]},
-	{"name": "Three Tollgates", "brief": "Three entrances converge late. First targeting protects the flame under pressure.", "gold": 800, "pads": [0,1,2,3,5,6,9,10,13,14],
+	{"name": "Three Tollgates", "brief": "Three entrances converge late. First targeting protects core integrity under pressure.", "gold": 800, "pads": [0,1,2,3,5,6,9,10,13,14],
 	 "roads": [[[-150,-610],[-150,0],[0,0],[0,80]],[[0,-610],[0,80]],[[150,-610],[150,0],[0,0],[0,80]]],
 	 "waves": [[["basic",20,0,0,0.7],["basic",20,2,0,0.7]], [["shade",10,1,0,1.7]], [["fast",18,0,0,0.8],["fast",18,1,4,0.8],["fast",18,2,8,0.8]], [["sentinel",6,0,0,3],["lantern",16,2,0,1.1]], [["shade",12,0,0,1.5],["sentinel",5,1,2,3.5],["shade",12,2,0,1.5]]]},
 	{"name": "The Bell Below", "brief": "The Bell summons escorts along its route. Thunderseal interrupts its toll.", "gold": 1000, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],

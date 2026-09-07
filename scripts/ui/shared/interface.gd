@@ -9,13 +9,17 @@ const GOLD := VigilTerrainArt.GOLD
 const TEXT := VigilTerrainArt.INK
 const MUTED := VigilTerrainArt.BACKDROP
 const DANGER := VigilTerrainArt.CORAL
-const OUTLINE := 4
+## All UI enclosure borders and dividers share this width. See docs/UI_STYLE_GUIDE.md.
+const OUTLINE := 1
 const RADIUS := 4
 const BODY := 16
 const CAPTION := 14
 const META := 12
 const OBJECT_TITLE := 24
 const GAP := 12
+const CARD_GAP := 8
+const CARD_PADDING := 12
+const INSET_PADDING := 8
 const PADDING := 16
 const SCREEN_PADDING := 12
 const TARGET := 48
@@ -51,8 +55,8 @@ static func surface(bg: Color = PANEL, outline: int = OUTLINE, padding: int = PA
 static func plain() -> StyleBox:
 	return surface(Color.TRANSPARENT, 0, 0)
 
-## Passive content cards share a light inset rim and let scroll drags through.
-static func info_card(content: Control, background: Color = PANEL, padding: int = 8, outline: int = 1) -> PanelContainer:
+## Passive content cards share the standard ink rim and let scroll drags through.
+static func info_card(content: Control, background: Color = PANEL, padding: int = INSET_PADDING, outline: int = OUTLINE) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -98,7 +102,7 @@ static func chrome() -> StyleBox:
 	return style
 
 static func badge(bg: Color = GOLD) -> StyleBox:
-	return surface(bg, 2, 8)
+	return surface(bg, OUTLINE, INSET_PADDING)
 
 static func safe_rect(control: Control) -> Rect2:
 	var available := Rect2(Vector2.ZERO, control.size)
@@ -207,13 +211,13 @@ static func theme() -> Theme:
 		else:
 			track.content_margin_top = 7
 			track.content_margin_bottom = 7
-		track.set_border_width_all(2)
+		track.set_border_width_all(OUTLINE)
 		t.set_stylebox("scroll", type, track)
 		t.set_stylebox("scroll_focus", type, focus_box())
 		for state in ["grabber", "grabber_highlight", "grabber_pressed"]:
 			var grabber := box(GOLD)
 			grabber.set_content_margin_all(7)
-			grabber.set_border_width_all(3)
+			grabber.set_border_width_all(OUTLINE)
 			t.set_stylebox(state, type, grabber)
 		for part in ["increment", "increment_highlight", "increment_pressed", "decrement", "decrement_highlight", "decrement_pressed"]:
 			t.set_icon(part, type, ImageTexture.new())
@@ -304,7 +308,7 @@ static func button(text: String, action: Callable, height: float = 48, highlight
 	b.add_theme_stylebox_override("focus", focus_box())
 	b.draw.connect(func():
 		if b.toggle_mode and b.button_pressed and not highlight_selection:
-			b.draw_line(Vector2(12, b.size.y - 8), Vector2(b.size.x - 12, b.size.y - 8), BORDER, 2)
+			b.draw_line(Vector2(12, b.size.y - 8), Vector2(b.size.x - 12, b.size.y - 8), BORDER, OUTLINE)
 	)
 	return b
 
@@ -396,7 +400,7 @@ static func action_row(title: String, action: BaseButton, action_text: String = 
 	row.custom_minimum_size.y = 64
 	row.add_theme_constant_override("separation", GAP)
 	row.draw.connect(func():
-		row.draw_line(Vector2(0, row.size.y - 1), Vector2(row.size.x, row.size.y - 1), BORDER, 2)
+		row.draw_line(Vector2(0, row.size.y - 1), Vector2(row.size.x, row.size.y - 1), BORDER, OUTLINE)
 	)
 	if preview != null:
 		row.add_child(preview)
@@ -433,7 +437,7 @@ static func number_row(title: String, number: SpinBox, preview: Button = null, i
 	row.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_theme_constant_override("separation", GAP)
 	row.custom_minimum_size.y = 120
-	row.draw.connect(func(): row.draw_line(Vector2(0, row.size.y - 1), Vector2(row.size.x, row.size.y - 1), BORDER, 2))
+	row.draw.connect(func(): row.draw_line(Vector2(0, row.size.y - 1), Vector2(row.size.x, row.size.y - 1), BORDER, OUTLINE))
 	var copy := VBoxContainer.new()
 	copy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	copy.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -541,15 +545,15 @@ static func stat_card(caption: String, text: String, pixels: int = 24) -> PanelC
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for entry: Label in column.get_children():
 		entry.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	return info_card(column, SURFACE, 8, 2)
+	return info_card(column, SURFACE)
 
 static func rule() -> HSeparator:
 	var r := HSeparator.new()
 	var style := StyleBoxLine.new()
 	style.color = BORDER
-	style.thickness = 2
+	style.thickness = OUTLINE
 	r.add_theme_stylebox_override("separator", style)
-	r.custom_minimum_size.y = 2
+	r.custom_minimum_size.y = OUTLINE
 	return r
 
 static func margin(parent: Node, padding: int = 16) -> VBoxContainer:

@@ -12,9 +12,9 @@ static func create(kind: String, title: String, cost: float, action: Callable, l
 	var definition := Balance.definition("towers", kind)
 	var tint := Color(str(definition.get("color", "e0b568")))
 	for state in ["normal", "hover", "disabled"]:
-		button.add_theme_stylebox_override(state, UI.surface(UI.PANEL.lerp(tint, 0.12), 3, 8))
+		button.add_theme_stylebox_override(state, UI.surface(UI.PANEL.lerp(tint, 0.12), UI.OUTLINE, 8))
 	for state in ["pressed", "hover_pressed"]:
-		button.add_theme_stylebox_override(state, UI.surface(UI.PANEL.lerp(UI.GOLD, 0.45), 3, 8))
+		button.add_theme_stylebox_override(state, UI.surface(UI.PANEL.lerp(UI.GOLD, 0.45), UI.OUTLINE, 8))
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "right", "top", "bottom"]:

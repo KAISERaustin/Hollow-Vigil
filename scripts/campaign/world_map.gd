@@ -46,7 +46,7 @@ func _draw() -> void:
 		var top := chapter * 450.0
 		var palette := Art.ground_color(Catalog.CHAPTERS[chapter].style)
 		var panel := Rect2(0, top, size.x, 435)
-		draw_style_box(UI.surface(palette.lightened(0.1), 2, 22), panel)
+		draw_style_box(UI.surface(palette.lightened(0.1), UI.OUTLINE, 22), panel)
 		# Chapter artwork shares the authored map coordinates; keep the frame
 		# visible and draw all navigation and labels over the background.
 		var background: Texture2D = Catalog.CHAPTERS[chapter].get("map_art")

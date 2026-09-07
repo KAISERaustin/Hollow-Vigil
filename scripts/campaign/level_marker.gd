@@ -27,11 +27,11 @@ func _draw() -> void:
 		draw_polyline(pointer, Color.BLACK, 2, true)
 	if completed:
 		if active:
-			draw_style_box(UI.surface(Color(0,0,0,0), 2, 4), Rect2(Vector2.ZERO, size))
+			draw_style_box(UI.surface(Color(0,0,0,0), UI.OUTLINE, 4), Rect2(Vector2.ZERO, size))
 		ClearedArt.draw(self, offset, gate != null)
 		if gate != null:
 			var plaque := Rect2(size.x * 0.5 - 18, size.y - 21, 36, 22)
-			draw_style_box(UI.surface(paper, 2, 2), plaque)
+			draw_style_box(UI.surface(paper, UI.OUTLINE, 2), plaque)
 			draw_string(UI.font(600), plaque.position + Vector2(6, 16), str(number), HORIZONTAL_ALIGNMENT_CENTER, 24, 14, UI.TEXT)
 		else:
 			draw_string(UI.font(600), Vector2(9,40)+offset, str(number), HORIZONTAL_ALIGNMENT_CENTER, 26, 16, UI.TEXT)
@@ -39,7 +39,7 @@ func _draw() -> void:
 	if gate != null:
 		draw_texture_rect(gate, Rect2(Vector2.ZERO, size), false)
 		var plaque := Rect2(size.x * 0.5 - 18, size.y - 21, 36, 22)
-		draw_style_box(UI.surface(paper, 2, 2), plaque)
+		draw_style_box(UI.surface(paper, UI.OUTLINE, 2), plaque)
 		draw_string(UI.font(600), plaque.position + Vector2(6, 16), str(number), HORIZONTAL_ALIGNMENT_CENTER, 24, 14, UI.TEXT)
 		return
 	var outline := PackedVector2Array([Vector2(8,8), Vector2(16,2), Vector2(39,2), Vector2(47,10), Vector2(45,47), Vector2(9,47), Vector2(6,38), Vector2(8,8)])
