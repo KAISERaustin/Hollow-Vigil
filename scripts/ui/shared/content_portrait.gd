@@ -4,6 +4,7 @@ static func draw(canvas: Control, category: String, kind: String, level: int = 1
 	var center := canvas.size * 0.5
 	var art_scale := minf(canvas.size.y, canvas.size.x) / 144.0
 	match category:
+		"session": preload("res://scripts/ui/shared/choice_portrait.gd").draw(canvas, "gold")
 		"enemies": VigilEnemyArt.draw(canvas, kind, center + Vector2(0, 10) * art_scale, 3.0 * art_scale)
 		"bosses": preload("res://scripts/rendering/actors/boss_art.gd").portrait(canvas, kind, center + Vector2(0, 5) * art_scale, 1.1 * art_scale)
 		"rifts": preload("res://scripts/rendering/actors/rift_art.gd").draw(canvas, kind, center + Vector2(0, 20) * art_scale, 1.8 * art_scale)
@@ -39,7 +40,12 @@ static func profile(category: String, kind: String, tint: Color, level: int = 1,
 		for index in range(8):
 			var direction := Vector2.from_angle(index * TAU / 8.0)
 			art.draw_line(center + direction * (radius - 8), center + direction * (radius - 4), tint.darkened(0.3), 1, true)
-		draw(art, category, kind, level, branch)
+		if category == "towers":
+			# Center the silhouette (-42 to +12 around its ground anchor) in the rim.
+			var scale := minf(art.size.x, art.size.y) / 144.0
+			VigilTerrainArt.sentinel(art, kind, center + Vector2(0, 25.5) * scale, 1.7 * scale, level, branch)
+		else:
+			draw(art, category, kind, level, branch)
 	)
 	art.resized.connect(art.queue_redraw)
 	return art

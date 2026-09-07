@@ -117,6 +117,8 @@ The `build_contents` family in `content/catalogs/build_groups.gd` registers comm
 
 The shared page shell, contents checklist, gameplay toolbar, confirmation popup and mobile layout observer are reusable visual component families. Campaign and Infinite supply their session context to the same navigation owner. Add common menu behavior there and keep authored levels, terrain and gameplay transactions in their existing owners.
 
+Previous-menu actions use `VigilInterface.back_button` or `configure_back_button` for an existing button with connected callbacks. This component preserves the map's 48-pixel square, arrow, font and symmetric padding in every button state. Back buttons sit at the top left of their headers with `SCREEN_PADDING` (12 pixels) inside the screen's safe area or dialog frame and `GAP` between header items. Taller titles and playback controls cannot stretch or vertically center the back button. Hosts retain navigation callbacks; page, toolbar, sheet and nested equipment/campaign dialogs reuse the same presentation.
+
 ## Shared mobile navigation components
 
 Screen owners attach `ui/shared/mobile_layout.gd` to refit when display safe areas or orientation change. `VigilInterface.safe_rect` converts physical display insets to the screen's local UI coordinates. The native keyboard overlays the existing UI without shrinking or clipping menu layout. The observer follows focused form controls after display layout changes; its state belongs to that screen and is removed with it.

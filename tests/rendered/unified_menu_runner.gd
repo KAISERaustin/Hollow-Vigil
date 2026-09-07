@@ -29,6 +29,8 @@ func press(key: String) -> void:
 	var target := button(key)
 	check(target != null, "Reachable action: " + key)
 	if target == null: return
+	if key in ["BackButton", "CampaignSavedGames", "CampaignBack", "GameMenuButton"] and target.text == "←":
+		check_screen_back(target)
 	var ancestor := target.get_parent()
 	while ancestor != null:
 		if ancestor is ScrollContainer: ancestor.ensure_control_visible(target)
@@ -78,6 +80,8 @@ func choose(key: String, index: int) -> void:
 
 func capture(key: String) -> void:
 	await frames()
+	var back := menu.header.get_node_or_null("BackButton") as Button
+	if back != null: check_screen_back(back)
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://artifacts/unified-" + key + "-" + str(root.size.x) + ".png")
 	var safe := Rect2(Vector2.ZERO, Vector2(root.size))
@@ -245,6 +249,14 @@ func check_rules(type: String) -> void:
 	check(app.campaign.level_setup(0).overrides.get("gold") == 888 if type == "campaign" else app.game.tuning.enemies.basic.hp == 888, "Apply commits rules to only the selected session")
 	if type == "campaign": await press("BackButton")
 	check(menu.screen == "game_menu", "Rules return to held game menu")
+
+func check_screen_back(back: Button) -> void:
+	check(back != null, "Back is present on the current screen")
+	if back == null: return
+	check(back.get_global_rect().is_equal_approx(Rect2(12, 12, 48, 48)), "Back keeps the map's size and screen inset on %s at %s: %s" % [back.name, root.size, back.get_global_rect()])
+	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
+		var style := back.get_theme_stylebox(state)
+		check(style.get_content_margin(SIDE_LEFT) == 12 and style.get_content_margin(SIDE_RIGHT) == 12 and style.get_content_margin(SIDE_TOP) == 8 and style.get_content_margin(SIDE_BOTTOM) == 8, "Back keeps symmetric padding in " + state)
 
 func remember_toolbar() -> void:
 	for key in ["PauseButton", "SpeedButton"]:

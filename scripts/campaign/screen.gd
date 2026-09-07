@@ -9,6 +9,7 @@ const Progress = preload("res://scripts/campaign/progress.gd")
 const Board = preload("res://scripts/campaign/board.gd")
 const WorldMap = preload("res://scripts/campaign/world_map.gd")
 const TowerChoice = preload("res://scripts/ui/towers/tower_choice.gd")
+const WaveSummary = preload("res://scripts/ui/shared/wave_summary.gd")
 signal closed
 var app: VigilApp
 var progress := Progress.new()
@@ -629,43 +630,19 @@ func show_waves() -> void:
 	dialog.z_index = 101
 	fit()
 	var preview := VBoxContainer.new()
-	preview.add_theme_constant_override("separation", 4)
+	preview.name = "WaveSummaries"
+	preview.add_theme_constant_override("separation", 24)
 	dialog_body.add_child(preview)
 	var reports := Configuration.wave_reports(run.mission)
 	for index in range(run.mission.waves.size()):
-		var section := VBoxContainer.new()
-		section.add_theme_constant_override("separation", 2)
-		preview.add_child(section)
-		section.add_child(UI.heading("Wave %d%s" % [index+1, " · Cleared" if index < run.wave else ""], 16))
 		var report: Dictionary = reports[index]
-		section.add_child(UI.paragraph("%d enemies · %s total health · %s wave gold · Last spawn %.2fs" % [report.spawn_count, UI.exact_money(report.total_spawn_health), UI.exact_money(report.completion_gold), report.last_spawn_seconds], 13))
-		if index > 0:
-			var previous: Dictionary = reports[index - 1]
-			section.add_child(UI.paragraph("From previous wave: %+d enemies · %+.2f total health · %+.2f completion gold" % [report.spawn_count - previous.spawn_count, report.total_spawn_health - previous.total_spawn_health, report.completion_gold - previous.completion_gold], 13))
-		section.add_child(UI.button("Wave %d balancing details" % (index + 1), show_wave_balance.bind(index)))
+		var state := "Cleared" if index < run.wave else ""
+		if index == run.wave:
+			state = "In progress" if run.phase == "wave" else "Up next"
+		var edit := Callable()
 		if can_author():
-			var edit := UI.button("Edit wave %d" % (index + 1), show_level_balance.bind(int(run.mission.index), index))
-			edit.name = "EditCampaignWave" + str(index + 1)
-			section.add_child(edit)
-		var counts := {}
-		for group in run.mission.waves[index]:
-			counts[group[0]] = int(counts.get(group[0], 0)) + int(group[1])
-		for kind in counts:
-			var definitions: Dictionary = Balance.BOSSES if Balance.BOSSES.has(kind) else Balance.ENEMIES
-			var enemy: Dictionary = definitions[kind]
-			var role: String = str(enemy.get("role", "Boss")).split(" · ")[-1].capitalize()
-			section.add_child(UI.paragraph("%d %s · %s" % [counts[kind], enemy.name, role], 14))
-	if run.mission.waves.size() <= 3:
-		preview.add_child(UI.rule())
-		var described: Array[String] = []
-		for wave in run.mission.waves:
-			for group in wave:
-				if group[0] in described:
-					continue
-				described.append(group[0])
-				var definitions: Dictionary = Balance.BOSSES if Balance.BOSSES.has(group[0]) else Balance.ENEMIES
-				var enemy: Dictionary = definitions[group[0]]
-				preview.add_child(UI.paragraph("%s: %s." % [enemy.name, str(enemy.get("description", enemy.get("weakness", "Boss"))).get_slice(".", 0)], 14))
+			edit = show_level_balance.bind(int(run.mission.index), index)
+		preview.add_child(WaveSummary.card(report, state, show_wave_balance.bind(index), edit))
 
 func show_socket(socket: int) -> void:
 	if not run.editable() or not Balance.Content.level(run.mission.index).allows_socket(socket):
