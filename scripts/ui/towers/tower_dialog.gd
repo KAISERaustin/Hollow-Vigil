@@ -58,7 +58,7 @@ func _ready() -> void:
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	portrait.draw.connect(func():
 		if mode == "equipment_detail" and app.game.data.relics.has(relic_choice):
-			preload("res://scripts/rendering/actors/relic_art.gd").draw(portrait, app.game.data.relics[relic_choice], portrait.size * 0.5)
+			preload("res://scripts/rendering/actors/relic_art.gd").draw(portrait, app.game.data.relics[relic_choice], portrait.size * 0.5, minf(portrait.size.x, portrait.size.y) / 34.0)
 		else:
 			var shown_level := mini(tower_level + 1, Balance.MAX_TOWER_LEVEL) if mode == "preview" else tower_level
 			VigilTerrainArt.sentinel(portrait, tower_kind, Vector2(20, 41) if mode == "preview" else Vector2(24, 51), 0.65 if mode == "preview" else 0.85, shown_level, tower_branch)

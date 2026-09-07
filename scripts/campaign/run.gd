@@ -91,6 +91,7 @@ func tick(delta: float) -> void:
 		phase = "victory" if wave == mission.waves.size() else "planning"
 		game.combat.pending_shots.clear()
 		game.combat.burning_ground.clear()
+		game.combat.effect_fields.clear()
 		game.combat.curses.clear()
 		game.combat.target_locks.clear()
 		game.combat.relic_progress.clear()

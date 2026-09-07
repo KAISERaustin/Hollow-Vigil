@@ -2,6 +2,14 @@
 
 Current direction: extremely simple flat drawings with solid black outlines. No painted textures, lighting, gradients, noise or decorative particles. Active artwork is native Godot drawing code; no image generation is needed for these elementary shapes.
 
+Gear direction, revised September 7, 2026: the user requested the greater detail
+shown in the upgraded portal references. All eighteen gear objects use layered
+silhouettes, thick ink contours, carved wood, parchment/bone, stone, iron,
+colored insets and brass fittings. Preserve flat fills and sharp geometry while
+adding structural detail. Gear is drawn natively through the reusable families
+in `scripts/rendering/actors/gear/`; see [GEAR.md](GEAR.md). Render transparent
+exports and the complete board with `tests/rendered/gear_art_runner.gd`.
+
 UI texture direction, extended September 7, 2026: tan UI backgrounds use
 `assets/ui/welcome-parchment.png`, generated paper with quiet fibers and mottling.
 The shared style applies it to menus, cards, buttons, fields and chrome, with

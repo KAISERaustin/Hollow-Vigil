@@ -62,6 +62,6 @@ static func build(dialog) -> void:
 		button.accessibility_name = Relics.DEFINITIONS[kind].name
 		button.size_flags_horizontal = Control.SIZE_SHRINK_END
 		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		button.draw.connect(func(): Art.draw(button, kind, button.size * 0.5))
+		button.draw.connect(func(): Art.draw(button, kind, button.size * 0.5, 1.3))
 		row.add_child(button)
 		entry.add_child(UI.rule())
