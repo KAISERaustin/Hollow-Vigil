@@ -87,13 +87,24 @@ func bind_upgrade_effects() -> void:
 		return
 	if observed_economy != null:
 		observed_economy.tower_upgraded.disconnect(on_tower_upgraded)
+		observed_economy.relic_changed.disconnect(on_tower_presentation_changed)
 	observed_economy = next_economy
 	if observed_economy != null:
 		observed_economy.tower_upgraded.connect(on_tower_upgraded)
+		observed_economy.relic_changed.connect(on_tower_presentation_changed)
 	construction_effect.clear()
 
 func on_tower_upgraded(region: String, pad: int, kind: String) -> void:
-	construction_effect.play(VigilWorld.pad_position(region, pad), Color(Balance.TOWERS[kind].color))
+	construction_effect.play(VigilWorld.pad_position(region, pad), Color(Balance.TOWERS[kind].color), observed_economy.tower_at(region, pad))
+	queue_redraw()
+
+func on_tower_presentation_changed(tower_id: String) -> void:
+	# Sales and relocation already notify this shared presentation boundary.
+	var tower: Dictionary = observed_economy.data.towers.get(tower_id, {})
+	for i in range(upgrade_poofs.size() - 1, -1, -1):
+		var fx: Dictionary = upgrade_poofs[i]
+		if fx.owner_id == tower_id and (tower.is_empty() or VigilWorld.pad_position(tower.region, tower.pad) != fx.pos):
+			construction_effect.remove(fx.pos)
 	queue_redraw()
 
 var simulation_rate := 1.0

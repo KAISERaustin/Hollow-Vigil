@@ -70,6 +70,13 @@ func run() -> void:
 		check(field.upgrade_poofs.is_empty(), "Presentation completes in 0.9 real seconds at every game speed")
 	game.data.towers[id].level = 1
 	game.economy.upgrade(id,1)
+	check(game.economy.relocate(id,"0,0",2,2) and field.upgrade_poofs.is_empty(), "Relocation removes the old socket effect immediately")
+	game.data.towers[id].rebuild_remaining = 0.0
+	game.economy.upgrade(id,2)
+	game.economy.sell(id,3)
+	var replacement := game.economy.build("electric","0,0",2)
+	check(replacement != "" and field.upgrade_poofs.is_empty(), "Sale and socket reuse never conceal a replacement tower")
+	game.economy.upgrade(replacement,1)
 	field.state = VigilState.new(124)
 	field.bind_upgrade_effects()
 	check(field.upgrade_poofs.is_empty() and not game.economy.tower_upgraded.is_connected(field.on_tower_upgraded), "World replacement clears animation and disconnects old owner")

@@ -6,9 +6,9 @@ const DURATION := 0.9
 const REVEAL_AT := 0.52
 var instances: Array[Dictionary] = []
 
-func play(at: Vector2, accent: Color) -> void:
+func play(at: Vector2, accent: Color, owner_id: String = "") -> void:
 	remove(at)
-	instances.append({"pos": at, "age": 0.0, "color": Color(accent, 1.0)})
+	instances.append({"pos": at, "age": 0.0, "color": Color(accent, 1.0), "owner_id": owner_id})
 
 func remove(at: Vector2) -> void:
 	for i in range(instances.size() - 1, -1, -1):
