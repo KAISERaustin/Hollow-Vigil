@@ -127,6 +127,7 @@ func draw_map() -> void:
 			draw_line(at - Vector2(0, 5), at + Vector2(0, 5), Color.BLACK, 2.5, true)
 	for lane in range(run.mission.routes.size()):
 		var at := screen(run.mission.routes[lane][0])
-		preload("res://scripts/rendering/actors/rift_art.gd").draw(self, run.mission.style, at, zoom)
-		centered(String.chr(65 + lane), at + Vector2(0, -45 * zoom), 13, TEXT)
-	VigilTerrainArt.portal(self, screen(Catalog.CORE), zoom, true)
+		var wave_index := mini(int(run.wave), run.mission.waves.size() - 1)
+		preload("res://scripts/rendering/actors/rift_art.gd").draw_wave(self, run.mission.style, at, zoom, run.mission.waves[wave_index], lane)
+		centered(String.chr(65 + lane), at + Vector2(0, -64 * zoom), 13, TEXT)
+	preload("res://scripts/rendering/actors/rift_art.gd").draw_core(self, screen(Catalog.CORE), zoom)

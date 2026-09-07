@@ -15,6 +15,11 @@ static func draw(canvas: CanvasItem, style: String, at: Vector2, zoom: float, tr
 	draw_base(canvas, style, at, zoom)
 	Upgrades.details(canvas, at, zoom, parts)
 
+static func draw_core(canvas: CanvasItem, at: Vector2, zoom: float) -> void:
+	# The receiving portal shares the masonry kit, but has no spawn upgrades.
+	Upgrades.structure(canvas, "core", at, zoom, ["foundation"])
+	Art.portal(canvas, at, zoom, true)
+
 static func draw_base(canvas: CanvasItem, style: String, at: Vector2, zoom: float) -> void:
 	if style == "mourning_orchard":
 		preload("res://scripts/rendering/actors/orchard_art.gd").portal(canvas, at, zoom)
@@ -52,6 +57,27 @@ static func draw_base(canvas: CanvasItem, style: String, at: Vector2, zoom: floa
 				Art.shape(canvas, [Vector2(side * 19, 10), Vector2(side * 22, -5), Vector2(side * 30, -12), Vector2(side * 24, 2), Vector2(side * 28, 10)], at, z, Color("567456"), w)
 			Art.shape(canvas, [Vector2(-7, -35), Vector2(0, -44), Vector2(7, -35), Vector2(0, -30)], at, z, Art.PAPER, w)
 	Art.shape(canvas, [Vector2(-27, 11), Vector2(27, 11), Vector2(24, 17), Vector2(-24, 17)], at, z, Art.PAPER, w)
+
+# Campaign has authored waves rather than purchased attunements. Reuse the same
+# kit, but show only ordinary inhabitants actually assigned to this lane/wave.
+static func wave_parts(style: String, groups: Array, lane: int) -> Dictionary:
+	var visuals = preload("res://scripts/content/catalogs/portal_visuals.gd")
+	var inhabitants: Array = []
+	for group in groups:
+		if int(group[2]) == lane and int(group[1]) > 0 and visuals.ORNAMENTS.has(group[0]) and group[0] not in inhabitants:
+			inhabitants.append(group[0])
+	var attachments: Array = Content.portal(style).rule("components", [])
+	for attachment in attachments:
+		if attachment.slot == "appearance":
+			var config: Dictionary = attachment.config.duplicate(true)
+			config.order = inhabitants
+			config.ornaments = visuals.ORNAMENTS
+			return attachment.component.parts(0, inhabitants, config)
+	return {"structure": [], "runes": 0, "ornaments": []}
+
+static func draw_wave(canvas: CanvasItem, style: String, at: Vector2, zoom: float, groups: Array, lane: int) -> void:
+	draw_base(canvas, style, at, zoom)
+	Upgrades.details(canvas, at, zoom, wave_parts(style, groups, lane))
 
 static func shield(canvas: CanvasItem, at: Vector2, zoom: float) -> void:
 	Art.shape(canvas, [Vector2(-6, -5), Vector2(6, -5), Vector2(5, 2), Vector2(0, 7), Vector2(-5, 2)], at, Vector2.ONE * zoom, Art.GOLD, 1.5 * zoom)

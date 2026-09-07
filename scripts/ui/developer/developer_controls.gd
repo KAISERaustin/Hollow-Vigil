@@ -174,7 +174,7 @@ func show_category(section: String) -> void:
 	selector.accessibility_name = "Choose " + ("enemy" if category == "enemies" else "tower") + " type"
 	selected_kind = selector.get_item_metadata(0)
 	hint.text = "Live changes · Auto-saved" if category == "enemies" else "Level 1 · Live changes · Auto-saved"
-	detail.text = "Health changes keep each enemy's remaining health percentage." if category == "enemies" else "Upgrades scale from these values. Lower attack intervals fire faster. Blast radius 0 hits one target. Build cost also scales upgrades and refunds."
+	detail.text = ("Enemy stats are part of this configuration." if configuration_only else "Health changes keep each enemy's remaining health percentage.") if category == "enemies" else "Upgrades scale from these values. Lower attack intervals fire faster. Blast radius 0 hits one target. Build cost also scales upgrades and refunds."
 	if category == "gear":
 		selector.accessibility_name = "Choose gear type"
 		hint.text = "%d gear types · 3 per boss · Auto-saved" % Balance.GEAR.size()

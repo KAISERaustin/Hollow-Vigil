@@ -9,6 +9,7 @@ func run() -> void:
 	app.set_process(false)
 	app.show_campaign()
 	var screen: Control = app.campaign
+	check(screen.select_campaign("creative", ""), "Campaign authoring selects Creative")
 	screen.set_process(false)
 	var configuration_path: String = screen.configuration.path
 	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:

@@ -315,7 +315,7 @@ func show_playthrough_share() -> void:
 	var source: RefCounted = run if run != null else Run.new(0, level_setup(0).overrides, mode)
 	if run != null:
 		var index: int = run.mission.index
-		levels[str(index)].overrides = active_overrides.duplicate(true)
+		if page == "battle": levels[str(index)].overrides = active_overrides.duplicate(true)
 		levels[str(index)].loadout = {}
 		for key in ["towers", "next_tower", "relics", "balance"]:
 			levels[str(index)].loadout[key] = run.game.data[key]
@@ -709,8 +709,8 @@ func _notification(what: int) -> void:
 		save_progress()
 
 func go_back() -> void:
-	if is_instance_valid(app.slot_menu) and app.slot_menu.visible:
-		var back: Button = app.slot_menu.find_child("BackButton", true, false)
+	if is_instance_valid(app.slot_menu) and app.slot_menu.visible and app.slot_menu.get_index() > get_index():
+		var back: Button = app.slot_menu.header.find_child("BackButton", true, false)
 		if back != null: back.pressed.emit()
 		return
 	if is_instance_valid(tower_dialog) and tower_dialog.visible:

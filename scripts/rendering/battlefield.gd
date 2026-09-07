@@ -467,7 +467,7 @@ func draw_core() -> void:
 	var gate := screen(VigilWorld.CORE_POSITION)
 	if not Rect2(Vector2.ZERO, size).grow(60.0 * zoom).has_point(gate):
 		return
-	VigilTerrainArt.portal(self, gate, zoom, true)
+	preload("res://scripts/rendering/actors/rift_art.gd").draw_core(self, gate, zoom)
 
 func draw_tower(t: Dictionary) -> void:
 	var p := screen(VigilWorld.pad_position(t.region, t.pad))

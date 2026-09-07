@@ -111,7 +111,7 @@ begin
       raise exception 'Invalid public world';
     end if;
   else
-    if octet_length(configuration::text) > case when kind = 'campaign' then 8388608 else 1048576 end or snapshot->'version' is distinct from '1'::jsonb
+    if octet_length(configuration::text) > (case when kind = 'campaign' then 8388608 else 1048576 end) or snapshot->'version' is distinct from '1'::jsonb
        or ((snapshot->'setup') - 'name' - 'description') <> '{}'::jsonb then
       raise exception 'Invalid rules configuration';
     end if;

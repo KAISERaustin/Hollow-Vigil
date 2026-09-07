@@ -12,7 +12,7 @@ static func freeze_level(index: int, overrides: Dictionary) -> Dictionary:
 		"tuning": Configuration.gameplay_values(mission.tuning), "waves": {}}
 	for wave in mission.waves.size():
 		result.waves[str(wave)] = {"groups": mission.waves[wave].duplicate(true),
-			"reward": mission.wave_rules[wave].reward, "tuning": Configuration.gameplay_values(mission.wave_rules[wave].tuning)}
+			"reward": mission.wave_rules[wave].reward, "tuning": Configuration.tuning_difference(result.tuning, mission.wave_rules[wave].tuning)}
 	return result
 
 static func encode(levels: Dictionary, title: String, description: String, stats_only: bool = false) -> String:

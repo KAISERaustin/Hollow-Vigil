@@ -41,6 +41,8 @@ func run() -> void:
 	var campaign: Control = app.campaign
 	campaign.set_process(false)
 	check(app.game.suspended and not app.hud.visible, "Campaign suspends and covers the sandbox")
+	check(campaign.page == "setup", "Campaign opens its setup menu before the map")
+	campaign.show_map()
 	check(campaign.find_child("CampaignLevel20",true,false).disabled, "Later campaign nodes start locked")
 	for viewport in [Vector2i(360,640),Vector2i(390,844),Vector2i(540,960)]:
 		root.size = viewport

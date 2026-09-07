@@ -97,7 +97,7 @@ func run() -> void:
 	check(not app.game.is_creative() and app.active_slot == 1, "UI imports as Survival")
 	app.panels.show_settings()
 	check(app.panels.find_child("OpenDeveloperControls", true, false) == null, "Survival hides editor")
-	check(app.panels.find_child("UploadBuild", true, false).disabled, "Survival explains Creative-only public upload")
+	check(not app.panels.find_child("UploadBuild", true, false).disabled, "Survival can share its configuration while editing remains locked")
 	app.panels.show_developer_controls()
 	check(app.panels.mode == "settings", "Direct editor navigation blocked")
 	app.field.set_unrestricted_camera(true)

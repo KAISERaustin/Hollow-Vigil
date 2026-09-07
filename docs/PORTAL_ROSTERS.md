@@ -19,7 +19,15 @@ The four ordinary biomes use 30% second-inhabitant and 18% third-inhabitant shar
 
 The Forge's coal imp, anvil-headed golem and ember tender; the Crypt's waterlogged pilgrim, shell-masked ghost and bell carrier; and the Sanctuary's acolyte, crescent shrine and knight have distinct silhouettes in the existing ink-and-parchment palette. Forest inhabitants gain moss, leaves and bark. No new optional ability or timed status mechanic is added.
 
-## Existing progress
+## Portal appearance
+
+All six families retain their native base silhouette and compose the shared `presentation/portal` content component in the `appearance` slot. Traffic levels 1–6 add a foundation, feet, buttresses, pillars, lintel and finials. Levels 7–12 add six successive gold inlays. Each level changes the drawing at normal and reduced map zooms. The receiving core shares the stone foundation and keeps its mint heart; it has no traffic or attunement state.
+
+Available inhabitants add ornaments at fixed mounts: Forest leaf/thorns/roots; Forge ember/lantern/anvil; Crypt reeds/shell/bell; Sanctuary crescent/ribbons/sword; Castle shroud/shield/battlements; Orchard thorns/veil/coffin. These are architectural references, not enemy models. Orchard shows its full roster immediately. Campaign portals use the current authored lane/wave roster, without inventing purchased traffic levels.
+
+`catalogs/portal_visuals.gd` assigns reusable motifs and mounts; `nodes/portal_visual_node.gd` resolves fresh visual parts; `portal_upgrade_art.gd` draws the construction kit. Reassign or replace the component through `with_component()`, or remove it through `without_component()`. No live state is stored on these definitions. The renderer reads existing traffic/unlock fields on each draw, so loads, purchases and session switches need no visual cache or save migration. Spawn probabilities, costs, timers, routes and hit areas are unchanged.
+
+## Existing progress and compatibility
 
 Stable enemy IDs retain their numeric stats and developer overrides. `basic`, `fast`, `heavy`, `lantern` and `ruin_knight` receive the themed display names above. Authored campaign schedules and numeric boss escort choices retain their existing IDs and order; those encounter systems remain separate from natural portal rosters.
 
