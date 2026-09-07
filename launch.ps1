@@ -99,6 +99,7 @@ try {
             Invoke-Godot -Name 'mobile-equipment' -EngineArguments @('--script', 'res://tests/rendered/relic_runner.gd')
         }
         if ($StyleTests -or $Check) {
+            Invoke-Godot -Name 'build-preview' -EngineArguments @('--script', 'res://tests/rendered/build_preview_runner.gd')
             Invoke-Godot -Name 'tower-framing' -EngineArguments @('--script', 'res://tests/rendered/tower_framing_runner.gd')
             Invoke-Godot -Name 'welcome-menu' -EngineArguments @('--script', 'res://tests/rendered/welcome_menu_checks.gd')
             Invoke-Godot -Name 'welcome-startup' -EngineArguments @('--script', 'res://tests/rendered/welcome_layout_runner.gd')
