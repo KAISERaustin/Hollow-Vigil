@@ -89,8 +89,10 @@ func check_campaign_exit() -> void:
 	check(not value.is_empty(), "Create valid Campaign slot")
 	app.open_campaign_slot(0, value)
 	app.campaign.set_process(false)
-	await press("CampaignLevel1")
-	await press("BeginCampaignMission")
+	if app.campaign.page == "map":
+		await press("CampaignLevel1")
+		await press("BeginCampaignMission")
+	check(app.campaign.page == "battle", "Exercise save failure inside Campaign battle")
 	var before := FileAccess.get_file_as_string(menu.campaign_slots.path_for(0))
 	app.campaign.campaign_save.name = ""
 	app.show_game_menu()
