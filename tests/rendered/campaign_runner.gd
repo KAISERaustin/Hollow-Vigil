@@ -70,15 +70,24 @@ func run() -> void:
 		check(Rect2(Vector2.ZERO,Vector2(viewport)).encloses(start.get_global_rect()), "Start wave fits " + str(viewport))
 		check(campaign.status.text == "Wave 1 / 3", "Opening header shows only the wave count")
 		check(is_equal_approx(campaign.status.get_global_rect().get_center().y, campaign.gold.get_global_rect().get_center().y), "Wave count aligns with gold " + str(viewport))
-		check(is_equal_approx(campaign.status.get_global_rect().end.x + VigilInterface.INSET_PADDING, campaign.board.get_global_rect().end.x), "Wave count keeps the shared inset inside its right-hand card " + str(viewport))
+		check(is_equal_approx(campaign.status.get_global_rect().end.x + VigilInterface.SCREEN_PADDING, campaign.board.get_global_rect().end.x), "Floating wave count keeps the safe edge inset " + str(viewport))
 		check(campaign.status.get_theme_font_size("font_size") == campaign.gold.get_theme_font_size("font_size"), "Wave count matches the larger gold text")
+		check(campaign.board.global_position.x == 0 and campaign.board.get_global_rect().end == Vector2(viewport), "Battlefield fills both sides and the bottom " + str(viewport))
+		check(campaign.board.size.y > viewport.y * 0.85, "Battlefield occupies at least 85 percent of phone height " + str(viewport))
+		check(campaign.board.find_child("CampaignMapBorder", true, false) == null, "Battlefield has no enclosing frame")
+		var last_end := 0.0
+		for control in campaign.game_toolbar.get_children():
+			check(control.size.x >= 48 and control.size.y >= 48, "Top bar preserves full touch targets")
+			check(control.get_global_rect().position.x >= last_end and control.get_global_rect().end.y <= campaign.board.global_position.y, "All controls fit in the top bar without overlap")
+			last_end = control.get_global_rect().end.x + VigilInterface.CARD_GAP
+		await Harness.capture(app, "campaign-seamless-" + str(viewport.x))
 		var socket: Dictionary = campaign.run.mission.sockets[1]
 		await tap(campaign.board.global_position + campaign.board.screen(socket.position))
 		await frame()
 		check(campaign.dialog.visible, "Battlefield socket opens construction")
 		check(campaign.board.get_global_rect().grow(-7).encloses(campaign.dialog_card.get_global_rect()), "Build menu stays inset inside the map at " + str(viewport))
-		check(campaign.dialog.z_index > campaign.board.find_child("CampaignMapBorder", true, false).z_index, "Build menu renders above the map border")
-		check(campaign.dialog_card.get_global_rect().end.y < start.get_global_rect().position.y, "Build menu leaves bottom controls uncovered")
+		check(campaign.dialog.z_index > campaign.floating_hud.z_index, "Build menu renders above floating information")
+		check(campaign.dialog_card.get_global_rect().position.y > start.get_global_rect().end.y, "Build menu leaves top controls uncovered")
 		var build: Button = campaign.find_child("CampaignBuild_rapid",true,false)
 		check(build != null and not build.disabled, "Mission opening affords an Ashneedle")
 		var cards := campaign.dialog_body.get_child(0) as ScrollContainer
@@ -137,14 +146,14 @@ func run() -> void:
 		check(not campaign.paused and campaign.run.wave_time > wave_time_before, "Backups keep the battle running")
 		app.panels.hide()
 		campaign.dialog.hide()
-		var remaining_text: String = start.text
+		var remaining_text: String = campaign.floating_hud.detail.text
 		campaign.pause_button.pressed.emit()
 		campaign._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
 		campaign._notification(Node.NOTIFICATION_APPLICATION_FOCUS_IN)
 		var time_before: float = campaign.run.game.data.active_seconds
 		campaign._process(0.1)
 		check(campaign.run.game.data.active_seconds == time_before, "Pause stops the campaign clock")
-		check(start.disabled and start.text == remaining_text and remaining_text.ends_with("enemies remaining"), "Paused wave keeps its disabled remaining-enemy count")
+		check(start.disabled and campaign.floating_hud.detail.text == remaining_text and remaining_text.ends_with("enemies remaining"), "Paused wave keeps its floating remaining-enemy count")
 		check(campaign.status.text == "Wave 1 / 3", "Pause does not add status words or an enemy total to the header")
 		await tap(start.get_global_rect().get_center())
 		start.pressed.emit()

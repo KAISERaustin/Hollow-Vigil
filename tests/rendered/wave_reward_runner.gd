@@ -56,7 +56,7 @@ func run() -> void:
 		await Harness.capture(app, "wave-reward-" + str(viewport.x))
 		transition._process(3.0)
 		check(not transition.active and not campaign.wave_button.disabled, "Transition automatically returns to planning")
-		check(campaign.status.text == "Wave 2 / 3" and campaign.wave_button.text == "Start wave 2", "Planning advances the count and offers the next wave")
+		check(campaign.status.text == "Wave 2 / 3" and campaign.wave_button.text == "Start wave" and campaign.wave_button.accessibility_name == "Start wave 2", "Planning advances the count and offers the next wave")
 		campaign.run.tick(0.1)
 		check(is_equal_approx(campaign.run.game.data.balance, before + reward), "Presentation cannot pay twice")
 		campaign.run.wave = campaign.run.mission.waves.size() - 1

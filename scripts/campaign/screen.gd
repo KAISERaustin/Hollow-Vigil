@@ -560,7 +560,8 @@ func show_battle(start_paused: bool = false) -> void:
 	wave_button = UI.toolbar_action("Start wave", begin_wave, true)
 	wave_button.custom_minimum_size.x = 96
 	wave_button.name = "StartCampaignWave"
-	game_toolbar.append_actions([waves, wave_button])
+	var toolbar_actions: Array[Control] = [waves, wave_button]
+	game_toolbar.append_actions(toolbar_actions)
 	add_board(true)
 	floating_hud = preload("res://scripts/ui/shared/floating_game_hud.gd").new()
 	board.add_child(floating_hud)

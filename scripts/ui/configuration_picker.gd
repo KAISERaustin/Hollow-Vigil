@@ -13,7 +13,7 @@ func show_page(community: bool = false, page: int = 0) -> void:
 	menu.message.custom_minimum_size.y = UI.type_size(16)
 	var revision: int = menu.view_revision
 	menu.add_back(UI.button("Back", back))
-	menu.content.add_child(UI.paragraph("uull campaign builds include all 20 levels, wave schedules and gameplay rules. Play in Survival or edit a copy in Creative." if kind == "campaign" else "Choose gameplay rules for a fresh start, with no towers or progress." if kind.ends_with("stats") else "Choose a campaign setup with towers, equipment and gameplay rules.", 14))
+	menu.content.add_child(UI.paragraph("Full campaign builds include every level, wave schedules and gameplay rules. Play in Survival or edit a copy in Creative." if kind == "campaign" else "Choose gameplay rules for a fresh start, with no towers or progress." if kind.ends_with("stats") else "Choose a campaign setup with towers, equipment and gameplay rules.", 14))
 	var sources := HBoxContainer.new()
 	menu.content.add_child(sources)
 	for source in [false, true]:

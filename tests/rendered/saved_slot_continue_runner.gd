@@ -108,7 +108,7 @@ func check_campaign_continue() -> void:
 			check(app.campaign.page == "battle" and app.campaign.run.mission.index == 2, "Selecting saved level resumes its battle")
 			check(JSON.parse_string(JSON.stringify(app.campaign.run.checkpoint())) == checkpoint, "Resumed level preserves saved wave and build")
 			check(app.campaign.paused, "Loaded Campaign wave waits for player to start")
-			check(app.campaign.wave_button.disabled and app.campaign.wave_button.text == "%d enemies remaining" % app.campaign.run.schedule.size(), "Loaded wave displays its remaining enemies while paused")
+			check(app.campaign.wave_button.disabled and app.campaign.floating_hud.detail.visible and app.campaign.floating_hud.detail.text == "%d enemies remaining" % app.campaign.run.schedule.size(), "Loaded wave displays its remaining enemies while paused")
 			for step in 20: app.campaign._process(0.1)
 			check(app.campaign.run.wave_time == 0.0 and app.campaign.run.game.combat.enemies.is_empty(), "Waiting after Continue never advances or spawns the wave")
 			await press("CampaignWaves")

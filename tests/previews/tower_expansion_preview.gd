@@ -54,7 +54,7 @@ func overview(c: CanvasItem) -> void:
 		var y := 116.0 + row * 292
 		frame(c, Rect2(x, y, 600, 276))
 		text(c, family.role, Vector2(x + 12, y + 28), 13, 575)
-		Art.draw(c, family.id, Vector2(x + 133, y + 215), 3.3)
+		Art.draw(c, family.id, Vector2(x + 133, y + 200), 3.1)
 		text(c, family.name, Vector2(x + 270, y + 80), 28, 318)
 		var lines: Array = [
 			["A ballista that rewards", "lining up enemies.", "Strong on straights;", "awkward at bends."],
@@ -64,7 +64,7 @@ func overview(c: CanvasItem) -> void:
 		][index]
 		for i in range(4):
 			text(c, lines[i], Vector2(x + 270, y + 117 + i * 26 + (12 if i >= 2 else 0)), 18, 318)
-		text(c, "LEVEL 1", Vector2(x + 32, y + 256), 13, 202, true)
+		text(c, "LEVEL 1", Vector2(x + 32, y + 260), 13, 202, true)
 	text(c, "EXISTING LEVEL-ONE ROSTER / same native drawing language", Vector2(28, 739), 14, 1196, false, true)
 	var kinds := ["rapid", "splash", "heavy", "electric"]
 	for i in range(4):
@@ -93,9 +93,9 @@ func progression(c: CanvasItem) -> void:
 		for stage in range(5):
 			var level := stage + 1 if stage < 3 else 4
 			var branch: String = "" if stage < 3 else family.branches[stage - 3].id
-			Art.draw(c, family.id, Vector2(centers[stage], y + 178), 2.35, level, branch)
+			Art.draw(c, family.id, Vector2(centers[stage], y + 164), 2.35, level, branch)
 			var title: String = family.name if stage == 0 else "Reinforced" if stage == 1 else "Fortified" if stage == 2 else family.branches[stage - 3].name
-			text(c, title, Vector2(centers[stage] - 116, y + 219), 18, 232, true)
+			text(c, title, Vector2(centers[stage] - 116, y + 227), 18, 232, true)
 		text(c, "THEN CHOOSE", Vector2(908, y + 28), 12, 500, true)
 	text(c, "Concept art only · each branch keeps its family's identity and changes its combat role", Vector2(28, 1231), 15, 1424, false, true)
 
@@ -107,12 +107,12 @@ func phone(c: CanvasItem) -> void:
 		var family: Dictionary = Data.FAMILIES[i]
 		var y := 84 + i * 182
 		frame(c, Rect2(12, y, 366, 170))
-		Art.draw(c, family.id, Vector2(79, y + 126), 1.8)
+		Art.draw(c, family.id, Vector2(79, y + 116), 1.8)
 		text(c, family.name, Vector2(143, y + 41), 21, 223)
 		var lines: Array = [["Pierces a line of foes.", "Best on straight roads."], ["Hits out and back.", "Position for both passes."], ["Makes enemies vulnerable.", "Amplifies nearby towers."], ["Stores road traps.", "Prepare an ambush."]][i]
 		text(c, lines[0], Vector2(143, y + 79), 14, 223)
 		text(c, lines[1], Vector2(143, y + 102), 14, 223)
-		text(c, "LEVEL 1", Vector2(26, y + 153), 12, 108, true)
+		text(c, "LEVEL 1", Vector2(26, y + 157), 12, 108, true)
 	text(c, "Native silhouettes at a 390-unit phone width", Vector2(12, 832), 12, 366, false, true)
 
 func run() -> void:
@@ -123,7 +123,7 @@ func run() -> void:
 			var level := stage + 1 if stage < 3 else 4
 			var branch: String = "" if stage < 3 else family.branches[stage - 3].id
 			var filename: String = family.id + ("-level-" + str(level) if branch.is_empty() else "-" + branch) + ".png"
-			var img := await render(Vector2i(256, 256), func(c): Art.draw(c, family.id, Vector2(128, 209), 3.1, level, branch), filename, true)
+			var img := await render(Vector2i(256, 256), func(c): Art.draw(c, family.id, Vector2(128, 203), 3.0, level, branch), filename, true)
 			var used := img.get_used_rect()
 			if used.position.x < 8 or used.position.y < 8 or used.end.x > 248 or used.end.y > 248:
 				failures.append("Clipped portrait: " + filename)
