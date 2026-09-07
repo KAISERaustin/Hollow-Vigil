@@ -1,6 +1,12 @@
 extends RefCounted
 
 const TYPES := {
+	"piercing_attack": preload("res://scripts/content/nodes/attributes/line_attack.gd"),
+	"returning_attack": preload("res://scripts/content/nodes/attributes/line_attack.gd"),
+	"orbit_attack": preload("res://scripts/content/nodes/attributes/orbit_attack.gd"),
+	"road_traps": preload("res://scripts/content/nodes/attributes/road_traps.gd"),
+	"vulnerability_mark": preload("res://scripts/content/nodes/attributes/vulnerability_mark.gd"),
+	"tower_boss_damage": preload("res://scripts/content/nodes/attributes/tower_boss_damage.gd"),
 	"investment_refund": preload("res://scripts/content/nodes/attributes/investment_refund.gd"),
 	"root": preload("res://scripts/content/nodes/attributes/root.gd"),
 	"momentum_speed": preload("res://scripts/content/nodes/attributes/momentum.gd"),

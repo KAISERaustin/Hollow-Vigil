@@ -55,7 +55,7 @@ static func content(report: Dictionary) -> VBoxContainer:
 			roster.add_child(WaveSummary.enemy_row(kind, int(change.after), "Was %d · %s" % [change.before, Comparison.signed(change.delta)]))
 		summary.add_child(roster)
 	if changes.has("spawn_groups"):
-		summary.add_child(UI.paragraph("Spawn groups changed. Current composition, timing, lanes and spawn stats are shown above; exports include both waves."))
+		summary.add_child(UI.paragraph("Composition or spawn settings changed. Exports include both waves."))
 	for category: String in changes.get("effective_stats", {}):
 		for kind: String in changes.effective_stats[category]:
 			body.add_child(tuning_card(category, kind, changes.effective_stats[category][kind]))
@@ -69,7 +69,7 @@ static func spawn_card(group: Dictionary) -> PanelContainer:
 	var stats := grid()
 	stats.name = "SpawnStats"
 	body.add_child(stats)
-	for metric in [["Health / enemy", group.spawn_health, ""], ["Speed", group.move_speed, ""], ["Gold / defeat", group.gold_per_defeat, ""], ["Spawn interval", group.interval_seconds, " s"]]:
+	for metric in [["Health / enemy", group.spawn_health, ""], ["Speed", group.move_speed, " / s"], ["Gold / defeat", group.gold_per_defeat, ""], ["Spawn interval", group.interval_seconds, " s"]]:
 		stats.add_child(UI.info_card(UI.stat(metric[0], Comparison.number(metric[1], metric[2]))))
 	return UI.info_card(body, UI.SURFACE, UI.CARD_PADDING)
 
@@ -87,7 +87,8 @@ static func tuning_card(category: String, kind: String, changes: Dictionary) -> 
 	var stats := grid()
 	body.add_child(stats)
 	for field: String in changes:
-		var tile := Comparison.card(Balance.field_limits(category, kind, field).label, changes[field])
+		var limits := Balance.field_limits(category, kind, field)
+		var tile := Comparison.card(limits.label, changes[field], limits.get("suffix", ""))
 		tile.name = "TuningChange_" + field
 		stats.add_child(tile)
 	var panel := UI.info_card(body, UI.SURFACE, UI.CARD_PADDING)
@@ -106,5 +107,8 @@ static func grid() -> GridContainer:
 	stats.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	stats.add_theme_constant_override("h_separation", UI.CARD_GAP)
 	stats.add_theme_constant_override("v_separation", UI.CARD_GAP)
-	stats.resized.connect(func(): stats.columns = 4 if stats.get_child_count() == 4 and stats.size.x >= 400 else 2)
+	stats.resized.connect(func():
+		var count := stats.get_child_count()
+		stats.columns = maxi(1, count) if count <= 1 or (count <= 4 and stats.size.x >= 400) else 2
+	)
 	return stats

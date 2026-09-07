@@ -154,8 +154,16 @@ func _populate() -> void:
 
 func _populate_towers() -> void:
 	for kind in Towers.TOWERS:
+		var attachments := []
+		for slot in Towers.ATTACHMENTS.get(kind, {}):
+			attachments.append({"slot": slot, "component": find("attributes", Towers.ATTACHMENTS[kind][slot]), "config": {}})
+		var branch_attachments := {}
+		for branch in Towers.BRANCHES[kind]:
+			branch_attachments[branch] = {}
+			for slot in Towers.ATTACHMENTS.get(branch, {}):
+				branch_attachments[branch][slot] = find("attributes", Towers.ATTACHMENTS[branch][slot])
 		var tower_type := TowerNode.new("tower/" + kind, get_node("tower"), Towers.TOWERS[kind],
-			{"kind": kind, "upgrade_sound": Towers.UPGRADE_SOUNDS.get(kind, ""), "upgrades": Towers.TOWER_UPGRADES[kind], "branches": Towers.BRANCHES[kind], "abilities": Towers.ABILITIES, "multipliers": Towers.BRANCH_STAT_MULTIPLIERS})
+			{"kind": kind, "components": attachments, "branch_attachments": branch_attachments, "upgrade_sound": Towers.UPGRADE_SOUNDS.get(kind, ""), "upgrades": Towers.TOWER_UPGRADES[kind], "branches": Towers.BRANCHES[kind], "abilities": Towers.ABILITIES, "multipliers": Towers.BRANCH_STAT_MULTIPLIERS})
 		_add(tower_type, "towers", kind)
 		_add(ProjectileNode.new("projectile/" + kind, get_node("projectile"), Towers.PROJECTILES[kind], {"kind": kind}), "projectiles", kind)
 		var previous: ContentNode = tower_type
@@ -166,7 +174,7 @@ func _populate_towers() -> void:
 		for branch in Towers.BRANCHES[kind]:
 			var stats := tower_type.scaled_stats(4, {}, branch)
 			stats.cost = Towers.BRANCHES[kind][branch].cost
-			_add(TowerNode.new("tower/" + kind + "/" + branch, previous, stats, {"kind": kind + ":" + branch, "base_kind": kind, "branch": branch, "level": 4}, {"level": 4, "branch": branch}), "towers", kind + ":" + branch)
+			_add(TowerNode.new("tower/" + kind + "/" + branch, previous, stats, {"kind": kind + ":" + branch, "base_kind": kind, "branch": branch, "level": 4, "components": tower_type.at_level(4, branch).rule("components")}, {"level": 4, "branch": branch}), "towers", kind + ":" + branch)
 			var components := []
 			for component in Towers.COMPONENTS.get(branch, []):
 				components.append({"slot": component, "component": find("attributes", component), "config": {}})

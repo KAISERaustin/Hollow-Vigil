@@ -969,7 +969,12 @@ func show_level_balance(index: int, wave_index: int = -1) -> void:
 	if active_campaign_slot >= 0:
 		close_dialog()
 		app.show_game_menu()
-		app.slot_menu.show_campaign_rules(index, wave_index, app.slot_menu.resume_game)
+		var return_to: Callable = app.slot_menu.resume_game
+		if wave_index >= 0:
+			return_to = func():
+				app.slot_menu.resume_game()
+				show_waves()
+		app.slot_menu.show_campaign_rules(index, wave_index, return_to)
 		return
 	var rules: Dictionary = level_setup(index).overrides
 	if not configuration.save_level(index, rules):
@@ -982,6 +987,7 @@ func show_level_balance(index: int, wave_index: int = -1) -> void:
 	editor.initial_scope = wave_index
 	if run != null and run.mission.index == index and page == "battle" and run.editable(): editor.live_run = run
 	editor.apply_changes = save_configuration
+	if wave_index >= 0: editor.saved.connect(show_waves)
 	editor.export_requested.connect(show_level_export.bind(index))
 	dialog_body.add_child(editor)
 	if editor.live_run != null:
@@ -1016,19 +1022,24 @@ func save_configuration(index: int, rules: Dictionary) -> bool:
 		if not persist_slot():
 			campaign_save.levels[str(index)] = previous
 			return false
-		if live:
-			run.apply_configuration(rules)
-			active_overrides = rules.duplicate(true)
+		refresh_configuration(index, rules)
 		return true
 	if live and run.phase == "wave" and Configuration.resolve(index, rules).waves[run.wave].size() < run.mission.waves[run.wave].size():
 		configuration.last_error = "Keep active wave groups in place; change their remaining counts instead."
 		return false
 	if not configuration.save_level(index, rules): return false
 	shared_setups.erase(index)
-	if live:
+	refresh_configuration(index, rules)
+	return true
+
+func refresh_configuration(index: int, rules: Dictionary) -> void:
+	if run == null or run.mission.index != index: return
+	if page == "briefing":
+		# Rebuild the preview and starting values from the saved configuration.
+		show_briefing(index)
+	elif page == "battle" and run.editable():
 		run.apply_configuration(rules)
 		active_overrides = rules.duplicate(true)
-	return true
 
 func configuration_menu() -> Control:
 	if not is_instance_valid(app.slot_menu):

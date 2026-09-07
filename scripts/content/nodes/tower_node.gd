@@ -39,6 +39,10 @@ func scaled_stats(level: int, tuning: Dictionary = {}, branch: String = "") -> D
 		var base: float = _attributes[field]
 		if base > 0.0:
 			scaled[field] = upgrade[field] * (scaled[field] / base)
+	# Component parameters are tier data too, with independent per-tier tuning.
+	for field in upgrade:
+		if field not in ["cost", "damage", "period", "range", "splash", "targets"]:
+			scaled[field] = upgrade[field]
 	if level >= 4 and valid_branch(branch):
 		var specialization: Dictionary = _rules.branches[branch]
 		scaled.name = specialization.name
@@ -60,3 +64,14 @@ func stats(level: int = 0, tuning: Dictionary = {}, branch: String = "") -> Dict
 		var key: String = _rules.kind + ":" + (branch if level == 4 else str(level))
 		result.merge(tuning.get("towers", {}).get(key, {}), true)
 	return result
+
+func at_level(level: int, branch: String = "") -> ContentNode:
+	if _rules.has("base_kind"):
+		return self
+	var node: ContentNode = self
+	# Definitions are resolved by the owner so overrides remain run-local.
+	if level >= 4 and valid_branch(branch):
+		var attachments: Dictionary = _rules.get("branch_attachments", {}).get(branch, {})
+		for slot in attachments:
+			node = node.with_component(node.id + "/" + branch + "/" + slot, slot, attachments[slot])
+	return node

@@ -86,6 +86,27 @@ func run() -> void:
 	await frame()
 	var survival_map: Control = campaign.find_child("CampaignWorldMap", true, false)
 	check(survival_map.nodes[3].completed and survival_map.nodes[4].current and survival_map.nodes[5].disabled, "Cleared, current and locked progression remains intact")
+	campaign.close()
+	await frame()
+	app.slot_menu.campaign_slots.base_path = "user://biome-map-slot-" + str(Time.get_ticks_usec())
+	var saved: Dictionary = app.slot_menu.campaign_slots.create(0, "creative", "Test")
+	app.open_campaign_slot(0, saved)
+	campaign = app.campaign
+	campaign.set_process(false)
+	for viewport in [Vector2i(360,640), Vector2i(390,844), Vector2i(540,960)]:
+		root.size = viewport
+		root.content_scale_size = viewport
+		campaign.show_map()
+		await frame()
+		check(campaign.map_heading.get_child(0).get_child(1).text == "Test", "Saved campaign keeps its own title")
+		check(campaign.find_child("CampaignSavedGames", true, false) != null, "Saved map keeps Back to saved games")
+		check(campaign.layout.get_child_count() == 1, "Saved map contains only the full-width biomes")
+		root.get_texture().get_image().save_png("res://artifacts/campaign-biomes-saved-%d.png" % viewport.x)
+		campaign.page_scroll.scroll_vertical = roundi(campaign.page_scroll.get_v_scroll_bar().max_value)
+		await frame()
+		var saved_map: Control = campaign.find_child("CampaignWorldMap", true, false)
+		check(saved_map.nodes[-1].get_global_rect().end.y <= viewport.y, "Final level remains reachable at the bottom of a saved map")
+		check(is_equal_approx(saved_map.get_global_rect().end.y, viewport.y), "Last biome fills the bottom with no parchment footer")
 	app.queue_free()
 	await process_frame
 	print("CAMPAIGN MAP: %d checks, %d failures" % [checks, failures])

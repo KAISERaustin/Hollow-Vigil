@@ -17,11 +17,9 @@ static func trail(canvas: CanvasItem, points: PackedVector2Array, completed: boo
 	canvas.draw_polyline(points, Art.GOLD if completed else Art.ROAD, 6, true)
 
 static func between_markers(from: Vector2, to: Vector2) -> PackedVector2Array:
-	# Leave vertically before bending so long labels remain clear on wide screens.
-	var points := PackedVector2Array([from])
-	points.append_array(curve(from + Vector2(0, 34), to - Vector2(0, 34)))
-	points.append(to)
-	return points
+	# Full-height tangents make broad S bends while clearing labels at each end.
+	var tangent := Vector2(0, to.y - from.y)
+	return curve(from, to, from + tangent, to - tangent)
 
 static func scenery(canvas: CanvasItem, style: String, bounds: Rect2, reserved: Array[Rect2], roads: Array[PackedVector2Array], seed_value: int) -> void:
 	var rng := RandomNumberGenerator.new()
