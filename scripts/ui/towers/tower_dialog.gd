@@ -2,6 +2,7 @@ class_name VigilTowerDialog
 extends ColorRect
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
+const TowerChoice = preload("res://scripts/ui/towers/tower_choice.gd")
 ## Active mode host: game, field, controls, persistence and feedback.
 var app: Control
 var card: PanelContainer
@@ -34,6 +35,7 @@ var relic_choice := ""
 var relic_original := ""
 var relic_owner := ""
 var equipment_state := ""
+var preview_state := ""
 
 func _ready() -> void:
 	name = "TowerDialog"
@@ -58,7 +60,8 @@ func _ready() -> void:
 		if mode == "equipment_detail" and app.game.data.relics.has(relic_choice):
 			preload("res://scripts/rendering/actors/relic_art.gd").draw(portrait, app.game.data.relics[relic_choice], portrait.size * 0.5)
 		else:
-			VigilTerrainArt.sentinel(portrait, tower_kind, Vector2(24, 51), 0.85, tower_level, tower_branch)
+			var shown_level := mini(tower_level + 1, Balance.MAX_TOWER_LEVEL) if mode == "preview" else tower_level
+			VigilTerrainArt.sentinel(portrait, tower_kind, Vector2(24, 51), 0.85, shown_level, tower_branch)
 	)
 	identity.add_child(portrait)
 	heading = UI.heading("", 24)
@@ -100,19 +103,20 @@ func _ready() -> void:
 	app.resized.connect(fit_dialog)
 	hide()
 
-func open_action(action: String) -> void:
+func open_action(action: String, branch: String = "") -> void:
 	if action == "upgrade":
 		app.tower_actions.request_upgrade()
 		return
 	app.tower_actions.cancel_upgrade()
 	var id: String = app.field.selected_tower
-	if not action in ["info", "upgrade", "sell", "move", "target", "equipment"] or not app.game.data.towers.has(id):
+	if not action in ["info", "preview", "upgrade", "sell", "move", "target", "equipment"] or not app.game.data.towers.has(id):
 		return
 	opener = get_viewport().gui_get_focus_owner()
 	revision += 1
 	mode = action
+	layout.add_theme_constant_override("separation", 8 if action == "preview" else 16)
 	header_back.hide()
-	header_close.visible = action == "equipment"
+	header_close.visible = action in ["equipment", "preview"]
 	header_divider.visible = action == "equipment"
 	footer.show()
 	tower_id = id
@@ -127,6 +131,11 @@ func open_action(action: String) -> void:
 	portrait.queue_redraw()
 	tower_level = int(tower.level)
 	cost = Balance.upgrade_cost(tower, app.game.tuning) if action == "upgrade" else 0.0
+	if action == "preview":
+		if tower_level == 3:
+			tower_branch = branch if Balance.valid_branch(tower_kind, branch) else str(Balance.BRANCHES[tower_kind].keys()[0])
+		cost = Balance.upgrade_cost(tower, app.game.tuning, tower_branch) if tower_level < Balance.MAX_TOWER_LEVEL else 0.0
+		preview_state = preview_fingerprint()
 	refund = app.game.economy.sell_refund(tower) if action == "sell" else 0.0
 	if action == "move":
 		cost = Balance.move_cost(tower, app.game.tuning)
@@ -139,10 +148,28 @@ func open_action(action: String) -> void:
 	var stats := Balance.tower_stats(tower, app.game.tuning)
 	heading.text = stats.name
 	var label := {"info": "Tower information · Level %d", "upgrade": "Upgrade · Level %d", "sell": "Sell tower · Level %d", "move": "Move tower · Level %d", "target": "Targeting · Level %d", "equipment": "Equipment · Level %d"}
-	if action != "equipment":
+	if action not in ["equipment", "preview"]:
 		body.add_child(UI.label(label[action] % tower_level, 14))
 	rebuild_status = UI.label("", 14, UI.TEXT)
 	body.add_child(rebuild_status)
+	if action == "preview":
+		var next_level := mini(tower_level + 1, Balance.MAX_TOWER_LEVEL)
+		var next := Balance.stats(tower_kind, next_level, app.game.tuning, tower_branch)
+		heading.text = next.name
+		body.add_child(UI.label("Maximum level reached" if tower_level == Balance.MAX_TOWER_LEVEL else "Upgrade from level %d · Stat changes below" % tower_level, 12, UI.MUTED))
+		if tower_level == 3:
+			var branches := HBoxContainer.new()
+			branches.name = "UpgradeBranches"
+			branches.add_theme_constant_override("separation", 8)
+			body.add_child(branches)
+			for option in Balance.BRANCHES[tower_kind]:
+				var choice := UI.button(Balance.stats(tower_kind, next_level, app.game.tuning, option).name, func(): open_action("preview", option), 48)
+				choice.name = "Preview_" + option
+				choice.toggle_mode = true
+				choice.set_pressed_no_signal(option == tower_branch)
+				choice.add_theme_font_size_override("font_size", UI.type_size(14))
+				branches.add_child(choice)
+		body.add_child(TowerChoice.details(tower_kind, app.game.tuning, next_level, tower_branch, stats if tower_level < Balance.MAX_TOWER_LEVEL else {}))
 	if action == "equipment":
 		preload("res://scripts/ui/towers/relic_picker.gd").build(self)
 	if action == "target":
@@ -204,7 +231,7 @@ func open_action(action: String) -> void:
 	cancel.custom_minimum_size.x = 92
 	cancel.size_flags_horizontal = Control.SIZE_FILL
 	footer.add_child(cancel)
-	var text: String = {"info": "Close", "upgrade": "Upgrade · " + UI.exact_money(cost) + " gold", "sell": "Sell · +" + UI.exact_money(refund) + " gold", "move": "Choose destination", "target": "Apply targeting", "equipment": "Apply equipment"}[action]
+	var text: String = {"info": "Close", "preview": "Upgrade · " + UI.exact_money(cost) + " gold", "upgrade": "Upgrade · " + UI.exact_money(cost) + " gold", "sell": "Sell · +" + UI.exact_money(refund) + " gold", "move": "Choose destination", "target": "Apply targeting", "equipment": "Apply equipment"}[action]
 	confirm = UI.accent_button(text, func(): commit(opened_revision), UI.DANGER if action == "sell" else (UI.SURFACE if action == "info" else UI.GOLD), 48)
 	confirm.name = "ConfirmTowerAction"
 	confirm.add_theme_font_size_override("font_size", UI.type_size(16))
@@ -218,8 +245,8 @@ func open_action(action: String) -> void:
 	show()
 	refresh()
 	call_deferred("fit_dialog")
-	cancel.visible = action != "info"
-	(header_close if action == "equipment" else (confirm if action == "info" else cancel)).grab_focus()
+	cancel.visible = action not in ["info", "preview"]
+	(header_close if action in ["equipment", "preview"] else (confirm if action == "info" else cancel)).grab_focus()
 	UI.trap_focus(card)
 
 func show_equipment_details(relic_id: String) -> void:
@@ -293,6 +320,19 @@ func stat(grid: GridContainer, title: String, value: float, next: float, decimal
 func fit_dialog() -> void:
 	if not visible:
 		return
+	if mode == "preview":
+		# Match the bottom build sheet, with the purchase outside scrolling content.
+		var safe := UI.safe_rect(app).grow(-12)
+		var field_rect: Rect2 = app.field.get_global_rect()
+		var bottom := minf(safe.end.y, field_rect.end.y - 12)
+		var top := maxf(safe.position.y, field_rect.position.y + 12)
+		card.size.x = minf(460.0, safe.size.x)
+		footer.vertical = false
+		var chrome: float = identity.get_combined_minimum_size().y + footer.get_combined_minimum_size().y + 2 * UI.SCREEN_PADDING + 8 + 16
+		scroll.custom_minimum_size.y = minf(body.get_combined_minimum_size().y, maxf(40, bottom - top - chrome))
+		card.size.y = 0
+		card.position = Vector2(safe.position.x + (safe.size.x - card.size.x) * 0.5, bottom - card.size.y)
+		return
 	var safe := UI.safe_rect(app).grow(-16)
 	card.size.x = minf(460.0, safe.size.x)
 	footer.vertical = card.size.x < 400 * UI.text_scale
@@ -310,26 +350,29 @@ func fit_dialog() -> void:
 func refresh() -> void:
 	if not visible:
 		return
-	if mode.begins_with("equipment") and app.field.selected_tower != tower_id:
+	if (mode.begins_with("equipment") or mode == "preview") and app.field.selected_tower != tower_id:
 		dismiss(false)
 		return
 	if not app.game.data.towers.has(tower_id) or app.game.data.towers[tower_id].level != tower_level:
 		dismiss()
 		return
 	var tower: Dictionary = app.game.data.towers[tower_id]
+	if mode == "preview" and preview_state != preview_fingerprint():
+		open_action("preview", tower_branch)
+		return
 	if mode.begins_with("equipment") and equipment_state != equipment_fingerprint():
 		open_action("equipment")
 		return
 	var remaining: float = tower.get("rebuild_remaining", 0.0)
 	rebuild_status.visible = remaining > 0.0
 	rebuild_status.text = "Rebuilding · " + Balance.rebuild_time_text(remaining)
-	var disabled: bool = (mode in ["upgrade", "move"] and (app.game.data.balance < cost or remaining > 0.0)) or (mode == "upgrade" and tower_level >= Balance.MAX_TOWER_LEVEL)
+	var disabled: bool = (mode in ["preview", "upgrade", "move"] and (app.game.data.balance < cost or remaining > 0.0)) or (mode in ["preview", "upgrade"] and tower_level >= Balance.MAX_TOWER_LEVEL)
 	if mode in ["equipment", "equipment_detail"]:
 		disabled = relic_choice == relic_original
 	if disabled != confirm.disabled:
 		confirm.disabled = disabled
 		UI.trap_focus(card)
-	if mode == "upgrade" and tower_level >= Balance.MAX_TOWER_LEVEL:
+	if mode in ["preview", "upgrade"] and tower_level >= Balance.MAX_TOWER_LEVEL:
 		confirm.text = "Max level"
 	elif mode == "sell":
 		refund = app.game.economy.sell_refund(tower)
@@ -341,11 +384,23 @@ func equipment_fingerprint() -> String:
 		assignments[id] = app.game.data.towers[id].get("relic", "")
 	return JSON.stringify([app.game.data.get("relics", {}), assignments])
 
+func preview_fingerprint() -> String:
+	var tower: Dictionary = app.game.data.towers[tower_id]
+	return JSON.stringify([Balance.tower_stats(tower, app.game.tuning), Balance.stats(tower.kind, mini(tower_level + 1, Balance.MAX_TOWER_LEVEL), app.game.tuning, tower_branch), Balance.upgrade_cost(tower, app.game.tuning, tower_branch)])
+
 func commit(opened_revision: int) -> void:
 	if not visible or opened_revision != revision:
 		return
 	if mode == "info":
 		dismiss()
+	elif mode == "preview":
+		refresh()
+		if not visible or revision != opened_revision or confirm.disabled:
+			return
+		var branch := tower_branch if tower_level == 3 else ""
+		if app.game.economy.upgrade(tower_id, tower_level, branch):
+			dismiss()
+			app.persist()
 	elif mode in ["equipment", "equipment_detail", "equipment_remove"]:
 		var removing := mode == "equipment_remove"
 		if app.game.economy.equip_relic(tower_id, "" if removing else relic_choice, relic_original, "" if removing else relic_owner):

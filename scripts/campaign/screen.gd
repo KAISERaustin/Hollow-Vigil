@@ -677,6 +677,7 @@ func show_socket(socket: int) -> void:
 		dialog.hide()
 		tower_actions.blocked = false
 		tower_actions.refresh()
+		tower_dialog.open_action("preview")
 		return
 	open_dialog("Build a tower", true)
 	var confirm := UI.gold_button("", func():
