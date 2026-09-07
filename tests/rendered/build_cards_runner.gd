@@ -42,13 +42,13 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	var count: int = host.game.data.towers.size()
 	check(cards.get_child_count() == Balance.TOWERS.size(), label + " includes the complete catalog")
 	check(menu.size.y < 300, label + " fits a compact menu")
-	check(menu.get_global_rect().encloses(confirm.get_global_rect()), label + " keeps Build visible")
-	check(scroll.get_global_rect().size.y >= 112 and scroll.scroll_vertical == 0, label + " fits tall cards without vertical scrolling")
+	check(not confirm.is_visible_in_tree(), label + " picker has no Build action before selection")
+	check(scroll.get_global_rect().size.y >= 94 and scroll.scroll_vertical == 0, label + " fits compact icons without vertical scrolling")
 	check(scroll.get_parent().get_parent().get_global_rect().grow(1).encloses(scroll.get_global_rect()), label + " parent viewport shows complete cards")
 	var start := scroll.global_position + Vector2(scroll.size.x - 24, 45)
 	await swipe(start, -180)
 	check(scroll.scroll_horizontal > 0, label + " swipes left across button contents")
-	check(host.field.preview_kind == "rapid" and host.game.data.balance == funds, label + " swipe does not select or spend")
+	check(host.field.preview_kind.is_empty() and host.game.data.balance == funds, label + " swipe does not select or spend")
 	var offset := scroll.scroll_horizontal
 	await swipe(scroll.global_position + Vector2(24, 45), 180)
 	check(scroll.scroll_horizontal < offset, label + " swipes right")
@@ -61,6 +61,19 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	await settle()
 	check(host.field.preview_kind == last.get_meta("tower_kind") and last.button_pressed, label + " tap selects last tower")
 	check(host.game.data.balance == funds and host.game.data.towers.size() == count, label + " selection only previews")
+	check(not scroll.visible and confirm.is_visible_in_tree(), label + " selection opens detail view with pinned Build")
+	var details := menu.find_child("TowerDetails", true, false)
+	var stats := Balance.stats(last.get_meta("tower_kind"), 1, host.game.tuning)
+	check(details.find_child("TowerDescription", true, false).text == Balance.tower_description(stats), label + " description resolves current stats")
+	for field in stats:
+		if stats[field] is float or stats[field] is int:
+			var value := details.find_child("Stat_" + field, true, false) as Label
+			check(value != null and value.text.begins_with(VigilInterface.exact_money(stats[field])), label + " exposes resolved " + field)
+	var back := menu.find_child("BackToTowers", true, false) as Button
+	back.pressed.emit()
+	await settle()
+	check(scroll.visible and not confirm.is_visible_in_tree() and host.field.preview_kind.is_empty(), label + " Back restores picker without building")
+	check(root.gui_get_focus_owner() == last, label + " Back restores selected icon focus")
 	scroll.grab_focus()
 	var key := InputEventKey.new()
 	key.keycode = KEY_HOME
@@ -68,12 +81,16 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	Input.parse_input_event(key)
 	await settle()
 	check(scroll.scroll_horizontal == 0, label + " keyboard returns to first card")
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png("res://artifacts/build-icons-%s-%d.png" % [label, root.size.x])
 	var first := cards.get_child(0) as Button
 	await touch(first.get_global_rect().get_center(), true)
 	await touch(first.get_global_rect().get_center(), false)
 	await settle()
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("res://artifacts/build-cards-%s-%d.png" % [label, root.size.x])
+	root.get_texture().get_image().save_png("res://artifacts/build-details-%s-%d.png" % [label, root.size.x])
+	back.pressed.emit()
+	await settle()
 	# An additional card extends the strip without changing its height or host.
 	var height := menu.size.y
 	var extra := preload("res://scripts/ui/towers/tower_choice.gd").create("rapid", "Future tower", 90, func(): pass, 1, "", 150)

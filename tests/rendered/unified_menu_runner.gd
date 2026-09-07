@@ -182,8 +182,8 @@ func run() -> void:
 			await press("BackButton")
 			await press("BackButton")
 			await press("ExitGame")
-			check(menu.screen == "home", "Exit returns to matching game home")
-			await press("Continue")
+			check(menu.screen == ("slots" if type == "infinite" else "home") and menu.game_type == type, "Exit opens Infinite saved games or Campaign home")
+			if type == "campaign": await press("Continue")
 			await press("ContinueGameSlot" + str([360, 390, 540].find(dimensions.x) + 1))
 			if type == "campaign":
 				app.campaign.set_process(false)
@@ -192,6 +192,10 @@ func run() -> void:
 				check(app.campaign.page == "battle" and app.campaign.run.wave_time < 1.0, "Choosing saved level reconstructs Campaign from wave start")
 			await open_game_menu()
 			await press("ExitGame")
+			if type == "infinite":
+				await press("BackButton")
+				check(menu.screen == "main", "Back after Infinite exit returns to main")
+				menu.show_home(type)
 			await press("MyBuilds")
 			await capture(type + "-library")
 			await press("BuildDetails")
@@ -312,8 +316,10 @@ func extended_workflows() -> void:
 	check(button("CreativeTools") == null, "Survival settings omit Creative tools")
 	await press("BackButton")
 	await press("ExitGame")
+	check(menu.screen == "slots" and not app.slot_active and app.game.suspended, "Infinite Survival exits directly to saved games with the session stopped")
 	check(app.private_backups.recovery_games().size() > 0, "Replacement is browsable in Recovery copies")
 	# Share failure leaves the prepared form and private copy available for Retry.
+	menu.show_home("infinite")
 	await press("MyBuilds")
 	await press("BuildDetails")
 	await press("SharePrivateBuild")

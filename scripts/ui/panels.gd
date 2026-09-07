@@ -17,6 +17,8 @@ var selection_tower := ""
 var selection_kind := "rapid"
 var action_button: Button
 var action_cost := 0.0
+var build_choices: ScrollContainer
+var build_back: Button
 var sheet_revision := 0
 var prices: Array[Dictionary] = []
 var content_scroll: ScrollContainer
@@ -232,14 +234,22 @@ func show_build() -> void:
 	if game.economy.needs_first_property():
 		sheet_content.add_child(UI.paragraph("Buy your first property before building a tower. Close this panel and select a neighboring territory marked + to buy it for 100 gold. You will have 180 gold left for towers.", 14))
 	var row := preload("res://scripts/ui/towers/tower_choice.gd").build_list(game.tuning, func(kind: String):
-		select_build_kind(kind, sheet_content.get_child(-1) as ScrollContainer)
+		select_build_kind(kind, build_choices)
 	, selection_kind)
+	build_choices = row
 	sheet_content.add_child(row)
+	build_back = UI.back_button("Back to towers", show_build_choices)
+	build_back.name = "BackToTowers"
+	header_content.get_child(0).add_child(build_back)
+	header_content.get_child(0).move_child(build_back, 0)
+	build_back.hide()
 	var s := Balance.definition("towers", selection_kind, game.tuning)
 	action_cost = s.cost
 	var revision := sheet_revision
 	action_button = UI.gold_button("Build " + s.name + "  ·  " + UI.exact_money(s.cost) + " gold", func():
 		if revision != sheet_revision:
+			return
+		if not build_back.visible:
 			return
 		if game.economy.needs_first_property():
 			app.toast("Buy your first property before building a tower.")
@@ -254,20 +264,34 @@ func show_build() -> void:
 			app.toast("Not enough gold, or this socket is already occupied.")
 	)
 	action_footer.add_child(action_button)
-	action_footer.get_parent().show()
-	field.preview_kind = selection_kind
-	field.build_preview.open(field, self)
+	action_footer.get_parent().hide()
 	app.update_hud()
 
 func select_build_kind(kind: String, choices: ScrollContainer) -> void:
-	# Keep the header, focus and scroll position intact when changing a choice.
 	selection_kind = kind
 	field.preview_kind = kind
-	preload("res://scripts/ui/towers/tower_choice.gd").select(choices, kind)
+	preload("res://scripts/ui/towers/tower_choice.gd").show_details(choices, game.tuning, kind)
 	var definition := Balance.definition("towers", kind, game.tuning)
 	action_cost = definition.cost
 	action_button.text = "Build " + definition.name + "  ·  " + UI.exact_money(definition.cost) + " gold"
+	(header_content.find_child("SheetTitle", true, false) as Label).text = definition.name
+	build_back.show()
+	action_footer.get_parent().show()
+	content_scroll.scroll_vertical = 0
+	build_back.grab_focus()
+	field.build_preview.open(field, self)
+	fit_sheet.call_deferred()
 	app.update_hud()
+
+func show_build_choices() -> void:
+	preload("res://scripts/ui/towers/tower_choice.gd").clear_details(build_choices)
+	build_back.hide()
+	action_footer.get_parent().hide()
+	(header_content.find_child("SheetTitle", true, false) as Label).text = "Build"
+	field.build_preview.clear(field)
+	content_scroll.scroll_vertical = 0
+	build_choices.get_node("Cards/Build_" + selection_kind).grab_focus()
+	fit_sheet.call_deferred()
 
 func show_tower() -> void:
 	if not game.data.towers.has(selection_tower):

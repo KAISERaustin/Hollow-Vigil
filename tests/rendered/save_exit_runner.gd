@@ -65,7 +65,7 @@ func check_infinite_exit() -> void:
 	app.show_game_menu()
 	await press("ExitGame")
 	await press("ConfirmAction")
-	check(menu.screen == "home" and not app.slot_active and app.game.suspended and not menu.held, "Confirmed failed-save exit releases Infinite session")
+	check(menu.screen == "slots" and not app.slot_active and app.game.suspended and not menu.held, "Confirmed failed-save exit releases Infinite session into saved games")
 	check(FileAccess.get_file_as_string(app.game.save_path) == before, "Failed-save exit preserves earlier save bytes")
 	# The same escape hatch must handle a filesystem error, not only validation.
 	app.slot_active = true
@@ -75,13 +75,13 @@ func check_infinite_exit() -> void:
 	app.show_game_menu()
 	await press("ExitGame")
 	await press("ConfirmAction")
-	check(menu.screen == "home" and not app.slot_active, "Filesystem save failure still permits exit")
+	check(menu.screen == "slots" and not app.slot_active, "Filesystem save failure still permits exit to saved games")
 	app.game.save_path = original_path
 	# A later successful save exits immediately without a warning.
 	app.slot_active = true
 	app.show_game_menu()
 	await press("ExitGame")
-	check(menu.screen == "home" and button("ConfirmAction") == null, "Successful save exits directly")
+	check(menu.screen == "slots" and menu.game_type == "infinite" and button("ConfirmAction") == null, "Successful Infinite save exits directly to saved games")
 
 func check_campaign_exit() -> void:
 	var value: Dictionary = menu.campaign_slots.summary(0)

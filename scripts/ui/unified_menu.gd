@@ -494,6 +494,8 @@ func open_game_menu() -> void:
 	content.add_child(UI.paragraph(game_type.capitalize()))
 	var creative: bool = app.campaign.can_author() if live_campaign() else app.game.is_creative()
 	if creative: content.add_child(action("Edit rules", open_rules, "EditRules"))
+	if creative and not live_campaign():
+		content.add_child(action("Creative tools", show_creative_tools, "CreativeTools"))
 	content.add_child(action("Save build", open_build_form, "SaveBuild"))
 	content.add_child(action("Backups", func(): show_backups(open_game_menu), "GameBackups"))
 	content.add_child(action("Settings", func(): show_settings(open_game_menu), "GameSettings"))
@@ -532,7 +534,10 @@ func finish_exit(saved: bool) -> void:
 		app.game.suspended = true
 	if saved: mark_backup_pending()
 	held = false
-	show_home()
+	if game_type == "infinite":
+		show_slots()
+	else:
+		show_home()
 
 func open_build_form() -> void:
 	var source: VigilState = app.campaign.game if live_campaign() else app.game
@@ -694,7 +699,7 @@ func show_settings(return_to: Callable = Callable()) -> void:
 	page_view("settings", "Settings", settings_return)
 	content.add_child(action("Account", func(): show_account(show_settings), "SettingsAccount"))
 	content.add_child(action("Sound", show_sound, "SettingsSound"))
-	if held and (app.campaign.can_author() if live_campaign() else app.game.is_creative()):
+	if held and live_campaign() and app.campaign.can_author():
 		content.add_child(action("Creative tools", show_creative_tools, "CreativeTools"))
 
 func show_sound() -> void:
@@ -705,7 +710,7 @@ func show_sound() -> void:
 	content.add_child(controls)
 
 func show_creative_tools() -> void:
-	page_view("creative_tools", "Creative tools", show_settings)
+	page_view("creative_tools", "Creative tools", show_settings if live_campaign() else open_game_menu)
 	var field: Battlefield = app.campaign.field if live_campaign() else app.field
 	var game: VigilState = app.campaign.game if live_campaign() else app.game
 	if field != null:

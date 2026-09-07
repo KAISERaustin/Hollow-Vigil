@@ -80,6 +80,7 @@ func run() -> void:
 	await exercise(app, func(): app.panels.select_pad("0,0", 1), app.panels.close_sheet, app.panels, "infinite")
 	app.panels.select_pad("0,0", 1)
 	await frame()
+	app.find_child("Build_rapid", true, false).pressed.emit()
 	app.panels.action_button.pressed.emit()
 	for step in range(40):
 		app.field._process(1.0 / 60.0)
