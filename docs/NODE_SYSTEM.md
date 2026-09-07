@@ -12,6 +12,10 @@ graph TD
     Tower --> Pyre
     Tower --> Obelisk
     Tower --> Stormspire
+    Tower --> Ironspike
+    Tower --> Moonwheel
+    Tower --> HexLantern[Hex Lantern]
+    Tower --> CaltropKeep[Caltrop Keep]
     Ashneedle --> Tier2[Level 2]
     Tier2 --> Tier3[Level 3]
     Tier3 --> Frostneedle
@@ -42,14 +46,14 @@ graph TD
     OpenWorld --> Survival
     Level --> Campaign
     Campaign --> Chapters
-    Chapters --> Missions[20 missions]
+    Chapters --> Missions[30 missions]
     Content --> Wave
     Content --> Projectile
     Content --> Ability
     Content --> Targeting
 ```
 
-The eighteen gear types, eighteen ordinary enemies, six terrain/portal types, four projectile profiles, eight abilities, every tower tier, and every campaign wave have individual entries. Gear composes registered `attribute/` nodes. IDs are namespaced: `tower/heavy` is Obelisk; `enemy/heavy` is Rootbound Revenant. Bosses inherit Enemy in both the content tree and the GDScript class hierarchy.
+The eighteen gear types, eighteen ordinary enemies, six terrain/portal types, eight projectile profiles, sixteen branch abilities, every tower tier, and every campaign wave have individual entries. Gear composes registered `attribute/` nodes. IDs are namespaced: `tower/heavy` is Obelisk; `enemy/heavy` is Rootbound Revenant. Bosses inherit Enemy in both the content tree and the GDScript class hierarchy.
 
 ## Using a node
 
@@ -192,7 +196,7 @@ Campaign now enters through a setup screen. Its Creative and Survival Level node
 
 The campaign has six five-level Chapter nodes, matching `World.ALL_STYLES`. Castle Ruin and Mourning Orchard append levels 21–30 through the existing Level/Wave registry and shared Enemy/Boss types. The original twenty level identities, roads, waves and rules remain stable. Old twenty-level playthrough/reusable builds and medal saves remain readable; new levels use defaults when an old build has no entry. A completed old campaign unlocks level 21. `tests/campaign_expansion_runner.gd` checks legal victories, sequential unlocks, old build/save compatibility and checkpoints. The `six_biome_campaign` migration updates shared-build and cloud-backup limits; verify and deploy it before using thirty-level cloud data.
 
-Live Creative edits use `Run.apply_configuration()`. Wave nodes provide group/member identities; each run tracks how many members have spawned, preserving existing enemies and the wave clock while rebuilding only outstanding spawns. Saving repeatedly cannot respawn past members. Active groups keep their positions (edit remaining counts instead of deleting a group); future waves allow group removal. Starting gold and core integrity changes apply in initial planning or on restart. The same level/wave stat editor works during combat and between rounds, and saved changes are included in full campaign exports. The Enemy family's `authored_paths` rule makes every registered road enemy available to authored campaign spawns; stock wave rosters and Infinite portal assignments remain unchanged. `tests/campaign_playthrough_runner.gd`, `tests/rendered/campaign_setup_runner.gd` and `supabase/tests/campaign_playthrough_contract.sql` cover runtime isolation, replay, phone layouts and cloud publication/readback.
+Live Creative edits use `Run.apply_configuration()`. Wave nodes provide group/member identities; each run tracks how many members have spawned, preserving existing enemies and the wave clock while rebuilding only outstanding spawns. Saving repeatedly cannot respawn past members. Active groups keep their positions (edit remaining counts instead of deleting a group); future waves allow group removal. Starting gold and core integrity changes apply in initial planning or on restart. Menu → Edit rules is the only campaign content-stat editor. Its shared Developer Controls reports the edited fields to the campaign owner, which applies those fields to every Level and removes matching Wave stat overrides in one save transaction. Unedited legacy values and wave composition, timing and rewards are preserved. Saved checkpoints receive the new rules while retaining their wave-start economy. Waves → Edit wave owns only spawn types, counts, entrance lanes, delays, intervals and completion gold; it cannot switch to level defaults or edit content statistics. Both editors use isolated drafts with Apply and Cancel, and saved changes are included in full campaign exports. The Enemy family's `authored_paths` rule makes every registered road enemy available to authored campaign spawns; stock wave rosters and Infinite portal assignments remain unchanged. `tests/campaign_playthrough_runner.gd`, `tests/rendered/campaign_setup_runner.gd` and `supabase/tests/campaign_playthrough_contract.sql` cover runtime isolation, replay, phone layouts and cloud publication/readback.
 
 Campaign core integrity defaults to 3 through the shared Level catalog. Its configuration label also supplies the briefing stat caption. Existing configuration and export keys remain stable, so saved custom integrity values still apply.
 

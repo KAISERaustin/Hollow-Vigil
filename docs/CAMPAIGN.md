@@ -4,7 +4,7 @@ The campaign is a separate tactical world with 30 authored missions in six biome
 
 ## Mission rules
 
-- Every level begins with its own fixed gold budget and an empty set of authored tower sockets. The four tower families, upgrades, specializations, targeting priorities and sale refunds use the existing combat rules.
+- Every level begins with its own fixed gold budget and an empty set of authored tower sockets. The eight tower families, upgrades, specializations, targeting priorities and sale refunds use the existing combat rules.
 - Roads, entrance lanes, enemy groups, spawn intervals and delays are predefined. Enemies follow the displayed roads even where two routes cross. There is no territory purchase or continuous rift spawning.
 - The sanctuary begins with 3 core integrity by default. Hollows, Wraiths and Lantern Keepers reduce core integrity by 1 on arrival; Revenants and Abyss Shades reduce it by 2; Crypt Sentinels reduce it by 3. An escaped boss ends a mission with the default core integrity.
 - Gold from kills is collected immediately. Each completed wave pays its displayed bonus once. Preview all waves before spending, then start each wave when ready. Building, upgrading and selling remain available during combat. Opening a tower dialog or wave preview pauses the battle.

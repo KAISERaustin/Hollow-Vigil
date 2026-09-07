@@ -21,6 +21,7 @@ func run() -> void:
 		var levels := {"7": {"overrides": old_rules}}
 		var saved: Dictionary = menu.campaign_slots.create(0, "creative", "Global campaign", levels)
 		var other: Dictionary = menu.campaign_slots.create(1, "creative", "Independent campaign")
+		other = menu.campaign_slots.summary(1)
 		var checkpoint_run := Run.new(7, old_rules, "creative")
 		checkpoint_run.start_wave()
 		saved.checkpoint = checkpoint_run.checkpoint()
@@ -60,7 +61,7 @@ func run() -> void:
 		check(updated.waves["0"].tuning.enemies.basic.speed == 27.0, "Unedited legacy statistics stay intact")
 		check(menu.campaign_slots.summary(1) == other and app.game.tuning.is_empty(), "Other Campaign slots and Infinite remain independent")
 		var persisted: Dictionary = menu.campaign_slots.summary(0)
-		check(persisted.levels == campaign.campaign_save.levels, "All levels persist in one complete save")
+		check(persisted.levels == JSON.parse_string(JSON.stringify(campaign.campaign_save.levels, "", true, true)), "All levels persist in one complete save")
 		var resumed := Run.from_checkpoint(persisted.checkpoint)
 		check(resumed.game.tuning.enemies.basic.hp == edited.enemies.basic.hp, "Map edits reach the stored wave checkpoint")
 		var exported := Build.capture("campaign", null, campaign.session_levels(), "all", -1, Build.all_contents("campaign"), "Global export", "")

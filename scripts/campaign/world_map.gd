@@ -96,7 +96,9 @@ func arrange() -> void:
 		var reserved := chapter_reserved(chapter)
 		var layout_key := hash([size.x,reserved,profile])
 		if chapter<landscapes.size() and landscapes[chapter].key==layout_key: continue
-		var landscape := {"profile":profile,"key":layout_key,"sites":MapArt.layout(profile,chapter_rect(chapter),reserved,chapter_roads(chapter),chapter+71)}
+		var obstacles := chapter_roads(chapter)
+		obstacles.append(MapArt.waterway(chapter_rect(chapter)))
+		var landscape := {"profile":profile,"key":layout_key,"sites":MapArt.layout(profile,chapter_rect(chapter),reserved,obstacles,chapter+71)}
 		if chapter<landscapes.size(): landscapes[chapter]=landscape
 		else: landscapes.append(landscape)
 	queue_redraw()
@@ -140,10 +142,14 @@ func _draw() -> void:
 		draw_rect(bounds, Art.ground_color(style))
 		MapArt.Nature.ground(self,bounds,style)
 		var roads := chapter_roads(chapter)
-		if chapter<landscapes.size(): MapArt.landscape(self,landscapes[chapter].profile,landscapes[chapter].sites)
+		var river := MapArt.waterway(bounds)
+		if chapter<landscapes.size():
+			MapArt.water(self,river,landscapes[chapter].profile)
+			MapArt.landscape(self,landscapes[chapter].profile,landscapes[chapter].sites)
 		for road in roads:
 			var destination := clampi(roundi((road[-1].y - bounds.position.y - FIRST_LEVEL_Y) / LEVEL_SPACING), 0, 5) + chapter * 5
 			MapArt.trail(self, road, destination <= progress.data.completed_levels and not progress.allow_all)
+		MapArt.bridges(self,roads,river)
 		# Abutting biomes share exactly one border, including road crossings.
 		if chapter > 0:
 			draw_rect(Rect2(0, bounds.position.y, size.x, UI.OUTLINE), UI.BORDER)

@@ -54,10 +54,18 @@ func run() -> void:
 			check(back.get_global_rect() == back_bounds, "Back remains fixed while scrolling")
 			var bounds: Rect2 = map.chapter_rect(chapter)
 			check(bounds.encloses(map.headings[chapter].get_rect()), "Chapter title fits its biome")
+			var scenery: Array = map.landscapes[chapter].sites
+			check(scenery.filter(func(site):return site.major).size()==4,"Every chapter retains four substantial scenery landmarks")
+			check(scenery.filter(func(site):return site.kind!="ground_marks").size()>=9,"Every chapter has a populated landscape at %d"%viewport.x)
+			var obstacles := map.chapter_roads(chapter)
+			obstacles.append(Map.MapArt.waterway(bounds))
+			for site in scenery:
+				check(Map.MapArt.clear_site(site.rect,bounds,map.chapter_reserved(chapter),obstacles),"Scenery clears labels, destinations, trails and water at %d / chapter %d"%[viewport.x,chapter+1])
 			for index in range(chapter * 5, chapter * 5 + 5):
 				check(bounds.encloses(map.nodes[index].get_rect()), "Level marker fits its biome")
 				check(bounds.encloses(map.labels[index].get_rect()), "Level label fits its biome")
 				check(not map.nodes[index].get_rect().intersects(map.labels[index].get_rect()), "Level text does not overlap its marker")
+				check(map.nodes[index].size.x>=48 and map.nodes[index].size.y>=48,"Illustrated destinations retain large touch targets")
 				var clear_text := true
 				for road in map.chapter_roads(chapter):
 					for point in road:
@@ -72,6 +80,10 @@ func run() -> void:
 			var sample := capture.get_pixel(1, roundi(map.global_position.y + bounds.position.y + 10))
 			check(sample.is_equal_approx(color), "Biome artwork reaches the screen edge")
 			capture.save_png("res://artifacts/campaign-biomes-%d-%d.png" % [viewport.x, chapter + 1])
+			# Inspect the bottom of each chapter as well as the top on short screens.
+			campaign.page_scroll.scroll_vertical=roundi((chapter+1)*Map.CHAPTER_HEIGHT-campaign.page_scroll.size.y)
+			await frame()
+			root.get_texture().get_image().save_png("res://artifacts/campaign-biomes-%d-%d-lower.png"%[viewport.x,chapter+1])
 		campaign.page_scroll.scroll_vertical = 0
 		await frame()
 		map.nodes[0].pressed.emit()

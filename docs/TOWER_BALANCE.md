@@ -1,60 +1,90 @@
 # Tower levels and specializations
 
-Every tower starts at level 1, upgrades through levels 2 and 3, then chooses one of two permanent level-4 branches. Click Upgrade at level 3 to open left and right choices. Selecting either opens its portrait and description above the buttons. A separate confirmation spends gold. Branch previews remain available without enough gold, but purchase is disabled. Level 4 is the maximum.
+All eight tower families are available in Infinite Worlds and Campaign. Each starts at level 1, upgrades through levels 2 and 3, then chooses one permanent level-4 branch. The shared construction, upgrade, targeting, equipment, sale, relocation, rules editor and save systems use the same catalog.
 
-These are the default values. Developer Controls scale inherited stats and prices for the current save. Special effects scale with tuned hit damage; durations, distances, percentages, and charge limits stay fixed.
+The tables below are generated from resolved catalog values, including recent range adjustments. `scripts/content/catalogs/towers.gd` is authoritative. Save-specific rules and equipment can change these values. Regenerate the source data with `tests/previews/tower_catalog_export.gd`.
 
 ## Levels 1–3
 
-| Tower | Level | Damage per hit | Interval (s) | Range | Blast radius | Individual price |
+| Tower | Level | Damage per hit | Interval (s) | Range | Blast radius | Purchase gold |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Ashneedle | 1 | 6 | 0.48 | 132 | 0 | 60 |
-| Ashneedle | 2 | 10 | 0.40 | 146 | 0 | 60 |
-| Ashneedle | 3 | 15 | 0.30 | 160 | 0 | 100 |
-| Pyre | 1 | 15 | 1.50 | 126 | 46 | 120 |
-| Pyre | 2 | 24 | 1.30 | 140 | 56 | 120 |
-| Pyre | 3 | 36 | 1.10 | 154 | 66 | 200 |
-| Obelisk | 1 | 40 | 1.80 | 157 | 0 | 160 |
-| Obelisk | 2 | 60 | 1.35 | 173 | 0 | 140 |
-| Obelisk | 3 | 90 | 0.90 | 189 | 0 | 220 |
-| Stormspire | 1 | 3 | 0.40 | 145 | 0 | 140 |
-| Stormspire | 2 | 5 | 0.35 | 159 | 0 | 120 |
-| Stormspire | 3 | 7 | 0.30 | 173 | 0 | 200 |
+| Ashneedle | 1 | 6 | 0.48 | 140 | 0 | 60 |
+| Ashneedle | 2 | 10 | 0.4 | 154 | 0 | 60 |
+| Ashneedle | 3 | 15 | 0.3 | 168 | 0 | 100 |
+| Pyre | 1 | 15 | 1.5 | 115 | 46 | 120 |
+| Pyre | 2 | 24 | 1.3 | 129 | 56 | 120 |
+| Pyre | 3 | 36 | 1.1 | 143 | 66 | 200 |
+| Obelisk | 1 | 40 | 1.8 | 185 | 0 | 160 |
+| Obelisk | 2 | 60 | 1.35 | 201 | 0 | 140 |
+| Obelisk | 3 | 90 | 0.9 | 217 | 0 | 220 |
+| Stormspire | 1 | 3 | 0.4 | 160 | 0 | 140 |
+| Stormspire | 2 | 5 | 0.35 | 174 | 0 | 120 |
+| Stormspire | 3 | 7 | 0.3 | 188 | 0 | 200 |
+| Ironspike | 1 | 22 | 1.4 | 200 | 0 | 140 |
+| Ironspike | 2 | 32 | 1.25 | 215 | 0 | 120 |
+| Ironspike | 3 | 44 | 1.1 | 230 | 0 | 200 |
+| Moonwheel | 1 | 10 | 1.5 | 135 | 0 | 130 |
+| Moonwheel | 2 | 15 | 1.35 | 145 | 0 | 120 |
+| Moonwheel | 3 | 21 | 1.2 | 155 | 0 | 200 |
+| Hex Lantern | 1 | 4 | 1.4 | 270 | 0 | 100 |
+| Hex Lantern | 2 | 7 | 1.2 | 300 | 0 | 100 |
+| Hex Lantern | 3 | 10 | 1 | 330 | 0 | 180 |
+| Caltrop Keep | 1 | 24 | 2 | 125 | 0 | 120 |
+| Caltrop Keep | 2 | 36 | 1.8 | 140 | 0 | 120 |
+| Caltrop Keep | 3 | 52 | 1.6 | 155 | 0 | 200 |
 
-Prices are gold. Range and blast radius are world units. Stormspire strikes up to five distinct primary targets per pulse at every level. Pyre deals its blast damage to each enemy in the radius. Combat advances in 0.05-second ticks; intervals round up to the next tick, without adding an extra tick for floating-point residue.
-
-The first territory costs 100 of the starting 280 gold, leaving 180 for a defense. Ashneedle provides inexpensive rapid fire, Pyre provides area damage, Obelisk intercepts durable enemies, and Stormspire trades single-target damage for crowd coverage. At level 3, a Revenant takes 23 Ashneedle hits, 10 Pyre blasts, or four Obelisk hits. Branch bonuses change these thresholds.
+Damage is per contact, not guaranteed DPS. Moonwheel may hit once on each travel leg and waits for its active blade to return. Ironspike loses damage on later pierced victims. Hex Lantern's marks amplify allied hits. Caltrop Keep must arm its traps and wait for contact. Attack periods advance in 0.05-second simulation ticks.
 
 ## Level 4
 
-Costs are the individual branch purchase. Both choices for a tower cost the same. Selling also returns uncollected earnings. Moving retains the branch, uses 20% of total investment, and starts the established rebuild timer.
+| Family | Branch | Damage per hit | Interval (s) | Range | Blast radius | Upgrade gold | Total investment |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Ashneedle | Frostneedle | 15 | 0.3 | 168 | 0 | 180 | 400 |
+| Ashneedle | Poison Arrow | 15 | 0.3 | 168 | 0 | 180 | 400 |
+| Pyre | Cinderfield | 27 | 1.1 | 143 | 66 | 320 | 760 |
+| Pyre | Rupture Pyre | 54 | 1.5 | 143 | 66 | 320 | 760 |
+| Obelisk | Grave Echo | 110 | 0.9 | 217 | 0 | 360 | 880 |
+| Obelisk | Doomstone | 90 | 0.9 | 217 | 0 | 360 | 880 |
+| Stormspire | Tempest Web | 7 | 0.3 | 188 | 0 | 300 | 760 |
+| Stormspire | Thunderseal | 7 | 0.3 | 188 | 0 | 300 | 760 |
+| Ironspike | Siegebreaker | 60 | 1.25 | 250 | 0 | 320 | 780 |
+| Ironspike | Needle Battery | 28 | 1.1 | 230 | 0 | 320 | 780 |
+| Moonwheel | Reaper Wheel | 32 | 1.5 | 185 | 0 | 300 | 750 |
+| Moonwheel | Orbit Crown | 12 | 0.45 | 75 | 0 | 300 | 750 |
+| Hex Lantern | Oathbrand | 10 | 1 | 330 | 0 | 280 | 660 |
+| Hex Lantern | Witchlight | 10 | 1 | 330 | 0 | 280 | 660 |
+| Caltrop Keep | Dreadjaw | 140 | 2 | 155 | 0 | 320 | 760 |
+| Caltrop Keep | Scatterworks | 32 | 2 | 155 | 0 | 320 | 760 |
 
-| Base tower | Branch | Base damage | Interval (s) | Range | Blast radius | Upgrade gold | Total investment | Sell gold |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Ashneedle | Frostneedle | 15 | 0.30 | 160 | 0 | 180 | 400 | 200 |
-| Ashneedle | Poison Arrow | 15 direct + poison | 0.30 | 160 | 0 | 180 | 400 | 200 |
-| Pyre | Cinderfield | 27 | 1.10 | 154 | 66 | 320 | 760 | 380 |
-| Pyre | Rupture Pyre | 54 | 1.50 | 154 | 66 | 320 | 760 | 380 |
-| Obelisk | Grave Echo | 110 | 0.90 | 189 | 0 | 360 | 880 | 440 |
-| Obelisk | Doomstone | 90 | 0.90 | 189 | 0 | 360 | 880 | 440 |
-| Stormspire | Tempest Web | 7 | 0.30 | 173 | 0 | 300 | 760 | 380 |
-| Stormspire | Thunderseal | 7 | 0.30 | 173 | 0 | 300 | 760 | 380 |
+- **Frostneedle:** Ice needles slow enemies by 25% for 2 seconds. Repeated hits refresh the slow; they never stack.
+- **Poison Arrow:** Arrows poison their target for 3 seconds, dealing {poison_dps} damage each second. Hits from this tower refresh the poison without stacking.
+- **Cinderfield:** Blasts leave burning ground for 3 seconds at {burn_dps} damage per second. Overlapping fire from this tower refreshes without stacking.
+- **Rupture Pyre:** Blasts deal 54 damage every 1.5 seconds and push enemies back 20 units, reduced by enemy resistance. Enemies resist another push for 1 seconds.
+- **Grave Echo:** A heavy orb bursts into 5 seeking fragments. Each deals {fragment_percent}% of its damage to a different enemy within 90 units. The original target is excluded; unused fragments fade.
+- **Doomstone:** Consecutive hits on one enemy increase this tower's damage by {curse_percent}% per curse stack, up to {curse_max_percent}% bonus. Switching targets resets the curse.
+- **Tempest Web:** Strikes up to 5 enemies. Each strike arcs to one additional, distinct enemy within 60 units for {arc_percent}% damage, reaching beyond normal range.
+- **Thunderseal:** After 5 hits from this tower, a seal detonates for 3 times hit damage as a bonus and a 0.4-second stun. Charges reset; 2-second stun immunity prevents continuous lockdown.
+- **Siegebreaker:** Heavy bolts pierce 3 enemies at full damage. Boss hits deal 1.5 times damage before defenses. A slower reload rewards focus fire.
+- **Needle Battery:** Fires 3 parallel bolts, each piercing 4 enemies. A victim takes at most one hit per volley; wider coverage trades away single-target force.
+- **Reaper Wheel:** A giant serrated crescent cuts through 8 enemies on each leg. Its broad, long corridor and slower throws reward dense traffic.
+- **Orbit Crown:** Three blades orbit in a short radius, sweeping all nearby enemies every 0.45 seconds. Each enemy takes one hit per sweep, never one hit per blade.
+- **Oathbrand:** Concentrates on one enemy: +35% incoming tower damage for 4 seconds. Only the strongest mark applies; boss defenses remain intact.
+- **Witchlight:** Marks add 20% incoming damage. A directly marked death spreads the mark to 3 nearby enemies for 3 seconds. Spread marks never spread again.
+- **Dreadjaw:** Stores 3 heavy jaw traps. Each deals 140 damage to one victim, arms in 1 seconds, and expires after 12 seconds.
+- **Scatterworks:** Deploys 3 weaker caltrops per cycle at separate road positions. Stores up to 9; each damages one victim and disappears.
 
-- **Frostneedle:** 25% movement slow for 2 seconds. Hits refresh duration without stacking. Blue body, icy crown, pale needles, and enemy frost rings.
-- **Poison Arrow:** one aimed arrow deals 15 direct damage and applies 5 damage per second for 3 seconds by default. Hits from the same tower refresh duration without stacking; different towers own independent poison. Damage and duration use shared tuning. The stable `thorn_volley` branch ID, existing upgrade ownership and green artwork are retained; old spread fields remain readable but no longer affect gameplay.
-- **Cinderfield:** 3-second burning patches deal 12 damage per second. Same-tower overlapping patches refresh and never stack damage on an enemy. Different towers own independent fire. Dark cracked basin, molten orange fire, glowing scorch marks.
-- **Rupture Pyre:** pushes victims 20 world units backward along their road, or 5 for Revenants. One-second immunity prevents repeated pushes. Reinforced iron brazier and expanding orange shockwaves.
-- **Grave Echo:** up to five seeking fragments, each dealing 20% of the original hit (22 by default), target distinct enemies within 90 units of impact. They exclude the original target and never split again; unused fragments fade. Fractured violet crystal with five floating shards and curved trails.
-- **Doomstone:** first hit deals base damage; subsequent same-target hits gain 20% per stack up to five stacks (+100%, or 180 damage). Changing targets resets this tower's curse. Dark floating monolith and brightening curse runes.
-- **Tempest Web:** five primary targets; each arcs to one distinct additional enemy within 60 units for half damage (3.5). Primary targets cannot receive secondary arcs. Secondary arcs may extend beyond tower range. Branching metal crown and blue-white lightning web.
-- **Thunderseal:** each tower tracks charges independently on each enemy. The fifth hit adds triple-hit bonus damage (21) and resets charges. The 0.4-second stun has 2-second immunity measured from detonation. Suspended storm rings, charge marks, and bright electrical detonations.
+## Reusable behavior and lifecycle
 
-## Validation and saves
+The new families attach `piercing_attack`, `returning_attack`, `orbit_attack`, `vulnerability_mark`, `tower_boss_damage` and `road_traps` content components. They can be attached to other tower definitions without modifying their parents. `TowerComponents` owns instance epochs and cleans up removed capabilities. `line_projectiles.gd` leads along the target's current road once at launch, then resolves swept collisions without homing. Returning blades retain separate hit sets for each leg; parallel volleys share a victim set. Ground gear procs occur once per launch.
 
-The selected branch persists through saving and relocation and contributes to sale/refund investment. Old level-1–3 saves remain valid. Version-1 high-level towers still migrate to level 3 with full refunds for the removed upgrades using original individually rounded prices, requiring an explicit new branch purchase. Migration remains idempotent and preserves stored earnings. Charges, curses, slows, fire and poison are transient combat state.
+Only the strongest active vulnerability applies. Each source retains its own expiry, so removing a stronger lantern restores any weaker valid mark. Witchlight spreads directly applied marks once; propagated marks cannot spread recursively. Boss defenses still resolve through the shared damage owner.
 
-`tests/branch_runner.gd` checks branch transactions, save roundtrips, effects, immunity, Poison Arrow hits, and distinct fragment/arc targets. `tests/rendered/branch_visual_runner.gd` checks both preview buttons with mouse/touch, compact layouts, and purchasing, and produces `artifacts/level-four-branches.png`. Both run through `launch.ps1 -Check`.
+Traps occupy actual road positions inside the tower's reach, have finite capacity and lifetime, and never block movement. They prepare during Campaign planning without spawning enemies, advancing waves or earning gold. Selling, moving, changing branches or replacing components clears their owned effects. Save files and portable builds preserve tower identity, level, branch, target mode, gear and investment. Transient blades, marks and traps are not restored as an offline stockpile. Campaign resumes its existing wave checkpoint rules.
 
-`tests/unit/tower_balance_checks.gd` retains deterministic level-1–3 balance scenarios across three seeds, four approaches, basic openings, and mixed traffic at base/maximum density. These scenarios spawn for two minutes and drain for 30 seconds. `artifacts/tower-balance.csv` reports clear percentage and gold per minute for that cohort. This benchmark does not predict every placement, and the new branches have not yet received equivalent long-form balance tuning.
+## Validation
 
-The Excel reference is `outputs/01a073f8-7757-7fd0-acb0-5b552511c00b/Enemy_and_Tower_Stats.xlsx`. Its Towers table includes all eight level-4 choices and effect rules. Editing the reference workbook does not modify game balance.
+- `tests/tower_expansion_runner.gd`: real attack cadence, moving targets, all five stages per family, all eighteen gear types, attach/remove behavior, saves and portable builds, and every authored Campaign mission.
+- `tests/tower_expansion_balance_runner.gd`: three seeds and four approaches, basic openings, mixed traffic, every branch and Hex Lantern paired with the same allied defense. Initial marks can improve damage without crossing a kill threshold; upgraded support is checked against that allied income baseline.
+- `tests/test_runner.gd`: shared economy, old tower balance, movement, combat, tuning, gear, persistence and crowded-world regressions. The established solo balance thresholds remain assigned to the original four towers.
+- `tests/rendered/tower_upgrade_preview_runner.gd`: every tower, tier and branch in both modes at 360, 390 and 540 UI-unit phone widths, including touch, bounds, scrolling and pinned purchase controls.
+- Build selection, developer layout, equipment, framing, audio, Campaign export and unified persistence runners cover the connected menus and services.

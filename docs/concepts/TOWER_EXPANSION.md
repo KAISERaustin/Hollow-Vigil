@@ -1,6 +1,8 @@
 # Four additional tower families
 
-September 7, 2026 · Visual concepts for review · This brief records the proposed designs; its figures are playtest candidates, not a balance certification or implementation status report.
+September 7, 2026 · Original visual concept brief · This brief records the proposed designs; its figures are playtest candidates, not a balance certification or implementation status report.
+
+The selected designs now have playable definitions. See [the implementation and current values](../TOWER_BALANCE.md) for live behavior and verification; this document preserves the original proposal.
 
 ![Four level-one tower concepts beside the existing roster](tower-expansion/level-one-concepts.png)
 

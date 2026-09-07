@@ -30,6 +30,7 @@ static func draw(field) -> void:
 	for tower in field.state.data.towers.values():
 		if tower.get("rebuild_remaining", 0.0) > 0.0: continue
 		var node = combat.TowerComponents.definition(combat, tower)
+		if node == null: continue # Legacy/editor previews may omit a level-four branch.
 		var orbit := false
 		for entry in node.rule("components", []):
 			if entry.component.rule("presentation", "") == "orbit": orbit = true

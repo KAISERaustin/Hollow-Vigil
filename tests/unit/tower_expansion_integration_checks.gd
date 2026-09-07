@@ -110,17 +110,38 @@ static func campaign_and_portable_builds(t) -> void:
 	var catalog = preload("res://scripts/campaign/catalog.gd")
 	for index in range(catalog.COUNT):
 		for kind in t.NewKinds:
-			var campaign := Campaign.new(index, {}, "creative")
-			campaign.game.data.balance = 100000.0
-			var socket: int = campaign.mission.sockets[0].index
-			t.check(campaign.build(socket, kind), "Campaign %d builds %s" % [index + 1, kind])
-			var branch: String = Balance.BRANCHES[kind].keys()[index % 2]
-			t.check(campaign.upgrade(socket) and campaign.upgrade(socket) and campaign.upgrade(socket, branch), "Campaign %d upgrades %s" % [index + 1, branch])
-			var saved := campaign.checkpoint()
-			t.check(Campaign.valid_checkpoint(saved) and Campaign.from_checkpoint(saved) != null, "Campaign %d saves %s" % [index + 1, branch])
-			campaign.start_wave()
-			for tick in range(60): campaign.tick(Balance.STEP)
-			t.check(campaign.game.combat.simulation_time > 0.0, "Campaign %d simulates %s" % [index + 1, branch])
+			for stage in stages(kind):
+				var campaign := Campaign.new(index, {}, "creative")
+				campaign.game.data.balance = 100000.0
+				var closest := INF
+				var socket := -1
+				var point := Vector2.ZERO
+				var selected_route := []
+				for candidate in campaign.mission.sockets:
+					var origin := VigilWorld.pad_position(candidate.region, candidate.pad)
+					for road in campaign.mission.routes:
+						for segment in range(1, road.size()):
+							var at := Geometry2D.get_closest_point_to_segment(origin, road[segment - 1], road[segment])
+							if at.distance_squared_to(origin) < closest:
+								closest = at.distance_squared_to(origin)
+								socket = candidate.index
+								point = at
+								selected_route = road
+				var label := "Campaign %d %s/%d/%s" % [index + 1, kind, stage[0], stage[1]]
+				t.check(campaign.build(socket, kind), label + " builds on an authored socket")
+				for level in range(1, stage[0]): t.check(campaign.upgrade(socket, stage[1] if level == 3 else ""), label + " buys its progression")
+				var saved := campaign.checkpoint()
+				t.check(Campaign.valid_checkpoint(saved) and Campaign.from_checkpoint(saved) != null, label + " saves and reloads")
+				campaign.start_wave()
+				campaign.schedule.clear()
+				var victim: Dictionary = campaign.game.combat.spawn_on_path(Balance.portal_kinds(campaign.mission.style)[0], selected_route, campaign.mission.style)
+				victim.pos = point
+				victim.stun_until = 10000.0
+				victim.hp = 1000000.0
+				victim.max_hp = victim.hp
+				victim.rift_style = "forest" # Isolate tower damage from regeneration.
+				for tick in range(60): campaign.tick(Balance.STEP)
+				t.check(victim.hp < victim.max_hp, label + " damages a target on its real road through Campaign.tick")
 	for kind in t.NewKinds:
 		for stage in stages(kind):
 			var game: VigilState = t.setup(kind, stage[0], stage[1])

@@ -132,7 +132,7 @@ func _ready() -> void:
 	var reset_selected := UI.button("Reset selected type / tier", func():
 		commit_fields()
 		game.reset_developer_balance(category, editing_kind())
-		rules_edited.emit(category, editing_kind(), Balance.editable_fields_for(category, editing_kind()))
+		rules_edited.emit(category, editing_kind(), Balance.editable_fields_for(category, editing_kind()).keys())
 		show_fields()
 		changed.emit()
 	)
@@ -143,7 +143,7 @@ func _ready() -> void:
 		game.reset_developer_balance()
 		for section in categories:
 			for kind in Balance.definitions(section):
-				rules_edited.emit(section, kind, Balance.editable_fields_for(section, kind))
+				rules_edited.emit(section, kind, Balance.editable_fields_for(section, kind).keys())
 		show_fields()
 		changed.emit()
 	)

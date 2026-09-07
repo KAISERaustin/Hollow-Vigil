@@ -38,3 +38,19 @@ a 0.65-second expanding dust cloud and tower-colored motes at that socket.
 Effects use frame time and map coordinates, follow camera zoom and pan, and
 never enter saved progress. Failed, stale, and maximum-level upgrades emit no
 effect. Replacing the economy disconnects the previous signal and clears poofs.
+
+## Additional tower families
+
+Ironspike, Moonwheel, Hex Lantern and Caltrop Keep compose the stateless native
+`rendering/actors/expansion_tower_art.gd` family. Each has level-one, reinforced,
+fortified and two final branch silhouettes. The same drawing owner supplies
+battlefields, build previews, menu portraits and upgrade previews in both modes.
+The concept renderer now inherits this production owner rather than duplicating
+its drawing code. Its twenty transparent exports and review boards remain in
+`docs/concepts/tower-expansion/`.
+
+`rendering/effects/tower_component_art.gd` draws actual live bolts, outward and
+returning crescents, armed/unarmed road traps and orbiting blades from combat
+state. Exposed enemies display an eye mark through the shared affliction renderer.
+Game collision positions and visual positions share one owner; the cosmetic
+effect limit cannot suppress projectile damage or trap triggers.

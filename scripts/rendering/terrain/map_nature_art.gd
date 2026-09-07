@@ -23,6 +23,13 @@ static func stone(c: CanvasItem, at: Vector2, z: float, fill: Color) -> void:
 	c.draw_line(at,at+Vector2(7,7)*z,A.INK,1.2,true)
 
 static func draw(c: CanvasItem, kind: String, rect: Rect2, profile: Dictionary) -> void:
+	if kind=="ground_marks":
+		var at := rect.get_center()
+		var tint := Color(profile.roof).lightened(0.13)
+		for x in [-5,1,6]:
+			c.draw_line(at+Vector2(x,3),at+Vector2(x-2,-3-abs(x)*0.3),tint,1.2,true)
+		c.draw_line(at+Vector2(-8,6),at+Vector2(6,6),tint,1.0,true)
+		return
 	var zoom := rect.size.x/120.0
 	c.draw_set_transform(Vector2(rect.get_center().x,rect.end.y-20*zoom),0,Vector2.ONE*zoom)
 	var top := Color(profile.roof)
