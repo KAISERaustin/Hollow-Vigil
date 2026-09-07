@@ -52,6 +52,15 @@ func press(key: String) -> void:
 		await process_frame
 	await frames()
 
+func open_game_menu() -> void:
+	# Campaign's toolbar now returns to the map; exercise the full menu owner
+	# directly here while saved_slot_continue_runner covers toolbar navigation.
+	if is_instance_valid(app.campaign):
+		app.show_game_menu()
+		await frames()
+	else:
+		await press("GameMenuButton")
+
 func fill(key: String, text: String) -> void:
 	var entry: LineEdit = menu.find_child(key, true, false)
 	check(entry != null, "Reachable field: " + key)
@@ -126,15 +135,15 @@ func run() -> void:
 				app.campaign.run.tick(0.25)
 				var held_run: RefCounted = app.campaign.run
 				var held_time: float = held_run.wave_time
-				await press("GameMenuButton")
+				await open_game_menu()
 				await capture(type + "-game-menu")
 				check(app.campaign.paused, "Menu pauses Campaign")
 				await press("ResumeGame")
 				check(app.campaign.run == held_run and app.campaign.run.wave_time == held_time, "Resume holds live wave without restarting")
-				await press("GameMenuButton")
+				await open_game_menu()
 			else:
 				compare_toolbar()
-				await press("GameMenuButton")
+				await open_game_menu()
 				check(app.game.suspended, "Menu pauses Infinite")
 				await capture(type + "-game-menu")
 			await press("SaveBuild")
@@ -172,7 +181,7 @@ func run() -> void:
 				check(app.campaign.page == "map", "Continue opens Campaign map before resuming a level")
 				await press("CampaignLevel1")
 				check(app.campaign.page == "battle" and app.campaign.run.wave_time < 1.0, "Choosing saved level reconstructs Campaign from wave start")
-			await press("GameMenuButton")
+			await open_game_menu()
 			await press("ExitGame")
 			await press("MyBuilds")
 			await capture(type + "-library")
@@ -203,7 +212,7 @@ func check_rules(type: String) -> void:
 		await frames()
 		await press("ApplyRules")
 		check(not menu.visible and not menu.held, "Direct campaign rule apply returns to gameplay")
-		await press("GameMenuButton")
+		await open_game_menu()
 	await press("EditRules")
 	if type == "campaign": await press("EditLevel1")
 	check(menu.screen == "rules", "Shared rules page opens in " + type)
@@ -280,7 +289,7 @@ func extended_workflows() -> void:
 	await press("StartGame")
 	await capture("replacement-confirmation")
 	await press("ConfirmAction")
-	await press("GameMenuButton")
+	await open_game_menu()
 	check(button("EditRules") == null, "Survival cannot edit rules or apply another build")
 	await press("GameSettings")
 	check(button("CreativeTools") == null, "Survival settings omit Creative tools")
@@ -367,7 +376,7 @@ func extended_workflows() -> void:
 		check(button("CampaignLevel3").disabled and app.campaign.mode == "survival", "Using a one-level build does not unlock Survival levels")
 		await press("CampaignLevel1")
 		await press("BeginCampaignMission")
-		await press("GameMenuButton")
+		await open_game_menu()
 		check(button("EditRules") == null, "Campaign Survival cannot edit rules")
 		await press("ExitGame")
 		check(menu.campaign_slots.summary(0) == siblings[0] and menu.campaign_slots.summary(1) == siblings[1], "New Campaign in a full slot preserves the other Campaign games")

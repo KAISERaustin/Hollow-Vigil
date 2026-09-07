@@ -1,6 +1,7 @@
 extends ColorRect
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
+const BuildPreview = preload("res://scripts/rendering/build_preview.gd")
 const Catalog = preload("res://scripts/campaign/catalog.gd")
 const Configuration = preload("res://scripts/campaign/configuration.gd")
 const Run = preload("res://scripts/campaign/run.gd")
@@ -199,7 +200,7 @@ func fit() -> void:
 			var height := 400.0
 			if is_instance_valid(board) and board.size.x > 16 and board.size.y > 16:
 				bounds = Rect2(board.global_position - global_position, board.size).grow(-8).intersection(safe)
-				height = minf(height, board.build_preview.menu_height(board))
+				height = minf(height, BuildPreview.menu_height(board))
 			dialog_card.size = Vector2(minf(470, bounds.size.x), minf(bounds.size.y, height))
 			dialog_card.position = Vector2(bounds.get_center().x - dialog_card.size.x * 0.5, bounds.end.y - dialog_card.size.y)
 		else:
@@ -368,7 +369,6 @@ func show_playthrough_share() -> void:
 func show_map() -> void:
 	if run != null and page == "battle":
 		save_progress()
-		if active_campaign_slot >= 0: campaign_save.checkpoint = {}
 	clear_page("map")
 	if active_campaign_slot >= 0:
 		persist_slot()
@@ -495,7 +495,7 @@ func show_battle(start_paused: bool = false) -> void:
 	, func():
 		speed = game_toolbar.next_speed(speed)
 		update_time_controls()
-	, app.show_game_menu if active_campaign_slot >= 0 else show_map)
+	, show_map)
 	pause_button = game_toolbar.pause_button
 	speed_button = game_toolbar.speed_button
 	layout.add_child(UI.fitted_heading("%02d · %s" % [run.mission.index + 1, run.mission.name], 24, 16))

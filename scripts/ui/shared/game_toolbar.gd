@@ -9,6 +9,14 @@ var menu_button: Button
 func configure(pause: Callable, speed: Callable, menu: Callable) -> void:
 	name = "GameToolbar"
 	add_theme_constant_override("separation", UI.GAP)
+	menu_button = UI.button("Menu", menu, UI.TOOLBAR_BUTTON_SIZE)
+	menu_button.name = "GameMenuButton"
+	menu_button.custom_minimum_size.x = 88
+	menu_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	add_child(menu_button)
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	add_child(spacer)
 	pause_button = UI.playback_button(pause)
 	pause_button.name = "PauseButton"
 	add_child(pause_button)
@@ -18,14 +26,6 @@ func configure(pause: Callable, speed: Callable, menu: Callable) -> void:
 	speed_button.custom_minimum_size.x = UI.TOOLBAR_BUTTON_SIZE
 	speed_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	add_child(speed_button)
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	add_child(spacer)
-	menu_button = UI.button("Menu", menu, UI.TOOLBAR_BUTTON_SIZE)
-	menu_button.name = "GameMenuButton"
-	menu_button.custom_minimum_size.x = 88
-	menu_button.size_flags_horizontal = Control.SIZE_SHRINK_END
-	add_child(menu_button)
 
 func update_controls(paused: bool, speed: float) -> void:
 	pause_button.set_meta("paused", paused)

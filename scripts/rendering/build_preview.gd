@@ -3,10 +3,20 @@ extends RefCounted
 # Per-battlefield presentation state; never creates or saves a gameplay tower.
 var menu: Control
 var signature: Array = []
+var portrait: Node2D
 
 func open(field: Control, panel: Control) -> void:
 	menu = panel
 	signature.clear()
+	if not is_instance_valid(portrait):
+		portrait = Node2D.new()
+		portrait.name = "BuildPreviewTower"
+		portrait.self_modulate.a = 0.7
+		field.add_child(portrait)
+		portrait.draw.connect(func():
+			if Balance.TOWERS.has(field.preview_kind):
+				VigilTerrainArt.sentinel(portrait, field.preview_kind, Vector2.ZERO, 1.0, 1, "")
+		)
 	field.queue_redraw()
 
 func clear(field: Control) -> void:
@@ -15,6 +25,8 @@ func clear(field: Control) -> void:
 	menu = null
 	signature.clear()
 	field.preview_kind = ""
+	if is_instance_valid(portrait):
+		portrait.hide()
 	field.queue_redraw()
 
 func minimum_zoom(field: Control, normal: float) -> float:
@@ -53,7 +65,12 @@ func refresh(field: Control) -> void:
 	field.frame_world_rect(bounds, available)
 
 func draw(field: Control) -> void:
+	if not is_instance_valid(portrait):
+		return
+	portrait.hide()
 	if not is_instance_valid(menu) or not menu.is_visible_in_tree() or field.selected_tower != "" or field.selected_pad < 0 or not Balance.TOWERS.has(field.preview_kind):
 		return
-	var center: Vector2 = field.screen(VigilWorld.pad_position(field.selected_region, field.selected_pad))
-	VigilTerrainArt.sentinel(field, field.preview_kind, center, field.zoom, 1, "")
+	portrait.position = field.screen(VigilWorld.pad_position(field.selected_region, field.selected_pad))
+	portrait.scale = Vector2.ONE * field.zoom
+	portrait.show()
+	portrait.queue_redraw()

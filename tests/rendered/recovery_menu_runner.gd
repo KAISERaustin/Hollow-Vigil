@@ -71,7 +71,7 @@ func run() -> void:
 			check(app.private_backups.recovery_games().any(func(entry): return menu.game_name(entry.snapshot) == menu.game_name(existing)), "Replaced destination becomes another browsable recovery copy")
 			await press("ContinueGameSlot1")
 			if type == "campaign": app.campaign.set_process(false)
-			await press("GameMenuButton")
+			await open_game_menu()
 			await press("GameBackups")
 			await press("RestoreRecoveryCopy")
 			await press("RestoreIntoSlot1")
