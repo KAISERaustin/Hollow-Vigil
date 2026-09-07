@@ -10,7 +10,7 @@ const TEXT := VigilTerrainArt.INK
 const MUTED := VigilTerrainArt.BACKDROP
 const DANGER := VigilTerrainArt.CORAL
 ## All UI enclosure borders and dividers share this width. See docs/UI_STYLE_GUIDE.md.
-const OUTLINE := 1
+const OUTLINE := 3
 const RADIUS := 4
 const BODY := 16
 const CAPTION := 14

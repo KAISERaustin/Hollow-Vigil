@@ -1,22 +1,22 @@
 # Hollow Vigil UI Style Guide
 
-Version 2.0 · Parchment cards · September 7, 2026
+Version 2.1 · Parchment cards · September 7, 2026
 
 ## Purpose and authority
 
 This guide defines the visual and interaction system for future Hollow Vigil interfaces. Use it when designing screens, adding controls, reviewing UI changes, or giving an implementation agent context. The chosen direction is **ink and parchment dark fantasy**: stark silhouettes, warm parchment, near-square panels, restrained color, and readable information against a bleak world.
 
-The game should feel like a compact illustrated field manual for defending a haunted frontier. Its character comes from native game portraits, warm parchment, thin uniform black frames, and clear information inside comfortably spaced cards.
+The game should feel like a compact illustrated field manual for defending a haunted frontier. Its character comes from native game portraits, warm parchment, uniform black frames, and clear information inside comfortably spaced cards.
 
 This is the ongoing design specification and the default for every future UI request in this repository. Version 2 replaces the older mixed border weights, flat UI fill requirement, and prohibition on individual stat cards. Read it before implementing UI, as required by `AGENTS.md`. `ART_DIRECTION.md` governs terrain and world artwork. Gameplay values and rules remain owned by the game model.
 
 ## Approved reference and interpretation
 
-The user supplied the Waves screenshot below on September 7, 2026 and approved its clean cards, information arrangement, illustrations, and spacing. Preserve those qualities across menus, content lists, settings groups, summaries, and detail screens. The requested refinement is one consistent thin border around every UI enclosure.
+The user supplied the Waves screenshot below on September 7, 2026 and approved its clean cards, information arrangement, illustrations, and spacing. Preserve those qualities across menus, content lists, settings groups, summaries, and detail screens. The requested refinement is one consistent border around every UI enclosure.
 
 ![User-approved Waves card layout](references/ui-waves-reference.png)
 
-The image records the original layout, including its mixed border widths. The normative replacement is **1 UI unit of opaque black on every side**, taken from the thin stat-cell and enemy-row borders. Buttons, main sheets, wave cards, badges, and dividers use that same width. Establish hierarchy with spacing, typography, alignment, and restrained fill differences. A passive card remains read-only; its frame does not make it a button. The screenshot's words and values are examples, not instructions or gameplay changes.
+The image records the original layout, including its mixed border widths. The standard is **3 UI units of opaque black on every side**, revised at the user's request on September 7, 2026 because the initial 1-unit standard was too thin. Buttons, main sheets, wave cards, badges, and dividers use that same width. Establish hierarchy with spacing, typography, alignment, and restrained fill differences. A passive card remains read-only; its frame does not make it a button. The screenshot's words and values are examples, not instructions or gameplay changes.
 
 ## Visual principles
 
@@ -84,18 +84,18 @@ Standard buttons are at least 48 high, primary footer actions 52, and icon butto
 
 | Component | Corner radius | Outline | Fill and treatment |
 | --- | --- | --- | --- |
-| Edge-to-edge header and footer | 0 | 1 ink | Paper; shared edges drawn once |
-| Main sheet or modal | 4 | 1 ink | Paper; no shadow |
-| Standard button, tab, or field | 4 | 1 ink | Inset; semantic fill for active action |
-| Content card | 4 | 1 ink | Paper or inset; 12 padding |
-| Stat cell or illustrated row | 4 | 1 ink | Paper; 8 padding |
-| Small badge | 4 | 1 ink | Paper or ochre with ink text |
-| Separator | 0 | 1 ink line | Use only between distinct sections |
+| Edge-to-edge header and footer | 0 | 3 ink | Paper; shared edges drawn once |
+| Main sheet or modal | 4 | 3 ink | Paper; no shadow |
+| Standard button, tab, or field | 4 | 3 ink | Inset; semantic fill for active action |
+| Content card | 4 | 3 ink | Paper or inset; 12 padding |
+| Stat cell or illustrated row | 4 | 3 ink | Paper; 8 padding |
+| Small badge | 4 | 3 ink | Paper or ochre with ink text |
+| Separator | 0 | 3 ink line | Use only between distinct sections |
 | Layout-only group | 0 | None | Transparent; no extra frame |
 
 Four units is the maximum corner radius for rectangular UI. Circular core, socket, and expansion markers remain circles because their shape is part of world interaction. Avoid capsule buttons and rounded dashboard styling. The approved nesting is sheet → content card → stat cells or illustrated rows, with a small trailing quantity badge when useful. Add frames only to meaningful groups. A plain HUD value or layout container can remain borderless.
 
-`VigilInterface.OUTLINE = 1` is the single border token. Never introduce a local 2-, 3-, or 4-unit UI border, including in selected, pressed, disabled, or focused states. Draw abutting shared edges once and keep borders inside their allotted rectangles. These are logical UI units at 1×; display density may map a unit to several device pixels. Use one scale for neighboring controls. Artwork contours and map geometry keep their own stroke rules; an image inside a card is not UI chrome.
+`VigilInterface.OUTLINE = 3` is the single border token. Never introduce a different local border width, including in selected, pressed, disabled, or focused states. Draw abutting shared edges once and keep borders inside their allotted rectangles. These are logical UI units at 1×; display density may map a unit to several device pixels. Use one scale for neighboring controls. Artwork contours and map geometry keep their own stroke rules; an image inside a card is not UI chrome.
 
 Depth comes from occlusion and contrast. A modal has an opaque paper surface over one scrim. Contextual panels do not dim the world. Do not use hover tooltips; show explanations in the interface and retain accessible descriptions.
 
@@ -113,7 +113,7 @@ Within a panel, order information as identity, current state, decision-relevant 
 
 Use this recipe whenever a screen presents a content item or related summary. Omit blocks that have no useful information; do not add dummy artwork or empty cells to imitate the screenshot.
 
-1. **Header:** left-aligned bold title, with brief status aligned right when applicable. Follow with one thin divider when the body needs separation.
+1. **Header:** left-aligned bold title, with brief status aligned right when applicable. Follow with one standard divider when the body needs separation.
 2. **Values:** equally sized stat cells, bold value above its plain-language label. Keep units with values. Reflow four columns to two when the available grid width is below 400 units; stack further for longer content instead of shrinking essential text.
 3. **Identity:** native portrait on the left, bold name and supporting role in the middle, compact count or state at the right. Use a 48-unit portrait in a compact row; allow 64–96 for a detail view. Preserve its aspect ratio and show the actual content artwork without a decorative background frame unless needed for contrast.
 4. **Actions:** explicit text buttons at the bottom, separated by 12 units and at least 48 high. A longer action may take more width, as Balancing details does in the reference. Stack actions if their labels cannot fit. Passive card content passes drag gestures to the owning scroll container.
@@ -122,7 +122,7 @@ Compose `UI.info_card()`, `UI.stat()`, `UI.rule()`, `UI.button()`, and `content_
 
 ### Buttons and control states
 
-Primary buttons use ochre, ink text, the same 1-unit border as the surrounding cards, and semibold labels. Secondary buttons use inset. Destructive confirmation uses coral and a specific verb. A simple informational dismissal can use a paper button. Avoid vague labels such as Yes or OK when an action changes gold or progress.
+Primary buttons use ochre, ink text, the same 3-unit border as the surrounding cards, and semibold labels. Secondary buttons use inset. Destructive confirmation uses coral and a specific verb. A simple informational dismissal can use a paper button. Avoid vague labels such as Yes or OK when an action changes gold or progress.
 
 | State | Required presentation |
 | --- | --- |
@@ -166,7 +166,7 @@ Settings use labeled rows with the value or toggle on the right; stack the contr
 
 All five categories share the same editor and header. Keep Back on the left and Close at the top right, with square 48-unit targets, 8-unit header gaps, and matching 3-unit ink strokes. The home title is Developer Controls; each editor uses its category name. Use `UI.fitted_heading` for these titles and the selected object's name: preserve one line, fit between 16 and 24 units, and call `UI.fit_heading` after changing the text. Descriptions and numeric labels wrap at their normal size.
 
-Put the type selector and optional tower tier selector before the portrait and description. The portrait card uses the inset surface, the standard 1-unit outline, 12-unit padding, and a 96-unit art area whose drawing scales proportionally. Keep navigation fixed while the editor scrolls, and return to the top when selecting a new type, tier, or category. Numeric fields, defaults, and reset actions continue to use the shared row components.
+Put the type selector and optional tower tier selector before the portrait and description. The portrait card uses the inset surface, the standard 3-unit outline, 12-unit padding, and a 96-unit art area whose drawing scales proportionally. Keep navigation fixed while the editor scrolls, and return to the top when selecting a new type, tier, or category. Numeric fields, defaults, and reset actions continue to use the shared row components.
 
 ### Notifications and exceptional states
 
@@ -193,7 +193,7 @@ Preserve the implemented shared fonts and tokens, readable HUD, responsive compa
 Before accepting a new screen, confirm:
 
 - It uses named roles and the 4-unit spacing scale, with no unexplained local styling.
-- Every enclosure and divider uses the same black 1-unit border, including button states; corners and shared edges remain clean at display scaling factors.
+- Every enclosure and divider uses the same black 3-unit border, including button states; corners and shared edges remain clean at display scaling factors.
 - Cards follow the approved value/label hierarchy, show native illustrations when applicable, and retain 8–12-unit gaps at compact widths.
 - One primary action is obvious in the active task; destructive actions are explicit.
 - Text, cost, state, and consequence are understandable without color or hover.
@@ -211,4 +211,4 @@ The local [Waves reference](references/ui-waves-reference.png) above is the prim
 
 ## Context for future UI work
 
-Default to **Parchment cards**, based on the user-approved Waves layout. Use the existing paper texture and palette, one black 1-unit border for every UI enclosure and divider, and 4-unit corners (0 for edge-to-edge chrome). Compose a bold header, values above labels in compact cells, illustrated identity rows when applicable, and clearly labeled actions. Use 12-unit outer card padding, 8-unit inset padding and cell gaps, 12-unit section/action gaps, and 48-unit minimum screen controls. Reflow at phone widths while preserving readable text and scrolling. Reuse the shared interface and portrait components, preserve model ownership, and keep native world artwork unchanged. This is the default for future UI requests unless the user explicitly revises it.
+Default to **Parchment cards**, based on the user-approved Waves layout. Use the existing paper texture and palette, one black 3-unit border for every UI enclosure and divider, and 4-unit corners (0 for edge-to-edge chrome). Compose a bold header, values above labels in compact cells, illustrated identity rows when applicable, and clearly labeled actions. Use 12-unit outer card padding, 8-unit inset padding and cell gaps, 12-unit section/action gaps, and 48-unit minimum screen controls. Reflow at phone widths while preserving readable text and scrolling. Reuse the shared interface and portrait components, preserve model ownership, and keep native world artwork unchanged. This is the default for future UI requests unless the user explicitly revises it.

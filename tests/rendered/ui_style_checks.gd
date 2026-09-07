@@ -19,13 +19,13 @@ func check_borders(screen: String) -> void:
 			var style := control.get_theme_stylebox(role)
 			var context := "%s: %s/%s" % [screen, control.name, role]
 			if style is StyleBoxLine:
-				if style.thickness != 1 or style.color != Color.BLACK:
-					failures.append(context + ": divider must be one unit of black ink")
+				if style.thickness != 3 or style.color != Color.BLACK:
+					failures.append(context + ": divider must be three units of black ink")
 			elif style is StyleBoxFlat or style is ParchmentStyle:
 				for side in ["left", "top", "right", "bottom"]:
 					var width: int = style.get("border_width_" + side)
-					if width != 0 and (width != 1 or style.border_color != Color.BLACK):
-						failures.append(context + ": " + side + " border must be one unit of black ink")
+					if width != 0 and (width != 3 or style.border_color != Color.BLACK):
+						failures.append(context + ": " + side + " border must be three units of black ink")
 
 func _initialize() -> void:
 	preload("res://tests/support/timeout.gd").arm(self, 180)

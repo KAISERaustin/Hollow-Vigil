@@ -12,7 +12,7 @@ $taskShell = @'
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Hollow Vigil UI Standard · Parchment cards</title>
 <style>
-:root { --ink: #000; --paper: #e8ddbd; --inset: #dfd0ab; --outline: 1px; }
+:root { --ink: #000; --paper: #e8ddbd; --inset: #dfd0ab; --outline: 3px; }
 * { box-sizing: border-box; }
 body { margin: 0; background: #222a30; color: var(--ink); font: 16px/1.6 "Segoe UI", sans-serif; }
 main { max-width: 1040px; margin: 24px auto; padding: 32px; background: var(--paper); border: var(--outline) solid var(--ink); border-radius: 4px; }
