@@ -89,6 +89,7 @@ The QA launcher is an authentication convenience for local testing, not an authe
 
 ## Campaign
 
+- `--path . --script tests/rendered/campaign_terrain_checks.gd`: all 20 levels at 360, 390 and 540 pixels wide. Compares rendered roads against continuous authored geometry at four zooms and two fractional camera offsets, then checks bare ground at three zooms (660 cases). Captures each full level as `artifacts/campaign-terrain-LEVEL-WIDTH.png`. Included in `-TerrainTests` and `-Check`; roads stay visible during the road comparison so tile clipping cannot hide behind a passing ground-only test.
 - `--headless --path . --script tests/campaign_runner.gd`: authored layouts and waves, finite mission rules, real tower transactions, boss routing and escorts, fresh-level restart, completion counts, migration, unlocks and corrupt-save recovery.
 - `--headless --path . --script tests/campaign_balance_runner.gd`: legal reference defenses across all 20 levels, spending only starting gold and actual rewards. Writes `artifacts/campaign-balance.csv`.
 - `--path . --audio-driver Dummy --script tests/rendered/campaign_runner.gd`: campaign navigation, construction, upgrades, wave starts, unfinished-level restart and sandbox isolation at three mobile viewport sizes. Captures `artifacts/campaign-*.png`.

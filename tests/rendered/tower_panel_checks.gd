@@ -181,6 +181,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 					var badge: Rect2 = app.field.earnings_rect(g.data.towers[rapid])
 					await harness.tap(app, app.field.global_position + badge.get_center(), true)
 					check(g.data.towers[rapid].earnings == 1900.0 and g.data.balance == before_collection, "Removed earnings badge collected at zoom %.2f" % zoom, failures)
+					g.economy.collect()
 					app.panels.select_pad("0,0", 0)
 					for touch in [false, true]:
 						for action in ["info", "sell", "move", "target", "equipment"]:
