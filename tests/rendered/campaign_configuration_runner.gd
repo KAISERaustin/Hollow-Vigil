@@ -1,4 +1,5 @@
 extends "res://tests/rendered/campaign_runner.gd"
+const Configuration = preload("res://scripts/campaign/configuration.gd")
 
 func run() -> void:
 	var app := VigilApp.new()
@@ -27,6 +28,23 @@ func run() -> void:
 		editor.controls.inputs.damage.get_line_edit().text = "19"
 		editor.scope_picker.select(1)
 		editor.scope_picker.item_selected.emit(1)
+		var spawn_picker = editor.find_child("CampaignGroupKind0", true, false)
+		check(spawn_picker.get_script() == preload("res://scripts/ui/shared/illustrated_picker.gd"), "Wave groups use illustrated selection")
+		spawn_picker.show_popup()
+		for settle in range(8): await frame()
+		check(spawn_picker.rows.get_child_count() == Configuration.spawn_kinds().size(), "Every spawn type has an illustrated row")
+		var action_x := -1.0
+		for row in spawn_picker.rows.get_children():
+			check(row.get_child_count() == 3 and row.get_child(0).custom_minimum_size == Vector2(64, 64), "Spawn choices have native portraits, titles and buttons")
+			var action := row.get_child(2) as Button
+			if action_x < 0: action_x = action.position.x
+			check(is_equal_approx(action.position.x, action_x), "Spawn selection columns stay aligned")
+		check(spawn_picker.popup.size.x <= dimensions.x and spawn_picker.popup.size.y <= dimensions.y, "Spawn picker fits phone")
+		await Harness.capture(app, "campaign-spawn-picker-" + str(dimensions.x))
+		var boss_index: int = Configuration.spawn_kinds().find("warden")
+		spawn_picker.choose(boss_index)
+		check(editor.groups[0][0] == "warden", "Boss portrait selection updates the matching group")
+		spawn_picker.choose(0)
 		editor.find_child("CampaignGroup0_1", true, false).get_line_edit().text = "7"
 		editor.find_child("CampaignGroup0_4", true, false).get_line_edit().text = "0.25"
 		editor.controls.show_category("enemies")
@@ -42,6 +60,7 @@ func run() -> void:
 		var configured: Dictionary = screen.configuration.overrides(6)
 		check(configured.gold == 987.0 and configured.tuning.towers.rapid.damage == 19.0, "Level values survive scope changes")
 		check(configured.waves["0"].groups[0][1] == 7.0 and configured.waves["0"].groups[0][4] == 0.25 and configured.waves["0"].tuning.enemies.basic.hp == 321.0, "Wave controls and shared enemy stats persist together")
+		check(configured.waves["0"].groups[0][0] == Configuration.spawn_kinds()[0], "Illustrated enemy selection survives apply and save")
 	screen.show_level_export(6)
 	await frame()
 	var code: String = screen.find_child("CampaignExportCode", true, false).text

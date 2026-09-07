@@ -193,8 +193,10 @@ func show_review() -> void:
 	style_entry(title)
 	title.text_changed.connect(func(text: String): new_game.name = text)
 	content.add_child(UI.form_field("Game name", title))
-	var destination := OptionButton.new()
+	var destination := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
 	destination.name = "SaveSlotChoice"
+	destination.menu_title = "Choose save slot"
+	destination.illustration = "slots"
 	destination.custom_minimum_size.y = UI.TARGET
 	destination.add_item("Choose a save slot")
 	for slot in 3:
@@ -214,8 +216,9 @@ func show_review() -> void:
 		if build.game_type != game_type:
 			content.add_child(UI.paragraph("Only compatible starting stats will be used. Layouts, resources and waves from the other game type are unused."))
 			if game_type == "campaign":
-				var scope := OptionButton.new()
+				var scope := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
 				scope.name = "ApplyStatsTo"
+				scope.menu_title = "Apply stats to"
 				scope.custom_minimum_size.y = UI.TARGET
 				for text in ["Choose where to apply stats", "Whole campaign", "One level"]: scope.add_item(text)
 				scope.select(["", "all", "level"].find(new_game.choices.get("apply_to", "")))
@@ -229,8 +232,10 @@ func show_review() -> void:
 	footer.add_child(action("Start game", request_start, "StartGame", true))
 
 func level_choice(caption: String, key: String) -> void:
-	var picker := OptionButton.new()
+	var picker := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
 	picker.name = "LevelChoice_" + key
+	picker.menu_title = caption
+	picker.illustration = "levels"
 	picker.custom_minimum_size.y = UI.TARGET
 	picker.add_item("Choose a level")
 	for index in Build.Configuration.Catalog.COUNT: picker.add_item("%02d · %s" % [index + 1, Build.Configuration.Catalog.level(index).name])
@@ -524,8 +529,9 @@ func prepared_form() -> Dictionary:
 func show_build_form() -> void:
 	page_view("save_build", "Save build", form.get("return", open_game_menu))
 	if form.game_type == "campaign":
-		var scope := OptionButton.new()
+		var scope := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
 		scope.name = "BuildScope"
+		scope.menu_title = "Choose build scope"
 		scope.custom_minimum_size.y = UI.TARGET
 		scope.add_item("Whole campaign")
 		scope.add_item("This level")

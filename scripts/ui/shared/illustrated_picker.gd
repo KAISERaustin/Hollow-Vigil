@@ -9,6 +9,7 @@ var item_count: int:
 var selected := -1
 var menu_title := "Choose item"
 var preview_factory: Callable
+var illustration := "rules"
 var popup: PopupPanel
 var scroll: ScrollContainer
 var rows: VBoxContainer
@@ -54,7 +55,14 @@ func clear() -> void:
 	text = "Choose item"
 
 func add_item(label: String) -> void:
-	items.append({"label": label, "metadata": null})
+	items.append({"label": label, "metadata": null, "disabled": false})
+	if selected < 0: select(0)
+
+func set_item_disabled(index: int, value: bool) -> void:
+	items[index].disabled = value
+
+func is_item_disabled(index: int) -> bool:
+	return items[index].disabled
 
 func set_item_metadata(index: int, value: Variant) -> void:
 	items[index].metadata = value
@@ -70,11 +78,13 @@ func get_popup() -> PopupPanel:
 	return popup
 
 func choose(index: int) -> void:
+	if disabled or is_item_disabled(index): return
 	select(index)
 	popup.hide()
 	item_selected.emit(index)
 
 func show_popup() -> void:
+	if disabled: return
 	for child in rows.get_children():
 		rows.remove_child(child)
 		child.queue_free()
@@ -83,8 +93,9 @@ func show_popup() -> void:
 		var button := UI.button("Select", choose.bind(index))
 		button.name = "Choice_" + str(index)
 		button.toggle_mode = true
+		button.disabled = is_item_disabled(index)
 		button.set_pressed_no_signal(index == selected)
-		var preview: Control = preview_factory.call(items[index].metadata) if preview_factory.is_valid() else null
+		var preview: Control = preview_factory.call(items[index].metadata) if preview_factory.is_valid() else preload("res://scripts/ui/shared/choice_portrait.gd").preview(illustration)
 		var row := UI.action_row(str(items[index].label), button, "Select", preview)
 		row.name = "ChoiceRow_" + str(index)
 		row.custom_minimum_size.y = 76

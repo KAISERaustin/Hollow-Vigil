@@ -180,7 +180,7 @@ func check_dropdown() -> void:
 	menu.begin_new()
 	menu.show_review()
 	await settle()
-	var picker: OptionButton = menu.find_child("SaveSlotChoice", true, false)
+	var picker: Button = menu.find_child("SaveSlotChoice", true, false)
 	menu.scroll.ensure_control_visible(picker)
 	await settle()
 	await swipe(picker.get_global_rect().get_center(), Vector2(0, -48))

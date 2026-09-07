@@ -90,3 +90,23 @@ func check_picker(dimensions: Vector2i) -> void:
 	await settle()
 	check(not popup.visible and picker.selected == 3, "Tapping the right-hand button selects its item")
 	picker.free()
+	# Slot/scope pickers preserve disabled destinations and provide artwork
+	# even when their choices are not enemies or another content family.
+	var options := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
+	options.illustration = "slots"
+	options.add_item("Empty slot")
+	options.add_item("Recovery needed")
+	options.set_item_disabled(1, true)
+	root.add_child(options)
+	options.show_popup()
+	await settle()
+	check(options.selected == 0, "Operational choices retain the first default")
+	check(options.rows.get_child(0).get_child_count() == 3, "Operational choices include artwork and passive labels")
+	check((options.rows.get_child(1).get_child(2) as Button).disabled, "Unavailable destinations disable their selection button")
+	options.choose(1)
+	check(options.selected == 0 and options.popup.visible, "Unavailable destination cannot be selected")
+	options.popup.hide()
+	options.disabled = true
+	options.show_popup()
+	check(not options.popup.visible, "Busy destination pickers stay closed")
+	options.free()

@@ -29,6 +29,7 @@ var observed_phase := ""
 var dialog: ColorRect
 var dialog_card: PanelContainer
 var dialog_body: VBoxContainer
+var dialog_actions: VBoxContainer
 var dialog_title: Label
 var save_notice: Label
 var socket_dialog := false
@@ -87,6 +88,7 @@ func clear_selection() -> void:
 	if is_instance_valid(tower_move):
 		tower_move.cancel()
 	if is_instance_valid(board):
+		board.build_preview.clear(board)
 		board.clear_selection()
 	selection_region = ""
 	selection_pad = -1
@@ -173,15 +175,7 @@ func _ready() -> void:
 			show_result()
 	)
 	if active_campaign_slot < 0: show_setup()
-	elif campaign_save.checkpoint.is_empty(): show_map()
-	else:
-		run = Run.from_checkpoint(campaign_save.checkpoint)
-		if run != null:
-			active_overrides = run.rules.duplicate(true)
-			connect_run()
-			show_battle()
-			if run.phase == "victory": show_result()
-		else: show_map()
+	else: show_map()
 	fit()
 
 func fit() -> void:
@@ -204,7 +198,7 @@ func fit() -> void:
 			var bounds := safe
 			if is_instance_valid(board) and board.size.x > 16 and board.size.y > 16:
 				bounds = Rect2(board.global_position - global_position, board.size).grow(-8).intersection(safe)
-			dialog_card.size = Vector2(minf(470, bounds.size.x), minf(340, bounds.size.y))
+			dialog_card.size = Vector2(minf(470, bounds.size.x), minf(400, minf(bounds.size.y, board.build_preview.menu_height(board))))
 			dialog_card.position = Vector2(bounds.get_center().x - dialog_card.size.x * 0.5, bounds.end.y - dialog_card.size.y)
 		else:
 			dialog_card.position = safe.position + (safe.size - dialog_card.size) * 0.5
@@ -371,9 +365,9 @@ func show_playthrough_share() -> void:
 func show_map() -> void:
 	if run != null and page == "battle":
 		save_progress()
+		if active_campaign_slot >= 0: campaign_save.checkpoint = {}
 	clear_page("map")
 	if active_campaign_slot >= 0:
-		campaign_save.checkpoint = {}
 		persist_slot()
 		var heading := header(campaign_save.name, app.show_game_menu)
 		var back: Button = heading.get_child(0)
@@ -412,6 +406,15 @@ func show_map() -> void:
 func show_briefing(index: int) -> void:
 	if not progress.unlocked(index):
 		return
+	# Continue opens the map first; choosing the saved level resumes its run.
+	if active_campaign_slot >= 0 and campaign_save.checkpoint.get("level", -1) == index:
+		run = Run.from_checkpoint(campaign_save.checkpoint)
+		if run != null:
+			active_overrides = run.rules.duplicate(true)
+			connect_run()
+			show_battle(true)
+			if run.phase == "victory": show_result()
+			return
 	clear_page("briefing")
 	run = configured_run(index)
 	header("%02d · %s" % [index+1, run.mission.name], show_map)
@@ -476,9 +479,10 @@ func play_run_sound(cue: String, sound_position: Vector2) -> void:
 	if page == "battle" and is_visible_in_tree() and is_instance_valid(board):
 		app.audio.play(cue, sound_position, board)
 
-func show_battle() -> void:
+func show_battle(start_paused: bool = false) -> void:
 	clear_page("battle")
-	paused = false
+	# Restored waves are ready to replay, but playback waits for the player.
+	paused = start_paused
 	observed_phase = run.phase
 	game_toolbar = preload("res://scripts/ui/shared/game_toolbar.gd").new()
 	layout.add_child(game_toolbar)
@@ -547,7 +551,7 @@ func add_board(interactive: bool) -> void:
 
 func begin_wave() -> void:
 	if reward_transition.active: return
-	if run.start_wave():
+	if (paused and run.phase == "wave") or run.start_wave():
 		paused = false
 		update_time_controls()
 		save_progress()
@@ -559,15 +563,17 @@ func update_time_controls() -> void:
 	pause_button.accessibility_name = pause_button.accessibility_description
 	pause_button.queue_redraw()
 	game_toolbar.update_speed_button(speed_button, speed)
+	if is_instance_valid(wave_button) and wave_button.is_inside_tree(): refresh()
 
 func refresh() -> void:
 	if page != "battle":
 		return
 	gold.text = "%s gold" % Balance.money(run.game.data.balance)
 	var shown_wave := mini(run.wave+1, run.mission.waves.size())
-	status.text = "Flame %d / %d   ·   Wave %d / %d%s" % [run.health, run.mission.flame, shown_wave, run.mission.waves.size(), " · Prepare" if run.phase == "planning" else ""]
-	wave_button.disabled = run.phase != "planning" or reward_transition.active
-	wave_button.text = "Start wave %d" % (run.wave+1) if run.phase == "planning" else "%d enemies remaining" % (run.game.combat.enemies.size() + run.schedule.size() - run.next_spawn)
+	var can_start: bool = run.phase == "planning" or (paused and run.phase == "wave")
+	status.text = "Flame %d / %d   ·   Wave %d / %d%s" % [run.health, run.mission.flame, shown_wave, run.mission.waves.size(), " · Prepare" if run.phase == "planning" else (" · Paused" if paused else "")]
+	wave_button.disabled = not can_start or reward_transition.active
+	wave_button.text = "Start wave %d" % (run.wave+1) if can_start else "%d enemies remaining" % (run.game.combat.enemies.size() + run.schedule.size() - run.next_spawn)
 	if run.phase in ["victory", "defeat"]:
 		wave_button.text = "Sanctuary restored" if run.phase == "victory" else "The flame went out"
 	if reward_transition.active:
@@ -681,11 +687,31 @@ func show_socket(socket: int) -> void:
 		tower_actions.refresh()
 		return
 	open_dialog("Build a tower", true)
-	dialog_body.add_child(TowerChoice.build_list(run.game.tuning, func(kind: String):
-		if run.build(socket, kind):
+	var confirm := UI.gold_button("", func():
+		if run.build(socket, board.preview_kind):
+			board.build_preview.clear(board)
 			board.select_socket(socket)
 			dialog.hide()
-	, "", run.game.data.balance, "CampaignBuild_"))
+	)
+	confirm.name = "CampaignBuildConfirm"
+	var choices := TowerChoice.build_list(run.game.tuning, func(kind: String):
+		select_build_preview(kind, confirm)
+	, "rapid", INF, "CampaignBuild_")
+	dialog_body.add_child(choices)
+	dialog_actions.add_child(confirm)
+	dialog_actions.show()
+	board.build_preview.open(board, dialog_card)
+	select_build_preview("rapid", confirm)
+	fit.call_deferred()
+
+func select_build_preview(kind: String, confirm: Button) -> void:
+	board.preview_kind = kind
+	var definition := Balance.definition("towers", kind, game.tuning)
+	confirm.text = "Build %s · %s gold" % [definition.name, UI.exact_money(definition.cost)]
+	confirm.disabled = game.data.balance < definition.cost
+	for button in dialog_body.get_child(0).get_children():
+		button.set_pressed_no_signal(button.get_meta("tower_kind") == kind)
+	board.queue_redraw()
 
 func show_result() -> void:
 	if reward_transition.active:
@@ -746,6 +772,9 @@ func _build_dialog() -> void:
 	dialog_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	dialog_body.add_theme_constant_override("separation",12)
 	scroll.add_child(dialog_body)
+	dialog_actions = VBoxContainer.new()
+	content.add_child(dialog_actions)
+	dialog_actions.hide()
 	dialog_body.minimum_size_changed.connect(func():
 		if dialog.visible:
 			fit.call_deferred()
@@ -757,6 +786,10 @@ func close_dialog() -> void:
 	clear_selection()
 
 func open_dialog(title: String, for_socket: bool = false) -> void:
+	for child in dialog_actions.get_children():
+		dialog_actions.remove_child(child)
+		child.queue_free()
+	dialog_actions.hide()
 	if not for_socket:
 		clear_selection()
 	waves_dialog = false

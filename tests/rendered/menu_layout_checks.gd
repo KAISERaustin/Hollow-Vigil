@@ -56,7 +56,7 @@ func run() -> void:
 			check(app.panels.get_global_rect().encloses(app.panels.action_button.get_global_rect()), "expansion claim clipped")
 		app.panels.select_pad("0,0", 1)
 		await settle()
-		check(app.field.selected_range() == 0.0, "Empty socket must not show a default range ring")
+		check(app.field.selected_range() == Balance.Content.tower(app.panels.selection_kind).stats(1, app.game.tuning).range, "Opening build previews the selected card's range")
 		var choices := app.panels.sheet_content.get_child(0)
 		root.get_texture().get_image().save_png("res://artifacts/infinite-build-" + str(viewport.x) + ".png")
 		check(choices.get_child_count() == Balance.TOWERS.size(), "missing build choices")

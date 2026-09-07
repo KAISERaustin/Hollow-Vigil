@@ -35,6 +35,7 @@ var selected_pad := -1
 var moving_tower := ""
 var selected_region := "0,0"
 var preview_kind := ""
+var build_preview := preload("res://scripts/rendering/build_preview.gd").new()
 var show_expansion := false
 var effect_offset := 0.0
 var construction_effect := ConstructionEffect.new()
@@ -110,6 +111,7 @@ func on_tower_presentation_changed(tower_id: String) -> void:
 var simulation_rate := 1.0
 
 func _process(delta: float) -> void:
+	build_preview.refresh(self)
 	advance_camera_framing(delta)
 	enforce_camera_limits()
 	bind_upgrade_effects()
@@ -421,6 +423,7 @@ func _draw() -> void:
 	for t in state.economy.towers_in_regions(visible_regions):
 		if visible_rect.has_point(screen(VigilWorld.pad_position(t.region, t.pad))):
 			draw_tower(t)
+	build_preview.draw(self)
 	draw_upgrade_poofs()
 	for fx in state.combat.effects:
 		var fade: float = fx.life / fx.max_life

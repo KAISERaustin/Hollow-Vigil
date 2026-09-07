@@ -29,7 +29,7 @@ func press(key: String) -> void:
 
 func choose(key: String, index: int) -> void:
 	await press(key)
-	var picker: OptionButton = menu.find_child(key, true, false)
+	var picker: Button = menu.find_child(key, true, false)
 	if picker == null: return
 	var popup := picker.get_popup()
 	check(popup.visible, "Touch opens dropdown: " + key)

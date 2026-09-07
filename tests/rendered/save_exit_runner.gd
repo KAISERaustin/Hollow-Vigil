@@ -91,6 +91,7 @@ func check_campaign_exit() -> void:
 	app.campaign.set_process(false)
 	if app.campaign.page == "map":
 		await press("CampaignLevel1")
+	if app.campaign.page == "briefing":
 		await press("BeginCampaignMission")
 	check(app.campaign.page == "battle", "Exercise save failure inside Campaign battle")
 	var before := FileAccess.get_file_as_string(menu.campaign_slots.path_for(0))

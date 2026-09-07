@@ -70,6 +70,7 @@ func _ready() -> void:
 	hide()
 
 func clear_sheet(title: String, subtitle: String = "") -> void:
+	field.build_preview.clear(field)
 	commit_developer_fields()
 	app.tower_move.cancel()
 	# Opening another panel leaves tower management and restores the gold badges.
@@ -166,6 +167,8 @@ func fit_sheet() -> void:
 	if app.size.y >= 700.0:
 		top = maxf(140.0, top)
 	self.size.y = minf(desired_height, bottom - top)
+	if mode == "build":
+		self.size.y = minf(self.size.y, field.build_preview.menu_height(field))
 	self.position.y = bottom - self.size.y
 	UI.trap_focus(self)
 
@@ -185,6 +188,7 @@ func commit_developer_fields() -> void:
 			child.commit_fields()
 
 func close_sheet() -> void:
+	field.build_preview.clear(field)
 	commit_developer_fields()
 	if is_instance_valid(app.tower_move):
 		app.tower_move.cancel()
@@ -250,6 +254,8 @@ func show_build() -> void:
 	)
 	action_footer.add_child(action_button)
 	action_footer.get_parent().show()
+	field.preview_kind = selection_kind
+	field.build_preview.open(field, self)
 	app.update_hud()
 
 func select_build_kind(kind: String, choices: VBoxContainer) -> void:

@@ -123,8 +123,10 @@ func rebuild() -> void:
 	audio_toggle.toggled.connect(func(value): service.include_audio = value)
 	add_child(UI.action_row("Include sound preferences in the next Infinite upload", audio_toggle))
 	add_child(UI.heading("Restore an Infinite backup", 18))
-	var destination := OptionButton.new()
+	var destination := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
 	destination.name = "BackupRestoreSlot"
+	destination.menu_title = "Choose restore slot"
+	destination.illustration = "slots"
 	destination.custom_minimum_size.y = 48
 	for slot in range(VigilSaveSlots.COUNT): destination.add_item("Restore into slot %d" % (slot + 1))
 	destination.select(restore_slot)

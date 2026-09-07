@@ -56,7 +56,7 @@ func run() -> void:
 	await frame()
 	check(app.game.tuning.enemies.basic.hp == 222.0 and app.game.data.towers.is_empty(), "Community stats create a fresh Survival world")
 	app.show_save_slots(true)
-	var includes: OptionButton = menu.find_child("ShareConfigurationContents", true, false)
+	var includes: Button = menu.find_child("ShareConfigurationContents", true, false)
 	check(includes.item_count == 2, "Sharing offers exactly towers plus stats or stats only")
 	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = dimensions

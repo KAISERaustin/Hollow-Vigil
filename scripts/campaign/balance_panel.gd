@@ -4,13 +4,15 @@ const UI = preload("res://scripts/ui/shared/interface.gd")
 const Configuration = preload("res://scripts/campaign/configuration.gd")
 const Fields = preload("res://scripts/content/catalogs/levels.gd")
 const Controls = preload("res://scripts/ui/developer/developer_controls.gd")
+const Picker = preload("res://scripts/ui/shared/illustrated_picker.gd")
+const Portrait = preload("res://scripts/ui/shared/content_portrait.gd")
 signal export_requested
 signal saved
 var store: RefCounted
 var index := 0
 var draft := {}
 var scope := -1
-var scope_picker: OptionButton
+var scope_picker: Button
 var body: VBoxContainer
 var controls: VBoxContainer
 var editing_game: VigilState
@@ -29,7 +31,8 @@ func _ready() -> void:
 	draft = store.overrides(index)
 	add_child(UI.paragraph("Level %d · %s" % [index + 1, Configuration.Catalog.level(index).name], 16))
 	add_child(UI.paragraph("Apply changes updates this run and future replays. Existing enemies stay on the field; pending spawns use the new settings. Times are measured from the wave's start. Starting gold and flame apply during initial setup or on restart." if live_run != null else "Changes stay in this draft until you choose Apply changes." if shared_page else "Save changes to use them next time this level starts.", 14))
-	scope_picker = OptionButton.new()
+	scope_picker = Picker.new()
+	scope_picker.menu_title = "Choose rules scope"
 	scope_picker.name = "CampaignBalanceScope"
 	scope_picker.custom_minimum_size.y = UI.TARGET
 	scope_picker.add_item("Level defaults")
@@ -114,7 +117,10 @@ func build_groups() -> void:
 	for group_index in groups.size():
 		var group: Array = groups[group_index]
 		body.add_child(UI.heading("Group %d" % (group_index + 1), 16))
-		var selector := OptionButton.new()
+		var selector := Picker.new()
+		selector.menu_title = "Choose spawn type"
+		selector.preview_factory = func(kind: String):
+			return Portrait.preview("bosses" if Balance.BOSSES.has(kind) else "enemies", kind)
 		selector.custom_minimum_size.y = UI.TARGET
 		selector.name = "CampaignGroupKind" + str(group_index)
 		for kind in Configuration.spawn_kinds():
@@ -124,7 +130,6 @@ func build_groups() -> void:
 			if kind == group[0]: selector.select(selector.item_count - 1)
 		selector.item_selected.connect(func(item: int): group[0] = selector.get_item_metadata(item))
 		body.add_child(selector)
-		selector.get_popup().max_size = Vector2i(int(get_viewport_rect().size.x), mini(UI.TARGET * 6, int(get_viewport_rect().size.y)))
 		for column in Fields.GROUP_FIELDS:
 			var limits: Dictionary = Fields.GROUP_FIELDS[column].duplicate()
 			if column == 2: limits.max = Configuration.Catalog.level(index).routes.size() - 1

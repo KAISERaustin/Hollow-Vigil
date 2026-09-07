@@ -60,7 +60,7 @@ func fill(key: String, text: String) -> void:
 	entry.text_changed.emit(text)
 
 func choose(key: String, index: int) -> void:
-	var picker: OptionButton = menu.find_child(key, true, false)
+	var picker: Button = menu.find_child(key, true, false)
 	check(picker != null, "Reachable choice: " + key)
 	if picker == null: return
 	picker.select(index)
@@ -168,7 +168,9 @@ func run() -> void:
 			await press("ContinueGameSlot" + str([360, 390, 540].find(dimensions.x) + 1))
 			if type == "campaign":
 				app.campaign.set_process(false)
-				check(app.campaign.page == "battle" and app.campaign.run.wave_time < 1.0, "Continue reconstructs Campaign from wave start")
+				check(app.campaign.page == "map", "Continue opens Campaign map before resuming a level")
+				await press("CampaignLevel1")
+				check(app.campaign.page == "battle" and app.campaign.run.wave_time < 1.0, "Choosing saved level reconstructs Campaign from wave start")
 			await press("GameMenuButton")
 			await press("ExitGame")
 			await press("MyBuilds")

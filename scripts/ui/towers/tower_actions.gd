@@ -104,7 +104,8 @@ func refresh() -> void:
 	visible = not blocked and field.state.data.towers.has(field.selected_tower)
 	if not visible:
 		cancel_upgrade()
-		reset_framing()
+		if not framing_signature.is_empty():
+			reset_framing()
 		return
 	var tower: Dictionary = field.state.data.towers[field.selected_tower]
 	var relic_kind := preload("res://scripts/gameplay/progression/relics.gd").kind(field.state.data, tower)

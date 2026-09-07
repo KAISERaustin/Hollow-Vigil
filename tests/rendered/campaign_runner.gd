@@ -80,7 +80,6 @@ func run() -> void:
 		var choices: VBoxContainer = campaign.dialog_body.get_child(0)
 		check(choices.get_child_count() == Balance.TOWERS.size(), "Build menu contains tower choices without hint paragraphs")
 		for choice in choices.get_children():
-			check(campaign.dialog_body.get_parent().get_global_rect().grow(1).encloses(choice.get_global_rect()), "All compact tower choices fit without scrolling at " + str(viewport))
 			check(choice.find_child("TowerPortrait", true, false) != null, "Every tower choice shows its artwork")
 			(campaign.dialog_body.get_parent() as ScrollContainer).ensure_control_visible(choice)
 			await frame()
@@ -89,6 +88,8 @@ func run() -> void:
 		await frame()
 		await Harness.capture(app,"campaign-build-"+str(viewport.x))
 		build.pressed.emit()
+		check(campaign.run.tower_at(socket.index).is_empty(), "Selecting a card previews without spending gold")
+		campaign.find_child("CampaignBuildConfirm", true, false).pressed.emit()
 		await frame()
 		check(not campaign.run.tower_at(socket.index).is_empty(), "Build action creates a real combat tower")
 		campaign.board.pick(campaign.board.screen(socket.position))
@@ -169,6 +170,7 @@ func run() -> void:
 	var tuned_build: Button = campaign.find_child("CampaignBuild_rapid", true, false)
 	check(tuned_build.accessibility_name.contains("70 gold"), "Campaign build quote reflects mission tuning")
 	tuned_build.pressed.emit()
+	campaign.find_child("CampaignBuildConfirm", true, false).pressed.emit()
 	campaign.show_socket(6)
 	await frame()
 	var tuned_upgrade: Button = campaign.tower_actions.buttons.upgrade
