@@ -92,6 +92,9 @@ static func sentinel(canvas: CanvasItem, kind: String, at: Vector2, zoom: float,
 	if level == 4 and Balance.valid_branch(kind, branch):
 		preload("res://scripts/rendering/actors/tower_branches.gd").draw(canvas, branch, at, zoom)
 		return
+	if kind == "splash":
+		preload("res://scripts/rendering/actors/fire_tower_art.gd").draw(canvas, at, zoom, level)
+		return
 	var z := Vector2.ONE * zoom
 	var w := 2.5 * zoom
 	match kind:
@@ -99,10 +102,6 @@ static func sentinel(canvas: CanvasItem, kind: String, at: Vector2, zoom: float,
 			shape(canvas, [Vector2(-13, 7), Vector2(-11, -24), Vector2(11, -24), Vector2(13, 7)], at, z, GOLD, w)
 			shape(canvas, [Vector2(-17, -23), Vector2(0, -42), Vector2(17, -23)], at, z, GOLD, w)
 			canvas.draw_line(at + Vector2(0, -16) * z, at + Vector2(0, -6) * z, INK, 3.5 * zoom)
-		"splash":
-			shape(canvas, [Vector2(-10, 7), Vector2(-7, -10), Vector2(7, -10), Vector2(10, 7)], at, z, CORAL, w)
-			shape(canvas, [Vector2(-18, -18), Vector2(18, -18), Vector2(12, -5), Vector2(-12, -5)], at, z, CORAL, w)
-			shape(canvas, [Vector2(-9, -22), Vector2(-7, -30), Vector2(-1, -25), Vector2(4, -40), Vector2(10, -25), Vector2(7, -18), Vector2(-5, -18)], at, z, GOLD, w)
 		"electric":
 			var blue := Color("91bbff")
 			shape(canvas, [Vector2(-12, 7), Vector2(-8, -21), Vector2(8, -21), Vector2(12, 7)], at, z, LILAC, w)

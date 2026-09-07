@@ -52,6 +52,8 @@ func _ready() -> void:
 		add_child(identity)
 		labels.append(identity)
 	resized.connect(arrange)
+	for group in headings + labels:
+		group.minimum_size_changed.connect(arrange)
 	arrange()
 
 func chapter_rect(chapter: int) -> Rect2:

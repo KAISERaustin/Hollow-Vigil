@@ -27,16 +27,6 @@ static func details(c: CanvasItem, kind: String, at: Vector2, zoom: float, level
 					c.draw_line(at+Vector2(side*16,-15)*z,at+Vector2(side*16,-5)*z,a.PAPER,2*zoom,true)
 				a.shape(c,[Vector2(0,-54),Vector2(5,-47),Vector2(0,-41),Vector2(-5,-47)],at,z,a.LILAC,w)
 				a.shape(c,[Vector2(0,-24),Vector2(4,-18),Vector2(0,-12),Vector2(-4,-18)],at,z,a.PAPER,zoom)
-		"splash":
-			# Iron bands and a hotter core precede the twin braziers and fire crown.
-			a.shape(c,[Vector2(-16,-15),Vector2(16,-15),Vector2(13,-9),Vector2(-13,-9)],at,z,a.PAPER,w)
-			a.shape(c,[Vector2(-4,-21),Vector2(1,-32),Vector2(4,-22),Vector2(0,-18)],at,z,a.PAPER,zoom)
-			if level == 3:
-				for side in [-1,1]:
-					a.shape(c,[Vector2(side*7,3),Vector2(side*22,-8),Vector2(side*20,-13),Vector2(side*5,-5)],at,z,a.CORAL,w)
-					a.shape(c,[Vector2(side*15,-13),Vector2(side*15,-23),Vector2(side*19,-29),Vector2(side*23,-19),Vector2(side*21,-13)],at,z,a.GOLD,w)
-				a.shape(c,[Vector2(-7,-29),Vector2(-10,-40),Vector2(-3,-36),Vector2(2,-51),Vector2(10,-36),Vector2(7,-27),Vector2(2,-34),Vector2(-1,-27)],at,z,a.GOLD,w)
-				a.shape(c,[Vector2(-12,2),Vector2(12,2),Vector2(14,7),Vector2(-14,7)],at,z,a.PAPER,w)
 		"electric":
 			# Conductive bands, then an outer pair of charged lightning rods.
 			var blue := Color("91bbff")

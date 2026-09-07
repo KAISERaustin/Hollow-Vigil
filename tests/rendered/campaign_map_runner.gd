@@ -57,7 +57,7 @@ func run() -> void:
 				check(not map.nodes[index].get_rect().intersects(map.labels[index].get_rect()), "Level text does not overlap its marker")
 			var capture := root.get_texture().get_image()
 			var color := VigilTerrainArt.ground_color(Catalog.CHAPTERS[chapter].style)
-			var sample := capture.get_pixel(1, roundi(campaign.page_scroll.position.y + 10))
+			var sample := capture.get_pixel(1, roundi(map.global_position.y + bounds.position.y + 10))
 			check(sample.is_equal_approx(color), "Biome artwork reaches the screen edge")
 			capture.save_png("res://artifacts/campaign-biomes-%d-%d.png" % [viewport.x, chapter + 1])
 		campaign.page_scroll.scroll_vertical = 0
