@@ -59,7 +59,8 @@ func flush() -> void:
 			item.owner = account_id
 			if not _save():
 				break
-		var result: Dictionary = await cloud._rpc("publish_public_build", {"build_id": item.id, "configuration": item.configuration, "exported_at": item.created_at})
+		var endpoint := "publish_reusable_build" if item.configuration.get("format") == VigilSaveSlots.Reusable.FORMAT else "publish_public_build"
+		var result: Dictionary = await cloud._rpc(endpoint, {"build_id": item.id, "configuration": item.configuration, "exported_at": item.created_at})
 		if cloud.player_id != account_id:
 			break
 		if not result.ok:
@@ -89,4 +90,5 @@ func read_build(id: String) -> Dictionary:
 	return VigilSaveSlots.new().shared_entry(code)
 
 func list_configurations(page: int, kind: String, level: int = -1) -> Dictionary:
+	if kind == "all": return await cloud._request("/rest/v1/rpc/list_build_library", {"page_number": maxi(0, page)}, false)
 	return await cloud._request("/rest/v1/rpc/list_shared_configurations", {"page_number": maxi(0, page), "content_kind": kind, "level_index": level}, false)

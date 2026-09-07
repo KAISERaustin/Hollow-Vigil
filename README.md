@@ -110,6 +110,7 @@ Run `python3 tools/check_structure.py` after moving source files. It checks reso
 ./launch.ps1 -Tests           # Headless gameplay and persistence
 ./launch.ps1 -Smoke           # Native UI, mouse/touch, camera and lifecycle
 ./launch.ps1 -StyleTests      # Every screen at three sizes and three text scales
+./launch.ps1 -MobileTests     # Touch navigation, scrolling, dropdowns, maps and phone layouts
 ./launch.ps1 -TerrainTests    # GPU palette, roads, boundaries and world grid
 ./launch.ps1 -ArtSmoke        # Artwork interactions at two screen sizes
 ./launch.ps1 -TerrainPreview  # Disposable terrain screenshots

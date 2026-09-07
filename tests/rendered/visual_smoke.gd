@@ -27,6 +27,11 @@ static func tap(app: Control, position: Vector2, touch: bool = false) -> void:
 		Input.parse_input_event(release)
 	await app.get_tree().process_frame
 	await app.get_tree().process_frame
+	# Selecting or reopening a tower can frame it over 0.4 seconds. The next
+	# action must target its settled position, as a player sees it.
+	for frame in 60:
+		if not app.field.camera_framing.active: break
+		await app.get_tree().process_frame
 
 static func capture(app: Control, filename: String) -> void:
 	# Some fixtures pause the game loop before changing the camera directly.

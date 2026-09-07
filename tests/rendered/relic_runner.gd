@@ -18,6 +18,12 @@ func _initialize() -> void:
 func frame() -> void:
 	await process_frame
 	await process_frame
+	# Selection now frames the tower over 0.4 seconds. Tap its settled position.
+	for child in root.get_children():
+		if child is VigilApp:
+			for step in 90:
+				if not child.field.camera_framing.active: break
+				await process_frame
 	await RenderingServer.frame_post_draw
 
 func run() -> void:
@@ -43,6 +49,9 @@ func run() -> void:
 	await frame()
 	await Harness.tap(app, app.tower_actions.buttons.equipment.get_global_rect().get_center())
 	check(app.tower_dialog.visible and app.tower_dialog.mode == "equipment", "Equipment action opens collection with no drops")
+	if not app.tower_dialog.visible:
+		quit(1)
+		return
 	check(app.tower_dialog.find_child("Relic_empty", true, false) == null and app.tower_dialog.find_child("RemoveEquipment", true, false) == null, "Empty slot offers no removal action")
 	check(not app.tower_dialog.confirm.visible, "Inventory has no redundant apply button")
 	check(app.tower_dialog.find_child("EquipmentList", true, false).get_child_count() == 0, "Empty inventory has no placeholder rows")

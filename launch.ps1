@@ -4,6 +4,7 @@ param(
     [switch]$Tests,
     [switch]$Smoke,
     [switch]$StyleTests,
+    [switch]$MobileTests,
     [switch]$TerrainTests,
     [switch]$TerrainPreview,
     [switch]$ArtSmoke,
@@ -14,7 +15,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $projectPath = $PSScriptRoot
-$modes = @($Editor, $Tests, $Smoke, $StyleTests, $TerrainTests, $TerrainPreview, $ArtSmoke, $Check, $Import) | Where-Object { $_ }
+$modes = @($Editor, $Tests, $Smoke, $StyleTests, $MobileTests, $TerrainTests, $TerrainPreview, $ArtSmoke, $Check, $Import) | Where-Object { $_ }
 if (@($modes).Count -gt 1) { throw 'Choose one launch mode at a time.' }
 
 if (-not $GodotPath) {
@@ -56,7 +57,7 @@ $savedAppData = $env:APPDATA
 $savedLocalAppData = $env:LOCALAPPDATA
 try {
     $runtimePath = Join-Path $projectPath '.runtime'
-    if ($Tests -or $Smoke -or $StyleTests -or $TerrainTests -or $TerrainPreview -or $ArtSmoke -or $Check -or $Import) {
+    if ($Tests -or $Smoke -or $StyleTests -or $MobileTests -or $TerrainTests -or $TerrainPreview -or $ArtSmoke -or $Check -or $Import) {
         $runtimePath = Join-Path $runtimePath 'tests'
     }
     $env:APPDATA = Join-Path $runtimePath 'Roaming'
@@ -77,6 +78,14 @@ try {
         }
         if ($Smoke -or $Check) {
             Invoke-Godot -Name 'visual' -EngineArguments @('--script', 'res://tests/rendered/visual_runner.gd')
+        }
+        if ($MobileTests -or $Check) {
+            Invoke-Godot -Name 'touch-scroll-scope' -EngineArguments @('--headless', '--script', 'res://tests/touch_scroll_scope_runner.gd')
+            Invoke-Godot -Name 'mobile-navigation' -EngineArguments @('--script', 'res://tests/rendered/mobile_navigation_runner.gd')
+            Invoke-Godot -Name 'mobile-playthrough' -EngineArguments @('--script', 'res://tests/rendered/mobile_playthrough_runner.gd')
+            Invoke-Godot -Name 'mobile-picker' -EngineArguments @('--script', 'res://tests/rendered/illustrated_picker_touch_runner.gd')
+            Invoke-Godot -Name 'mobile-campaign-upgrades' -EngineArguments @('--script', 'res://tests/rendered/campaign_upgrade_runner.gd')
+            Invoke-Godot -Name 'mobile-equipment' -EngineArguments @('--script', 'res://tests/rendered/relic_runner.gd')
         }
         if ($StyleTests -or $Check) {
             Invoke-Godot -Name 'tower-framing' -EngineArguments @('--script', 'res://tests/rendered/tower_framing_runner.gd')

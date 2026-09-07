@@ -1,6 +1,7 @@
 extends VBoxContainer
 const UI = preload("res://scripts/ui/shared/interface.gd")
 var app: Control
+var return_to: Callable
 
 func _ready() -> void:
 	add_theme_constant_override("separation", 10)
@@ -40,7 +41,8 @@ func _ready() -> void:
 			app.audio.set_volume(category, app.audio.DEFAULTS[category])
 		app.audio.set_muted(false)
 		app.persist()
-		app.panels.show_sound_settings()
+		if return_to.is_valid(): return_to.call()
+		else: app.panels.show_sound_settings()
 	)
 	reset.name = "RestoreAudioDefaults"
 	add_child(UI.action_row(reset.text, reset, "Restore"))

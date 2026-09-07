@@ -66,5 +66,74 @@ func run() -> void:
 	check(library.save_shared(code) and library.save_shared(code), "Private saving works offline and is idempotent")
 	check(library.shared_configurations("all").size() == 1, "One exact build occupies one library entry")
 	check(not library.occupied(0), "Private build saving never occupies an Infinite slot")
+	var fixtures := FileAccess.open("res://artifacts/unified-cloud-fixtures.json", FileAccess.WRITE)
+	fixtures.store_string(JSON.stringify({"campaign": slots.summary(0), "infinite": game.data, "build": code}))
+	fixtures.close()
+	test_content_extension()
+	test_combinations()
+	test_wave_and_equipment()
+	var corrupted := FileAccess.open(slots.path_for(2), FileAccess.WRITE)
+	corrupted.store_string("{ damaged test save")
+	corrupted.close()
+	check(slots.summary(2).is_empty() and slots.occupied(2), "Unreadable save remains occupied and cannot be overwritten")
+	check(not slots.replace(2, before[1]), "Unreadable slot blocks replacement")
 	print("UNIFIED_PERSISTENCE: %d checks, %d failures" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
+
+func test_content_extension() -> void:
+	var original := Balance.Content.catalog()
+	var registry := Balance.Content.new()
+	Balance.Content._shared = registry
+	for entry in [["enemies", "basic"], ["bosses", "warden"], ["towers", "rapid"]]:
+		var category: String = entry[0]
+		var parent: VigilContentNode = registry.find(category, entry[1])
+		var node := parent.derive(parent.id + "_fixture", {"name": "Registered fixture"}, {"kind": "fixture"})
+		check(registry.register_node(node, category, "fixture"), "One registration extends " + category)
+		var group: VigilContentNode = registry.find("build_contents", category)
+		check("fixture" in group.types(), "New registered type appears in " + category + " checklist without menu changes")
+		var value := Build.capture("infinite", VigilState.new(), {}, "all", -1, {category: ["fixture"]}, "Extension fixture", "")
+		check(not value.is_empty() and not Build.decode(Build.encode(value)).is_empty(), "New type captures and round trips through " + category)
+		if not value.is_empty(): check(value.data.stats[category].keys() == ["fixture"], "New type selection excludes parent and siblings")
+	Balance.Content._shared = original
+	check(not Build.all_contents("infinite").enemies.has("fixture"), "Fixture registration leaves unrelated catalog unchanged")
+
+func test_combinations() -> void:
+	var source := VigilState.new(73, "creative")
+	for type in ["campaign", "infinite"]:
+		var groups := Build.all_contents(type)
+		var keys := groups.keys()
+		for mask in range(1, 1 << keys.size()):
+			var selected := {}
+			for index in keys.size():
+				if mask & (1 << index): selected[keys[index]] = groups[keys[index]]
+			var value := Build.capture(type, source, {}, "level" if type == "campaign" else "all", 0, selected, "Combination", "")
+			check(not value.is_empty(), "%s selection %d is independently composable" % [type, mask])
+			if value.is_empty(): continue
+			var decoded := Build.decode(Build.encode(value))
+			check(not decoded.is_empty(), "%s selection %d survives serialization" % [type, mask])
+			var composed := Build.compose_campaign(decoded, {}) if type == "campaign" else Build.infinite_snapshot(decoded, {}, "survival")
+			check(composed.ok, "%s selection %d starts a fresh game" % [type, mask])
+
+func test_wave_and_equipment() -> void:
+	var level := Run.new(0, {}, "creative")
+	check(level.build(6, "rapid"), "Layout fixture builds on an authored socket")
+	level.game.data.relics["0,0"] = "warden"
+	var tower: Dictionary = level.game.data.towers.values()[0]
+	tower.relic = "0,0"
+	var loadout := Build.clean_loadout(level.game.data)
+	loadout.balance = level.game.data.balance
+	var levels := {"0": {"overrides": {"gold": 500.0, "waves": {"0": {"groups": [["fast", 2, 0, 0.0, 0.5], ["basic", 3, 0, 2.0, 0.5]], "reward": 99.0}}}, "loadout": loadout}}
+	var partial := Build.capture("campaign", level.game, levels, "level", 0, {"timing": true}, "Timing", "")
+	check(not partial.is_empty(), "Incompatible group count remains readable for review")
+	check(not Build.compose_campaign(partial, {}).ok, "Timing cannot silently replace enemy composition")
+	var selected := {"timing": true, "composition": true, "resources": true, "rewards": true, "layout": true}
+	var build := Build.capture("campaign", level.game, levels, "level", 0, selected, "Wave and layout", "")
+	check(not build.is_empty(), "Companion wave groups and equipped layout can be combined")
+	if not build.is_empty():
+		var composed := Build.compose_campaign(Build.decode(Build.encode(build)), {})
+		check(composed.ok and composed.levels.keys() == ["0"], "One-level contents leave all other levels at defaults")
+		check(composed.levels["0"].overrides.gold == 500.0 and composed.levels["0"].overrides.waves["0"].reward == 99.0, "Selected starting gold and wave rewards retain independent values")
+		check(composed.levels["0"].loadout.relics == {"0,0": "warden"} and composed.levels["0"].loadout.towers.values()[0].relic == "0,0", "Layout includes owned equipment and its assigned tower")
+	level.start_wave()
+	var restored: RefCounted = Run.from_checkpoint(JSON.parse_string(JSON.stringify(level.checkpoint())))
+	check(restored != null and restored.game.data.relics == level.game.data.relics and restored.game.data.towers.values()[0].relic == "0,0", "Complete checkpoint restores equipment with its tower")

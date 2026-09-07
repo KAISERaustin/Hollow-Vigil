@@ -4,7 +4,8 @@ extends "res://scripts/content/nodes/content_node.gd"
 func types() -> Array:
 	var category: String = rule("category", "")
 	if category.is_empty(): return []
-	return Balance.TOWERS.keys() if category == "towers" else Balance.definitions(category).keys()
+	var kinds := Balance.definitions(category).keys()
+	return kinds.filter(func(kind): return Balance.Content.tower(kind) != null) if category == "towers" else kinds
 
 func capture(tuning: Dictionary, selected: Array) -> Dictionary:
 	var category: String = rule("category", "")

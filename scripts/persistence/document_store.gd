@@ -7,10 +7,13 @@ func valid_data(value: Dictionary) -> bool:
 
 func read_candidate(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path): return {}
-	var envelope: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	var parser := JSON.new()
+	if parser.parse(FileAccess.get_file_as_string(path)) != OK: return {}
+	var envelope: Variant = parser.data
 	if not envelope is Dictionary or not envelope.get("payload") is String: return {}
 	if envelope.get("checksum") != envelope.payload.sha256_text(): return {}
-	var value: Variant = JSON.parse_string(envelope.payload)
+	if parser.parse(envelope.payload) != OK: return {}
+	var value: Variant = parser.data
 	return value if value is Dictionary and valid_data(value) else {}
 
 func latest(path: String) -> Dictionary:

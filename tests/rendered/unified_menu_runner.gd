@@ -1,0 +1,303 @@
+extends SceneTree
+const Build = preload("res://scripts/persistence/reusable_build.gd")
+var checks := 0
+var failures: Array[String] = []
+var app: VigilApp
+var menu: Control
+var network: Node
+
+func _initialize() -> void:
+	preload("res://tests/support/timeout.gd").arm(self, 600)
+	root.gui_embed_subwindows = true
+	call_deferred("run")
+
+func check(condition: bool, text: String) -> void:
+	checks += 1
+	if not condition: failures.append(text); push_error(text)
+
+func frames() -> void:
+	for i in 4: await process_frame
+
+func button(key: String) -> BaseButton:
+	for node in app.find_children(key, "BaseButton", true, false):
+		if node.is_visible_in_tree(): return node
+	return null
+
+func press(key: String) -> void:
+	await frames()
+	var target := button(key)
+	check(target != null, "Reachable action: " + key)
+	if target == null: return
+	var ancestor := target.get_parent()
+	while ancestor != null:
+		if ancestor is ScrollContainer: ancestor.ensure_control_visible(target)
+		ancestor = ancestor.get_parent()
+	await frames()
+	var center := target.get_global_rect().get_center()
+	if target.get_window() != root: center += Vector2(target.get_window().position)
+	var motion := InputEventMouseMotion.new()
+	motion.position = center
+	Input.parse_input_event(motion)
+	for down in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.position = center
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = down
+		Input.parse_input_event(event)
+		await process_frame
+	await frames()
+	for frame in 120:
+		if not app.private_backups.busy and not app.public_builds.busy: break
+		await process_frame
+	await frames()
+
+func fill(key: String, text: String) -> void:
+	var entry: LineEdit = menu.find_child(key, true, false)
+	check(entry != null, "Reachable field: " + key)
+	if entry == null: return
+	entry.text = text
+	entry.text_changed.emit(text)
+
+func choose(key: String, index: int) -> void:
+	var picker: OptionButton = menu.find_child(key, true, false)
+	check(picker != null, "Reachable choice: " + key)
+	if picker == null: return
+	picker.select(index)
+	picker.item_selected.emit(index)
+	await frames()
+
+func capture(key: String) -> void:
+	await frames()
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png("res://artifacts/unified-" + key + "-" + str(root.size.x) + ".png")
+	var safe := Rect2(Vector2.ZERO, Vector2(root.size))
+	check(safe.encloses(menu.card.get_global_rect()), "Page fits " + key)
+	check(menu.scroll.get_global_rect().end.y <= menu.footer.get_global_rect().position.y + 1, "Actions stay below scrolling content: " + key)
+	for node in menu.footer.get_children():
+		if node is Control and node.visible: check(safe.encloses(node.get_global_rect()), "Pinned action fits " + key)
+
+func run() -> void:
+	app = VigilApp.new()
+	app.load_saved_progress = false
+	app.game.save_path = "user://unified-ui-" + str(Time.get_ticks_usec()) + ".save"
+	root.add_child(app)
+	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	app.set_process(false)
+	app.show_game_menu()
+	menu = app.slot_menu
+	menu.resume_game()
+	menu.show_main_menu()
+	await frames()
+	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
+		if is_instance_valid(network): network.refresh_token = ""
+		root.size = dimensions
+		root.content_scale_size = dimensions
+		await frames()
+		for type in ["campaign", "infinite"]:
+			menu.show_main_menu()
+			await press("OpenCampaign" if type == "campaign" else "OpenInfinite")
+			check(menu.screen == "home" and menu.game_type == type, "Both main choices open matching game home")
+			await capture(type + "-home")
+			await press("Continue")
+			check(menu.content.find_children("GameSlot?", "VBoxContainer", true, false).size() == 3, "Exactly three " + type + " slots")
+			await capture(type + "-slots")
+			await press("BackButton")
+			await press("NewGame")
+			await press("ChooseCreative")
+			await press("NextPlayStyle")
+			check(menu.screen == "starting_build", "Play style precedes starting build")
+			await capture(type + "-starting-build")
+			await press("ReviewNewGame")
+			fill("GameName", type.capitalize() + " " + str(dimensions.x))
+			await choose("SaveSlotChoice", [360, 390, 540].find(dimensions.x) + 1)
+			await capture(type + "-review")
+			await press("StartGame")
+			check(not menu.visible, "Start game opens " + type)
+			if type == "campaign":
+				check(is_instance_valid(app.campaign) and app.campaign.page == "map", "New Campaign opens World map")
+				app.campaign.set_process(false)
+				await press("CampaignLevel1")
+				await press("BeginCampaignMission")
+				await press("StartCampaignWave")
+				app.campaign.run.tick(0.25)
+				var held_run: RefCounted = app.campaign.run
+				var held_time: float = held_run.wave_time
+				await press("GameMenuButton")
+				await capture(type + "-game-menu")
+				check(app.campaign.paused, "Menu pauses Campaign")
+				await press("ResumeGame")
+				check(app.campaign.run == held_run and app.campaign.run.wave_time == held_time, "Resume holds live wave without restarting")
+				await press("GameMenuButton")
+			else:
+				await press("GameMenuButton")
+				check(app.game.suspended, "Menu pauses Infinite")
+				await capture(type + "-game-menu")
+			await press("SaveBuild")
+			await capture(type + "-save-build")
+			await press("SelectAllContents")
+			await press("ExpandContents_enemies")
+			await press("Contents_enemies_basic")
+			check(menu.form.contents.keys() == ["enemies"], "Individual enemy selected without bosses or towers")
+			fill("BuildName", type.capitalize() + " rules " + str(dimensions.x))
+			await press("SavePrivately")
+			check(not menu.form_saved_code.is_empty(), "Private save succeeds offline for " + type)
+			await press("ShareToCommunity")
+			check(menu.screen == "account", "Share requests account on the shared account page")
+			await capture(type + "-account")
+			await press("AccountDone")
+			check(menu.screen == "save_build" and menu.form.contents.keys() == ["enemies"], "Account round trip preserves prepared contents")
+			await press("BackButton")
+			await check_rules(type)
+			await press("GameSettings")
+			await capture(type + "-settings")
+			await press("SettingsSound")
+			await capture(type + "-sound")
+			await press("BackButton")
+			await press("BackButton")
+			await press("ExitGame")
+			check(menu.screen == "home", "Exit returns to matching game home")
+			await press("Continue")
+			await press("ContinueGameSlot" + str([360, 390, 540].find(dimensions.x) + 1))
+			if type == "campaign":
+				app.campaign.set_process(false)
+				check(app.campaign.page == "battle" and app.campaign.run.wave_time < 1.0, "Continue reconstructs Campaign from wave start")
+			await press("GameMenuButton")
+			await press("ExitGame")
+			await press("MyBuilds")
+			await capture(type + "-library")
+			await press("BuildDetails")
+			await capture(type + "-detail")
+			await press("UseBuild")
+			check(menu.screen == "play_style" and not menu.new_game.entry.is_empty(), "Home library starts New game with chosen build")
+			menu.show_home(type)
+		await extended_workflows()
+	print("UNIFIED_MENU: %d checks, %d failures" % [checks, failures.size()])
+	app.game.suspended = true
+	app.queue_free()
+	await frames()
+	quit(0 if failures.is_empty() else 1)
+
+func check_rules(type: String) -> void:
+	await press("EditRules")
+	if type == "campaign": await press("EditLevel1")
+	check(menu.screen == "rules", "Shared rules page opens in " + type)
+	await capture(type + "-rules")
+	var prior: Dictionary = app.campaign.level_setup(0).overrides.duplicate(true) if type == "campaign" else app.game.tuning.duplicate(true)
+	if type == "campaign": menu.rules_editor.find_child("Campaign_gold", true, false).value = 777
+	else: menu.editor_game.set_balance_stat("enemies", "basic", "hp", 777)
+	await press("CancelRules")
+	await press("CancelConfirmation")
+	check(menu.screen == "rules", "Cancel confirmation leaves rule draft available")
+	await press("CancelRules")
+	await press("ConfirmAction")
+	check((app.campaign.level_setup(0).overrides if type == "campaign" else app.game.tuning) == prior, "Discard leaves live rules unchanged")
+	if type == "campaign": await press("EditLevel1")
+	else: await press("EditRules")
+	if type == "campaign": menu.rules_editor.find_child("Campaign_gold", true, false).value = 888
+	else: menu.editor_game.set_balance_stat("enemies", "basic", "hp", 888)
+	await press("ApplyRules")
+	check(app.campaign.level_setup(0).overrides.get("gold") == 888 if type == "campaign" else app.game.tuning.enemies.basic.hp == 888, "Apply commits rules to only the selected session")
+	if type == "campaign": await press("BackButton")
+	check(menu.screen == "game_menu", "Rules return to held game menu")
+
+func install_network() -> void:
+	if is_instance_valid(network): return
+	var previous: Node = app.cloud
+	network = preload("res://tests/support/private_cloud_fixture.gd").new()
+	network.player_id = preload("res://scripts/cloud/cloud_codec.gd").uuid()
+	network.refresh_token = "fixture"
+	network.display_name = "Fixture player"
+	app.add_child(network)
+	app.cloud = network
+	app.public_builds.cloud = network
+	app.private_backups.cloud = network
+	app.campaign_backup.cloud = network
+	previous.queue_free()
+
+func extended_workflows() -> void:
+	install_network()
+	network.refresh_token = "fixture"
+	# Library selection from New game must retain its already selected play style.
+	menu.show_home("infinite")
+	await press("NewGame")
+	await press("ChooseSurvival")
+	await press("NextPlayStyle")
+	await press("ChooseMyBuilds")
+	await press("BuildDetails")
+	await press("UseBuild")
+	check(menu.screen == "starting_build" and menu.new_game.mode == "survival", "Library return preserves chosen play style")
+	await press("ReviewNewGame")
+	fill("GameName", "Survival replacement")
+	await choose("SaveSlotChoice", 1)
+	if menu.new_game.entry.build.game_type == "campaign": await choose("LevelChoice_source_level", 1)
+	var previous: Dictionary = menu.slots.summary(0)
+	await press("StartGame")
+	await press("CancelConfirmation")
+	check(menu.slots.summary(0) == previous, "Cancel replacement preserves occupied slot")
+	await press("StartGame")
+	await capture("replacement-confirmation")
+	await press("ConfirmAction")
+	await press("GameMenuButton")
+	check(button("EditRules") == null, "Survival cannot edit rules or apply another build")
+	await press("GameSettings")
+	check(button("CreativeTools") == null, "Survival settings omit Creative tools")
+	await press("BackButton")
+	await press("ExitGame")
+	check(app.private_backups.recovery_games().size() > 0, "Replacement is browsable in Recovery copies")
+	# Share failure leaves the prepared form and private copy available for Retry.
+	await press("MyBuilds")
+	await press("BuildDetails")
+	await press("SharePrivateBuild")
+	network.unavailable = true
+	await press("ShareToCommunity")
+	check(button("RetryShare") != null and not menu.form_saved_code.is_empty(), "Failed public share keeps a private copy and explicit Retry")
+	network.unavailable = false
+	await press("RetryShare")
+	check(menu.pending_publish.is_empty() and not network.publications.is_empty(), "Explicit Retry publishes prepared contents")
+	menu.show_home("infinite")
+	network.unavailable = true
+	await press("Community")
+	check(button("RetryCommunity") != null, "Community connection failure offers Retry")
+	network.unavailable = false
+	await press("RetryCommunity")
+	await press("BuildDetails")
+	await capture("community-detail")
+	var slots_before: Array = []
+	for slot in 3: slots_before.append(menu.slots.summary(slot))
+	await press("SaveCommunityPrivately")
+	for slot in 3: check(menu.slots.summary(slot) == slots_before[slot], "Community private copy does not consume a playable slot")
+	menu.show_home("campaign")
+	await press("Backups")
+	await press("BackUpNow")
+	await capture("backups")
+	check(app.private_backups.remote_games.size() == ([360, 390, 540].find(root.size.x) + 1) * 2, "Back up now includes every occupied slot in both modes")
+	await press("RestoreBackup")
+	await capture("restore-destination")
+	await press("RestoreIntoSlot1")
+	await capture("restore-comparison")
+	var local_before: Dictionary = menu.campaign_slots.summary(0)
+	await press("KeepDeviceVersion")
+	check(menu.screen == "slots" and menu.campaign_slots.summary(0) == local_before, "Keep local returns to Saved games without restoring")
+	menu.show_backups(menu.show_home)
+	await press("RestoreBackup")
+	await press("RestoreIntoSlot1")
+	await press("UseCloudVersion")
+	await press("CancelConfirmation")
+	check(menu.campaign_slots.summary(0) == local_before, "Cancel restore leaves local version intact")
+	await press("UseCloudVersion")
+	await press("ConfirmAction")
+	check(menu.screen == "slots" and menu.campaign_slots.summary(0).id == local_before.id, "Confirmed restore keeps selected game identity")
+	# Omitted map data and explicit cross-mode level choices remain visible in Review.
+	var portable := Build.capture("infinite", VigilState.new(), {}, "all", -1, {"enemies": ["basic"]}, "Portable stats", "")
+	menu.show_home("campaign")
+	menu.begin_new(-1, menu.slots.reusable_entry(menu.slots.shared_entry(Build.encode(portable))))
+	await press("ChooseSurvival")
+	await press("NextPlayStyle")
+	await press("ReviewNewGame")
+	check(not menu.prepare_new().ok, "Portable Campaign stats require explicit affected scope")
+	await choose("ApplyStatsTo", 2)
+	check(not menu.prepare_new().ok, "One-level stats require explicit level")
+	await choose("LevelChoice_target_level", 3)
+	check(menu.prepare_new().levels.keys() == ["2"], "Selected stat contents affect only the chosen Campaign level")
+	await capture("portable-review")
+	menu.show_main_menu()

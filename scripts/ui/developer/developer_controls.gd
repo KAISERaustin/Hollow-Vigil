@@ -222,7 +222,7 @@ func show_fields() -> void:
 	if category == "rifts":
 		detail.text = Balance.rift_description(selected_kind, game.tuning) + " Set to 0 to disable. Health adjustments preserve remaining health percentage."
 	if configuration_only:
-		hint.text = hint.text.replace("Live changes", "Draft").replace("Auto-saved", "Save configuration to keep edits")
+		hint.text = hint.text.replace("Live changes", "Draft").replace("Auto-saved", "Apply changes to keep edits")
 	inputs.clear()
 	for child in fields.get_children():
 		fields.remove_child(child)

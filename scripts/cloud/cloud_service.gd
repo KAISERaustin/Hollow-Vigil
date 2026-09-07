@@ -203,7 +203,7 @@ func refresh_worlds() -> void:
 	busy = false
 	if result.ok and result.data is Array:
 		worlds = result.data
-		_say("Signed in. Choose Upload to back up a save, or Restore to download a backup." if not linked() else "Backups are manual. Playing and signing in never upload progress.")
+		_say("Signed in. Saved games and My builds back up automatically. Open Backups to check their status or restore a game.")
 	else:
 		_say(_error(result))
 
@@ -366,7 +366,7 @@ func _request(path: String, body: Dictionary, authenticated: bool) -> Dictionary
 	var epoch := generation
 	var request := HTTPRequest.new()
 	request.timeout = 15.0
-	request.body_size_limit = (20 if path == "/rest/v1/rpc/read_public_build" else 5) * 1024 * 1024
+	request.body_size_limit = (64 if path in ["/rest/v1/rpc/read_private_game", "/rest/v1/rpc/list_private_builds", "/rest/v1/rpc/read_public_build"] else 5) * 1024 * 1024
 	add_child(request)
 	var headers := PackedStringArray(["Content-Type: application/json", "apikey: " + key])
 	if authenticated:
@@ -399,7 +399,7 @@ func _error(result: Dictionary) -> String:
 			"otp_expired":
 				return "That email code has expired or was already used. Request a new code."
 	match int(result.get("code", 0)):
-		0: return "Offline or unable to reach cloud saves. Your progress stays local. Choose Retry upload when you want to try again."
+		0: return "Unable to connect. Your progress stays on this device. Please try again when connected."
 		401, 403: return "Sign in again to use cloud saves. Offline play is available."
 		429: return "Cloud service is temporarily rate-limited. Wait a little before trying again."
 		_: return "Cloud request failed. Your local progress is safe; please try again."

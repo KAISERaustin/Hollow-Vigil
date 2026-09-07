@@ -12,6 +12,7 @@ var audio: Node
 var application_paused := false
 var application_unfocused := false
 var public_builds: Node
+var private_backups: Node
 var campaign_progress := preload("res://scripts/campaign/progress.gd").new()
 var campaign_backup: Node
 var cloud: Node
@@ -81,7 +82,7 @@ func _ready() -> void:
 	public_builds.set_process(load_saved_progress)
 	add_child(public_builds)
 	if use_slots:
-		slot_menu = preload("res://scripts/ui/save_slots_panel.gd").new()
+		slot_menu = preload("res://scripts/ui/unified_menu.gd").new()
 		slot_menu.app = self
 		add_child(slot_menu)
 		game.suspended = true
@@ -89,6 +90,15 @@ func _ready() -> void:
 		show_return_earnings(game.offline_award)
 	if not game.save_error.is_empty():
 		toast(game.save_error, 12.0)
+	private_backups = preload("res://scripts/cloud/private_backups.gd").new()
+	private_backups.app = self
+	private_backups.cloud = cloud
+	private_backups.enabled = load_saved_progress
+	if not load_saved_progress:
+		private_backups.slots.base_path = game.save_path + ".unified"
+		private_backups.state_path = game.save_path + ".private-backups-test"
+	private_backups.campaign_slots.base_path = private_backups.slots.base_path
+	add_child(private_backups)
 
 func build_interface() -> void:
 	panels = VigilPanels.new()
@@ -101,7 +111,7 @@ func build_interface() -> void:
 	hud = VigilHUD.new()
 	hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	hud.add_theme_constant_override("separation", 0)
-	hud.settings_requested.connect(panels.show_settings)
+	hud.settings_requested.connect(show_game_menu)
 	hud.collect_requested.connect(collect_all)
 	hud.pause_requested.connect(toggle_pause)
 	hud.speed_requested.connect(toggle_speed)
@@ -220,6 +230,7 @@ func build_return_popup() -> void:
 	return_close.focus_next = return_close.get_path()
 	return_close.focus_previous = return_close.get_path()
 	resized.connect(fit_return_popup)
+	preload("res://scripts/ui/shared/mobile_layout.gd").attach(self)
 	return_card.minimum_size_changed.connect(fit_return_popup)
 	return_overlay.hide()
 
@@ -348,6 +359,7 @@ func persist() -> void:
 	game.data.camera = [field.camera.x, field.camera.y, field.zoom]
 	if not game.save():
 		toast(game.save_error, 8.0)
+	else: queue_private_backup()
 	update_hud()
 
 func balance_changed() -> void:
@@ -449,6 +461,14 @@ func _notification(what: int) -> void:
 		application_unfocused = false
 		audio.set_suspended(application_paused)
 	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		for popup in get_viewport().get_embedded_subwindows():
+			if popup is Popup and popup.visible:
+				popup.hide()
+				return
+		# Android Back follows the same topmost navigation owner as on-screen Back.
+		if is_instance_valid(slot_menu) and slot_menu.visible:
+			slot_menu.go_back()
+			return
 		if is_instance_valid(campaign):
 			campaign.go_back()
 			return
@@ -463,6 +483,8 @@ func _notification(what: int) -> void:
 				panels.show_settings()
 			else:
 				panels.close_sheet()
+		else:
+			show_game_menu()
 
 func _input(event: InputEvent) -> void:
 	if is_instance_valid(campaign):
@@ -549,7 +571,7 @@ func show_save_slots(exporting: bool = false) -> bool:
 	pending_return_gold = 0.0
 	game.suspended = true
 	if not is_instance_valid(slot_menu):
-		slot_menu = preload("res://scripts/ui/save_slots_panel.gd").new()
+		slot_menu = preload("res://scripts/ui/unified_menu.gd").new()
 		slot_menu.app = self
 		add_child(slot_menu)
 	slot_menu.show()
@@ -601,6 +623,8 @@ func open_slot(slot: int) -> void:
 func activate_slot(next: VigilState, slot: int) -> void:
 	panels.close_sheet()
 	game = next
+	game.suspended = false
+	hud.show()
 	reset_time_controls()
 	slot_active = true
 	active_slot = slot
@@ -636,6 +660,9 @@ func activate_slot(next: VigilState, slot: int) -> void:
 
 # This view is reachable from Campaign or the save picker, without starting a world.
 func show_backups() -> void:
+	if is_instance_valid(slot_menu) and slot_menu.has_method("show_backups"):
+		slot_menu.show_backups(slot_menu.open_game_menu if slot_menu.held else slot_menu.show_home)
+		return
 	panels.show_cloud_saves()
 	panels.move_to_front()
 
@@ -671,6 +698,37 @@ func upload_infinite_backup(slot: int, replace: bool = false) -> void:
 	else: await cloud.start_backup()
 	cloud.game = game
 	cloud.changed.emit()
+
+func show_game_menu() -> void:
+	if not is_instance_valid(slot_menu):
+		slot_menu = preload("res://scripts/ui/unified_menu.gd").new()
+		slot_menu.app = self
+		add_child(slot_menu)
+	slot_menu.open_game_menu()
+
+func queue_private_backup() -> void:
+	if is_instance_valid(private_backups): private_backups.queue_backup()
+
+func open_campaign_slot(slot: int, value: Dictionary) -> void:
+	if is_instance_valid(campaign): return
+	panels.close_sheet()
+	tower_dialog.dismiss()
+	return_overlay.hide()
+	game.suspended = true
+	slot_active = false
+	hud.hide()
+	campaign = preload("res://scripts/campaign/screen.gd").new()
+	campaign.app = self
+	campaign.active_campaign_slot = slot
+	campaign.campaign_save = value.duplicate(true)
+	campaign.closed.connect(func():
+		campaign = null
+		hud.show()
+		game.suspended = true
+		slot_menu.show_home("campaign")
+	)
+	add_child(campaign)
+	slot_menu.hide()
 
 func restore_infinite_backup(slot: int, world_id: String) -> void:
 	if cloud.busy: return

@@ -161,8 +161,8 @@ func fit_sheet() -> void:
 	if mode == "core":
 		# Include the shared inner margins and panel padding, without unused space.
 		desired_height = sheet_height()
-	var bottom := field.get_global_rect().end.y - 12.0
-	var top := field.global_position.y + 12.0
+	var bottom := minf(field.get_global_rect().end.y, UI.safe_rect(app).end.y) - 12.0
+	var top := maxf(field.global_position.y, UI.safe_rect(app).position.y) + 12.0
 	if app.size.y >= 700.0:
 		top = maxf(140.0, top)
 	self.size.y = minf(desired_height, bottom - top)

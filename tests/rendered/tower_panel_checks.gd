@@ -3,6 +3,7 @@ extends RefCounted
 static func check(condition: bool, message: String, failures: Array[String]) -> void:
 	if not condition:
 		failures.append(message)
+		push_error(message)
 
 static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 	app.set_process(false)
@@ -69,6 +70,11 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 		check(g.data == before_info and not dialog.visible, "Confirming Info changed the tower", failures)
 		for target_mode in Balance.TARGET_MODES:
 			await harness.tap(app, app.tower_actions.buttons.target.get_global_rect().get_center(), touch)
+			if dialog.find_child("Target_" + g.data.towers[rapid].target_mode, true, false) == null:
+				push_error("Target action did not open: touch=%s dialog=%s visible=%s selected=%s action=%s" % [touch, dialog.mode, dialog.visible, app.field.selected_tower, app.tower_actions.buttons.target.get_global_rect()])
+				await harness.capture(app, "target-action-failure")
+				app.get_tree().quit(1)
+				return
 			check(dialog.find_child("Target_" + g.data.towers[rapid].target_mode, true, false).button_pressed, "Targeting dialog did not show the saved choice", failures)
 			var before_targeting := g.data.duplicate(true)
 			await harness.tap(app, dialog.find_child("Target_" + target_mode, true, false).get_global_rect().get_center(), touch)

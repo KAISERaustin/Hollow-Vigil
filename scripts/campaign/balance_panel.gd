@@ -21,13 +21,14 @@ var groups: Array = []
 var live_run: RefCounted
 var initial_scope := -1
 var apply_changes: Callable
+var shared_page := false
 
 func _ready() -> void:
 	name = "CampaignBalancePanel"
 	add_theme_constant_override("separation", 12)
 	draft = store.overrides(index)
 	add_child(UI.paragraph("Level %d · %s" % [index + 1, Configuration.Catalog.level(index).name], 16))
-	add_child(UI.paragraph("Save applies rules to this run and future replays. Existing enemies stay on the field; pending spawns use the new settings. Times are measured from the wave's start. Starting gold and flame apply during initial setup or on restart." if live_run != null else "Save changes to use them next time this level starts.", 14))
+	add_child(UI.paragraph("Apply changes updates this run and future replays. Existing enemies stay on the field; pending spawns use the new settings. Times are measured from the wave's start. Starting gold and flame apply during initial setup or on restart." if live_run != null else "Changes stay in this draft until you choose Apply changes." if shared_page else "Save changes to use them next time this level starts.", 14))
 	scope_picker = OptionButton.new()
 	scope_picker.name = "CampaignBalanceScope"
 	scope_picker.custom_minimum_size.y = UI.TARGET
@@ -49,15 +50,17 @@ func _ready() -> void:
 	var save := UI.gold_button("Save level configuration", save_changes)
 	save.name = "SaveCampaignConfiguration"
 	add_child(save)
+	save.visible = not shared_page
 	var export_button := UI.button("Export saved level data", func(): export_requested.emit())
 	export_button.name = "ExportCampaignLevel"
 	add_child(export_button)
+	export_button.visible = not shared_page
 	var reset := UI.button("Restore level defaults", func():
 		draft = {}
 		scope = -1
 		scope_picker.select(0)
 		build_scope()
-		message.text = "Default configuration ready. Save to apply it."
+		message.text = "Original rules ready. Choose Apply changes to use them." if shared_page else "Default configuration ready. Save to apply it."
 	)
 	reset.name = "ResetCampaignConfiguration"
 	add_child(reset)

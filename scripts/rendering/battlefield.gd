@@ -258,13 +258,31 @@ func _on_gui_input(event: InputEvent) -> void:
 # Releases outside the map still end gestures, without placing anything under HUD controls.
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+		finish_mouse_gesture.call_deferred()
 		if not Rect2(Vector2.ZERO, size).has_point(event.position - global_position):
 			mouse_down = false
 	if event is InputEventScreenTouch and not event.pressed:
+		# GUI overlays can consume an inside release. Clean up after GUI dispatch,
+		# so ordinary map taps still finish in _on_gui_input first.
+		finish_touch_gesture.call_deferred(event.index)
 		var local: Vector2 = event.position - global_position
 		if not Rect2(Vector2.ZERO, size).has_point(local):
 			touches.erase(event.index)
 			gesture_consumed = true
+
+func finish_mouse_gesture() -> void:
+	mouse_down = false
+
+func finish_touch_gesture(index: int) -> void:
+	if touches.has(index):
+		touches.erase(index)
+		gesture_consumed = true
+
+func _notification(what: int) -> void:
+	if what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED] or (what == NOTIFICATION_VISIBILITY_CHANGED and not is_visible_in_tree()):
+		touches.clear()
+		mouse_down = false
+		gesture_consumed = true
 
 func tap(pos: Vector2) -> void:
 	if moving_tower != "":

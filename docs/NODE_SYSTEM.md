@@ -99,6 +99,14 @@ Campaign and Infinite Worlds instantiate the same `VigilTowerActions`, `VigilTow
 
 Campaign Level nodes attach the reusable `investment_refund` attribute in the `setup_refund` slot. Each fresh campaign run gives its economy that definition only during initial setup; starting the first wave removes it permanently for that run. The economy owns attachment/replacement/removal and resolves both sell previews and payouts, including tower upgrades. Later planning phases and open-world sessions use the normal refund. The component is stateless, and unfinished campaign runs are not saved, so no save migration is needed.
 
+## Shared mobile navigation components
+
+Screen owners attach `ui/shared/mobile_layout.gd` to refit when safe areas or the overlay keyboard change. `VigilInterface.safe_rect` converts physical insets and keyboard height to the screen's local UI coordinates. The observer follows focused form controls after layout; its state belongs to that screen and is removed with it.
+
+Every menu scroll area uses `VigilInterface.keyboard_scroll`, which attaches `touch_scroll.gd`. This component lets swipes pass through cards and buttons, opens dropdowns on release, bounds dropdown lists, and restores input settings when content leaves its owner. Nested scrolling and editable fields retain their own input boundaries. Confirmation descriptions and errors share a bounded scroll area with persistent confirm/cancel actions. Android Back dismisses the top popup before navigating the active game menu. Both battlefield types inherit touch cancellation on lost focus and releases intercepted by overlays.
+
+Run `./launch.ps1 -MobileTests` for physical touch events injected through the desktop viewport: both game flows, menus, lists, forms, campaign screens, tower actions, pan/pinch, and safe-area conversion at 360x640, 390x844, 540x960, and 844x390. Physical phone density, native keyboard behavior and OS gestures still require device testing.
+
 ## Adding a tower such as Pike
 
 This creates a prototype inheriting Ashneedle's behavior in an isolated catalog:

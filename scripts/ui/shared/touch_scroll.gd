@@ -23,6 +23,29 @@ static func prepare_branch(node: Node, scroll: ScrollContainer) -> void:
 		if not node.ready.is_connected(ready_callback):
 			node.ready.connect(ready_callback, CONNECT_ONE_SHOT)
 		return
+	if node is OptionButton:
+		# Opening on touch-down steals a swipe before the scroll can claim it.
+		if not node.has_meta("touch_popup_prepared"):
+			var original_action: int = node.action_mode
+			var original_fit: bool = node.fit_to_longest_item
+			var original_clip: bool = node.clip_text
+			var popup: PopupMenu = node.get_popup()
+			var original_max := popup.max_size
+			var fit_popup := func():
+				popup.max_size = Vector2i(node.get_viewport_rect().size - Vector2(24, 24))
+			node.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
+			node.fit_to_longest_item = false
+			node.clip_text = true
+			node.set_meta("touch_popup_prepared", true)
+			popup.about_to_popup.connect(fit_popup)
+			node.tree_exiting.connect(func():
+				popup.about_to_popup.disconnect(fit_popup)
+				popup.max_size = original_max
+				node.action_mode = original_action
+				node.fit_to_longest_item = original_fit
+				node.clip_text = original_clip
+				node.remove_meta("touch_popup_prepared")
+			, CONNECT_ONE_SHOT)
 	if node is Control and node.mouse_filter == Control.MOUSE_FILTER_STOP:
 		node.mouse_filter = Control.MOUSE_FILTER_PASS
 		# Restore the original filter when a prepared control leaves this tree.

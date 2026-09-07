@@ -47,54 +47,15 @@ func build_header() -> void:
 	var header := UI.margin(top, 12)
 	header_margin = header.get_parent() as MarginContainer
 	header.add_theme_constant_override("separation", 8)
-	var toolbar := HBoxContainer.new()
-	toolbar.name = "HeaderToolbar"
-	toolbar.add_theme_constant_override("separation", 12)
+	var toolbar := preload("res://scripts/ui/shared/game_toolbar.gd").new()
 	header.add_child(toolbar)
-	var settings := UI.button("", func(): settings_requested.emit(), UI.TOOLBAR_BUTTON_SIZE)
-	settings.name = "SettingsButton"
-	settings.accessibility_description = "Settings"
-	settings.accessibility_name = "Settings"
-	settings.draw.connect(func():
-		var center := settings.size * 0.5
-		var outline := PackedVector2Array()
-		for point in range(32):
-			var angle := TAU * float(point) / 32.0 - PI / 32.0
-			var radius := 12.0 if point % 4 < 2 else 9.0
-			outline.append(center + Vector2.from_angle(angle) * radius)
-		outline.append(outline[0])
-		settings.draw_polyline(outline, UI.TEXT, 2.0, true)
-		settings.draw_arc(center, 4.0, 0.0, TAU, 24, UI.TEXT, 2.0, true)
-	)
-	settings.custom_minimum_size.x = UI.TOOLBAR_BUTTON_SIZE
-	settings.size_flags_horizontal = Control.SIZE_FILL
-	toolbar.add_child(settings)
-	pause_button = UI.button("", func(): pause_requested.emit(), UI.TOOLBAR_BUTTON_SIZE)
-	pause_button.name = "PauseButton"
-	pause_button.custom_minimum_size.x = UI.TOOLBAR_BUTTON_SIZE
-	pause_button.size_flags_horizontal = Control.SIZE_FILL
-	pause_button.draw.connect(func():
-		var center := pause_button.size * 0.5
-		if simulation_paused:
-			pause_button.draw_colored_polygon(PackedVector2Array([center + Vector2(-6, -10), center + Vector2(10, 0), center + Vector2(-6, 10)]), UI.TEXT)
-		else:
-			for x in [-8, 3]:
-				pause_button.draw_rect(Rect2(center + Vector2(x, -10), Vector2(5, 20)), UI.TEXT)
-	)
-	toolbar.add_child(pause_button)
-	speed_button = UI.button("2x", func(): speed_requested.emit(), UI.TOOLBAR_BUTTON_SIZE)
-	speed_button.name = "SpeedButton"
-	speed_button.custom_minimum_size.x = UI.TOOLBAR_BUTTON_SIZE
-	speed_button.size_flags_horizontal = Control.SIZE_FILL
-	speed_button.toggle_mode = true
-	toolbar.add_child(speed_button)
+	toolbar.configure(func(): pause_requested.emit(), func(): speed_requested.emit(), func(): settings_requested.emit())
+	pause_button = toolbar.pause_button
+	speed_button = toolbar.speed_button
 	update_time_controls(false, 1.0)
-	var territory := Control.new()
-	territory.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	toolbar.add_child(territory)
-
 func update_time_controls(paused: bool, speed: float) -> void:
 	simulation_paused = paused
+	pause_button.set_meta("paused", paused)
 	pause_button.accessibility_description = "Play" if paused else "Pause"
 	pause_button.accessibility_name = "Resume game" if paused else "Pause game"
 	pause_button.queue_redraw()

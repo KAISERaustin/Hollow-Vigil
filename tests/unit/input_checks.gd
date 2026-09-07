@@ -87,6 +87,16 @@ static func test_gestures(suite: SceneTree) -> void:
 	release.position = field.global_position - Vector2(20, 20)
 	field._input(release)
 	suite.check(not field.mouse_down and core_taps[0] == core_before + 1, "Releasing outside the map ends the gesture without selecting the core")
+	var held_touch := InputEventScreenTouch.new()
+	held_touch.position = Vector2(100, 100)
+	held_touch.pressed = true
+	field._on_gui_input(held_touch)
+	field._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	suite.check(field.touches.is_empty() and not field.mouse_down, "Losing application focus cancels map gestures")
+	held_touch.position += Vector2(40, 0)
+	held_touch.pressed = false
+	field._on_gui_input(held_touch)
+	suite.check(core_taps[0] == core_before + 1, "Returning after an interrupted touch never selects a map control")
 	field.free()
 	print("PASS GROUP: tap, pan, and pinch conflicts")
 

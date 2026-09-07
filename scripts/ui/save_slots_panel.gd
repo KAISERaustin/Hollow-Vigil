@@ -61,6 +61,7 @@ func _ready() -> void:
 	footer.add_theme_constant_override("separation", UI.GAP)
 	layout.add_child(footer)
 	resized.connect(fit)
+	preload("res://scripts/ui/shared/mobile_layout.gd").attach(self)
 	show_main_menu()
 
 func fit() -> void:

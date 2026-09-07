@@ -22,6 +22,15 @@ func run() -> void:
 	var nested_button := Button.new()
 	nested.add_child(nested_button)
 	check(nested_button.mouse_filter == Control.MOUSE_FILTER_STOP, "Nested scroll retains its own gesture boundary")
+	var picker := OptionButton.new()
+	var original_action := picker.action_mode
+	var original_fit := picker.fit_to_longest_item
+	layout.add_child(picker)
+	check(picker.action_mode == BaseButton.ACTION_MODE_BUTTON_RELEASE and not picker.fit_to_longest_item, "Dropdown allows a swipe to finish before opening")
+	layout.reparent(root, false)
+	check(picker.action_mode == original_action and picker.fit_to_longest_item == original_fit, "Dropdown input and sizing restored outside scroll owner")
+	layout.reparent(scroll, false)
+	check(picker.action_mode == BaseButton.ACTION_MODE_BUTTON_RELEASE, "Dropdown can reattach without stale popup callbacks")
 	scroll.queue_free()
 	await process_frame
 	print("TOUCH SCROLL SCOPE: %d checks, %d failures" % [checks, failures.size()])
