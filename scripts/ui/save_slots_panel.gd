@@ -266,15 +266,15 @@ func show_export(source: VigilState = null, campaign: Dictionary = {}, return_to
 	add_back(UI.button("Back to game", export_return))
 	content.add_child(UI.rule())
 	content.add_child(UI.paragraph("Share campaign content: enemy groups, spawn timing, wave rewards, starting resources and every edited stat." if not campaign.is_empty() else "Choose what to include. Towers + stats keeps the layout, equipment, resources and rules. Stats only shares the rules and stat changes for a fresh start.", 14))
-	var includes := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
-	includes.name = "ShareConfigurationContents"
-	includes.menu_title = "Choose contents"
-	includes.custom_minimum_size.y = UI.TARGET
-	includes.add_item("Campaign + loadouts" if campaign.has("levels") else "Towers + stats")
-	includes.add_item("Campaign rules only" if campaign.has("levels") else "Stats only")
-	includes.item_selected.connect(func(index: int): export_stats_only = index == 1)
-	content.add_child(includes)
-	includes.visible = campaign.is_empty()
+	if campaign.is_empty():
+		var includes := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
+		includes.name = "ShareConfigurationContents"
+		includes.menu_title = "Choose contents"
+		includes.custom_minimum_size.y = UI.TARGET
+		includes.add_item("Towers + stats")
+		includes.add_item("Stats only")
+		includes.item_selected.connect(func(index: int): export_stats_only = index == 1)
+		content.add_child(includes)
 	content.add_child(UI.rule())
 	var title := LineEdit.new()
 	title.name = "SetupName"

@@ -14,8 +14,8 @@ static func test_transactions(suite: SceneTree) -> void:
 	var other := g.economy.build("heavy", "1,0", 1)
 	for kind in Balance.TOWERS:
 		var tower := {"kind": kind, "level": 1}
-		suite.check(Balance.move_cost(tower) == {"rapid": 12.0, "splash": 24.0, "heavy": 32.0, "electric": 28.0}[kind], "Base move price for " + kind)
-		suite.check(Balance.rebuild_seconds(tower) == {"rapid": 30.0, "splash": 60.0, "heavy": 80.0, "electric": 70.0}[kind], "Distinct base rebuild timer for " + kind)
+		suite.check(Balance.move_cost(tower) == {"rapid": 12.0, "splash": 24.0, "heavy": 32.0, "electric": 28.0, "ironspike": 28.0, "moonwheel": 26.0, "hex_lantern": 20.0, "caltrop_keep": 24.0}[kind], "Base move price for " + kind)
+		suite.check(Balance.rebuild_seconds(tower) == {"rapid": 30.0, "splash": 60.0, "heavy": 80.0, "electric": 70.0, "ironspike": 70.0, "moonwheel": 65.0, "hex_lantern": 50.0, "caltrop_keep": 60.0}[kind], "Distinct base rebuild timer for " + kind)
 		var previous_cost := Balance.move_cost(tower)
 		var previous_time := Balance.rebuild_seconds(tower)
 		for level in range(2, Balance.MAX_TOWER_LEVEL + 1):

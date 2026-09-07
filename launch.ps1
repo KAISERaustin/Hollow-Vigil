@@ -71,6 +71,7 @@ try {
         # Registers script classes and imports assets on a completely clean checkout.
         Invoke-Godot -Name 'import' -EngineArguments @('--headless', '--editor', '--import')
         if ($Tests -or $Check) {
+            Invoke-Godot -Name 'tower-expansion' -EngineArguments @('--headless', '--script', 'res://tests/tower_expansion_runner.gd')
             Invoke-Godot -Name 'branches' -EngineArguments @('--headless', '--script', 'res://tests/branch_runner.gd')
             Invoke-Godot -Name 'first-property' -EngineArguments @('--headless', '--script', 'res://tests/first_property_runner.gd')
             Invoke-Godot -Name 'audio' -EngineArguments @('--headless', '--script', 'res://tests/audio_runner.gd')

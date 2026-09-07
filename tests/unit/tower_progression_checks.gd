@@ -9,7 +9,7 @@ static func run(suite: SceneTree) -> void:
 	print("PASS GROUP: three tower levels, investment limits, attack cadence, legacy refunds and migration recovery")
 
 static func test_progression(suite: SceneTree) -> void:
-	var prices := {"rapid": [60.0, 60.0, 100.0], "splash": [120.0, 120.0, 200.0], "heavy": [160.0, 140.0, 220.0], "electric": [140.0, 120.0, 200.0]}
+	var prices := {"rapid": [60.0, 60.0, 100.0], "splash": [120.0, 120.0, 200.0], "heavy": [160.0, 140.0, 220.0], "electric": [140.0, 120.0, 200.0], "ironspike": [140.0, 120.0, 200.0], "moonwheel": [130.0, 120.0, 200.0], "hex_lantern": [100.0, 100.0, 180.0], "caltrop_keep": [120.0, 120.0, 200.0]}
 	suite.check(Balance.MAX_TOWER_LEVEL == 4, "Every tower has four total levels")
 	for kind in Balance.TOWERS:
 		var g: VigilState = suite.legacy_core_fixture(314)
@@ -50,7 +50,9 @@ static func test_progression(suite: SceneTree) -> void:
 	suite.check(int(ceil(heavy_hp / Balance.stats("splash", 3).damage)) == 10, "Maximum Pyre needs ten blasts per Revenant, preserving Obelisk's burst role")
 
 static func test_attack_intervals(suite: SceneTree) -> void:
-	for kind in Balance.TOWERS:
+	# These direct-hit expectations cover the original attacks. Returning,
+	# piercing, support and trap cadences are exercised in tower_expansion_runner.
+	for kind in ["rapid", "splash", "heavy", "electric"]:
 		for level in [1, 2, 3]:
 			var g := VigilState.new(314)
 			g.data.balance = 10000.0
