@@ -29,6 +29,17 @@ func _rpc(method: String, body: Dictionary) -> Dictionary:
 	if not accounts.has(owner): accounts[owner] = {"games": {}, "builds": {}}
 	var account: Dictionary = accounts[owner]
 	match method:
+		"list_deleted_private_builds": return {"ok": true, "data": account.get("deleted", {}).keys()}
+		"delete_private_build":
+			if not account.has("deleted"): account.deleted = {}
+			account.deleted[body.build_hash] = true
+			account.builds.erase(body.build_hash)
+			return {"ok": true, "data": true}
+		"delete_private_game":
+			var key: String = body.game_type + ":" + str(body.slot_number)
+			if account.games.get(key, {}).get("revision", 0) != body.expected_revision: return {"ok": true, "data": false}
+			account.games.erase(key)
+			return {"ok": true, "data": true}
 		"put_private_game":
 			var key: String = body.game_type + ":" + str(body.slot_number)
 			var previous: Dictionary = account.games.get(key, {})
