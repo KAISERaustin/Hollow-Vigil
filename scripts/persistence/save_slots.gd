@@ -100,6 +100,14 @@ func decode_build(code: String) -> Dictionary:
 		return {}
 	return storage.migrate_portal_unlocks(snapshot)
 
+func delete_slot(slot: int) -> bool:
+	if slot < 0 or slot >= COUNT:
+		error = "Choose one of the three save slots."
+		return false
+	var ok := storage.delete_files(path_for(slot))
+	error = storage.last_error
+	return ok
+
 func archive(slot: int) -> bool:
 	if slot < 0 or slot >= COUNT:
 		return false

@@ -99,17 +99,17 @@ func sync_now() -> void:
 		conflicts.clear()
 	busy = true
 	cloud.busy = true
-	var owner: String = cloud.player_id
+	var account_id: String = cloud.player_id
 	var epoch: int = cloud.generation
 	var account := _account()
 	var ok := true
 	status = "Backing up saved games and My builds…"
 	changed.emit()
 	var deleted: Dictionary = await cloud._rpc("list_deleted_private_builds", {})
-	if owner != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
+	if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
 	if not deleted.get("ok", false) or not deleted.get("data") is Array: _finish(false, epoch); return
 	deleted_builds.clear()
-	for hash in deleted.data: deleted_builds[hash] = true
+	for build_hash in deleted.data: deleted_builds[build_hash] = true
 	for entry in slots.shared_configurations("all"):
 		if deleted_builds.has(entry.code.sha256_text()) and not slots.delete_shared(entry.code): _finish(false, epoch); return
 	for item in local_games():
@@ -119,7 +119,7 @@ func sync_now() -> void:
 		if known.get("hash") == item.hash: continue
 		var response: Dictionary = await cloud._rpc("put_private_game", {"game_type": item.game_type, "slot_number": item.slot,
 			"snapshot": item.snapshot, "expected_revision": int(known.get("revision", 0)), "content_hash": item.hash})
-		if owner != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
+		if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
 		if not response.get("ok", false) or not response.get("data") is Dictionary: ok = false; break
 		var data: Dictionary = response.data
 		if data.get("conflict", false):
@@ -129,16 +129,16 @@ func sync_now() -> void:
 			if not _save_state(): ok = false; break
 	if ok:
 		for entry in slots.shared_configurations("all"):
-			var hash: String = entry.code.sha256_text()
-			if account.builds.has(hash): continue
-			var response: Dictionary = await cloud._rpc("put_private_build", {"build_hash": hash, "configuration": entry.code})
-			if owner != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
+			var build_hash: String = entry.code.sha256_text()
+			if account.builds.has(build_hash): continue
+			var response: Dictionary = await cloud._rpc("put_private_build", {"build_hash": build_hash, "configuration": entry.code})
+			if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
 			if not response.get("ok", false): ok = false; break
-			account.builds[hash] = true
+			account.builds[build_hash] = true
 			if not _save_state(): ok = false; break
 	if ok:
 		var response: Dictionary = await cloud._rpc("list_private_games", {})
-		if owner != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
+		if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
 		ok = response.get("ok", false) and response.get("data") is Array
 		if ok:
 			remote_games = response.data
@@ -153,7 +153,7 @@ func sync_now() -> void:
 		var page := 0
 		while true:
 			var response: Dictionary = await cloud._rpc("list_private_builds", {"page_number": page})
-			if owner != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
+			if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
 			if not response.get("ok", false) or not response.get("data") is Array: ok = false; break
 			for entry in response.data:
 				if not entry.get("configuration") is String or entry.get("build_hash") != entry.configuration.sha256_text(): ok = false; break
@@ -183,14 +183,14 @@ func _finish(ok: bool, epoch: int) -> void:
 
 func read_backup(type: String, slot: int) -> Dictionary:
 	if busy or cloud.busy: return {}
-	var owner: String = cloud.player_id
+	var account_id: String = cloud.player_id
 	var epoch: int = cloud.generation
 	busy = true
 	cloud.busy = true
 	var response: Dictionary = await cloud._rpc("read_private_game", {"game_type": type, "slot_number": slot})
 	busy = false
 	if cloud.generation == epoch: cloud.busy = false
-	if owner != cloud.player_id or epoch != cloud.generation: return {}
+	if account_id != cloud.player_id or epoch != cloud.generation: return {}
 	if not response.get("ok", false) or not response.get("data") is Dictionary: return {}
 	var value: Dictionary = response.data
 	if not value.get("snapshot") is Dictionary: return {}
@@ -237,18 +237,18 @@ func delete_recovery(path: String) -> bool:
 		if entry.path == path: return DirAccess.remove_absolute(path) == OK
 	return false
 
-func delete_cloud_record(endpoint: String, payload: Dictionary, owner: String) -> bool:
-	if busy or cloud.busy or not cloud.signed_in() or owner != cloud.player_id: return false
+func delete_cloud_record(endpoint: String, payload: Dictionary, account_id: String) -> bool:
+	if busy or cloud.busy or not cloud.signed_in() or account_id != cloud.player_id: return false
 	busy = true
 	cloud.busy = true
 	var epoch: int = cloud.generation
 	var response: Dictionary = await cloud._rpc(endpoint, payload)
 	busy = false
 	if epoch == cloud.generation: cloud.busy = false
-	return owner == cloud.player_id and epoch == cloud.generation and response.get("ok", false) and response.get("data") == true
+	return account_id == cloud.player_id and epoch == cloud.generation and response.get("ok", false) and response.get("data") == true
 
-func delete_game(remote: Dictionary, owner: String) -> bool:
-	if not await delete_cloud_record("delete_private_game", {"game_type": remote.game_type, "slot_number": int(remote.slot_number), "expected_revision": int(remote.revision)}, owner): return false
+func delete_game(remote: Dictionary, account_id: String) -> bool:
+	if not await delete_cloud_record("delete_private_game", {"game_type": remote.game_type, "slot_number": int(remote.slot_number), "expected_revision": int(remote.revision)}, account_id): return false
 	var key: String = remote.game_type + ":" + str(remote.slot_number)
 	var snapshot: Dictionary = campaign_slots.summary(int(remote.slot_number)) if remote.game_type == "campaign" else slots.summary(int(remote.slot_number))
 	_account().games[key] = {"revision": 0, "hash": fingerprint(snapshot)}
@@ -256,10 +256,10 @@ func delete_game(remote: Dictionary, owner: String) -> bool:
 	remote_games.erase(remote)
 	return _save_state()
 
-func delete_build(code: String, owner: String) -> bool:
+func delete_build(code: String, account_id: String) -> bool:
 	if busy or cloud.busy: return false
-	if owner != "":
-		if not await delete_cloud_record("delete_private_build", {"build_hash": code.sha256_text()}, owner): return false
+	if account_id != "":
+		if not await delete_cloud_record("delete_private_build", {"build_hash": code.sha256_text()}, account_id): return false
 	hidden_builds[code.sha256_text()] = true
 	if not _save_state(): return false
 	return slots.delete_shared(code)

@@ -63,6 +63,14 @@ func save_slot(slot: int, value: Dictionary) -> bool:
 	error = ""
 	return true
 
+func delete_slot(slot: int) -> bool:
+	if slot < 0 or slot >= COUNT:
+		error = "Choose one of the three Campaign slots."
+		return false
+	var ok := storage.delete_files(path_for(slot))
+	error = storage.last_error
+	return ok
+
 func preserve(slot: int) -> bool:
 	var value := summary(slot)
 	if value.is_empty():

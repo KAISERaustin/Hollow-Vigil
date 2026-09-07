@@ -164,11 +164,11 @@ func sell(socket: int) -> bool:
 	_after_edit()
 	return true
 
-func target(socket: int, mode: String) -> bool:
+func target(socket: int, target_mode: String) -> bool:
 	if not editable() or not Balance.Content.level(mission.index).allows_socket(socket):
 		return false
 	var id := tower_at(socket)
-	if not game.set_tower_target(id, mode):
+	if not game.set_tower_target(id, target_mode):
 		return false
 	_after_edit()
 	return true
@@ -197,9 +197,9 @@ static func valid_checkpoint(value: Dictionary) -> bool:
 	if not Configuration._number(value.get("level"), 0, Catalog.COUNT - 1, true): return false
 	var index := int(value.level)
 	if not Configuration.valid_level(index, value.get("rules")): return false
-	var mission := Configuration.resolve(index, value.rules)
-	if not Configuration._number(value.get("wave"), 0, mission.waves.size(), true): return false
-	if (value.phase == "victory") != (int(value.wave) == mission.waves.size()): return false
+	var checkpoint_mission := Configuration.resolve(index, value.rules)
+	if not Configuration._number(value.get("wave"), 0, checkpoint_mission.waves.size(), true): return false
+	if (value.phase == "victory") != (int(value.wave) == checkpoint_mission.waves.size()): return false
 	if not Configuration._number(value.get("health"), 1, Configuration.Fields.CONFIGURATION_FIELDS.flame.max, true): return false
 	if not value.get("random_state") is String or not value.random_state.is_valid_int(): return false
 	if not value.get("state") is Dictionary or value.state.size() != CHECKPOINT_FIELDS.size(): return false
@@ -207,14 +207,14 @@ static func valid_checkpoint(value: Dictionary) -> bool:
 		if not value.state.has(key): return false
 		if key not in ["towers", "relics"] and not Configuration._number(value.state[key]): return false
 	var snapshot := VigilState.new(81000 + index).data
-	for socket in mission.sockets:
+	for socket in checkpoint_mission.sockets:
 		if not snapshot.regions.has(socket.region):
 			snapshot.regions[socket.region] = {}
 	snapshot.merge(value.state, true)
 	if not VigilSaveStore.new().valid_loadout(snapshot): return false
 	for tower in snapshot.towers.values():
 		var allowed := false
-		for socket in mission.sockets:
+		for socket in checkpoint_mission.sockets:
 			if socket.region == tower.region and socket.pad == tower.pad: allowed = true
 		if not allowed: return false
 	return true

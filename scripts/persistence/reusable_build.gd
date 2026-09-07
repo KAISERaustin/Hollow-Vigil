@@ -222,23 +222,23 @@ static func campaign_level(value: Dictionary, index: int) -> Dictionary:
 	var defaults := Configuration.Catalog.level(index)
 	for wave in defaults.waves.size():
 		var part: Dictionary = entry.waves[str(wave)]
-		var groups: Array = defaults.waves[wave].duplicate(true)
+		var spawn_groups: Array = defaults.waves[wave].duplicate(true)
 		if part.has("timing") and part.has("composition"):
 			if part.timing.size() != part.composition.size(): return {"ok": false}
-			groups = []
-			for group in part.timing.size(): groups.append([part.composition[group][0], part.timing[group][0], part.composition[group][1], part.timing[group][1], part.timing[group][2]])
+			spawn_groups = []
+			for group in part.timing.size(): spawn_groups.append([part.composition[group][0], part.timing[group][0], part.composition[group][1], part.timing[group][1], part.timing[group][2]])
 		elif part.has("timing") or part.has("composition"):
 			var key := "timing" if part.has("timing") else "composition"
-			if part[key].size() != groups.size():
+			if part[key].size() != spawn_groups.size():
 				return {"ok": false, "dependency": true, "error": "Level %d, wave %d has a different number of spawn groups. Save both Wave timing and counts and Enemy types and entrances to keep those groups together." % [index + 1, wave + 1]}
-			for group in groups.size():
+			for group in spawn_groups.size():
 				if key == "timing":
-					for column in 3: groups[group][[1, 3, 4][column]] = part.timing[group][column]
+					for column in 3: spawn_groups[group][[1, 3, 4][column]] = part.timing[group][column]
 				else:
-					groups[group][0] = part.composition[group][0]
-					groups[group][2] = part.composition[group][1]
+					spawn_groups[group][0] = part.composition[group][0]
+					spawn_groups[group][2] = part.composition[group][1]
 		var custom := {"tuning": part.stats.duplicate(true)}
-		if part.has("timing") or part.has("composition"): custom.groups = groups
+		if part.has("timing") or part.has("composition"): custom.groups = spawn_groups
 		if part.has("reward"): custom.reward = part.reward
 		overrides.waves[str(wave)] = custom
 	var level := {"version": 1, "setup": value.setup, "level": index, "overrides": overrides}

@@ -89,17 +89,17 @@ func save_level(index: int, configuration: Dictionary) -> bool:
 	data = next
 	return true
 
-static func resolve(index: int, overrides: Dictionary = {}) -> Dictionary:
+static func resolve(index: int, level_overrides: Dictionary = {}) -> Dictionary:
 	var defaults := Catalog.level(index)
 	if defaults.is_empty(): return {}
-	if not valid_level(index, overrides): overrides = {}
+	if not valid_level(index, level_overrides): level_overrides = {}
 	var attributes := {}
-	for key in Fields.CONFIGURATION_FIELDS: attributes[key] = overrides.get(key, defaults.get(key, Catalog.MAX_HEALTH))
-	attributes.tuning = Balance.merge_tuning(defaults.tuning, overrides.get("tuning", {}))
+	for key in Fields.CONFIGURATION_FIELDS: attributes[key] = level_overrides.get(key, defaults.get(key, Catalog.MAX_HEALTH))
+	attributes.tuning = Balance.merge_tuning(defaults.tuning, level_overrides.get("tuning", {}))
 	attributes.waves = defaults.waves.duplicate(true)
 	var wave_rules := []
 	for wave in range(attributes.waves.size()):
-		var custom: Dictionary = overrides.get("waves", {}).get(str(wave), {})
+		var custom: Dictionary = level_overrides.get("waves", {}).get(str(wave), {})
 		if custom.has("groups"): attributes.waves[wave] = custom.groups.duplicate(true)
 		wave_rules.append({"tuning": Balance.merge_tuning(attributes.tuning, custom.get("tuning", {})), "reward": custom.get("reward", attributes.reward)})
 	var node = Balance.Content.level(index).derive("level/configured/" + str(index), attributes)
@@ -166,9 +166,9 @@ static func wave_report(mission: Dictionary, wave: int) -> Dictionary:
 		health += hp * group[1]
 		reward += stats.payout * group[1]
 		groups.append({"kind": group[0], "name": stats.name, "count": int(group[1]), "lane": int(group[2]), "delay_seconds": group[3], "interval_seconds": group[4], "spawn_health": hp, "move_speed": speed, "gold_per_defeat": stats.payout})
-	var schedule := schedule(mission, wave)
-	return {"wave": wave + 1, "completion_gold": mission.wave_rules[wave].reward, "groups": groups, "schedule": schedule,
-		"enemy_counts": counts, "spawn_count": schedule.size(), "last_spawn_seconds": schedule[-1].at if not schedule.is_empty() else 0.0,
+	var spawn_schedule := schedule(mission, wave)
+	return {"wave": wave + 1, "completion_gold": mission.wave_rules[wave].reward, "groups": groups, "schedule": spawn_schedule,
+		"enemy_counts": counts, "spawn_count": spawn_schedule.size(), "last_spawn_seconds": spawn_schedule[-1].at if not spawn_schedule.is_empty() else 0.0,
 		"total_spawn_health": health, "total_defeat_gold": reward, "effective_stats": gameplay_values(tuning)}
 
 static func numeric_changes(before: Dictionary, after: Dictionary) -> Dictionary:
@@ -200,13 +200,13 @@ static func wave_reports(mission: Dictionary) -> Array[Dictionary]:
 		previous_groups = report.groups
 	return result
 
-static func export_level(index: int, overrides: Dictionary = {}) -> String:
-	if not valid_level(index, overrides): return ""
-	var mission := resolve(index, overrides)
+static func export_level(index: int, level_overrides: Dictionary = {}) -> String:
+	if not valid_level(index, level_overrides): return ""
+	var mission := resolve(index, level_overrides)
 	var defaults := resolve(index)
 	var baseline := {"gold": defaults.gold, "flame": defaults.flame, "reward": defaults.reward, "tuning": defaults.tuning, "waves": defaults.waves}
 	var report := {"version": 1, "level": index + 1, "name": mission.name, "style": mission.style, "defaults": baseline,
-		"overrides": overrides.duplicate(true), "effective": {"gold": mission.gold, "flame": mission.flame, "reward": mission.reward, "stats": gameplay_values(mission.tuning)},
+		"overrides": level_overrides.duplicate(true), "effective": {"gold": mission.gold, "flame": mission.flame, "reward": mission.reward, "stats": gameplay_values(mission.tuning)},
 		"wave_group_columns": ["kind", "count", "lane", "delay_seconds", "interval_seconds"], "lanes": mission.roads, "waves": wave_reports(mission)}
 	var payload := JSON.stringify(report, "", true, true)
 	return JSON.stringify({"format": FORMAT, "payload": payload, "checksum": payload.sha256_text()}, "", true, true)

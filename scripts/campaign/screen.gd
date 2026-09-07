@@ -215,7 +215,8 @@ func clear_page(next: String) -> void:
 	for child in layout.get_children():
 		layout.remove_child(child)
 		child.queue_free()
-	var parent: Node = self if next == "battle" else page_scroll
+	var parent: Node = self
+	if next != "battle": parent = page_scroll
 	if layout.get_parent() != parent:
 		layout.reparent(parent, false)
 		layout.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
@@ -915,11 +916,11 @@ func configured_run(index: int) -> RefCounted:
 
 func save_configuration(index: int, rules: Dictionary) -> bool:
 	if not can_author() or not Configuration.valid_level(index, rules): return false
+	var live: bool = run != null and run.mission.index == index and page == "battle" and run.editable()
 	if active_campaign_slot >= 0:
 		var previous: Dictionary = campaign_save.levels.get(str(index), {"overrides": {}}).duplicate(true)
 		var next := previous.duplicate(true)
 		next.overrides = rules.duplicate(true)
-		var live: bool = run != null and run.mission.index == index and page == "battle" and run.editable()
 		if live and run.phase == "wave" and Configuration.resolve(index, rules).waves[run.wave].size() < run.mission.waves[run.wave].size(): return false
 		campaign_save.levels[str(index)] = next
 		if not persist_slot():
@@ -929,7 +930,6 @@ func save_configuration(index: int, rules: Dictionary) -> bool:
 			run.apply_configuration(rules)
 			active_overrides = rules.duplicate(true)
 		return true
-	var live: bool = run != null and run.mission.index == index and page == "battle" and run.editable()
 	if live and run.phase == "wave" and Configuration.resolve(index, rules).waves[run.wave].size() < run.mission.waves[run.wave].size():
 		configuration.last_error = "Keep active wave groups in place; change their remaining counts instead."
 		return false
@@ -1027,8 +1027,8 @@ Spawn health %.2f · Speed %.2f · Defeat gold %.2f" % [group.name, group.count,
 			dialog_body.add_child(UI.paragraph("Spawn composition, timing or lane assignments changed. Current groups are listed above; exports include both waves.", 14))
 		for kind in changes.get("enemy_counts", {}):
 			var change: Dictionary = changes.enemy_counts[kind]
-			var name: String = Balance.definition("bosses" if Balance.BOSSES.has(kind) else "enemies", kind).name
-			dialog_body.add_child(UI.paragraph("%s count: %d → %d (%+d)" % [name, change.before, change.after, change.delta], 14))
+			var enemy_name: String = Balance.definition("bosses" if Balance.BOSSES.has(kind) else "enemies", kind).name
+			dialog_body.add_child(UI.paragraph("%s count: %d → %d (%+d)" % [enemy_name, change.before, change.after, change.delta], 14))
 		for category in changes.get("effective_stats", {}):
 			for kind in changes.effective_stats[category]:
 				for stat in changes.effective_stats[category][kind]:

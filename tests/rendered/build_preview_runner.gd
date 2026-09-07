@@ -78,6 +78,14 @@ func run() -> void:
 	app.game.expand("1,0")
 	await frame()
 	await exercise(app, func(): app.panels.select_pad("0,0", 1), app.panels.close_sheet, app.panels, "infinite")
+	app.panels.select_pad("0,0", 1)
+	await frame()
+	app.panels.action_button.pressed.emit()
+	for step in range(40):
+		app.field._process(1.0 / 60.0)
+		app.tower_actions.refresh()
+	check(app.game.data.towers.size() == 1 and app.field.preview_kind.is_empty(), "Infinite confirmation replaces preview with one real tower")
+	check(app.tower_actions.visible and not app.field.camera_framing.active, "Infinite confirmation hands camera framing to tower actions")
 	app.show_campaign()
 	var campaign: Control = app.campaign
 	campaign.set_process(false)

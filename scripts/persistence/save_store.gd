@@ -5,6 +5,16 @@ var last_error := ""
 const LEGACY_MAX_TOWER_LEVEL := 10000
 const LEGACY_TOWER_COSTS := {"rapid": 60.0, "splash": 120.0, "heavy": 160.0}
 
+func delete_files(path: String) -> bool:
+	# Remove fallback candidates first so a deleted slot cannot recover itself.
+	for suffix in [".tmp", ".bak", ".cloud-outbox", ""]:
+		var candidate: String = path + suffix
+		if FileAccess.file_exists(candidate) and DirAccess.remove_absolute(candidate) != OK:
+			last_error = "Couldn't delete this saved game completely. Please retry."
+			return false
+	last_error = ""
+	return true
+
 func write(path: String, data: Dictionary) -> bool:
 	# Validate before opening .tmp: it may be the only recoverable snapshot.
 	if not valid_data(data):

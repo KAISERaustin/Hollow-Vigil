@@ -60,7 +60,7 @@ func fit_content(width: int) -> void:
 	size = Vector2i(width, int(chrome + scroll.custom_minimum_size.y))
 	position = Vector2i(parent.global_position + safe.get_center() - Vector2(size) * 0.5)
 
-func show_error(details: String) -> void:
-	message.text = details
+func show_error(error_text: String) -> void:
+	message.text = error_text
 	message.show()
 	fit_content.call_deferred(popup_width)

@@ -10,7 +10,8 @@ static func encode(index: int, overrides: Dictionary, game: VigilState, title: S
 	if not stats_only:
 		value.loadout = {}
 		for key in ["towers", "next_tower", "relics", "balance"]:
-			value.loadout[key] = game.data.get(key, {} if key == "relics" else null)
+			if key == "relics": value.loadout[key] = game.data.get(key, {})
+			else: value.loadout[key] = game.data.get(key)
 	if not valid(value): return ""
 	var payload := JSON.stringify(value, "", true, true)
 	return JSON.stringify({"format": FORMAT, "payload": payload, "checksum": payload.sha256_text()})

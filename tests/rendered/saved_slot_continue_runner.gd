@@ -11,6 +11,14 @@ func run() -> void:
 	menu = app.slot_menu
 	menu.resume_game()
 	app.slot_active = false
+	root.size = Vector2i(540, 960)
+	root.content_scale_size = root.size
+	for type in ["campaign", "infinite"]:
+		menu.show_main_menu()
+		await press("Open" + type.capitalize())
+		check(menu.screen == "home" and menu.game_type == type, "Empty mode opens its options: " + type)
+		for key in ["Continue", "NewGame", "MyBuilds", "Community"]:
+			check(button(key) != null, "Empty mode offers " + key)
 	var game := VigilState.new(3815533380, "creative")
 	game.add_developer_gold()
 	check(game.expand("1,0"), "Create previously owned starter neighbor")
@@ -27,11 +35,15 @@ func run() -> void:
 	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = dimensions
 		root.content_scale_size = dimensions
-		menu.show_home("infinite")
-		await press("Continue")
+		menu.show_main_menu()
+		await press("OpenInfinite")
+		check(menu.screen == "slots" and menu.game_type == "infinite", "Infinite opens saved games directly")
 		check(menu.find_child("ContinueGameSlot1", true, false) != null, "Existing slot offers Continue")
 		check(menu.find_child("NewGameSlot1", true, false) == null, "Occupied slot never offers New game")
 		check(FileAccess.get_file_as_string(path) == before, "Browsing preserves original save bytes")
+		await press("BackButton")
+		check(menu.screen == "home", "Saved games Back keeps mode options accessible")
+		await press("Continue")
 	await press("ContinueGameSlot1")
 	check(app.slot_active and app.active_slot == 0 and not menu.visible, "Continue enters gameplay in slot 1")
 	check(app.game.data.setup.name == "Existing game" and app.game.data.regions.has("1,0"), "Continue preserves named world and owned territory")
@@ -51,6 +63,9 @@ func run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 func check_campaign_continue() -> void:
+	menu.show_main_menu()
+	await press("OpenCampaign")
+	check(menu.screen == "home" and menu.game_type == "campaign", "Infinite saves do not change empty Campaign destination")
 	for mode in ["survival", "creative"]:
 		var slot: int = 0 if mode == "survival" else 1
 		var value: Dictionary = menu.campaign_slots.create(slot, mode, "Saved " + mode)
@@ -66,8 +81,9 @@ func check_campaign_continue() -> void:
 			var stored_checkpoint: Dictionary = menu.campaign_slots.summary(slot).checkpoint
 			root.size = dimensions
 			root.content_scale_size = dimensions
-			menu.show_home("campaign")
-			await press("Continue")
+			menu.show_main_menu()
+			await press("OpenCampaign")
+			check(menu.screen == "slots" and menu.game_type == "campaign", "Campaign opens saved games directly")
 			await press("ContinueGameSlot" + str(slot + 1))
 			app.campaign.set_process(false)
 			check(app.campaign.page == "map" and app.campaign.run == null and not menu.visible, "Campaign Continue opens map without running saved level")

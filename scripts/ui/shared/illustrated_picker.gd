@@ -110,7 +110,7 @@ func show_popup() -> void:
 		var action := row.get_child(row.get_child_count() - 1) as Button
 		action.custom_minimum_size.x = action_width
 	var available := get_viewport_rect().size - Vector2(24, 24)
-	popup.popup_centered(Vector2i(minf(480, available.x), minf(560, available.y)))
+	popup.popup_centered(Vector2i(Vector2(minf(480, available.x), minf(560, available.y))))
 	scroll.scroll_vertical = 0
 	UI.trap_focus(popup.get_child(0))
 	if selected >= 0:

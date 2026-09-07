@@ -89,8 +89,17 @@ func show_main_menu() -> void:
 	header.hide()
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var welcome := preload("res://scripts/ui/welcome_menu.gd").new()
-	welcome.configure(show_home.bind("campaign"), show_home.bind("infinite"), func(): show_settings(show_main_menu))
+	welcome.configure(open_mode.bind("campaign"), open_mode.bind("infinite"), func(): show_settings(show_main_menu))
 	content.add_child(welcome)
+
+func open_mode(type: String) -> void:
+	game_type = type
+	held = false
+	for slot in 3:
+		if slot_occupied(slot):
+			show_slots()
+			return
+	show_home()
 
 func show_home(type: String = "") -> void:
 	if not type.is_empty(): game_type = type
@@ -140,6 +149,30 @@ func show_slots() -> void:
 			body.add_child(UI.paragraph(str(value.get("mode", "creative")).capitalize() + "\n" + progress_text(value)))
 			body.add_child(UI.paragraph(backup_status(game_type, slot)))
 			body.add_child(action("Continue game", continue_game.bind(slot), "ContinueGameSlot" + str(slot + 1), true))
+		if exists:
+			var remove := UI.accent_button("Delete", confirm_slot_deletion.bind(game_type, slot), UI.DANGER)
+			remove.name = "DeleteGameSlot" + str(slot + 1)
+			body.add_child(remove)
+
+func confirm_slot_deletion(type: String, slot: int) -> void:
+	var value: Dictionary = campaign_slots.summary(slot) if type == "campaign" else slots.summary(slot)
+	confirm("Delete saved game?", "Delete “%s” from %s slot %d on this device? This frees the slot and cannot be undone. Existing cloud backups and recovery copies remain in Backups." % [game_name(value, slot), type.capitalize(), slot + 1], "Delete game", delete_saved_slot.bind(type, slot))
+
+func delete_saved_slot(type: String, slot: int) -> void:
+	var ok: bool = campaign_slots.delete_slot(slot) if type == "campaign" else slots.delete_slot(slot)
+	if not ok:
+		notice(campaign_slots.error if type == "campaign" else slots.error)
+		return
+	# A live owner must not autosave the deleted session back into its slot.
+	if type == "campaign" and live_campaign() and app.campaign.active_campaign_slot == slot:
+		app.campaign.close(false)
+		held = false
+	elif type == "infinite" and app.slot_active and app.active_slot == slot:
+		app.slot_active = false
+		app.game.suspended = true
+		held = false
+	show_slots()
+	notice("Saved game deleted. Slot %d is now empty." % (slot + 1))
 
 func begin_new(slot: int = -1, entry: Dictionary = {}) -> void:
 	new_game = {"mode": "", "slot": slot, "name": "", "entry": entry.duplicate(true), "choices": {}}
@@ -364,14 +397,14 @@ func show_library_entries() -> void:
 		if entry.has("author_name"): body.add_child(UI.paragraph("By " + str(entry.author_name)))
 		body.add_child(action("Details", read_detail.bind(entry), "BuildDetails"))
 		if not library_community or (app.cloud.signed_in() and entry.get("author_id", "") == app.cloud.player_id):
-			var owner: String = app.cloud.player_id if app.cloud.signed_in() else ""
+			var account_id: String = app.cloud.player_id if app.cloud.signed_in() else ""
 			var community := library_community
 			body.add_child(action("Delete", func():
-				confirm("Delete build?", "Permanently delete “%s” %s? This cannot be undone." % [entry.get("name", entry.get("title", "Untitled build")), "from Community" if community else ("from My builds and your private cloud backups" if owner != "" else "from this device")], "Delete", func():
+				confirm("Delete build?", "Permanently delete “%s” %s? This cannot be undone." % [entry.get("name", entry.get("title", "Untitled build")), "from Community" if community else ("from My builds and your private cloud backups" if account_id != "" else "from this device")], "Delete", func():
 					var revision := view_revision
 					var ok: bool
-					if community: ok = await app.private_backups.delete_cloud_record("delete_public_build", {"build_id": entry.id}, owner)
-					else: ok = await app.private_backups.delete_build(entry.get("source_code", entry.code), owner)
+					if community: ok = await app.private_backups.delete_cloud_record("delete_public_build", {"build_id": entry.id}, account_id)
+					else: ok = await app.private_backups.delete_build(entry.get("source_code", entry.code), account_id)
 					if revision != view_revision: return
 					if ok: await show_library(); notice("Build deleted.")
 					else: notice("Couldn't delete this build. Check your connection and retry.")
@@ -812,11 +845,11 @@ func show_backups(return_to: Callable = Callable()) -> void:
 		var body := add_card(str(remote.get("name", "Saved game")))
 		body.add_child(UI.paragraph("%s · %s · Slot %d\n%s" % [str(remote.game_type).capitalize(), str(remote.get("mode", "creative")).capitalize(), int(remote.slot_number) + 1, remote.get("progress", "Saved progress")]))
 		body.add_child(action("Restore backup", begin_restore.bind(remote), "RestoreBackup"))
-		var owner: String = app.cloud.player_id
+		var account_id: String = app.cloud.player_id
 		body.add_child(action("Delete", func():
 			confirm("Delete cloud backup?", "Permanently delete “%s” from your account? Your local game stays saved; further progress can create a new backup." % remote.get("name", "Saved game"), "Delete", func():
 				var revision := view_revision
-				var ok: bool = await backups.delete_game(remote, owner)
+				var ok: bool = await backups.delete_game(remote, account_id)
 				if revision != view_revision: return
 				show_backups()
 				notice("Cloud backup deleted." if ok else "Couldn't delete the backup. Refresh and retry; it may have changed.")
@@ -871,8 +904,8 @@ func show_restore_destination() -> void:
 	for slot in 3:
 		var local: Dictionary = campaign_slots.summary(slot) if type == "campaign" else slots.summary(slot)
 		var exists: bool = campaign_slots.occupied(slot) if type == "campaign" else slots.occupied(slot)
-		var name := "Empty" if not exists else ("Recovery needed" if local.is_empty() else game_name(local, slot))
-		var choose := action("Slot %d · %s" % [slot + 1, name], func(): restore_choice.destination = slot; review_restore(), "RestoreIntoSlot" + str(slot + 1))
+		var slot_name := "Empty" if not exists else ("Recovery needed" if local.is_empty() else game_name(local, slot))
+		var choose := action("Slot %d · %s" % [slot + 1, slot_name], func(): restore_choice.destination = slot; review_restore(), "RestoreIntoSlot" + str(slot + 1))
 		choose.disabled = exists and local.is_empty()
 		content.add_child(choose)
 

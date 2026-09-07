@@ -273,6 +273,7 @@ func select_build_kind(kind: String, choices: VBoxContainer) -> void:
 func show_tower() -> void:
 	if not game.data.towers.has(selection_tower):
 		return
+	field.build_preview.clear(field)
 	hide()
 	sheet_revision += 1
 	action_button = null

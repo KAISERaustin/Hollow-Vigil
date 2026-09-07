@@ -98,7 +98,8 @@ func run() -> void:
 		for type in ["campaign", "infinite"]:
 			menu.show_main_menu()
 			await press("OpenCampaign" if type == "campaign" else "OpenInfinite")
-			check(menu.screen == "home" and menu.game_type == type, "Both main choices open matching game home")
+			check(menu.screen == ("home" if dimensions.x == 360 else "slots") and menu.game_type == type, "Main choices open home for new players and saved games for returning players")
+			if menu.screen == "slots": await press("BackButton")
 			await capture(type + "-home")
 			await press("Continue")
 			check(menu.content.find_children("GameSlot?", "VBoxContainer", true, false).size() == 3, "Exactly three " + type + " slots")

@@ -25,7 +25,7 @@ func minimum_zoom(field: Control, normal: float) -> float:
 	var bounds: Rect2 = field.camera_bounds()
 	return maxf(field.size.x / bounds.size.x, field.size.y / bounds.size.y)
 
-func menu_height(field: Control) -> float:
+static func menu_height(field: Control) -> float:
 	# Stable list height across choices, with at least one complete card visible.
 	return clampf(field.size.y * 0.5, 220.0, 380.0)
 
