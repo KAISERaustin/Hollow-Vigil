@@ -331,6 +331,22 @@ static func close_button(action: Callable, height: float = 48) -> Button:
 	)
 	return close
 
+static func refresh_button(action: Callable, description: String = "Refresh") -> Button:
+	var refresh := button("", action)
+	refresh.accessibility_name = description
+	refresh.accessibility_description = description
+	refresh.custom_minimum_size = Vector2.ONE * TARGET
+	refresh.size_flags_horizontal = Control.SIZE_SHRINK_END
+	refresh.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	refresh.draw.connect(func():
+		var center := refresh.size * 0.5
+		var ink := MUTED if refresh.disabled else TEXT
+		refresh.draw_arc(center, 10, PI * 0.25, PI * 1.9, 32, ink, OUTLINE, true)
+		var tip := center + Vector2.from_angle(PI * 1.9) * 10
+		refresh.draw_polyline(PackedVector2Array([tip + Vector2(-7, -2), tip, tip + Vector2(2, -7)]), ink, OUTLINE, true)
+	)
+	return refresh
+
 ## Dense gameplay bars keep full touch targets with compact text and insets.
 static func toolbar_action(text: String, action: Callable, primary: bool = false) -> Button:
 	var control := gold_button(text, action, TARGET) if primary else button(text, action)

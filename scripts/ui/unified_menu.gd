@@ -45,6 +45,7 @@ func _ready() -> void:
 	root_layout.add_child(scroll)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	footer.reparent(root_layout, false)
+	footer.size_flags_vertical = Control.SIZE_SHRINK_END
 	if not app.load_saved_progress:
 		slots.base_path = app.game.save_path + ".unified"
 	campaign_slots.base_path = slots.base_path
@@ -399,10 +400,15 @@ func show_library() -> void:
 			if not converted.is_empty() and Build.compatible(converted.build, game_type): library_entries.append(converted)
 		show_library_entries()
 		return
+	var refresh := UI.refresh_button(show_library, "Refresh Community builds")
+	refresh.name = "RefreshCommunity"
+	refresh.disabled = true
+	header.add_child(refresh)
 	notice("Loading Community builds…")
 	var revision := view_revision
 	var result: Dictionary = await app.public_builds.list_configurations(library_page, "all")
 	if revision != view_revision: return
+	refresh.disabled = false
 	if not result.get("ok", false) or not result.get("data") is Array:
 		notice("Community is unavailable right now. Check your connection and try again.")
 		footer.add_child(action("Retry", show_library, "RetryCommunity"))
@@ -419,7 +425,6 @@ func show_library() -> void:
 	var next := action("Next", func(): library_page += 1; show_library(), "NextBuilds")
 	next.disabled = library_entries.size() < 20
 	paging.add_child(next)
-	footer.add_child(action("Refresh", show_library, "RefreshCommunity"))
 
 func show_library_entries() -> void:
 	if library_entries.is_empty(): content.add_child(UI.paragraph("No builds here yet."))

@@ -4,14 +4,14 @@ const ShotFactory = preload("res://scripts/gameplay/combat/shot_factory.gd")
 
 # Stateless operations; VigilCombat owns the runtime data and simulation clock.
 
-static func launch_shot(combat: VigilCombat, tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary, primary: bool = true) -> void:
+static func make_shot(combat, tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary, primary: bool = true) -> Dictionary:
 	var fx := ShotFactory.shot(tower.kind, origin, target.pos, stats, target.id)
 	fx.tower_id = tower.id
 	fx.branch = tower.get("branch", "")
-	combat.add_effect(fx)
 	var shot := {"fx": fx, "remaining": fx.flight, "target_id": target.id,
 		"tower_id": tower.id, "branch": tower.get("branch", ""), "damage": stats.damage, "radius": stats.splash}
 	shot.base_damage = stats.damage
+	shot.tower_effects = combat.TowerComponents.snapshot(combat, tower, stats)
 	var ability := Balance.Content.ability(shot.branch)
 	shot.ability_effects = ability.impact_effects(stats) if primary and ability != null else []
 	shot.relic_pierce = primary and stats.get("relic_pierce", false)
@@ -22,6 +22,19 @@ static func launch_shot(combat: VigilCombat, tower: Dictionary, origin: Vector2,
 		shot.gear_epoch = stats.get("gear_epoch", -1)
 		if shot.damage != stats.damage or shot.relic_pierce or not shot.gear_effects.is_empty():
 			fx.color = stats.get("gear_color", stats.color)
+	return shot
+
+static func launch_shot(combat: VigilCombat, tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary, primary: bool = true) -> void:
+	var shot := make_shot(combat, tower, origin, target, stats, primary)
+	combat.add_effect(shot.fx)
+	launch_extras(combat, tower, origin, target, stats, primary)
+	if shot.fx.flight <= 0.0:
+		combat.resolve_shot(shot, target)
+	else:
+		# Gameplay must not depend on whether the cosmetic effect pool is full.
+		combat.pending_shots.append(shot)
+
+static func launch_extras(combat, tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary, primary: bool = true) -> void:
 	for echo in stats.get("gear_echoes", []) if primary else []:
 		# A single extra primary projectile, with no recursive branch/relic procs.
 		var echo_stats := stats.duplicate()
@@ -47,11 +60,6 @@ static func launch_shot(combat: VigilCombat, tower: Dictionary, origin: Vector2,
 			combat.add_effect(fork_fx)
 			combat.pending_shots.append({"fx": fork_fx, "remaining": fork_fx.flight, "target_id": enemy.id, "tower_id": tower.id, "damage": stats.damage * fork.fork_multiplier, "radius": 0.0})
 			remaining -= 1
-	if fx.flight <= 0.0:
-		combat.resolve_shot(shot, target)
-	else:
-		# Gameplay must not depend on whether the cosmetic effect pool is full.
-		combat.pending_shots.append(shot)
 
 static func advance_shots(combat: VigilCombat, delta: float) -> void:
 	var targets := {}
