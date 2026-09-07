@@ -1,7 +1,7 @@
 class_name VigilHUD
 extends VBoxContainer
 
-signal saved_games_requested
+signal settings_requested
 signal pause_requested
 signal speed_requested
 signal collect_requested
@@ -49,7 +49,7 @@ func build_header() -> void:
 	header.add_theme_constant_override("separation", 8)
 	var toolbar := preload("res://scripts/ui/shared/game_toolbar.gd").new()
 	header.add_child(toolbar)
-	toolbar.configure(func(): pause_requested.emit(), func(): speed_requested.emit(), func(): saved_games_requested.emit(), "", "Back to saved games")
+	toolbar.configure(func(): pause_requested.emit(), func(): speed_requested.emit(), func(): settings_requested.emit())
 	pause_button = toolbar.pause_button
 	speed_button = toolbar.speed_button
 	update_time_controls(false, 1.0)

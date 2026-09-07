@@ -53,10 +53,13 @@ func press(key: String) -> void:
 	await frames()
 
 func open_game_menu() -> void:
-	# Gameplay toolbars return to their parent screens; exercise the full menu owner
+	# Campaign's toolbar now returns to the map; exercise the full menu owner
 	# directly here while saved_slot_continue_runner covers toolbar navigation.
-	app.show_game_menu()
-	await frames()
+	if is_instance_valid(app.campaign):
+		app.show_game_menu()
+		await frames()
+	else:
+		await press("GameMenuButton")
 
 func fill(key: String, text: String) -> void:
 	var entry: LineEdit = menu.find_child(key, true, false)
