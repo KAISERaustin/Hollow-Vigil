@@ -29,6 +29,9 @@ static func test_equal_hp_focus(suite: SceneTree) -> void:
 		for region in g.data.regions.values():
 			region.timer = 1000.0
 		for index in range(enemies.size()):
+			# Piercing falloff gives bystanders different HP. Restore the stated
+			# equal-HP precondition before choosing the next focused victim.
+			for remaining in range(index, enemies.size()): enemies[remaining].hp = 100000.0
 			var expected: Dictionary = enemies[index]
 			for attack in range(4):
 				finish_flights(g)

@@ -107,7 +107,7 @@ static func gear_in_combat(t) -> void:
 static func campaign_and_portable_builds(t) -> void:
 	# Mission count comes from the authored campaign owner, not a fixed old count.
 	var catalog = preload("res://scripts/campaign/catalog.gd")
-	for index in range(catalog.LEVELS.size()):
+	for index in range(catalog.COUNT):
 		for kind in t.NewKinds:
 			var campaign := Campaign.new(index, {}, "creative")
 			campaign.game.data.balance = 100000.0

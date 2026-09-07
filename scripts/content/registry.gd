@@ -23,6 +23,8 @@ const Attributes = preload("res://scripts/content/catalogs/attributes.gd")
 const AttributeNode = preload("res://scripts/content/nodes/attribute_node.gd")
 const World = preload("res://scripts/content/catalogs/world.gd")
 const Levels = preload("res://scripts/content/catalogs/levels.gd")
+const ChapterMaps = preload("res://scripts/content/catalogs/chapter_maps.gd")
+const MapLandscapeNode = preload("res://scripts/content/nodes/map_landscape_node.gd")
 
 const BOSS_TYPES := {
 	"warden": preload("res://scripts/content/nodes/bosses/warden.gd"),
@@ -228,8 +230,10 @@ func _populate_levels(root: ContentNode) -> void:
 	for mode in ["creative", "survival"]:
 		_add(LevelNode.new("level/campaign/" + mode, campaign, {}, {"developer_controls": get_node("level/" + mode).rule("developer_controls", false)}))
 	var wave_root := _add(WaveNode.new("wave", root))
+	var landscape := _add(MapLandscapeNode.new("presentation/map_landscape", root))
 	for chapter in range(Levels.CHAPTERS.size()):
-		_add(LevelNode.new("level/chapter/" + str(chapter), campaign, {}, {"chapter": Levels.CHAPTERS[chapter]}))
+		var chapter_node := LevelNode.new("level/chapter/" + str(chapter), campaign, {}, {"chapter": Levels.CHAPTERS[chapter]})
+		_add(chapter_node.with_component(chapter_node.id, "map_landscape", landscape, ChapterMaps.PROFILES[Levels.CHAPTERS[chapter].style]))
 	for index in range(Levels.MISSIONS.size()):
 		var attributes: Dictionary = Levels.MISSIONS[index].duplicate(true)
 		attributes.index = index

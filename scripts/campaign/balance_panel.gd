@@ -1,9 +1,8 @@
 extends VBoxContainer
-## Reuses the ordinary stat controls against an isolated configuration draft.
+## A wave draft owns composition, timing and rewards; content stats belong to Edit rules.
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Configuration = preload("res://scripts/campaign/configuration.gd")
 const Fields = preload("res://scripts/content/catalogs/levels.gd")
-const Controls = preload("res://scripts/ui/developer/developer_controls.gd")
 const Picker = preload("res://scripts/ui/shared/illustrated_picker.gd")
 const Portrait = preload("res://scripts/ui/shared/content_portrait.gd")
 signal export_requested
@@ -11,17 +10,13 @@ signal saved
 var store: RefCounted
 var index := 0
 var draft := {}
-var scope := -1
-var scope_picker: Button
+var scope := 0
 var body: VBoxContainer
-var controls: VBoxContainer
-var editing_game: VigilState
 var numbers: Array[SpinBox] = []
 var message: Label
-var inherited := {}
 var groups: Array = []
 var live_run: RefCounted
-var initial_scope := -1
+var initial_scope := 0
 var apply_changes: Callable
 var shared_page := false
 
@@ -29,45 +24,19 @@ func _ready() -> void:
 	name = "CampaignBalancePanel"
 	add_theme_constant_override("separation", 12)
 	draft = store.overrides(index)
-	add_child(UI.paragraph("Level %d · %s" % [index + 1, Configuration.Catalog.level(index).name], 16))
-	add_child(UI.paragraph("Apply changes updates this run and future replays. Existing enemies stay on the field; pending spawns use the new settings. Times are measured from the wave's start. Starting gold and core integrity apply during initial setup or on restart." if live_run != null else "Changes stay in this draft until you choose Apply changes." if shared_page else "Save changes to use them next time this level starts.", 14))
-	scope_picker = Picker.new()
-	scope_picker.menu_title = "Choose rules scope"
-	scope_picker.name = "CampaignBalanceScope"
-	scope_picker.custom_minimum_size.y = UI.TARGET
-	scope_picker.add_item("Level defaults")
-	for wave in Configuration.Catalog.level(index).waves.size(): scope_picker.add_item("Wave %d overrides" % (wave + 1))
 	scope = initial_scope
-	scope_picker.select(scope + 1)
-	scope_picker.item_selected.connect(func(selected: int):
-		commit_scope()
-		scope = selected - 1
-		build_scope()
-	)
-	add_child(scope_picker)
+	add_child(UI.paragraph("Level %d · %s" % [index + 1, Configuration.Catalog.level(index).name], 16))
+	add_child(UI.paragraph("Existing enemies stay on the field; pending spawns use the new settings. Times are measured from the wave's start." if live_run != null else "Changes stay in this draft until you apply them.", 14))
 	body = VBoxContainer.new()
 	body.add_theme_constant_override("separation", 12)
 	add_child(body)
 	message = UI.paragraph("", 14)
 	message.hide()
 	add_child(message)
-	var save := UI.gold_button("Save level configuration", save_changes)
+	var save := UI.gold_button("Apply wave changes", save_changes)
 	save.name = "SaveCampaignConfiguration"
 	add_child(save)
 	save.visible = not shared_page
-	var export_button := UI.button("Export saved level data", func(): export_requested.emit())
-	export_button.name = "ExportCampaignLevel"
-	add_child(export_button)
-	export_button.visible = not shared_page
-	var reset := UI.button("Restore level defaults", func():
-		draft = {}
-		scope = -1
-		scope_picker.select(0)
-		build_scope()
-		show_message("Original rules ready. Choose Apply changes to use them." if shared_page else "Default configuration ready. Save to apply it.")
-	)
-	reset.name = "ResetCampaignConfiguration"
-	add_child(reset)
 	build_scope()
 
 func number_row(title: String, value: float, limits: Dictionary, change: Callable) -> SpinBox:
@@ -87,30 +56,14 @@ func build_scope() -> void:
 	for child in body.get_children():
 		body.remove_child(child)
 		child.queue_free()
-	var level := draft.duplicate(true)
-	level.erase("waves")
-	var level_mission := Configuration.resolve(index, level)
 	var mission := Configuration.resolve(index, draft)
-	inherited = Configuration.Catalog.level(index).tuning if scope < 0 else level_mission.tuning
-	if scope < 0:
-		for key in Fields.CONFIGURATION_FIELDS:
-			var limits: Dictionary = Fields.CONFIGURATION_FIELDS[key]
-			var number := number_row(limits.label, mission[key], limits, func(value: float): draft[key] = value)
-			number.name = "Campaign_" + key
-	else:
-		if not draft.has("waves"): draft.waves = {}
-		if not draft.waves.has(str(scope)): draft.waves[str(scope)] = {}
-		var wave_override: Dictionary = draft.waves[str(scope)]
-		var reward := number_row("Wave completion gold", mission.wave_rules[scope].reward, Fields.CONFIGURATION_FIELDS.reward, func(value: float): wave_override.reward = value)
-		reward.name = "CampaignWaveReward"
-		groups = mission.waves[scope].duplicate(true)
-		build_groups()
-	editing_game = VigilState.new(42, "creative", mission.tuning if scope < 0 else mission.wave_rules[scope].tuning)
-	controls = Controls.new()
-	controls.game = editing_game
-	controls.categories.assign(preload("res://scripts/persistence/reusable_build.gd").STAT_GROUPS)
-	controls.configuration_only = true
-	body.add_child(controls)
+	if not draft.has("waves"): draft.waves = {}
+	if not draft.waves.has(str(scope)): draft.waves[str(scope)] = {}
+	var wave_override: Dictionary = draft.waves[str(scope)]
+	var reward := number_row("Wave completion gold", mission.wave_rules[scope].reward, Fields.CONFIGURATION_FIELDS.reward, func(value: float): wave_override.reward = value)
+	reward.name = "CampaignWaveReward"
+	groups = mission.waves[scope].duplicate(true)
+	build_groups()
 
 func build_groups() -> void:
 	body.add_child(UI.heading("Wave spawn groups", 18))
@@ -154,13 +107,7 @@ func build_groups() -> void:
 func commit_scope() -> void:
 	for number in numbers:
 		if is_instance_valid(number): number.apply()
-	controls.commit_fields()
-	var tuning := Configuration.tuning_difference(inherited, editing_game.tuning)
-	if scope < 0:
-		draft.tuning = tuning
-	else:
-		draft.waves[str(scope)].tuning = tuning
-		draft.waves[str(scope)].groups = groups.duplicate(true)
+	draft.waves[str(scope)].groups = groups.duplicate(true)
 
 func show_message(text: String) -> void:
 	message.text = text
@@ -170,7 +117,7 @@ func save_changes() -> void:
 	commit_scope()
 	var ok: bool = apply_changes.call(index, draft) if apply_changes.is_valid() else store.save_level(index, draft)
 	if ok:
-		show_message("Level configuration saved. Active rules updated." if live_run != null else "Level configuration saved.")
+		show_message("Wave changes saved.")
 		saved.emit()
 	else:
 		show_message(store.last_error)

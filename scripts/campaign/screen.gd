@@ -338,12 +338,9 @@ func show_setup() -> void:
 	layout.add_child(UI.heading("2. Choose your mode", 18))
 	var modes := preload("res://scripts/ui/shared/mode_picker.gd").new()
 	layout.add_child(modes)
-	modes.configure(mode, {"creative": "Create your campaign. Edit any level, enemies, stats and wave timing during play or between rounds, then share the complete build.", "survival": "Play the chosen campaign with its rules locked. Complete levels in order; each build keeps its own progress."})
+	modes.configure(mode, {"creative": "Create your campaign. Edit campaign-wide stats in Menu, then set rewards and spawns in Waves and share the complete build.", "survival": "Play the chosen campaign with its rules locked. Complete levels in order; each build keeps its own progress."})
 	modes.selected.connect(func(next: String): select_campaign(next, session.data.selections[mode]))
 	if can_author():
-		var edit := UI.button("Edit levels & waves", show_balancing_levels)
-		edit.name = "CampaignBalancing"
-		layout.add_child(edit)
 		var share := UI.button("Save or share campaign", show_playthrough_share)
 		share.name = "ShareCampaignBuild"
 		layout.add_child(share)
@@ -424,7 +421,11 @@ func show_map() -> void:
 		menu.size_flags_horizontal = Control.SIZE_SHRINK_END
 		menu.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		heading.add_child(menu)
-	else: header("The Last Procession", show_setup)
+	else:
+		var heading := header("The Last Procession", show_setup)
+		var menu := UI.button("Menu", app.show_game_menu)
+		menu.name = "CampaignMapMenu"
+		heading.add_child(menu)
 	var cleared := int(progress.data.completed_levels)
 	var world := WorldMap.new()
 	world.progress = progress
@@ -436,10 +437,6 @@ func show_map() -> void:
 	var footer := UI.margin(layout, UI.SCREEN_PADDING)
 	footer.get_parent().size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	footer.add_theme_constant_override("separation", UI.GAP)
-	var balancing := UI.button("Campaign balancing", show_balancing_levels)
-	balancing.name = "CampaignBalancing"
-	balancing.visible = can_author()
-	footer.add_child(balancing)
 	var reset := UI.button("Reset campaign progress", confirm_progress_reset)
 	reset.name = "ResetCampaignProgress"
 	reset.visible = not can_author()
@@ -476,15 +473,6 @@ func show_briefing(index: int) -> void:
 	stats.add_child(UI.stat_card("Waves", str(run.mission.waves.size())))
 	stats.add_child(UI.stat_card("Starting gold", UI.exact_money(run.mission.gold)))
 	stats.add_child(UI.stat_card(Configuration.Fields.CONFIGURATION_FIELDS.flame.label, str(run.mission.flame)))
-	var sources := HBoxContainer.new()
-	sources.visible = can_author() and active_campaign_slot < 0
-	sources.add_theme_constant_override("separation", UI.GAP)
-	layout.add_child(sources)
-	for kind in (["campaign_build", "campaign_stats"] if can_author() and active_campaign_slot < 0 else []):
-		var choose := UI.button("My builds" if kind == "campaign_build" else "Stats", show_configuration_picker.bind(index, kind))
-		choose.name = "CampaignChooseBuild" if kind == "campaign_build" else "CampaignChooseStats"
-		choose.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		sources.add_child(choose)
 	if shared_setups.has(index):
 		layout.add_child(UI.paragraph(shared_setups[index].setup.name + "\n" + shared_setups[index].setup.description, 14))
 		layout.add_child(UI.button("Use my level defaults", func():
@@ -960,20 +948,8 @@ func close(save_before_close: bool = true) -> void:
 	closed.emit()
 	queue_free()
 
-func show_balancing_levels() -> void:
-	if not can_author(): return
-	if active_campaign_slot >= 0:
-		app.show_game_menu()
-		app.slot_menu.open_rules()
-		return
-	open_dialog("Campaign balancing")
-	for index in range(Catalog.COUNT):
-		var choose := UI.button("%02d · %s" % [index + 1, Catalog.level(index).name], show_level_balance.bind(index))
-		choose.name = "BalanceLevel" + str(index + 1)
-		dialog_body.add_child(choose)
-
 func show_level_balance(index: int, wave_index: int = -1) -> void:
-	if not can_author(): return
+	if not can_author() or wave_index < 0: return
 	if active_campaign_slot >= 0:
 		close_dialog()
 		app.show_game_menu()
@@ -988,7 +964,7 @@ func show_level_balance(index: int, wave_index: int = -1) -> void:
 	if not configuration.save_level(index, rules):
 		toast(configuration.last_error)
 		return
-	open_dialog("Level configuration")
+	open_dialog("Edit wave %d" % (wave_index + 1))
 	var editor := preload("res://scripts/campaign/balance_panel.gd").new()
 	editor.store = configuration
 	editor.index = index
@@ -998,15 +974,31 @@ func show_level_balance(index: int, wave_index: int = -1) -> void:
 	if wave_index >= 0: editor.saved.connect(show_waves)
 	editor.export_requested.connect(show_level_export.bind(index))
 	dialog_body.add_child(editor)
-	if editor.live_run != null:
-		dialog_body.add_child(UI.button("Pause / resume battle", func():
-			paused = not paused
-			update_time_controls()
-		))
-	var share := UI.button("Save or share configuration", show_campaign_share.bind(index, true))
-	share.name = "ShareSavedCampaignConfiguration"
-	dialog_body.add_child(share)
-	dialog_body.add_child(UI.button("Choose saved or community stats", show_configuration_picker.bind(index, "campaign_stats")))
+
+func save_campaign_tuning(changes: Dictionary) -> bool:
+	if not can_author() or not Balance.valid_tuning(changes) or changes.has("session"): return false
+	if changes.is_empty(): return true
+	var levels := Configuration.with_campaign_tuning(session_levels(), changes)
+	if active_campaign_slot >= 0:
+		var next := campaign_save.duplicate(true)
+		next.levels = levels
+		if run != null and page == "battle": next.checkpoint = run.checkpoint()
+		if not next.checkpoint.is_empty():
+			next.checkpoint.rules = levels[str(int(next.checkpoint.level))].overrides.duplicate(true)
+		if not app.slot_menu.campaign_slots.save_slot(active_campaign_slot, next): return false
+		campaign_save = next
+		app.queue_private_backup()
+	else:
+		var overrides := {}
+		for key in levels: overrides[key] = levels[key].overrides
+		if not configuration.save_levels(overrides): return false
+		for index in shared_setups:
+			shared_setups[index].overrides = levels[str(index)].overrides.duplicate(true)
+	if run != null:
+		if not run.wave_checkpoint.is_empty():
+			run.wave_checkpoint.rules = levels[str(int(run.mission.index))].overrides.duplicate(true)
+		refresh_configuration(int(run.mission.index), levels[str(int(run.mission.index))].overrides)
+	return true
 
 func index_for_run() -> int:
 	return int(run.mission.index)
@@ -1074,9 +1066,8 @@ func show_configuration_picker(index: int, kind: String) -> void:
 		menu.hide()
 		paused = was_paused
 	configuration_picker.create = func():
-		menu.hide()
-		paused = was_paused
-		show_level_balance(index)
+		menu.open_game_menu()
+		menu.open_rules()
 	configuration_picker.selected = func(entry: Dictionary):
 		shared_setups[index] = VigilSaveSlots.CampaignBuild.decode(entry.code)
 		menu.view_revision += 1
@@ -1114,7 +1105,7 @@ func show_level_export(index: int) -> void:
 	)
 	copy.name = "CopyCampaignExport"
 	dialog_body.add_child(copy)
-	add_dialog_back("Back to level configuration", show_level_balance.bind(index))
+	add_dialog_back("Back to Waves", show_waves)
 
 func show_wave_balance(wave: int) -> void:
 	var report := Configuration.wave_reports(run.mission)[wave]
