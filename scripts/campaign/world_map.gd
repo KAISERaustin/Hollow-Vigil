@@ -15,12 +15,13 @@ func _ready() -> void:
 		var button := Marker.new()
 		button.number = index + 1
 		button.completed = index < progress.data.completed_levels
+		button.current = not progress.allow_all and progress.unlocked(index) and index == int(progress.data.completed_levels)
 		if index % 5 == 4:
 			button.gate = Catalog.CHAPTERS[int(index / 5.0)].gate_art
 		button.pressed.connect(func(): level_picked.emit(index))
 		button.name = "CampaignLevel%d" % (index + 1)
 		button.disabled = not progress.unlocked(index)
-		button.accessibility_name = "Level %d: %s. %s" % [index + 1, Catalog.MISSIONS[index].name, "Locked" if button.disabled else ("Completed" if index < progress.data.completed_levels else "Ready")]
+		button.accessibility_name = "Level %d: %s. %s" % [index + 1, Catalog.MISSIONS[index].name, "Current level" if button.current else ("Locked" if button.disabled else ("Completed" if button.completed else "Ready"))]
 		add_child(button)
 		nodes.append(button)
 	resized.connect(arrange)
@@ -70,5 +71,6 @@ func _draw() -> void:
 			var title: String = Catalog.MISSIONS[index].name
 			draw_string(UI.font(600), origin, title, HORIZONTAL_ALIGNMENT_LEFT, width, 12, UI.TEXT if progress.unlocked(index) else UI.MUTED)
 			var completed: bool = index < progress.data.completed_levels
-			var detail := "Cleared · Lit" if completed else ("BOSS" if i == 4 else ("Ready" if progress.unlocked(index) else "Locked"))
-			draw_string(UI.font(400), origin+Vector2(0,20), detail, HORIZONTAL_ALIGNMENT_LEFT, width, 11, UI.TEXT if completed else UI.MUTED)
+			var current: bool = index < nodes.size() and nodes[index].current
+			var detail := "CURRENT · BOSS" if current and i == 4 else ("CURRENT" if current else ("Cleared · Lit" if completed else ("Ready · BOSS" if i == 4 and progress.unlocked(index) else ("Ready" if progress.unlocked(index) else "Locked"))))
+			draw_string(UI.font(700 if current else 400), origin+Vector2(0,20), detail, HORIZONTAL_ALIGNMENT_LEFT, width, 11, UI.TEXT if completed or current else UI.MUTED)

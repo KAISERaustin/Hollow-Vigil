@@ -4,6 +4,7 @@ const UI = preload("res://scripts/ui/shared/interface.gd")
 const ClearedArt = preload("res://scripts/campaign/cleared_level_art.gd")
 var number := 1
 var completed := false
+var current := false
 var gate: Texture2D
 
 func _ready() -> void:
@@ -16,8 +17,14 @@ func _ready() -> void:
 
 func _draw() -> void:
 	var active := not disabled and has_focus()
-	var paper := UI.GOLD if active else Color("e8ddbd")
+	var paper := UI.GOLD if active or current else Color("e8ddbd")
 	var offset := Vector2(0, 2) if button_pressed else Vector2.ZERO
+	if current:
+		# A persistent pointer distinguishes progress from transient keyboard focus.
+		var center := size.x * 0.5
+		var pointer := PackedVector2Array([Vector2(center-8,-14), Vector2(center+8,-14), Vector2(center,-4), Vector2(center-8,-14)])
+		draw_colored_polygon(pointer, UI.GOLD)
+		draw_polyline(pointer, Color.BLACK, 2, true)
 	if completed:
 		if active:
 			draw_style_box(UI.surface(Color(0,0,0,0), 2, 4), Rect2(Vector2.ZERO, size))
