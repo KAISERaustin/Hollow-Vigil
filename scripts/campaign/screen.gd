@@ -933,7 +933,7 @@ func go_back() -> void:
 	elif page == "battle":
 		show_map()
 	elif active_campaign_slot >= 0 and page == "map":
-		app.show_save_slots("campaign")
+		app.slot_menu.open_saved_games()
 	elif page == "map":
 		show_setup()
 	elif page != "setup":

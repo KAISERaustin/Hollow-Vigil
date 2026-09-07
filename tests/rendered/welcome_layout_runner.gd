@@ -14,7 +14,7 @@ func run() -> void:
 	app.slot_menu = preload("res://scripts/ui/unified_menu.gd").new()
 	app.slot_menu.app = app
 	app.add_child(app.slot_menu)
-	for dimensions in [Vector2i(540,960), Vector2i(360,640), Vector2i(390,844), Vector2i(558,978), Vector2i(320,568), Vector2i(844,390)]:
+	for dimensions in [Vector2i(540,960), Vector2i(360,640), Vector2i(390,844), Vector2i(558,978), Vector2i(320,568)]:
 		root.size = dimensions
 		root.content_scale_size = dimensions
 		for i in 20: await process_frame
@@ -33,8 +33,6 @@ func run() -> void:
 		for button in buttons:
 			check(button.size == Vector2(minf(320, welcome.size.x - 16), 56), "Original button dimensions remain exact")
 		check(welcome.modes.get_theme_constant("separation") == 14, "Original button gaps remain exact")
-		if dimensions.x >= 680:
-			check(app.slot_menu.scroll.get_global_rect().encloses(welcome.modes.get_global_rect()), "Landscape exposes every action without scrolling")
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://artifacts/welcome-layout-%d.png" % dimensions.x)
 		app.slot_menu.scroll.ensure_control_visible(buttons[-1])

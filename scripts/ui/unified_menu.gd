@@ -86,6 +86,15 @@ func style_entry(entry: Control) -> void:
 func notice(text: String) -> void:
 	message.text = text
 	message.visible = not text.is_empty()
+	if not text.is_empty(): reveal_notice(message, view_revision)
+
+func reveal_notice(label: Label, revision: int) -> void:
+	# Fixed footer actions can report errors while the form is scrolled to its
+	# last field. Reveal the response after its wrapping and scroll range settle.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if revision == view_revision and visible and is_instance_valid(label) and label.visible:
+		scroll.ensure_control_visible(label)
 
 func show_main_menu() -> void:
 	page_view("main", "Hollow Vigil", Callable())

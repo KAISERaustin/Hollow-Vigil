@@ -1,5 +1,12 @@
 # Repository instructions
 
+## Portrait-only mobile app
+
+- Hollow Vigil supports iOS and Android in fixed upright portrait only. Turning the phone sideways or upside down must not rotate gameplay or menus. Keep separate `display/window/handheld/orientation.android` and `.ios` overrides set to `1` (`SCREEN_PORTRAIT`) in `project.godot`; never use sensor orientation modes or enable rotation at runtime.
+- Preserve Android's non-resizable activity setting (`display/window/size/resizable.android=false`). Verify each Android export's manifest declares portrait and each iOS export's iPhone/iPad supported-orientation arrays contain only `UIInterfaceOrientationPortrait`; retain the iOS template's full-screen requirement. Configure exports through tracked project settings, not hand edits to generated native projects.
+- Test app layouts only at upright portrait phone/tablet sizes. Remove sideways, landscape, reverse-portrait and rotation-driven app viewport cases; do not reintroduce them. Keep responsive portrait sizing, safe-area, touch and scroll coverage (normally 360x640, 390x844 and 540x960). Physical release acceptance checks should confirm that turning an iPhone and an Android phone leaves the app upright.
+- Landscape scenery artwork, world-coordinate directions, square asset renders and wide contact sheets are not device-orientation tests. Preserve their content and rendering coverage.
+
 ## UI standard for all future work
 
 - Before adding or changing UI, read [docs/UI_STYLE_GUIDE.md](docs/UI_STYLE_GUIDE.md). Version 2, **Parchment cards**, is the default for future UI requests unless the user explicitly changes the direction. Its visual reference is [docs/references/ui-waves-reference.png](docs/references/ui-waves-reference.png), supplied by the user on September 7, 2026.

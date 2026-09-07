@@ -58,7 +58,7 @@ func audit_controls(owner: Control, context: String) -> void:
 		for frame in 3: await process_frame
 		var rect: Rect2 = node.get_global_rect()
 		check(viewport.grow(1).encloses(rect), "%s: %s outside viewport %s" % [context, node.name, root.size])
-		check(rect.size.x >= 44 and rect.size.y >= 44, "%s: %s touch target below 44 pixels" % [context, node.name])
+		check(rect.size.x >= UI.TARGET and rect.size.y >= UI.TARGET, "%s: %s touch target below 48 UI units" % [context, node.name])
 		for scroll in scrollers:
 			check(scroll.get_global_rect().grow(1).encloses(rect), "%s: %s clipped by scroll area %s" % [context, node.name, root.size])
 
@@ -81,7 +81,7 @@ func run() -> void:
 			menu.show_main_menu()
 			await audit_controls(menu, "main")
 			await Harness.tap(app, menu.find_child("OpenCampaign" if type == "campaign" else "OpenInfinite", true, false).get_global_rect().get_center(), true)
-			check(menu.screen == "home" and menu.game_type == type, "Touch opens " + type)
+			check(menu.screen == ("home" if type == "campaign" else "slots") and menu.game_type == type, "Touch opens " + type)
 			menu.show_home(type)
 			await audit_controls(menu, type + " home")
 			menu.show_slots()

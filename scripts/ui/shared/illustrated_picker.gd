@@ -52,6 +52,7 @@ func _ready() -> void:
 	# Row contents center between adjacent rules, without extra space above them.
 	rows.add_theme_constant_override("separation", 0)
 	scroll.add_child(rows)
+	get_viewport().size_changed.connect(fit_popup)
 
 func clear() -> void:
 	items.clear()
@@ -115,11 +116,22 @@ func show_popup() -> void:
 	for row in rows.get_children():
 		var action := row.get_child(row.get_child_count() - 1) as Button
 		action.custom_minimum_size.x = action_width
-	var available := get_viewport_rect().size - Vector2(24, 24)
-	popup.popup_centered(Vector2i(Vector2(minf(480, available.x), minf(560, available.y))))
+	popup.popup()
+	fit_popup()
 	scroll.scroll_vertical = 0
 	UI.trap_focus(popup.get_child(0))
 	if selected >= 0:
 		var active := rows.find_child("Choice_" + str(selected), true, false) as Button
 		active.grab_focus()
 		scroll.ensure_control_visible.call_deferred(active)
+
+func fit_popup() -> void:
+	if not is_instance_valid(popup) or not popup.visible: return
+	var safe := UI.safe_viewport(self).grow(-12)
+	popup.max_size = Vector2i(safe.size)
+	popup.size = Vector2i(Vector2(minf(480, safe.size.x), minf(560, safe.size.y)))
+	popup.position = Vector2i(safe.get_center() - Vector2(popup.size) * 0.5)
+	# Rotation changes the scroll range after containers lay out their children.
+	var focus := popup.gui_get_focus_owner()
+	if focus != null and rows.is_ancestor_of(focus):
+		scroll.ensure_control_visible.call_deferred(focus)

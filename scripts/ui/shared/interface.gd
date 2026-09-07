@@ -113,11 +113,15 @@ static func badge(bg: Color = GOLD) -> StyleBox:
 static func safe_rect(control: Control) -> Rect2:
 	var available := Rect2(Vector2.ZERO, control.size)
 	if OS.has_feature("mobile"):
-		var safe := Rect2(DisplayServer.get_display_safe_area())
-		var window_size := Vector2(DisplayServer.window_get_size())
-		var viewport_safe := usable_viewport(control.get_viewport_rect().size, window_size, safe)
+		var viewport_safe := safe_viewport(control)
 		available = Rect2(viewport_safe.position - control.global_position, viewport_safe.size).intersection(available)
 	return available
+
+## Popups use the owning viewport's safe area, independently of opener size.
+static func safe_viewport(control: Control) -> Rect2:
+	var canvas := control.get_viewport_rect().size
+	if not OS.has_feature("mobile"): return Rect2(Vector2.ZERO, canvas)
+	return usable_viewport(canvas, Vector2(DisplayServer.window_get_size()), Rect2(DisplayServer.get_display_safe_area()))
 
 static func usable_viewport(canvas: Vector2, pixels: Vector2, safe: Rect2) -> Rect2:
 	var available := Rect2(Vector2.ZERO, canvas)

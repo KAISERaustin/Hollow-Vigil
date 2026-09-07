@@ -475,7 +475,7 @@ func _notification(what: int) -> void:
 		if return_overlay.visible:
 			close_return_popup()
 		elif tower_dialog.visible:
-			tower_dialog.dismiss()
+			tower_dialog.go_back()
 		elif tower_move.visible:
 			tower_move.cancel()
 		elif panels.visible:
@@ -495,7 +495,7 @@ func _input(event: InputEvent) -> void:
 		if return_overlay.visible:
 			close_return_popup()
 		elif tower_dialog.visible:
-			tower_dialog.dismiss()
+			tower_dialog.go_back()
 		elif tower_move.visible:
 			tower_move.cancel()
 		elif panels.visible:

@@ -9,7 +9,7 @@ func check(ok: bool, label: String) -> void:
 func run() -> void:
 	var field := Battlefield.new()
 	field.state = VigilState.new(8)
-	for viewport in [Vector2(540, 900), Vector2(1200, 600), Vector2(2400, 1800)]:
+	for viewport in [Vector2(540, 900), Vector2(600, 1200), Vector2(1800, 2400)]:
 		field.size = viewport
 		field.set_zoom(0.001, viewport * 0.5)
 		check(minf(viewport.x, viewport.y) / field.zoom <= 2 * Balance.TILE + 0.01, "Two tile zoom limit")
