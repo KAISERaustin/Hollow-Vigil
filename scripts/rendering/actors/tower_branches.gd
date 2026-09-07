@@ -20,14 +20,28 @@ static func draw(c: CanvasItem, branch: String, at: Vector2, zoom: float) -> voi
 	c.draw_set_transform(at, 0, Vector2.ONE * zoom)
 	match branch:
 		"frostneedle":
-			poly(c,[Vector2(-16,6),Vector2(-12,-24),Vector2(12,-24),Vector2(16,6)],ICE)
-			poly(c,[Vector2(-22,-24),Vector2(-17,-38),Vector2(-8,-31),Vector2(0,-51),Vector2(8,-31),Vector2(17,-38),Vector2(22,-24)],ICE)
+			# Frozen masonry keeps the shared watchtower identity under the ice.
+			poly(c,[Vector2(-18,6),Vector2(-15,-30),Vector2(15,-30),Vector2(18,6)],Color("a9bec3"))
+			poly(c,[Vector2(8,-30),Vector2(15,-30),Vector2(18,6),Vector2(8,6)],Color("708f9c"))
+			for y in [-19,-7]:
+				c.draw_line(Vector2(-15,y),Vector2(8,y),A.INK,1.3,true)
+			c.draw_line(Vector2(-8,-29),Vector2(-8,-19),A.INK,1.3,true)
+			c.draw_line(Vector2(3,-7),Vector2(3,5),A.INK,1.3,true)
+			poly(c,[Vector2(-21,-28),Vector2(-23,-46),Vector2(-14,-46),Vector2(-14,-38),Vector2(-5,-38),Vector2(-5,-48),Vector2(5,-48),Vector2(5,-38),Vector2(14,-38),Vector2(14,-46),Vector2(23,-46),Vector2(21,-28)],Color("b9cdd0"))
+			# Uneven snow caps sit on actual battlements rather than a crystal crown.
 			for side in [-1,1]:
-				shard(c,Vector2(side*19,0),23,ICE)
-				c.draw_line(Vector2(side*8,-18),Vector2(side*5,1),A.PAPER,2,true)
-			c.draw_line(Vector2(0,-17),Vector2(0,-4),A.PAPER,2,true)
-			for angle in [0.0, PI/3, PI*2/3]:
-				c.draw_line(Vector2(0,-10)+Vector2.from_angle(angle)*6,Vector2(0,-10)-Vector2.from_angle(angle)*6,A.PAPER,1.7,true)
+				poly(c,[Vector2(side*13,-43),Vector2(side*13,-48),Vector2(side*18,-50),Vector2(side*24,-48),Vector2(side*24,-43)],A.PAPER)
+			poly(c,[Vector2(-7,-45),Vector2(-7,-50),Vector2(0,-52),Vector2(7,-50),Vector2(7,-45)],A.PAPER)
+			poly(c,[Vector2(-22,-29),Vector2(-13,-31),Vector2(-4,-29),Vector2(7,-31),Vector2(22,-29),Vector2(19,-23),Vector2(-19,-23)],A.PAPER)
+			# Hanging icicles and frozen buttresses frame the firing slit.
+			for side in [-1,1]:
+				poly(c,[Vector2(side*12,-24),Vector2(side*19,-24),Vector2(side*16,-12)],ICE)
+				poly(c,[Vector2(side*15,4),Vector2(side*19,-12),Vector2(side*24,5)],ICE)
+				c.draw_line(Vector2(side*19,0),Vector2(side*19,-5),A.PAPER,1.5,true)
+			poly(c,[Vector2(-4,-18),Vector2(3,-18),Vector2(3,-5),Vector2(-4,-5)],DARK)
+			c.draw_line(Vector2(-1,-15),Vector2(-1,-8),ICE,2,true)
+			c.draw_polyline(PackedVector2Array([Vector2(-11,-15),Vector2(-8,-10),Vector2(-11,-5),Vector2(-7,0)]),ICE,2,true)
+			poly(c,[Vector2(-22,5),Vector2(-15,1),Vector2(-5,3),Vector2(3,1),Vector2(14,3),Vector2(21,1),Vector2(22,7),Vector2(-22,7)],A.PAPER)
 		"thorn_volley":
 			# A masonry watchtower first; venom stains and barbs dress its defenses.
 			poly(c,[Vector2(-18,6),Vector2(-15,-30),Vector2(15,-30),Vector2(18,6)],Color("a8aa91"))
