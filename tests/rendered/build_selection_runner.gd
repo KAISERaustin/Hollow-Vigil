@@ -1,0 +1,136 @@
+extends SceneTree
+
+var checks := 0
+var failures := 0
+
+func _initialize() -> void:
+	preload("res://tests/support/timeout.gd").arm(self)
+	call_deferred("run")
+
+func settle() -> void:
+	for step in 10: await process_frame
+	await RenderingServer.frame_post_draw
+
+func check(ok: bool, message: String) -> void:
+	checks += 1
+	if not ok:
+		failures += 1
+		push_error(message)
+
+func confirm(host: Control, campaign: bool) -> Button:
+	return host.dialog_actions.get_node("CampaignBuildConfirm") if campaign else host.panels.action_button
+
+func choose(host: Control, kind: String, campaign: bool) -> void:
+	var prefix := "CampaignBuild_" if campaign else "Build_"
+	host.panels.build_choices.get_node("Cards/" + prefix + kind).pressed.emit()
+
+func verify_selection(host: Control, campaign: bool, kind: String, label: String, details: bool = true) -> void:
+	var menu: Control = host.dialog_card if campaign else host.panels
+	var cards: ScrollContainer = host.panels.build_choices
+	check(host.field.preview_kind == kind, label + " previews the remembered tower")
+	check(cards.visible != details and confirm(host, campaign).is_visible_in_tree() == details, label + " restores the chosen menu page")
+	var pressed := 0
+	for button in cards.get_node("Cards").get_children():
+		if button.button_pressed:
+			pressed += 1
+			check(button.get_meta("tower_kind") == kind, label + " highlights the remembered icon")
+	check(pressed == 1, label + " highlights exactly one icon")
+	if details:
+		var title: Label = host.dialog_title if campaign else menu.find_child("SheetTitle", true, false)
+		check(title.text == Balance.TOWERS[kind].name and confirm(host, campaign).text.contains(Balance.TOWERS[kind].name), label + " restores the tower heading and Build action")
+		var stats := Balance.stats(kind, 1, host.game.tuning)
+		var damage: Label = menu.find_child("Stat_damage", true, false)
+		check(damage.text == VigilInterface.exact_money(stats.damage), label + " restores the correct tower stats")
+	var portrait: Node2D = host.field.build_preview.portrait
+	var position := VigilWorld.pad_position(host.field.selected_region, host.field.selected_pad)
+	check(portrait.is_visible_in_tree() and portrait.position.is_equal_approx(host.field.screen(position)), label + " moves the highlighted tower to the selected socket")
+	check(is_equal_approx(host.field.selected_range(), Balance.stats(kind, 1, host.game.tuning).range), label + " uses the selected tower range")
+
+func exercise(host: Control, campaign: bool, select_first: Callable, select_next: Callable, label: String) -> void:
+	var field: Battlefield = host.field
+	field.set_process(false)
+	host.game.data.balance = 100000
+	var funds: float = host.game.data.balance
+	var count: int = host.game.data.towers.size()
+	select_first.call()
+	await settle()
+	verify_selection(host, campaign, preload("res://scripts/ui/towers/tower_choice.gd").first_kind(), label + " initial", false)
+	choose(host, "heavy", campaign)
+	await settle()
+	# Use the battlefield signals used by real slot clicks, while details are open.
+	select_next.call()
+	await settle()
+	verify_selection(host, campaign, "heavy", label + " switched slot")
+	check(host.game.data.balance == funds and host.game.data.towers.size() == count, label + " changing slots does not build or spend")
+	host.game.data.balance = 0
+	select_first.call()
+	await settle()
+	verify_selection(host, campaign, "heavy", label + " unaffordable")
+	check(confirm(host, campaign).disabled, label + " restores affordability on the new slot")
+	host.game.data.balance = funds
+	if campaign: host.close_dialog()
+	else: host.panels.close_sheet()
+	select_next.call()
+	await settle()
+	verify_selection(host, campaign, "heavy", label + " reopened")
+	var menu: Control = host.dialog_card if campaign else host.panels
+	menu.find_child("BackToTowers", true, false).pressed.emit()
+	await settle()
+	check(field.preview_kind.is_empty(), label + " Back clears the visible preview")
+	select_first.call()
+	await settle()
+	verify_selection(host, campaign, "heavy", label + " remembered picker", false)
+	choose(host, "electric", campaign)
+	select_next.call()
+	await settle()
+	verify_selection(host, campaign, "electric", label + " replacement choice")
+	# Build must use the latest destination, never the previously selected slot.
+	var destination_region: String = field.selected_region
+	var destination_pad: int = field.selected_pad
+	confirm(host, campaign).pressed.emit()
+	await settle()
+	var id: String = host.game.economy.tower_at(destination_region, destination_pad)
+	check(not id.is_empty() and host.game.data.towers[id].kind == "electric", label + " builds the remembered kind at the latest slot")
+	check(host.game.data.towers.size() == count + 1 and is_equal_approx(host.game.data.balance, funds - Balance.definition("towers", "electric", host.game.tuning).cost), label + " constructs and charges exactly once")
+	check(field.preview_kind.is_empty(), label + " construction clears the temporary preview")
+	select_first.call()
+	await settle()
+	verify_selection(host, campaign, "electric", label + " after construction")
+	root.get_texture().get_image().save_png("res://artifacts/remembered-build-%s.png" % label)
+	# Inspecting an occupied slot must not overwrite the last build-menu choice.
+	select_next.call()
+	await settle()
+	select_first.call()
+	await settle()
+	verify_selection(host, campaign, "electric", label + " after tower inspection")
+
+func run() -> void:
+	root.size = Vector2i(390, 844)
+	root.content_scale_size = root.size
+	for mode in ["creative", "survival"]:
+		var app := VigilApp.new()
+		app.load_saved_progress = false
+		app.game.save_path = "user://build-selection-%s.save" % mode
+		root.add_child(app)
+		app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		app.set_process(false)
+		app.game.data.mode = mode
+		app.game.data.balance = 100000
+		app.game.expand("1,0")
+		await settle()
+		await exercise(app, false, func(): app.field.picked.emit("0,0", 1), func(): app.field.picked.emit("1,0", 2), "infinite-" + mode)
+		app.show_campaign()
+		var campaign: Control = app.campaign
+		campaign.set_process(false)
+		campaign.mode = mode
+		campaign.start_mission(0)
+		await settle()
+		await exercise(campaign, true, func(): campaign.board.socket_picked.emit(campaign.run.mission.sockets[1].index), func(): campaign.board.socket_picked.emit(campaign.run.mission.sockets[2].index), "campaign-" + mode)
+		campaign.start_mission(0)
+		campaign.field.set_process(false)
+		campaign.show_socket(campaign.run.mission.sockets[1].index)
+		await settle()
+		verify_selection(campaign, true, preload("res://scripts/ui/towers/tower_choice.gd").first_kind(), "new mission " + mode, false)
+		app.free()
+	print("BUILD SELECTION: %d checks, %d failures" % [checks, failures])
+	quit(1 if failures else 0)

@@ -25,12 +25,22 @@ func prepare(progress: Dictionary, target_id: int, now: float, stats: Dictionary
 		var state: Dictionary = states[entry.slot].state
 		state.attacks = int(state.get("attacks", 0)) + 1
 		var context := {"attacks": state.attacks, "target": target_id, "previous_target": state.get("target", -1), "now": now, "last": state.get("last", -100.0)}
-		entry.component.prepare(state, context, result, definition(tuning).merged(entry.config, true))
+		var config := definition(tuning).merged(entry.config, true)
+		config.gear_slot = entry.slot
+		config.gear_component = entry.component
+		config.gear_config = entry.config.duplicate(true)
+		entry.component.prepare(state, context, result, config)
 		state.target = target_id
 		state.last = now
 	progress.target = target_id
 	progress.last = now
 	return result
+
+func owns_effect(config: Dictionary) -> bool:
+	for entry in rule("components", []):
+		if entry.slot == config.get("gear_slot") and entry.component == config.get("gear_component") and entry.config == config.get("gear_config"):
+			return true
+	return false
 
 func sync_components(progress: Dictionary) -> Dictionary:
 	var states: Dictionary = progress.get("components", {})

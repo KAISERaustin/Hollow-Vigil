@@ -95,10 +95,10 @@ static func composition(t) -> void:
 	t.check(removed.prepare(a, 1, 0.2, stats).period == 1.0 and not a.components.has("haste"), "Explicit removal clears only removed component state")
 	var replaced = second.with_component("gear/replaced", "haste", Content.catalog().get_node("attribute/opening"), {"opening_attacks": 1.0, "opening_speed": 100.0, "reset_timeout": 1.0})
 	t.check(replaced.prepare(b, 2, 0.2, stats).period == 0.5 and not b.components.haste.state.has("stacks"), "Replacement discards the previous attribute's progress")
-	t.check(Content.gear("warden_thornspindle").rule("components")[0].component == Content.gear("cinder_censer").rule("components")[0].component, "Bleed and fire reuse the same configured damage-over-time object")
+	t.check(Content.gear("warden_thornspindle").rule("components")[0].component == Content.ability("thorn_volley").rule("components")[0].component, "Gear wounds and poison arrows reuse the configured damage-over-time object")
 
 static func new_effects(t) -> void:
-	for kind in ["warden_thornspindle", "cinder_censer"]:
+	for kind in ["warden_thornspindle"]:
 		var f := fixture(t, kind)
 		tune(f, {"attack_count": 1.0, "dot_multiplier": 2.0, "duration": 0.25})
 		var stats := shoot(f)
@@ -132,17 +132,17 @@ static func new_effects(t) -> void:
 		t.check(before - f.enemy.hp == stats.damage, "Conditional damage leaves nonqualifying targets unchanged: " + kind)
 	f = fixture(t, "prior_rosary")
 	tune(f, {"damage_per_stack": 50.0, "stack_limit": 2.0})
+	Relics.credited_kill(f.game.combat, f.tower.id)
+	Relics.credited_kill(f.game.combat, f.tower.id)
 	shoot(f)
 	shoot(f)
 	var before: float = f.enemy.hp
 	stats = shoot(f)
-	t.check(before - f.enemy.hp == stats.damage * 2, "Rosary reaches edited damage stack limit")
+	t.check(before - f.enemy.hp == stats.damage * 2, "Rosary reaches edited kill damage stack limit")
 	f = fixture(t, "matriarch_lantern")
-	tune(f, {"opening_attacks": 1.0, "opening_speed": 100.0, "reset_timeout": 1.0})
+	tune(f, {"range_percent": 50.0})
 	stats = shoot(f)
-	t.check(stats.period * 2 == Balance.tower_stats(f.tower).period and shoot(f).period == Balance.tower_stats(f.tower).period, "Lantern spends opening burst then returns to normal")
-	f.game.combat.simulation_time = 1.0
-	t.check(shoot(f).period == stats.period, "Lantern burst resets after edited idle duration")
+	t.check(is_equal_approx(Balance.tower_stats(f.tower, f.game.tuning, f.game.data.relics).range, Balance.tower_stats(f.tower).range * 1.5) and stats.period == Balance.tower_stats(f.tower).period, "Lantern modifies reach without opening attack speed")
 	f = fixture(t, "bell_chain")
 	tune(f, {"attack_count": 1.0, "push_distance": 20.0, "push_immunity": 2.0})
 	var position: Vector2 = f.enemy.pos
@@ -175,7 +175,7 @@ static func new_effects(t) -> void:
 		t.check(not other.has("gear_status") and f.game.combat.pending_shots.is_empty(), "Secondary effects do not recurse")
 
 static func lifecycle(t) -> void:
-	for kind in ["warden", "mourning_matriarch", "bell_chime", "matriarch_fruit", "cinder_censer"]:
+	for kind in ["warden", "mourning_matriarch", "bell_chime", "matriarch_fruit", "warden_thornspindle"]:
 		var f := fixture(t, kind)
 		if Balance.GEAR[kind].has("attack_count"):
 			tune(f, {"attack_count": 1.0})
@@ -189,7 +189,7 @@ static func lifecycle(t) -> void:
 		var route: Array[Vector2] = [Vector2.ZERO, Vector2(100, 0)]
 		Content.enemy("basic").create_into(f.enemy, 100, "-1,0", route, "forest")
 		t.check(not f.enemy.has("gear_status") and not f.enemy.has("gear_stun_immune_until"), "Pooling resets attached enemy effects and immunity")
-	var f := fixture(t, "cinder_censer")
+	var f := fixture(t, "warden_thornspindle")
 	tune(f, {"attack_count": 1.0, "dot_multiplier": 1.0})
 	launch(f)
 	tune(f, {"dot_multiplier": 10.0})

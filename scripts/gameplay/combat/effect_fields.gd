@@ -4,7 +4,7 @@ extends RefCounted
 static func add(combat: VigilCombat, shot: Dictionary, component: RefCounted, config: Dictionary) -> void:
 	if config.duration <= 0.0 or config.area_radius <= 0.0 or config.dot_multiplier <= 0.0:
 		return
-	var field := {"tower_id": shot.tower_id, "component": component,
+	var field := {"tower_id": shot.tower_id, "component": component, "config": config.duplicate(true),
 		"epoch": shot.gear_epoch, "pos": shot.fx.pos, "radius": config.area_radius,
 		"from": combat.simulation_time, "until": combat.simulation_time + config.duration,
 		"damage": shot.base_damage * config.dot_multiplier, "fire": config.get("fire_damage", 0.0) > 0.0}
@@ -23,6 +23,9 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 	var affected := {}
 	for field in combat.effect_fields:
 		if not combat.data.towers.has(field.tower_id) or field.epoch != combat.relic_epochs.get(field.tower_id, 0):
+			continue
+		var gear := Balance.Content.gear(combat.Relics.kind(combat.data, combat.data.towers[field.tower_id]))
+		if gear == null or not gear.owns_effect(field.config):
 			continue
 		var elapsed := maxf(0.0, minf(field.until, combat.simulation_time) - maxf(field.from, combat.simulation_time - delta))
 		if field.until > combat.simulation_time:

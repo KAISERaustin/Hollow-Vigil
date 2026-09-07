@@ -98,13 +98,16 @@ static func details(kind: String, tuning: Dictionary, tier: int = 1, branch: Str
 		var title: String = spec.get("label", str(field).capitalize())
 		add_numeric_stat(grid, field, title, values, before, str(spec.get("suffix", "")))
 	if show_range:
+		var timing := HBoxContainer.new()
+		timing.add_theme_constant_override("separation", 8)
+		body.add_child(timing)
 		var interval := UI.label(UI.exact_money(stats.period) + " s between attacks", 12, UI.MUTED)
 		interval.name = "Stat_period"
-		body.add_child(interval)
+		timing.add_child(interval)
 		if not before.is_empty():
 			var change := UI.label(change_text(stats.period, before.period, " s"), 12, UI.MUTED)
 			change.name = "Change_period"
-			body.add_child(change)
+			timing.add_child(change)
 	return body
 
 static func change_text(value: float, previous: float, suffix: String = "") -> String:
