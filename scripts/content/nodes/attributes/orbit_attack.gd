@@ -14,3 +14,4 @@ func attack(combat, tower: Dictionary, origin: Vector2, target: Dictionary, stat
 		combat.resolve_shot(shot, enemy)
 		primary = false
 	combat.add_effect({"kind": "orbit_sweep", "pos": origin, "radius": stats.range, "color": stats.color, "life": 0.2, "max_life": 0.2})
+	combat.Projectiles.launch_extras(combat, tower, origin, target, stats)

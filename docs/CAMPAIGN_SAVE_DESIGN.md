@@ -6,7 +6,7 @@ Implemented September 6, 2026. This replaces the earlier automatic-sync proposal
 
 The game is offline first. Three independent Infinite slots and one Campaign progress record save on the device. Only an explicit Upload action sends a selected record to Supabase. Signing in, playing, winning, switching modes, restoring, restarting, reconnecting and changing preferences never upload progress. Failed uploads remain available for an explicit retry; there is no timer, automatic retry or background publication.
 
-Campaign records only the number of sequential levels completed (0–20). Completing level 7 unlocks level 8; leaving level 8 unfinished means starting level 8 from the beginning. Replaying an earlier level cannot increase the count. Medals, towers, gold, health, wave state and active mission checkpoints are not saved locally or uploaded.
+Campaign records only the number of sequential levels completed (0–30). Completing level 7 unlocks level 8; leaving level 8 unfinished means starting level 8 from the beginning. Replaying an earlier level cannot increase the count. Medals, towers, gold, health, wave state and active mission checkpoints are not saved locally or uploaded.
 
 ## Ownership and files
 
@@ -34,7 +34,7 @@ Infinite retains its existing normalized tables and per-world API. The UI expose
 
 ## Legacy migration
 
-Version-1 Campaign medals convert to the contiguous completed-level count. The old active checkpoint and medal scores are discarded. The selected original file is archived before the converted record is written. Conversion is idempotent, and unreadable candidates remain protected from ordinary writes. The current catalog version fixes the ordering of the twenty levels; changing progression order requires an explicit format/content migration.
+Version-1 Campaign medals convert to the contiguous completed-level count. The old active checkpoint and medal scores are discarded. The selected original file is archived before the converted record is written. Conversion is idempotent, and unreadable candidates remain protected from ordinary writes. The original twenty level identities remain fixed. Castle Ruin and Mourning Orchard append levels 21–30, so a completed original campaign unlocks level 21. Twenty-medal saves remain readable; changing existing progression order would require an explicit format/content migration.
 
 ## Verification
 

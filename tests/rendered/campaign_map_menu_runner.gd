@@ -69,7 +69,9 @@ func run() -> void:
 	app.set_process(false)
 	Engine.max_fps = 240
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	app.show_game_menu()
 	menu = app.slot_menu
+	menu.resume_game()
 	var previous: Node = app.cloud
 	network = preload("res://tests/support/private_cloud_fixture.gd").new()
 	network.player_id = preload("res://scripts/cloud/cloud_codec.gd").uuid()
@@ -90,7 +92,7 @@ func run() -> void:
 			var slot := 0 if mode == "creative" else 1
 			var saved: Dictionary = menu.campaign_slots.create(slot, mode, "OG Testing " + mode.capitalize(), {"0": {"overrides": {"gold": 777}}})
 			var checkpoint_run := Run.new(0, {"gold": 777}, mode)
-			check(checkpoint_run.build(0, "rapid"), "Place a checkpoint tower")
+			check(checkpoint_run.build(checkpoint_run.mission.sockets[0].index, "rapid"), "Place a checkpoint tower")
 			saved.checkpoint = checkpoint_run.checkpoint()
 			check(menu.campaign_slots.save_slot(slot, saved), "Persist checkpoint fixture")
 			app.open_campaign_slot(slot, saved)
@@ -153,9 +155,9 @@ func run() -> void:
 			check(campaign.page_scroll.scroll_vertical == scroll_position, "Returning preserves map scroll")
 			# The current placement is newer than a wave-start checkpoint.
 			campaign.show_briefing(0)
-			check(campaign.run.build(1, "rapid"), "Place a second tower in the resumed run")
+			check(campaign.run.build(campaign.run.mission.sockets[1].index, "rapid"), "Place a second tower in the resumed run")
 			check(campaign.run.start_wave(), "Start a checkpointed wave")
-			check(campaign.run.build(2, "rapid"), "Place a tower after the wave checkpoint")
+			check(campaign.run.build(campaign.run.mission.sockets[2].index, "rapid"), "Place a tower after the wave checkpoint")
 			campaign.show_map()
 			await press("CampaignMapMenu")
 			await press("SaveBuild")

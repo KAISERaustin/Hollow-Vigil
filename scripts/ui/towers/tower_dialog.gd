@@ -3,6 +3,7 @@ extends ColorRect
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const TowerChoice = preload("res://scripts/ui/towers/tower_choice.gd")
+signal upgraded
 ## Active mode host: game, field, controls, persistence and feedback.
 var app: Control
 var clear_selection_on_upgrade := false
@@ -330,17 +331,14 @@ func fit_dialog() -> void:
 	if not visible:
 		return
 	if mode == "preview":
-		# Match the bottom build sheet, with the purchase outside scrolling content.
-		var preview_safe := UI.safe_rect(app).grow(-12)
-		var field_rect: Rect2 = app.field.get_global_rect()
-		var bottom := minf(preview_safe.end.y, field_rect.end.y - 12)
-		var top := maxf(preview_safe.position.y, field_rect.position.y + 12)
+		# Stat cards use the modal's safe area, with navigation and purchase pinned.
+		var preview_safe := UI.safe_rect(app).grow(-16)
 		card.size.x = minf(460.0, preview_safe.size.x)
 		footer.vertical = false
 		var preview_chrome: float = identity.get_combined_minimum_size().y + footer.get_combined_minimum_size().y + 2 * UI.SCREEN_PADDING + 8 + 16
-		scroll.custom_minimum_size.y = minf(body.get_combined_minimum_size().y, maxf(40, bottom - top - preview_chrome))
+		scroll.custom_minimum_size.y = minf(body.get_combined_minimum_size().y, maxf(40, preview_safe.size.y - preview_chrome))
 		card.size.y = 0
-		card.position = Vector2(preview_safe.position.x + (preview_safe.size.x - card.size.x) * 0.5, bottom - card.size.y)
+		card.position = preview_safe.position + (preview_safe.size - card.size) * 0.5
 		return
 	var safe := UI.safe_rect(app).grow(-16)
 	card.size.x = minf(460.0, safe.size.x)
@@ -408,6 +406,7 @@ func commit(opened_revision: int) -> void:
 			return
 		var branch := tower_branch if tower_level == 3 else ""
 		if app.game.economy.upgrade(tower_id, tower_level, branch):
+			upgraded.emit()
 			dismiss(not clear_selection_on_upgrade)
 			if clear_selection_on_upgrade:
 				app.panels.close_sheet()
@@ -427,6 +426,7 @@ func commit(opened_revision: int) -> void:
 			app.persist()
 	elif mode == "upgrade":
 		if app.game.economy.upgrade(tower_id, tower_level):
+			upgraded.emit()
 			dismiss()
 			app.persist()
 	elif mode == "sell":

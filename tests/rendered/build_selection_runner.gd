@@ -103,8 +103,54 @@ func exercise(host: Control, campaign: bool, select_first: Callable, select_next
 	select_first.call()
 	await settle()
 	verify_selection(host, campaign, "electric", label + " after tower inspection")
+	if campaign:
+		await exercise_upgrade_reset(host, select_first, select_next, label)
+
+func exercise_upgrade_reset(host: Control, select_empty: Callable, select_tower: Callable, label: String) -> void:
+	const Harness = preload("res://tests/rendered/visual_smoke.gd")
+	# Neither inspection nor an unsuccessful purchase should reset build history.
+	select_tower.call()
+	host.tower_actions.buttons.upgrade.pressed.emit()
+	var tower: Dictionary = host.game.data.towers[host.field.selected_tower]
+	var funds: float = host.game.data.balance
+	host.game.data.balance = 0.0
+	host.tower_dialog.refresh()
+	host.tower_dialog.confirm.pressed.emit()
+	check(tower.level == 1 and host.build_selection.details_open, label + " failed upgrade preserves build details")
+	host.game.data.balance = funds
+	host.tower_dialog.dismiss()
+	select_empty.call()
+	await settle()
+	verify_selection(host, true, "electric", label + " cancelled upgrade")
+	# Exercise both normal tiers and specialization, with phone-size captures.
+	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
+		root.size = viewport
+		root.content_scale_size = viewport
+		select_tower.call()
+		host.tower_actions.buttons.upgrade.pressed.emit()
+		if tower.level == 3:
+			host.tower_dialog.find_child("Preview_thunderseal", true, false).pressed.emit()
+		await settle()
+		var level: int = tower.level
+		var quote: float = host.tower_dialog.cost
+		funds = host.game.data.balance
+		await Harness.tap(host, host.tower_dialog.confirm.get_global_rect().get_center(), label.ends_with("survival"))
+		await settle()
+		check(tower.level == level + 1 and host.game.data.balance == funds - quote, label + " upgrade completes at " + str(viewport))
+		check(not host.build_selection.details_open and host.build_selection.kind == "electric", label + " successful upgrade returns to cards without losing tower choice")
+		select_empty.call()
+		await settle()
+		verify_selection(host, true, "electric", label + " after upgrade " + str(viewport), false)
+		check(host.dialog_title.text == "Build a tower" and host.dialog_card.find_child("TowerDetails", true, false) == null, label + " empty slot shows the card catalog without tower stats")
+		check(host.build_choices.get_node("Cards").get_child_count() == Balance.TOWERS.size(), label + " card catalog includes every available tower")
+		check(Rect2(Vector2.ZERO, Vector2(viewport)).encloses(host.dialog_card.get_global_rect()), label + " post-upgrade catalog fits the phone")
+		root.get_texture().get_image().save_png("res://artifacts/build-cards-after-upgrade-%s-%d.png" % [label, viewport.x])
+		choose(host, "electric", true)
+		await settle()
+		verify_selection(host, true, "electric", label + " new build choice restores normal memory")
 
 func run() -> void:
+	Input.emulate_mouse_from_touch = true
 	root.size = Vector2i(390, 844)
 	root.content_scale_size = root.size
 	for mode in ["creative", "survival"]:

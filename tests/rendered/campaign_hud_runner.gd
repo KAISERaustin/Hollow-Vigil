@@ -64,7 +64,7 @@ func run() -> void:
 			for caption in [hud.title, hud.left_value, hud.right_value, hud.detail]:
 				check(caption.mouse_filter == Control.MOUSE_FILTER_IGNORE, "Floating text passes gestures to terrain")
 				check(caption.get_parent().get_global_rect().encloses(caption.get_global_rect()) and caption.get_visible_line_count() == caption.get_line_count(), "Card text wraps without clipping")
-			if level in [3, 11] or viewport.x == 390:
+			if level in [0, 3, 11] or viewport.x == 390:
 				await Harness.capture(app, "campaign-hud-%02d-%d" % [level + 1, viewport.x])
 			var bar_size: Vector2 = campaign.battle_bar.size
 			await Harness.tap(app, campaign.wave_button.get_global_rect().get_center(), true)
@@ -122,7 +122,7 @@ func run() -> void:
 		await frame()
 		var expanded_hud: Control = campaign.floating_hud
 		expanded_hud.title.text = "The Old Watch at the Forgotten Crossing"
-		expanded_hud.left_value.text = "999,999,999 gold"
+		expanded_hud.left_value.text = "%s gold" % Balance.money(999999999)
 		expanded_hud.right_value.text = "Wave 100 / 100"
 		expanded_hud.detail.text = "999 enemies remaining"
 		expanded_hud.detail.show()

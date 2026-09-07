@@ -21,7 +21,7 @@ func _init() -> void:
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.add_theme_constant_override("separation", UI.CARD_GAP)
 	add_child(header)
-	title = UI.heading("", UI.BODY)
+	title = UI.heading("", UI.CAPTION)
 	identity = _card(title, UI.CARD_PADDING)
 	header.add_child(identity)
 	left_value = UI.value("", 18)
@@ -78,6 +78,11 @@ func fit() -> void:
 		minimums.append(word_width + padding)
 		preferred.append(_text_width(caption, caption.text) + padding)
 	var available := maxf(1.0, safe.size.x - UI.CARD_GAP * (cards.size() - 1))
+	# A long name or unusually large number must not break short words such as
+	# "gold", "Wave" and "remaining" in all the neighboring cards.
+	minimums[1] = minf(minimums[1], _text_width(left_value, "9999") + UI.INSET_PADDING * 2)
+	minimums[0] = minf(minimums[0], maxf(UI.CARD_PADDING * 2 + UI.META,
+		available - minimums[1] - minimums[2] - minimums[3]))
 	var minimum_total := 0.0
 	var preferred_total := 0.0
 	for index in cards.size():

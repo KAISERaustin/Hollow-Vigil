@@ -131,6 +131,7 @@ func build_tower_ui() -> void:
 	tower_dialog = VigilTowerDialog.new()
 	tower_dialog.app = self
 	tower_dialog.clear_selection_on_upgrade = true
+	tower_dialog.upgraded.connect(build_selection.show_choices)
 	tower_dialog.z_index = 102
 	add_child(tower_dialog)
 	tower_actions.action_requested.connect(tower_dialog.open_action)

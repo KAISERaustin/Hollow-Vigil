@@ -1,7 +1,7 @@
 extends "res://scripts/content/nodes/attribute_node.gd"
 
 func returning() -> bool:
-	return id == "attribute/returning_attack" or rule("returning", false)
+	return rule("returning", false)
 
 func ready(combat, tower: Dictionary, _origin: Vector2, _stats: Dictionary) -> bool:
 	if returning():
