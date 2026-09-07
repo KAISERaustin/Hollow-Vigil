@@ -1,5 +1,15 @@
 # Hollow Vigil on iPhone
 
+## TestFlight build 1.0.8 — September 7, 2026
+
+Version **0.1.0 (1.0.8)** contains the latest source from `6696e3ffad2a92b349f35d8053246aea29e2d957`, with the iOS build number updated to `1.0.8`. Xcode Organizer confirmed **Uploaded to Apple** at 2:39 PM CDT through **Distribute App → App Store Connect → Distribute** using the signed-in developer account. App Store Connect subsequently confirmed **Testing** in the internal **Just for Testing** group, with seven testers and eight available builds.
+
+Validation: fresh Godot import and structure checks passed; the gameplay suite passed **52,029 checks with zero failures**; the current rendered mobile navigation suite passed **4,441 checks with zero failures** across four screen sizes. The older mobile scrolling runner is incompatible with redesigned controls (`field` on a generic fixture and missing `SaveSlot1`); its printed zero-failure result is invalid because script errors interrupted coverage. The current navigation runner completed with two ObjectDB instances reported at shutdown. The Release archive and deep, strict signature verification passed. Xcode reported existing generated-header, empty privacy usage description, and skipped App Intents extraction warnings. Physical-device validation of this build remains for TestFlight testers.
+
+Archive: `~/Library/Developer/Xcode/Archives/2026-09-07/HollowVigil-1.0.8.xcarchive`. Isolated source: `/private/tmp/hollow-vigil-release-1.0.8-source`. Logs: ignored `artifacts/testflight-1.0.8/`. Exported PCK SHA-256: `a5e8cf5d15fa475b4c5808dc05ba66b1812b4bd54630a7edcd44cc039697cd79`.
+
+[Build 1.0.8 in App Store Connect](https://appstoreconnect.apple.com/teams/9e8e8295-c906-4d21-8e40-988d2e1a8075/apps/6809097281/testflight/ios/600838ff-3ef1-4311-95a8-05fb94e1d44b).
+
 ## TestFlight build 1.0.7 — September 6, 2026
 
 Version **0.1.0 (1.0.7)** includes the latest parchment menu backgrounds, mobile scrolling changes, and campaign speed behavior from commit `6c6949a91ab16a486a46d11f9420e9d1b60c7583`, with the iOS export preset's build number updated to `1.0.7`. Xcode Organizer confirmed **Uploaded to Apple** at 6:31 PM CDT through **Distribute App → App Store Connect → Distribute**, using the existing developer account. App Store Connect confirmed **Testing** in the internal **Just for Testing** group, with six testers and seven available builds.
