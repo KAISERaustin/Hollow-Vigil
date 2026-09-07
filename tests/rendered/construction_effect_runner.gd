@@ -19,7 +19,7 @@ class Sheet extends Node2D:
 		for row in range(4):
 			var kind: String = ["rapid", "heavy", "splash", "electric"][row]
 			for column in range(5):
-				var age: float = [0.0, 0.23, 0.60, 0.78, 0.9][column]
+				var age: float = [0.0, 0.15, 0.32, 0.42, 0.5][column]
 				var at := Vector2(110 + column * 210, 205 + row * 200)
 				draw_set_transform(at, 0, Vector2.ONE * 1.8)
 				VigilTerrainArt.socket(self, Vector2.ZERO)
@@ -55,8 +55,8 @@ func run() -> void:
 	check(first.instances.size() == 2 and first.instances[1].age == 0.0, "Rapid repeat upgrade replaces the socket effect")
 	first.remove(Vector2.ONE)
 	check(first.instances.size() == 1 and first.conceals(Vector2.ZERO) and not first.conceals(Vector2.ONE), "Removal only affects the assigned socket")
-	first.advance(0.9)
-	check(first.instances.is_empty() and not first.conceals(Vector2.ZERO), "Effect and concealment end within one second")
+	first.advance(0.5)
+	check(first.instances.is_empty() and not first.conceals(Vector2.ZERO), "Effect and concealment end within half a second")
 	var game := VigilState.new(123)
 	game.data.erase("first_property_required")
 	game.data.balance = 10000
@@ -72,10 +72,10 @@ func run() -> void:
 		game.data.towers[id].level = 1
 		check(game.economy.upgrade(id, 1), "Actual economy upgrade triggers presentation")
 		check(not field.construction_effect.conceals(VigilWorld.pad_position("0,0",1)) and game.data.towers[other].level == 1, "Unassigned tower stays unchanged and visible")
-		field._process(0.5)
-		check(field.upgrade_poofs.size() == 1 and is_equal_approx(field.upgrade_poofs[0].age,0.5), "Half-second cover phase survives pause and fast simulation")
-		field._process(0.4)
-		check(field.upgrade_poofs.is_empty(), "Presentation completes in 0.9 real seconds at every game speed")
+		field._process(0.25)
+		check(field.upgrade_poofs.size() == 1 and is_equal_approx(field.upgrade_poofs[0].age,0.25), "Cover phase survives pause and fast simulation")
+		field._process(0.25)
+		check(field.upgrade_poofs.is_empty(), "Presentation completes in 0.5 real seconds at every game speed")
 	game.data.towers[id].level = 1
 	game.economy.upgrade(id,1)
 	check(game.economy.relocate(id,"0,0",2,2) and field.upgrade_poofs.is_empty(), "Relocation removes the old socket effect immediately")
@@ -96,7 +96,7 @@ func run() -> void:
 	root.add_child(viewport)
 	var art := EffectImage.new()
 	viewport.add_child(art)
-	for age in [0.0, 0.23, 0.48, 0.68, 0.78, 0.9]:
+	for age in [0.0, 0.15, 0.25, 0.32, 0.42, 0.5]:
 		art.age = age
 		art.queue_redraw()
 		await frame()
@@ -112,9 +112,8 @@ func run() -> void:
 			art.show_socket = false
 		elif age >= Effect.DURATION:
 			check(img.get_used_rect().size == Vector2i.ZERO, "No dust remains after expiry")
-		elif age == 0.78:
-			var alpha := img.get_pixel(205,184).a
-			check(alpha > 0.1 and alpha < 0.9, "Departing circles fade during dispersal")
+		elif age == 0.42:
+			check(img.get_used_rect().size.x < 65, "Reveal contains only the shrinking central cloud")
 	viewport.free()
 	root.size = Vector2i(1050,900)
 	root.content_scale_size = root.size
@@ -125,7 +124,7 @@ func run() -> void:
 	root.add_child(Sheet.new())
 	for column in range(5):
 		var label := Label.new()
-		label.text = ["Cover · 0.00s", "Cover · 0.23s", "Reveal · 0.60s", "Disperse · 0.78s", "Done · 0.90s"][column]
+		label.text = ["Cover · 0.00s", "Cover · 0.15s", "Reveal · 0.32s", "Reveal · 0.42s", "Done · 0.50s"][column]
 		label.position = Vector2(25 + column * 210, 20)
 		label.add_theme_color_override("font_color", Color.BLACK)
 		root.add_child(label)

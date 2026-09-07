@@ -16,8 +16,12 @@ var next_spawn := 0
 var finish_pending := false
 var mode := "survival"
 var spawned_counts := {}
+var rules := {}
+var wave_checkpoint := {}
+const CHECKPOINT_FIELDS := ["towers", "next_tower", "relics", "balance", "reserve", "lifetime_earnings", "kills", "escapes", "active_seconds"]
 
 func _init(index: int = 0, overrides: Dictionary = {}, game_mode: String = "survival") -> void:
+	rules = overrides.duplicate(true)
 	mode = game_mode if game_mode in ["creative", "survival"] else "survival"
 	mission = Configuration.resolve(index, overrides)
 	health = int(mission.flame)
@@ -42,6 +46,7 @@ func _init(index: int = 0, overrides: Dictionary = {}, game_mode: String = "surv
 func start_wave() -> bool:
 	if phase != "planning" or wave >= mission.waves.size():
 		return false
+	wave_checkpoint = _capture_checkpoint("wave")
 	# This setup exception ends permanently for this run at the first wave start.
 	game.economy.set_sale_rules(null)
 	game.data.settings.developer_balance = mission.wave_rules[wave].tuning.duplicate(true)
@@ -127,6 +132,7 @@ func apply_configuration(overrides: Dictionary) -> bool:
 			game.data.balance = maxf(0.0, game.data.balance + next.gold - mission.gold)
 			health = int(next.flame)
 	mission = next
+	rules = overrides.duplicate(true)
 	game.data.settings.developer_balance = (mission.wave_rules[wave].tuning if phase == "wave" else mission.tuning).duplicate(true)
 	changed.emit()
 	return true
@@ -167,3 +173,62 @@ func target(socket: int, mode: String) -> bool:
 
 func _after_edit() -> void:
 	changed.emit()
+
+func _capture_checkpoint(saved_phase: String) -> Dictionary:
+	var state := {}
+	for key in CHECKPOINT_FIELDS:
+		var value: Variant = game.data.get(key, {})
+		state[key] = value.duplicate(true) if value is Dictionary else value
+	return {"level": int(mission.index), "wave": wave, "health": health, "phase": saved_phase,
+		"mode": mode, "rules": rules.duplicate(true), "state": state, "random_state": str(game.combat.rng.state)}
+
+func checkpoint() -> Dictionary:
+	# Every mid-wave save contains the same starting economy. No later rewards,
+	# purchases or live enemies can leak into a replay of that wave.
+	if phase in ["wave", "defeat"] and not wave_checkpoint.is_empty():
+		return wave_checkpoint.duplicate(true)
+	return _capture_checkpoint(phase)
+
+static func valid_checkpoint(value: Dictionary) -> bool:
+	if value.size() != 9 or value.get("phase") not in ["planning", "wave", "victory"]: return false
+	if value.get("mode") not in ["creative", "survival"]: return false
+	if not Configuration._number(value.get("level"), 0, Catalog.COUNT - 1, true): return false
+	var index := int(value.level)
+	if not Configuration.valid_level(index, value.get("rules")): return false
+	var mission := Configuration.resolve(index, value.rules)
+	if not Configuration._number(value.get("wave"), 0, mission.waves.size(), true): return false
+	if (value.phase == "victory") != (int(value.wave) == mission.waves.size()): return false
+	if not Configuration._number(value.get("health"), 1, Configuration.Fields.CONFIGURATION_FIELDS.flame.max, true): return false
+	if not value.get("random_state") is String or not value.random_state.is_valid_int(): return false
+	if not value.get("state") is Dictionary or value.state.size() != CHECKPOINT_FIELDS.size(): return false
+	for key in CHECKPOINT_FIELDS:
+		if not value.state.has(key): return false
+		if key not in ["towers", "relics"] and not Configuration._number(value.state[key]): return false
+	var snapshot := VigilState.new(81000 + index).data
+	for socket in mission.sockets:
+		if not snapshot.regions.has(socket.region):
+			snapshot.regions[socket.region] = {}
+	snapshot.merge(value.state, true)
+	if not VigilSaveStore.new().valid_loadout(snapshot): return false
+	for tower in snapshot.towers.values():
+		var allowed := false
+		for socket in mission.sockets:
+			if socket.region == tower.region and socket.pad == tower.pad: allowed = true
+		if not allowed: return false
+	return true
+
+static func from_checkpoint(value: Dictionary) -> RefCounted:
+	if not valid_checkpoint(value): return null
+	var restored: RefCounted = load("res://scripts/campaign/run.gd").new(int(value.level), value.rules, value.mode)
+	for key in CHECKPOINT_FIELDS:
+		restored.game.data[key] = value.state[key].duplicate(true) if value.state[key] is Dictionary else value.state[key]
+	restored.game.data.next_tower = int(restored.game.data.next_tower)
+	restored.wave = int(value.wave)
+	restored.health = int(value.health)
+	restored.game.combat.rng.state = int(value.random_state)
+	if restored.wave > 0: restored.game.economy.set_sale_rules(null)
+	if value.phase == "wave":
+		restored.start_wave()
+	else:
+		restored.phase = value.phase
+	return restored

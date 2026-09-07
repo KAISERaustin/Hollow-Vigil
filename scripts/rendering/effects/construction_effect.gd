@@ -2,8 +2,8 @@ extends RefCounted
 
 ## Reusable presentation component. Each battlefield owns its transient instances.
 const Art = preload("res://scripts/rendering/terrain/terrain_art.gd")
-const DURATION := 0.9
-const REVEAL_AT := 0.52
+const DURATION := 0.5
+const REVEAL_AT := 0.28
 var instances: Array[Dictionary] = []
 
 func play(at: Vector2, owner_id: String = "") -> void:
@@ -35,22 +35,12 @@ static func draw(c: CanvasItem, fx: Dictionary, at: Vector2, zoom: float) -> voi
 	if age < 0.0 or age >= DURATION:
 		return
 	c.draw_set_transform(at, 0.0, Vector2.ONE * zoom)
-	var release := smoothstep(REVEAL_AT, 0.84, age)
+	var release := smoothstep(REVEAL_AT, DURATION, age)
 	var pulse := 1.0 + 0.035 * sin(age * TAU * 7.0)
 	# A single opaque scalloped silhouette has no translucent overlap seams.
 	if release < 1.0:
 		# The wider, lower silhouette also covers the terrain's round socket rim.
 		cloud(c, Vector2(0, -19 - release * 6), Vector2(42, 48) * (1.0 - release) * pulse)
-	# Only the departing circles fade; the covering cloud stays fully opaque.
-	var drift := clampf((age - REVEAL_AT) / (DURATION - REVEAL_AT), 0.0, 1.0)
-	var opacity := 1.0 - smoothstep(0.2, 1.0, drift)
-	for side in [-1, 1]:
-		for i in range(3):
-			var radius := (5.0 + i) * sin(drift * PI)
-			if radius > 0.1:
-				var p := Vector2(side * (29.0 + drift * (14 + i * 3)), 4.0 - i * 22.0 - drift * 10)
-				c.draw_circle(p, radius, Color(Art.PAPER, opacity))
-				c.draw_arc(p, radius, 0, TAU, 24, Color(Art.INK, opacity), 1.5 * minf(1.0, radius / 3.0), true)
 	c.draw_set_transform(Vector2.ZERO)
 
 static func cloud(c: CanvasItem, at: Vector2, radius: Vector2) -> void:
