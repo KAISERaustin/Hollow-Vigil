@@ -44,6 +44,8 @@ var configuration_base := ""
 var active_campaign_slot := -1
 var campaign_save := {}
 var game_toolbar: Control
+var reward_transition: Control
+var result_pending := false
 
 class SessionProgress extends Progress:
 	func flush() -> bool:
@@ -160,6 +162,16 @@ func _ready() -> void:
 	resized.connect(fit)
 	preload("res://scripts/ui/shared/mobile_layout.gd").attach(self)
 	_build_dialog()
+	reward_transition = preload("res://scripts/ui/shared/reward_transition.gd").new()
+	reward_transition.name = "CampaignWaveReward"
+	add_child(reward_transition)
+	reward_transition.finished.connect(func():
+		if page != "battle": return
+		refresh()
+		if result_pending:
+			result_pending = false
+			show_result()
+	)
 	if active_campaign_slot < 0: show_setup()
 	elif campaign_save.checkpoint.is_empty(): show_map()
 	else:
@@ -198,6 +210,8 @@ func fit() -> void:
 			dialog_card.position = safe.position + (safe.size - dialog_card.size) * 0.5
 
 func clear_page(next: String) -> void:
+	if is_instance_valid(reward_transition): reward_transition.cancel()
+	result_pending = false
 	clear_selection()
 	clear_tower_ui()
 	page = next
@@ -375,10 +389,6 @@ func show_map() -> void:
 	world.progress = progress
 	world.level_picked.connect(show_briefing)
 	layout.add_child(world)
-	if cleared < Catalog.COUNT and not progress.blocked:
-		var next := UI.gold_button("Play level %d" % (cleared + 1), start_mission.bind(cleared), 48)
-		next.name = "ContinueCampaign"
-		layout.add_child(next)
 	if active_campaign_slot >= 0:
 		if cleared == 20: layout.add_child(UI.paragraph("Every sanctuary burns again. Replay any level."))
 		return
@@ -437,6 +447,12 @@ func start_mission(index: int) -> void:
 	save_progress()
 
 func connect_run() -> void:
+	run.wave_cleared.connect(func(number: int, reward: float):
+		if page != "battle": return
+		clear_selection()
+		dialog.hide()
+		reward_transition.play("Wave %d won!" % number, reward)
+	)
 	run.changed.connect(func():
 		if page == "battle":
 			refresh()
@@ -530,6 +546,7 @@ func add_board(interactive: bool) -> void:
 	board.add_child(frame)
 
 func begin_wave() -> void:
+	if reward_transition.active: return
 	if run.start_wave():
 		paused = false
 		update_time_controls()
@@ -549,10 +566,13 @@ func refresh() -> void:
 	gold.text = "%s gold" % Balance.money(run.game.data.balance)
 	var shown_wave := mini(run.wave+1, run.mission.waves.size())
 	status.text = "Flame %d / %d   ·   Wave %d / %d%s" % [run.health, run.mission.flame, shown_wave, run.mission.waves.size(), " · Prepare" if run.phase == "planning" else ""]
-	wave_button.disabled = run.phase != "planning"
+	wave_button.disabled = run.phase != "planning" or reward_transition.active
 	wave_button.text = "Start wave %d" % (run.wave+1) if run.phase == "planning" else "%d enemies remaining" % (run.game.combat.enemies.size() + run.schedule.size() - run.next_spawn)
 	if run.phase in ["victory", "defeat"]:
 		wave_button.text = "Sanctuary restored" if run.phase == "victory" else "The flame went out"
+	if reward_transition.active:
+		status.text = "Flame %d / %d   ·   Wave %d cleared" % [run.health, run.mission.flame, run.wave]
+		wave_button.text = "Wave cleared"
 	if observed_phase != run.phase:
 		observed_phase = run.phase
 		clear_selection()
@@ -673,6 +693,10 @@ func show_socket(socket: int) -> void:
 		dialog_body.add_child(button)
 
 func show_result() -> void:
+	if reward_transition.active:
+		result_pending = true
+		save_progress()
+		return
 	clear_selection()
 	save_progress()
 	var won: bool = run.phase == "victory"

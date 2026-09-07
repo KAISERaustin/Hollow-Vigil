@@ -4,6 +4,7 @@ const Configuration = preload("res://scripts/campaign/configuration.gd")
 const Catalog = preload("res://scripts/campaign/catalog.gd")
 signal changed
 signal finished
+signal wave_cleared(number: int, reward: float)
 
 var mission: Dictionary
 var game: VigilState
@@ -95,6 +96,7 @@ func tick(delta: float) -> void:
 		game.combat.relic_progress.clear()
 		for tower in game.data.towers.values():
 			tower.cooldown = 0.0
+		wave_cleared.emit(wave, float(mission.wave_rules[wave - 1].reward))
 		changed.emit()
 		if phase == "victory":
 			finish_pending = true

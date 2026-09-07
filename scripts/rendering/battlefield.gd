@@ -542,11 +542,6 @@ func draw_enemy(e: Dictionary) -> void:
 	else:
 		VigilTerrainArt.enemy(self, e.kind, p, z)
 	preload("res://scripts/rendering/effects/affliction_art.gd").draw(self, e, p, z, state.combat.simulation_time)
-	if e.get("slow_until", 0.0) > state.combat.simulation_time:
-		draw_arc(p, 15*z, 0, TAU, 24, Color("96d6e6"), 2*z, true)
-		for index in range(6):
-			var tip := p + Vector2.from_angle(index*TAU/6)*17*z
-			draw_line(tip, tip+Vector2(0,-5)*z,Color("96d6e6"),2*z,true)
 	var charge := 0
 	for amount in e.get("charges", {}).values():
 		charge = maxi(charge, int(amount))
