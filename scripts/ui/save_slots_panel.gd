@@ -65,7 +65,7 @@ func _ready() -> void:
 	show_main_menu()
 
 func fit() -> void:
-	var safe := UI.safe_rect(app).grow(-16)
+	var safe := UI.safe_rect(app).grow(-UI.SCREEN_PADDING)
 	card.size = safe.size
 	card.position = safe.position
 

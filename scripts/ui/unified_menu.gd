@@ -50,7 +50,7 @@ func _ready() -> void:
 	show_main_menu()
 
 func fit() -> void:
-	var safe := UI.safe_rect(app).grow(-12 if app.size.x < 390 else -16)
+	var safe := UI.safe_rect(app).grow(-UI.SCREEN_PADDING)
 	card.size = Vector2(minf(680, safe.size.x), safe.size.y)
 	card.position = Vector2(safe.get_center().x - card.size.x * 0.5, safe.position.y)
 

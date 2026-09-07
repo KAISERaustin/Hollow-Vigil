@@ -150,10 +150,10 @@ func _ready() -> void:
 		progress.data.completed_levels = int(campaign_save.completed)
 	layout = VBoxContainer.new()
 	layout.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	layout.offset_left = 12
-	layout.offset_top = 12
-	layout.offset_right = -12
-	layout.offset_bottom = -12
+	layout.offset_left = UI.SCREEN_PADDING
+	layout.offset_top = UI.SCREEN_PADDING
+	layout.offset_right = -UI.SCREEN_PADDING
+	layout.offset_bottom = -UI.SCREEN_PADDING
 	layout.add_theme_constant_override("separation", 10)
 	add_child(layout)
 	page_scroll = ScrollContainer.new()
@@ -180,7 +180,7 @@ func _ready() -> void:
 	fit()
 
 func fit() -> void:
-	var safe := UI.safe_rect(self).grow(-12)
+	var safe := UI.safe_rect(self).grow(-UI.SCREEN_PADDING)
 	if page == "battle":
 		layout.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		layout.offset_left = safe.position.x

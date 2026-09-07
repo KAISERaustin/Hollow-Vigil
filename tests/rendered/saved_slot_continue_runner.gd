@@ -47,6 +47,18 @@ func run() -> void:
 	await press("ContinueGameSlot1")
 	check(app.slot_active and app.active_slot == 0 and not menu.visible, "Continue enters gameplay in slot 1")
 	check(app.game.data.setup.name == "Existing game" and app.game.data.regions.has("1,0"), "Continue preserves named world and owned territory")
+	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
+		root.size = dimensions
+		root.content_scale_size = dimensions
+		await frames()
+		var back := button("GameMenuButton") as Button
+		check(back != null and back.text == "←" and back.accessibility_name == "Back to saved games", "Infinite toolbar uses an accessible back arrow")
+		app.game.data.balance += 123.0
+		var balance: float = app.game.data.balance
+		await press("GameMenuButton")
+		check(menu.screen == "slots" and menu.game_type == "infinite" and not app.slot_active and app.game.suspended, "Infinite Back saves and returns directly to saved games")
+		await press("ContinueGameSlot1")
+		check(is_equal_approx(app.game.data.balance, balance), "Continue restores progress saved by Infinite Back")
 	var broken_path: String = menu.slots.path_for(1)
 	var file := FileAccess.open(broken_path, FileAccess.WRITE)
 	file.store_string("unreadable save")

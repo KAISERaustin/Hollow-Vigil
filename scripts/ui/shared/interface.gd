@@ -17,6 +17,7 @@ const META := 12
 const OBJECT_TITLE := 24
 const GAP := 12
 const PADDING := 16
+const SCREEN_PADDING := 12
 const TARGET := 48
 const TOOLBAR_BUTTON_SIZE := 50
 const SANS = preload("res://assets/fonts/NotoSans.ttf")

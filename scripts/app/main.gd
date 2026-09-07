@@ -111,7 +111,7 @@ func build_interface() -> void:
 	hud = VigilHUD.new()
 	hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	hud.add_theme_constant_override("separation", 0)
-	hud.settings_requested.connect(show_game_menu)
+	hud.saved_games_requested.connect(open_saved_games)
 	hud.collect_requested.connect(collect_all)
 	hud.pause_requested.connect(toggle_pause)
 	hud.speed_requested.connect(toggle_speed)
@@ -698,6 +698,10 @@ func upload_infinite_backup(slot: int, replace: bool = false) -> void:
 	else: await cloud.start_backup()
 	cloud.game = game
 	cloud.changed.emit()
+
+func open_saved_games() -> void:
+	if not is_instance_valid(slot_menu): show_game_menu()
+	slot_menu.open_saved_games()
 
 func show_game_menu() -> void:
 	if not is_instance_valid(slot_menu):
