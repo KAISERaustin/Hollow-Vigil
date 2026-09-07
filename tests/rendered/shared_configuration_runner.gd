@@ -97,6 +97,7 @@ func run() -> void:
 	app.show_campaign()
 	var screen: Control = app.campaign
 	screen.set_process(false)
+	check(screen.select_campaign("creative", ""), "Campaign sharing uses Creative mode")
 	screen.progress.path = app.game.save_path + ".campaign-test"
 	screen.progress.data.completed_levels = 0
 	screen.start_mission(0)

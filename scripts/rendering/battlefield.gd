@@ -329,8 +329,9 @@ func expansion_marker(id: String) -> Vector2:
 	# Anchor both drawing and hit testing to the future territory's center.
 	return VigilWorld.center(id)
 
-func earnings_badge_visible(t: Dictionary) -> bool:
-	return t.earnings >= 1.0 and not state.data.towers.has(selected_tower)
+func earnings_badge_visible(_tower: Dictionary) -> bool:
+	# Tower earnings are collected through the HUD; overhead badges stay hidden.
+	return false
 
 func earnings_local_rect(t: Dictionary) -> Rect2:
 	# Fixed map-space placement above the tower; never compensate for camera zoom.

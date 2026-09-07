@@ -53,7 +53,7 @@ static func test_gestures(suite: SceneTree) -> void:
 	g.economy.build("rapid", "0,0", 0)
 	g.economy.credit("1", 5)
 	field.tap(field.earnings_rect(g.data.towers["1"]).get_center())
-	suite.check(badge_taps[0] == 1, "Tower earnings badge has a direct collection hit target")
+	suite.check(badge_taps[0] == 0, "Removed tower earnings badge has no collection hit target")
 	press.device = -1
 	field._on_gui_input(press)
 	suite.check(not field.mouse_down, "Mouse events emulated from touch cannot start a duplicate gesture")
@@ -147,7 +147,7 @@ static func test_portal_controls(suite: SceneTree) -> void:
 	field.tap(field.screen(g.paths["-1,0"][0]))
 	suite.check(chosen.kind == "rift" and chosen.id == "-1,0", "Nearby earnings padding cannot steal the portal click at minimum zoom")
 	field.tap(field.earnings_rect(g.data.towers[tower]).get_center())
-	suite.check(chosen.kind == "gold", "Visible earnings badge still collects beside a portal at minimum zoom")
+	suite.check(chosen.kind != "gold", "Removed earnings badge cannot collect beside a portal at minimum zoom")
 	field.zoom = 1.0
 	var badge: Rect2 = field.earnings_rect(g.data.towers[tower])
 	var anchor := VigilWorld.pad_position("0,0", 2)
@@ -166,6 +166,6 @@ static func test_portal_controls(suite: SceneTree) -> void:
 		field.selected_tower = ""
 		chosen.kind = ""
 		field.tap(current.get_center())
-		suite.check(chosen.kind == "gold", "Tower-relative earnings badge remains clickable after pan and zoom %.2f" % scale)
+		suite.check(chosen.kind != "gold" and not field.earnings_badge_visible(g.data.towers[tower]), "Tower earnings badge stays hidden and cannot collect after pan and zoom %.2f" % scale)
 	field.free()
 	print("PASS GROUP: portal and expansion separation in four directions at every zoom")

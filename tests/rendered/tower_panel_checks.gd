@@ -114,16 +114,16 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 		await harness.tap(app, app.field.global_position + hidden_badge.get_center(), touch)
 		check(app.field.selected_tower == "" and not app.tower_actions.visible, "Clicking away did not dismiss tower controls", failures)
 		check(g.data.towers[splash].earnings == 73.0, "A hidden gold badge intercepted the click-away and collected gold", failures)
-		check(app.field.earnings_badge_visible(g.data.towers[rapid]) and app.field.earnings_badge_visible(g.data.towers[splash]), "Clicking away did not restore every eligible earnings badge", failures)
+		check(not app.field.earnings_badge_visible(g.data.towers[rapid]) and not app.field.earnings_badge_visible(g.data.towers[splash]), "Clicking away restored removed earnings badges", failures)
 		if not touch:
-			await harness.capture(app, "tower-badges-restored")
+			await harness.capture(app, "tower-badges-hidden")
 		await harness.tap(app, app.field.global_position + hidden_badge.get_center(), touch)
-		check(g.data.towers[splash].earnings == 0.0, "Restored earnings badge could not collect gold", failures)
+		check(g.data.towers[splash].earnings == 73.0, "Removed earnings badge collected gold", failures)
 		g.economy.collect()
 	g.economy.credit(splash, 11.0)
 	app.panels.select_pad("0,0", 0)
 	app.panels.show_settings()
-	check(app.field.earnings_badge_visible(g.data.towers[splash]), "Leaving tower controls for another panel did not restore gold badges", failures)
+	check(not app.field.earnings_badge_visible(g.data.towers[splash]), "Leaving tower controls restored removed gold badges", failures)
 	app.panels.close_sheet()
 	g.economy.collect()
 	g.data.balance = 2000.0
@@ -176,11 +176,11 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 					await harness.capture(app, "tower-actions-zoom-%.2f-%d" % [zoom, viewport.x])
 					check(not app.field.earnings_badge_visible(g.data.towers[rapid]), "New earnings appeared during tower selection at zoom %.2f" % zoom, failures)
 					app.panels.close_sheet()
-					check(app.field.earnings_badge_visible(g.data.towers[rapid]), "Closing tower controls failed to restore gold at zoom %.2f" % zoom, failures)
+					check(not app.field.earnings_badge_visible(g.data.towers[rapid]), "Closing tower controls restored removed gold badges at zoom %.2f" % zoom, failures)
 					var before_collection: float = g.data.balance
 					var badge: Rect2 = app.field.earnings_rect(g.data.towers[rapid])
 					await harness.tap(app, app.field.global_position + badge.get_center(), true)
-					check(g.data.towers[rapid].earnings == 0.0 and g.data.balance == before_collection + 1900.0, "Tower-relative earnings badge did not collect at zoom %.2f" % zoom, failures)
+					check(g.data.towers[rapid].earnings == 1900.0 and g.data.balance == before_collection, "Removed earnings badge collected at zoom %.2f" % zoom, failures)
 					app.panels.select_pad("0,0", 0)
 					for touch in [false, true]:
 						for action in ["info", "sell", "move", "target", "equipment"]:
