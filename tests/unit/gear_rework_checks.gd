@@ -11,6 +11,7 @@ static func run(t) -> void:
 	range_and_blast(t)
 	composition(t)
 	persistence(t)
+	campaign_cleanup(t)
 	print("PASS GROUP: revised gear ground fields, area stun, kill stacks, range, splash and legacy saves")
 
 static func neighbor(t, f: Dictionary, offset: Vector2) -> Dictionary:
@@ -199,3 +200,24 @@ static func persistence(t) -> void:
 	t.check(is_equal_approx(Balance.tower_stats(tower, restored.tuning, restored.data.relics).range, 140.0 * 1.35), "Saved Lantern range is effective after reload")
 	t.check(restored.combat.relic_progress.is_empty() and restored.combat.effect_fields.is_empty(), "Temporary component state stays out of saved games")
 	t.clean_test_save(f.game.save_path)
+
+static func campaign_cleanup(t) -> void:
+	var run = preload("res://scripts/campaign/run.gd").new(0)
+	run.game.data.balance = 100000.0
+	var socket: int = run.mission.sockets[0].index
+	run.build(socket, "rapid")
+	var id: String = run.tower_at(socket)
+	Relics.award(run.game.data, "90,90", "cinder_censer")
+	run.game.economy.equip_relic(id, "90,90", "")
+	run.start_wave()
+	run.next_spawn = run.schedule.size()
+	var gear := Content.gear("cinder_censer")
+	var prepared: Dictionary = {}
+	var progress := gear.make_record()
+	for index in range(3): prepared = gear.prepare(progress, 1, 0.0, Balance.tower_stats(run.game.data.towers[id]))
+	prepared.gear_epoch = 0
+	var entry: Dictionary = prepared.gear_effects[0]
+	entry.attribute.arrive(run.game.combat, {"tower_id": id, "gear_epoch": 0, "base_damage": 6.0, "fx": {"pos": Vector2.ZERO}}, entry.config)
+	t.check(run.game.combat.effect_fields.size() == 1, "Campaign owns a real ground field before transition")
+	run.tick(0.05)
+	t.check(run.phase == "planning" and run.game.combat.effect_fields.is_empty(), "Cleared campaign waves discard ground fields before the next wave")
