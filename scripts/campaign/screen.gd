@@ -598,6 +598,10 @@ func refresh() -> void:
 		clear_selection()
 	if is_instance_valid(tower_dialog):
 		tower_dialog.refresh()
+	if dialog.visible and socket_dialog and not board.preview_kind.is_empty():
+		var build := dialog_actions.get_node_or_null("CampaignBuildConfirm") as Button
+		if build != null:
+			build.disabled = game.data.balance < Balance.definition("towers", board.preview_kind, game.tuning).cost
 	board.simulation_rate = speed
 	board.update_view(0, accumulator)
 

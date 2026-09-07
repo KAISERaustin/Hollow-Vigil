@@ -43,6 +43,8 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	check(cards.get_child_count() == Balance.TOWERS.size(), label + " includes the complete catalog")
 	check(menu.size.y < 300, label + " fits a compact menu")
 	check(not confirm.is_visible_in_tree(), label + " picker has no Build action before selection")
+	confirm.pressed.emit()
+	check(host.game.data.balance == funds and host.game.data.towers.size() == count, label + " picker cannot construct before selecting")
 	check(scroll.get_global_rect().size.y >= 94 and scroll.scroll_vertical == 0, label + " fits compact icons without vertical scrolling")
 	check(scroll.get_parent().get_parent().get_global_rect().grow(1).encloses(scroll.get_global_rect()), label + " parent viewport shows complete cards")
 	var start := scroll.global_position + Vector2(scroll.size.x - 24, 45)
@@ -63,6 +65,14 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	check(host.field.preview_kind == last.get_meta("tower_kind") and last.button_pressed, label + " tap selects last tower")
 	check(host.game.data.balance == funds and host.game.data.towers.size() == count, label + " selection only previews")
 	check(not scroll.visible and confirm.is_visible_in_tree(), label + " selection opens detail view with pinned Build")
+	host.game.data.balance = 0
+	if label == "campaign": host.refresh()
+	else: host.update_hud()
+	check(confirm.disabled, label + " details disable unaffordable construction")
+	host.game.data.balance = funds
+	if label == "campaign": host.refresh()
+	else: host.update_hud()
+	check(confirm.disabled == (funds < Balance.definition("towers", last.get_meta("tower_kind"), host.game.tuning).cost), label + " details refresh affordability")
 	var details := menu.find_child("TowerDetails", true, false)
 	var stats := Balance.stats(last.get_meta("tower_kind"), 1, host.game.tuning)
 	check(details.find_child("TowerDescription", true, false).text == Balance.tower_description(stats), label + " description resolves current stats")
