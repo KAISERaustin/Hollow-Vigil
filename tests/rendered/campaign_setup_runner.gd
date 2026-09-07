@@ -40,8 +40,7 @@ func run() -> void:
 		check(editor.live_run == screen.run and editor.scope == 0, "Wave preview opens current wave editor during play")
 		editor.find_child("CampaignGroup0_1", true, false).get_line_edit().text = "12"
 		editor.find_child("CampaignGroup0_4", true, false).get_line_edit().text = "0.5"
-		editor.controls.show_category("enemies")
-		editor.controls.inputs.hp.get_line_edit().text = "345"
+		check(editor.find_child("BalanceCategories", true, false) == null and editor.find_child("CampaignBalanceScope", true, false) == null, "Wave editor has no content stats or level scope")
 		var save: Button = editor.find_child("SaveCampaignConfiguration", true, false)
 		for settle in 4: await frame()
 		screen.dialog_body.get_parent().ensure_control_visible(save)
@@ -49,7 +48,7 @@ func run() -> void:
 		check(screen.dialog_card.get_global_rect().grow(1).encloses(save.get_global_rect()), "Live editor save reachable at " + str(dimensions))
 		await Harness.capture(app, "campaign-live-editor-" + str(dimensions.x))
 		save.pressed.emit()
-		check(screen.run.schedule.size() == 11 and screen.run.game.tuning.enemies.basic.hp == 345, "Typed wave changes apply immediately")
+		check(screen.run.schedule.size() == 11, "Typed wave changes apply immediately")
 		check(live_enemy.hp == original_hp, "Current enemy survives authoring unchanged")
 		screen.close_dialog()
 		screen.show_playthrough_share()

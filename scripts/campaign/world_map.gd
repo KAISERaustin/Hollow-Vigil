@@ -5,13 +5,17 @@ const UI = preload("res://scripts/ui/shared/interface.gd")
 const Art = preload("res://scripts/rendering/terrain/terrain_art.gd")
 const MapArt = preload("res://scripts/ui/shared/biome_map_art.gd")
 const Marker = preload("res://scripts/campaign/level_marker.gd")
-const CHAPTER_HEIGHT := 536.0
+const Content = preload("res://scripts/content/registry.gd")
+const CHAPTER_HEIGHT := 960.0
+const FIRST_LEVEL_Y := 158.0
+const LEVEL_SPACING := 164.0
 const CHAPTER_NUMERALS := ["I", "II", "III", "IV", "V", "VI"]
 signal level_picked(index: int)
 var progress: RefCounted
 var nodes: Array[Button] = []
 var labels: Array[VBoxContainer] = []
 var headings: Array[VBoxContainer] = []
+var landscapes: Array[Dictionary] = []
 
 func _ready() -> void:
 	name = "CampaignWorldMap"
@@ -24,6 +28,9 @@ func _ready() -> void:
 		heading.add_theme_constant_override("separation", 4)
 		heading.add_child(UI.label("CHAPTER " + CHAPTER_NUMERALS[chapter], UI.META, UI.TEXT))
 		heading.add_child(UI.heading(Catalog.CHAPTERS[chapter].name, 24))
+		var story := UI.label(Catalog.CHAPTERS[chapter].story, UI.META, UI.TEXT)
+		story.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		heading.add_child(story)
 		add_child(heading)
 		headings.append(heading)
 	for index in range(Catalog.COUNT):
@@ -65,12 +72,12 @@ func point(index: int) -> Vector2:
 	var x: float = [0.22, 0.74, 0.26, 0.70, 0.77][within]
 	# A reversed middle bend gives neighboring biomes their own trail rhythm.
 	if chapter % 2 == 1 and within < 4: x = 1.0 - x
-	return Vector2(size.x * x, chapter * CHAPTER_HEIGHT + 126 + within * 84)
+	return Vector2(size.x * x, chapter * CHAPTER_HEIGHT + FIRST_LEVEL_Y + within * LEVEL_SPACING)
 
 func arrange() -> void:
 	for chapter in headings.size():
 		headings[chapter].position = Vector2(UI.PADDING, chapter * CHAPTER_HEIGHT + 20)
-		headings[chapter].size = Vector2(size.x - UI.PADDING * 2 - 28, 64)
+		headings[chapter].size = Vector2(size.x - UI.PADDING * 2 - 28, 110)
 	for index in range(nodes.size()):
 		var boss := index % 5 == 4
 		nodes[index].size = Vector2(80,120) if boss else Vector2(54,54)
@@ -82,7 +89,27 @@ func arrange() -> void:
 		labels[index].size = Vector2(width, 58)
 		for label: Label in labels[index].get_children():
 			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if right else HORIZONTAL_ALIGNMENT_RIGHT
+	for chapter in headings.size():
+		var profile := chapter_presentation(chapter)
+		var reserved := chapter_reserved(chapter)
+		var layout_key := hash([size.x,reserved,profile])
+		if chapter<landscapes.size() and landscapes[chapter].key==layout_key: continue
+		var landscape := {"profile":profile,"key":layout_key,"sites":MapArt.layout(profile,chapter_rect(chapter),reserved,chapter_roads(chapter),chapter+71)}
+		if chapter<landscapes.size(): landscapes[chapter]=landscape
+		else: landscapes.append(landscape)
 	queue_redraw()
+
+func chapter_presentation(chapter: int) -> Dictionary:
+	for attachment in Content.catalog().get_node("level/chapter/"+str(chapter)).rule("components",[]):
+		if attachment.slot=="map_landscape": return attachment.component.presentation(attachment.config)
+	return {}
+
+func chapter_reserved(chapter: int) -> Array[Rect2]:
+	var reserved: Array[Rect2] = [headings[chapter].get_rect()]
+	for index in range(chapter*5,chapter*5+5):
+		reserved.append(nodes[index].get_rect().grow(4))
+		reserved.append(labels[index].get_rect())
+	return reserved
 
 func chapter_roads(chapter: int) -> Array[PackedVector2Array]:
 	var roads: Array[PackedVector2Array] = []
@@ -105,14 +132,11 @@ func _draw() -> void:
 		var bounds := chapter_rect(chapter)
 		var style: String = Catalog.CHAPTERS[chapter].style
 		draw_rect(bounds, Art.ground_color(style))
+		MapArt.Nature.ground(self,bounds,style)
 		var roads := chapter_roads(chapter)
-		var reserved: Array[Rect2] = [headings[chapter].get_rect()]
-		for index in range(chapter * 5, chapter * 5 + 5):
-			reserved.append(nodes[index].get_rect())
-			reserved.append(labels[index].get_rect())
-		MapArt.scenery(self, style, bounds, reserved, roads, chapter + 71)
+		if chapter<landscapes.size(): MapArt.landscape(self,landscapes[chapter].profile,landscapes[chapter].sites)
 		for road in roads:
-			var destination := clampi(roundi((road[-1].y - bounds.position.y - 126) / 84.0), 0, 5) + chapter * 5
+			var destination := clampi(roundi((road[-1].y - bounds.position.y - FIRST_LEVEL_Y) / LEVEL_SPACING), 0, 5) + chapter * 5
 			MapArt.trail(self, road, destination <= progress.data.completed_levels and not progress.allow_all)
 		# Abutting biomes share exactly one border, including road crossings.
 		if chapter > 0:

@@ -41,10 +41,14 @@ func _draw() -> void:
 			draw_string(UI.font(600), Vector2(9,40)+offset, str(number), HORIZONTAL_ALIGNMENT_CENTER, 26, 16, UI.TEXT)
 		return
 	if is_gate():
-		if gate != null:
+		if not gate_style.is_empty():
+			var at := Vector2(size.x*0.5,69)+offset
+			var zoom := 0.84
+			var kit = preload("res://scripts/rendering/actors/portal_upgrade_art.gd")
+			kit.structure(self,gate_style,at,zoom,["foundation","buttresses","pillars","lintel","finials"])
+			preload("res://scripts/rendering/actors/rift_art.gd").draw_base(self,gate_style,at,zoom)
+		elif gate != null:
 			draw_texture_rect(gate, Rect2(Vector2.ZERO, size), false)
-		else:
-			preload("res://scripts/rendering/actors/rift_art.gd").draw(self, gate_style, Vector2(size.x * 0.5, 68) + offset, 0.9)
 		var plaque := Rect2(size.x * 0.5 - 18, size.y - 21, 36, 22)
 		draw_style_box(UI.surface(paper, UI.OUTLINE, 2), plaque)
 		draw_string(UI.font(600), plaque.position + Vector2(6, 16), str(number), HORIZONTAL_ALIGNMENT_CENTER, 24, 14, UI.TEXT)

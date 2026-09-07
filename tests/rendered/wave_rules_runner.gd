@@ -26,6 +26,7 @@ func run() -> void:
 		var original_second: Dictionary = Configuration.wave_report(screen.run.mission, 1)
 		await press("EditCampaignWave1")
 		check(menu.screen == "rules" and menu.rules_editor.scope == 0, "Wave 1 opens its rules draft")
+		check(menu.rules_editor.find_child("BalanceCategories", true, false) == null and menu.rules_editor.find_child("CampaignBalanceScope", true, false) == null, "Waves cannot edit global content or level defaults")
 		set_wave_fields(menu.rules_editor, 37, 103, 2.0, 0.5)
 		await press("ApplyRules")
 		check(not menu.visible and not menu.held and screen.dialog.visible and screen.waves_dialog, "Apply returns directly to Waves from briefing")

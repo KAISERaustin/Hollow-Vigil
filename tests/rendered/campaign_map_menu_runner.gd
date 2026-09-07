@@ -141,11 +141,11 @@ func run() -> void:
 			await check_campaign_settings(mode + "-map")
 			if mode == "creative":
 				await press("EditRules")
-				await press("EditLevel1")
-				menu.rules_editor.find_child("Campaign_gold", true, false).value = 999
+				check(button("EditLevel1") == null, "Campaign rules omit the level list")
+				await press("EnemiesCategory")
+				menu.rules_editor.inputs.hp.value = 999
 				await press("ApplyRules")
-				check(campaign.level_setup(0).overrides.gold == 999 and campaign.run == null, "Map rule editing saves amounts without starting a mission")
-				await press("BackButton")
+				check(campaign.level_setup(0).overrides.tuning.enemies.basic.hp == 999 and campaign.level_setup(29).overrides.tuning.enemies.basic.hp == 999 and campaign.run == null, "Map rule editing reaches the whole campaign without starting a mission")
 			await press("SaveBuild")
 			check(menu.form.scope == "all" and menu.form.level == -1, "Map defaults to a whole campaign export")
 			var name_field: LineEdit = menu.find_child("BuildName", true, false)
@@ -155,7 +155,7 @@ func run() -> void:
 			check(whole.data.levels.size() == Build.Configuration.Catalog.COUNT, "Whole campaign includes every level")
 			check(button("Contents_layout") == null and not whole.contents.has("layout"), "Campaign has no layout or equipment export option")
 			for level in whole.data.levels.values(): check(not level.has("layout"), "Campaign export excludes every placed layout")
-			check(whole.data.levels["0"].resources.gold == (999 if mode == "creative" else 777), "Export includes the selected slot's current rule amounts")
+			check(whole.data.levels["0"].resources.gold == 777, "Global stat edits preserve starting resources in exports")
 			check(not whole.has("checkpoint") and not whole.has("completed"), "Portable export excludes saved progression")
 			check(campaign.campaign_save.checkpoint.state.towers.size() == 1, "Export composition does not mutate checkpoint state")
 			await press("SavePrivately")

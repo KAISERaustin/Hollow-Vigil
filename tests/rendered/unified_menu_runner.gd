@@ -233,47 +233,25 @@ func run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 func check_rules(type: String) -> void:
-	if type == "campaign":
-		menu.resume_game()
-		var prior_run: RefCounted = app.campaign.run
-		var prior_paused: bool = app.campaign.paused
-		app.campaign.show_level_balance(0)
-		await frames()
-		await press("CancelRules")
-		await press("ConfirmAction")
-		check(not menu.visible and not menu.held, "Direct campaign rule discard returns to gameplay")
-		check(app.campaign.run == prior_run and app.campaign.paused == prior_paused, "Direct rule return preserves battle and pause state")
-		app.campaign.show_level_balance(0)
-		await frames()
-		await press("ApplyRules")
-		check(not menu.visible and not menu.held, "Direct campaign rule apply returns to gameplay")
-		await open_game_menu()
 	await press("EditRules")
-	if type == "campaign": await press("EditLevel1")
 	check(menu.screen == "rules", "Shared rules page opens in " + type)
 	await capture(type + "-rules")
 	var prior: Dictionary = app.campaign.level_setup(0).overrides.duplicate(true) if type == "campaign" else app.game.tuning.duplicate(true)
-	if type == "campaign": menu.rules_editor.find_child("Campaign_gold", true, false).value = 777
-	else:
-		await press("EnemiesCategory")
-		menu.rules_editor.find_child("hpValue", true, false).value = 777
-		await press("BackButton")
-		check(menu.screen == "rules" and menu.rules_editor.category_list.visible and menu.editor_game.tuning.enemies.basic.hp == 777, "Back returns from type editor while retaining draft")
+	await press("EnemiesCategory")
+	menu.rules_editor.find_child("hpValue", true, false).value = 777
+	await press("BackButton")
+	check(menu.screen == "rules" and menu.rules_editor.category_list.visible and menu.editor_game.tuning.enemies.basic.hp == 777, "Back returns from type editor while retaining draft")
 	await press("CancelRules")
 	await press("CancelConfirmation")
 	check(menu.screen == "rules", "Cancel confirmation leaves rule draft available")
 	await press("CancelRules")
 	await press("ConfirmAction")
 	check((app.campaign.level_setup(0).overrides if type == "campaign" else app.game.tuning) == prior, "Discard leaves live rules unchanged")
-	if type == "campaign": await press("EditLevel1")
-	else: await press("EditRules")
-	if type == "campaign": menu.rules_editor.find_child("Campaign_gold", true, false).value = 888
-	else:
-		await press("EnemiesCategory")
-		menu.rules_editor.find_child("hpValue", true, false).value = 888
+	await press("EditRules")
+	await press("EnemiesCategory")
+	menu.rules_editor.find_child("hpValue", true, false).value = 888
 	await press("ApplyRules")
-	check(app.campaign.level_setup(0).overrides.get("gold") == 888 if type == "campaign" else app.game.tuning.enemies.basic.hp == 888, "Apply commits rules to only the selected session")
-	if type == "campaign": await press("BackButton")
+	check(app.campaign.level_setup(0).overrides.tuning.enemies.basic.hp == 888 if type == "campaign" else app.game.tuning.enemies.basic.hp == 888, "Apply commits rules to only the selected session")
 	check(menu.screen == "game_menu", "Rules return to held game menu")
 
 func check_screen_back(back: Button) -> void:
