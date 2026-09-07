@@ -150,6 +150,7 @@ func _populate() -> void:
 	_populate_actors()
 	_populate_world(root)
 	_populate_levels(root)
+	preload("res://scripts/content/catalogs/build_groups.gd").populate(self, root)
 
 func _populate_towers() -> void:
 	for kind in Towers.TOWERS:
