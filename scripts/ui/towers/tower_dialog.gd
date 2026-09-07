@@ -175,7 +175,8 @@ func open_action(action: String, branch: String = "") -> void:
 				choice.add_theme_font_size_override("font_size", UI.type_size(14))
 				branches.add_child(choice)
 		var next_stats := Balance.equipment_stats(Balance.stats(tower_kind, next_level, app.game.tuning, tower_branch), tower, app.game.tuning, app.game.data.relics)
-		body.add_child(TowerChoice.details(tower_kind, app.game.tuning, next_level, tower_branch, stats if tower_level < Balance.MAX_TOWER_LEVEL else {}, true, next_stats))
+		var equipped: bool = app.game.data.relics.has(tower.get("relic", ""))
+		body.add_child(TowerChoice.details(tower_kind, app.game.tuning, next_level, tower_branch, stats if tower_level < Balance.MAX_TOWER_LEVEL else {}, true, next_stats if equipped else {}))
 	if action == "equipment":
 		preload("res://scripts/ui/towers/relic_picker.gd").build(self)
 	if action == "target":

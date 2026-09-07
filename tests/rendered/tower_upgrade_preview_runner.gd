@@ -38,6 +38,16 @@ func verify_preview(host: Control, tower: Dictionary, context: String) -> void:
 		check(dialog.confirm.disabled and dialog.confirm.text == "Max level", context + " prevents a fifth level")
 
 func exercise(host: Control, select: Callable, tower: Dictionary, context: String) -> void:
+	for touch in [false, true]:
+		host.panels.close_sheet()
+		host.field.camera = VigilWorld.pad_position(tower.region, tower.pad)
+		host.field.queue_redraw()
+		await settle()
+		var point: Vector2 = host.field.global_position + host.field.screen(VigilWorld.pad_position(tower.region, tower.pad))
+		await Harness.tap(host, point, touch)
+		await settle()
+		check(host.tower_dialog.visible and host.tower_dialog.mode == "preview", context + " actual mouse/touch tower tap opens upgrade details")
+		host.tower_dialog.dismiss()
 	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = viewport
 		root.content_scale_size = viewport
@@ -75,6 +85,14 @@ func exercise(host: Control, select: Callable, tower: Dictionary, context: Strin
 	check(dialog.body.find_child("Change_fire_rate", true, false).text == "+1", context + " derived fire rate delta is next minus current")
 	check(dialog.body.find_child("Change_dps", true, false).text == "+26", context + " derived DPS delta is next minus current")
 	check(dialog.body.find_child("Change_period", true, false).text == "−0.5 s", context + " shorter intervals show a reduction")
+	host.game.data.relics["preview_lens"] = "warden_lens"
+	tower.relic = "preview_lens"
+	dialog.refresh()
+	check(dialog.body.find_child("Stat_damage", true, false).text == "24.3" and dialog.body.find_child("Change_damage", true, false).text == "+10.8", context + " equipment applies to both sides of the comparison")
+	tower.relic = ""
+	host.game.data.relics.erase("preview_lens")
+	dialog.refresh()
+	check(dialog.body.find_child("Change_damage", true, false).text == "+8", context + " removing equipment refreshes the comparison")
 	var old_revision := dialog.revision
 	host.game.data.settings.developer_balance.towers["rapid:2"].cost = 124.0
 	var gold: float = host.game.data.balance
