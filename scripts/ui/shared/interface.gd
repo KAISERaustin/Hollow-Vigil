@@ -3,7 +3,7 @@ extends RefCounted
 
 const BG := VigilTerrainArt.BACKDROP
 const PANEL := VigilTerrainArt.PAPER
-const MAIN_MENU_BACKGROUND := Color("a6b79b")
+const MAIN_MENU_BACKGROUND := Color("283b36")
 const SURFACE := VigilTerrainArt.ROAD
 const SAVED_GAMES_PAPER := Color("#B8C4C6")
 const BORDER := VigilTerrainArt.INK

@@ -70,7 +70,7 @@ func run() -> void:
 		check(Rect2(Vector2.ZERO,Vector2(viewport)).encloses(start.get_global_rect()), "Start wave fits " + str(viewport))
 		check(campaign.status.text == "Wave 1 / 3", "Opening header shows only the wave count")
 		check(is_equal_approx(campaign.status.get_global_rect().get_center().y, campaign.gold.get_global_rect().get_center().y), "Wave count aligns with gold " + str(viewport))
-		check(is_equal_approx(campaign.status.get_global_rect().end.x + VigilInterface.SCREEN_PADDING, campaign.board.get_global_rect().end.x), "Floating wave count keeps the safe edge inset " + str(viewport))
+		check(is_equal_approx(campaign.floating_hud.right_card.get_global_rect().end.x + VigilInterface.SCREEN_PADDING, campaign.board.get_global_rect().end.x), "Floating wave card keeps the safe edge inset " + str(viewport))
 		check(campaign.status.get_theme_font_size("font_size") == campaign.gold.get_theme_font_size("font_size"), "Wave count matches the larger gold text")
 		check(campaign.board.global_position.x == 0 and campaign.board.get_global_rect().end == Vector2(viewport), "Battlefield fills both sides and the bottom " + str(viewport))
 		check(campaign.board.size.y > viewport.y * 0.85, "Battlefield occupies at least 85 percent of phone height " + str(viewport))

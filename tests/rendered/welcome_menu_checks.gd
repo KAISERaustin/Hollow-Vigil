@@ -19,7 +19,7 @@ func run() -> void:
 		root.content_scale_size = viewport
 		await settle()
 		var menu: Control = app.slot_menu
-		check(menu.find_child("ScreenTitle",true,false).text == "Hollow Vigil", "Startup title")
+		check(menu.find_child("ScreenTitle",true,false).text.replace("\n", " ") == "Hollow Vigil", "Startup title")
 		var welcome: Control = menu.find_child("WelcomeMenu",true,false)
 		check(welcome.crest.position.y >= 0, "Startup crest is not clipped")
 		check(welcome.caption.get_rect().end.y <= welcome.size.y, "Caption fits composition")
@@ -41,10 +41,8 @@ func run() -> void:
 		check(menu.visible and app.game.suspended, "Campaign returns to main menu")
 		menu.find_child("OpenInfinite",true,false).pressed.emit()
 		await settle()
-		check(menu.screen == "home" and menu.game_type == "infinite", "Infinite opens shared home")
-		menu.find_child("Continue",true,false).pressed.emit()
-		await settle()
-		check(menu.find_child("ScreenTitle",true,false).text == "Saved games", "Infinite Continue opens slots")
+		check(menu.screen == "slots" and menu.game_type == "infinite", "Infinite opens Saved games")
+		check(menu.find_child("ScreenTitle",true,false).text == "Saved games", "Infinite slots title")
 		for slot in range(1,4): check(menu.find_child("GameSlot%d" % slot,true,false) != null,"Slot exists")
 		check(menu.find_child("OpenCampaign",true,false) == null, "Campaign removed from slots")
 		menu.find_child("BackButton",true,false).pressed.emit()

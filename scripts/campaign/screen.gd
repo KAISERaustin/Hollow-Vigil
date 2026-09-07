@@ -565,7 +565,6 @@ func show_battle(start_paused: bool = false) -> void:
 	game_toolbar.append_actions(toolbar_actions)
 	add_board(true)
 	floating_hud = preload("res://scripts/ui/shared/floating_game_hud.gd").new()
-	floating_hud.ground_color = board.background_color()
 	board.add_child(floating_hud)
 	floating_hud.context.text = "Level %d" % (run.mission.index + 1)
 	floating_hud.title.text = run.mission.name
@@ -634,7 +633,7 @@ func refresh() -> void:
 	wave_button.accessibility_name = "Start wave %d" % (run.wave + 1) if can_start else remaining
 	floating_hud.detail.text = remaining
 	floating_hud.detail.visible = run.phase == "wave" and not reward_transition.active
-	floating_hud.queue_redraw()
+	floating_hud.fit()
 	if run.phase in ["victory", "defeat"]:
 		wave_button.text = "Restored" if run.phase == "victory" else "Defeated"
 		wave_button.accessibility_name = "Sanctuary restored" if run.phase == "victory" else "Core integrity depleted"

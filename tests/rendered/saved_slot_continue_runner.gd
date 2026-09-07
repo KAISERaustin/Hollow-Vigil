@@ -122,7 +122,7 @@ func check_campaign_continue() -> void:
 			var toolbar: Control = app.campaign.game_toolbar
 			check(toolbar.menu_button.text == "←" and is_equal_approx(toolbar.menu_button.global_position.x, toolbar.global_position.x), "Back arrow sits at the far left")
 			check(toolbar.pause_button.global_position.x > toolbar.menu_button.get_global_rect().end.x, "Playback sits to the right of Back")
-			check(is_equal_approx(toolbar.speed_button.get_global_rect().end.x, toolbar.get_global_rect().end.x), "Speed sits at the far right")
+			check(toolbar.speed_button.get_global_rect().end.x < app.campaign.find_child("CampaignWaves", true, false).global_position.x and is_equal_approx(app.campaign.wave_button.get_global_rect().end.x, toolbar.get_global_rect().end.x), "Waves and the wave action follow playback in the same bar")
 			app.campaign.wave_button.pressed.emit()
 			check(app.campaign.paused, "Bottom button cannot release a loaded paused wave")
 			await press("PauseButton")

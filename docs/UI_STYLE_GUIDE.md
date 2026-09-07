@@ -34,7 +34,7 @@ Use semantic names in UI code. The hex values are sRGB; default fills and text a
 | --- | --- | --- |
 | ink | #000000 | Primary text, structural outlines, icons |
 | backdrop | #222A30 | Unowned world and surrounding dark canvas |
-| main-menu.background | #A6B79B | Muted sage tint on the main menu's shared parchment texture |
+| main-menu.background | #283B36 | Deep forest tint on the main menu's shared parchment texture |
 | paper | #E8DDBD | Main panels, dialogs |
 | paper.saved-games | #B8C4C6 | Campaign and Infinite saved-games page background; retain parchment cards and ink text |
 | inset | #DFD0AB | Secondary controls and grouped information |
@@ -140,9 +140,18 @@ Primary buttons use ochre, ink text, the same 3-unit border as the surrounding c
 
 Focus can coexist with selected states. Pointer entry must not change fills, outlines, icon colors, cursors, or text. An unaffordable action reads Need 125 more gold nearby rather than relying on fading the control. Disabled elements remain legible without lowering the opacity of the whole subtree.
 
+### Main menu
+
+The main menu is an illustrated night-watch cover: a stacked parchment-colored
+serif wordmark, a small mint seal, a moonlit sanctuary landscape above the actions,
+and compact footer lettering. Its artwork uses the native drawing library and
+never owns input or starts a simulation. Campaign, Infinite and Settings keep
+their existing gold-paper treatment, 56-unit height, up-to-320-unit width and
+14-unit vertical gaps. Keep the complete composition scrollable on short screens.
+
 ### Persistent HUD
 
-Campaign levels use one edge-to-edge parchment bar containing Back, Pause, Speed, Waves and Start wave, with 48-unit touch targets and 8-unit gaps/insets. The battlefield fills both sides and the entire remaining screen below it, without an outer parchment frame or footer. Anchor plain level identity at its upper left and gold/wave information near its safe lower corners through the shared floating HUD. Clear only the scenery immediately behind those labels with matching terrain color; keep ink readable without cards or text outlines. Reserve space for this information in the opening camera view. Keep remaining enemies visible during play and pause; retain full wave action accessibility labels. Creative sharing remains available inside Waves. Infinite keeps its existing shared toolbar and footer. Put game-specific identity below its toolbar. Menu opens the same full-page navigation and pauses the held session. Resume preserves that live session and its prior pause state. The Infinite footer places unclaimed earnings beside Collect all, with spendable gold, gold per second, and lifetime kills in a lower row. Separate those statistics with alignment and spacing before adding boxes. Shorten visible captions to Gold / sec and Kills when width is limited; retain full accessible names.
+Campaign levels use one edge-to-edge parchment bar containing Back, Pause, Speed, Waves and Start wave, with 48-unit touch targets and 8-unit gaps/insets. The battlefield fills both sides and the entire remaining screen below it, without an outer parchment frame or footer. Anchor level identity in a content-sized parchment card at its upper left, with separate compact gold and wave cards near its safe lower corners through the shared floating HUD. Use the shared 3-unit ink border, 4-unit corners, 12-unit identity padding and 8-unit value padding. Keep terrain visible between the lower cards, group remaining enemies with the wave count, and let gestures pass through every passive card. Wrap long titles and values within the safe width; use no shadows, glow or terrain-colored label clearings. Reserve space for this information in the opening camera view. Keep remaining enemies visible during play and pause; retain full wave action accessibility labels. Creative sharing remains available inside Waves. Infinite keeps its existing shared toolbar and footer. Put game-specific identity below its toolbar. Menu opens the same full-page navigation and pauses the held session. Resume preserves that live session and its prior pause state. The Infinite footer places unclaimed earnings beside Collect all, with spendable gold, gold per second, and lifetime kills in a lower row. Separate those statistics with alignment and spacing before adding boxes. Shorten visible captions to Gold / sec and Kills when width is limited; retain full accessible names.
 
 Game home, Saved games, New game, libraries, Save build, Backups, Settings and rule drafts use the shared page shell. Keep Back/title fixed above scrolling content and progression actions fixed below it. Full pages render above gameplay frames and short dialogs. Save privately and Share to Community appear together in that order. Use Apply changes and Cancel for rule drafts; the shared contents checklist remains separate from editing the active game. See `UI_MENU_TREE.md` for the complete implemented navigation.
 

@@ -273,7 +273,8 @@ func check_rules(type: String) -> void:
 func check_screen_back(back: Button) -> void:
 	check(back != null, "Back is present on the current screen")
 	if back == null: return
-	check(back.get_global_rect().is_equal_approx(Rect2(12, 12, 48, 48)), "Back keeps the map's size and screen inset on %s at %s: %s" % [back.name, root.size, back.get_global_rect()])
+	var inset := 8 if is_instance_valid(app.campaign) and app.campaign.page == "battle" and back == app.campaign.game_toolbar.menu_button else 12
+	check(back.get_global_rect().is_equal_approx(Rect2(inset, inset, 48, 48)), "Back keeps its screen's size and inset on %s at %s: %s" % [back.name, root.size, back.get_global_rect()])
 	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
 		var style := back.get_theme_stylebox(state)
 		check(style.get_content_margin(SIDE_LEFT) == 12 and style.get_content_margin(SIDE_RIGHT) == 12 and style.get_content_margin(SIDE_TOP) == 8 and style.get_content_margin(SIDE_BOTTOM) == 8, "Back keeps symmetric padding in " + state)

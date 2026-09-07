@@ -13,11 +13,11 @@ exports and the complete board with `tests/rendered/gear_art_runner.gd`.
 UI texture direction, extended September 7, 2026: tan UI backgrounds use
 `assets/ui/welcome-parchment.png`, generated paper with quiet fibers and mottling.
 The shared style applies it to menus, cards, buttons, fields and chrome, with
-yellow/red parchment variants for semantic actions; world artwork remains flat. Title lettering uses
-warm ink and a small ochre offset; motto and footer use the bundled serif.
+yellow/red parchment variants for semantic actions; world artwork remains flat.
 The asset and generation prompt are documented in `assets/ui/WELCOME_ART.md`.
-The main menu uses a muted sage tint (#a6b79b) on that shared paper texture;
-its buttons retain their semantic colors and other pages retain parchment.
+The main menu is a night-watch cover with deep forest paper (#283b36), a large
+stacked parchment wordmark, a mint seal and a moonlit sanctuary landscape.
+Its three gold buttons retain their exact existing treatment and dimensions.
 
 Boss direction, revised September 6, 2026: use native flat drawings in
 `boss_art.gd`, referenced against the current tiles, core/rift portals and enemy
@@ -38,7 +38,7 @@ in `assets/bosses/` are reference history and are not loaded by the renderer.
 - Scenery: at most three tiny outlined symbols per tile. Reserve roads, sockets, and full tower silhouettes.
 - Towers: pointed tower, fire-crowned masonry watchtower, obelisk and lightning spire. Pyre uses a tall stone shaft, crenellated parapet, black arched furnace and layered flat flames, borrowing the portals' cut-stone construction. Its tiers and both final branches compose `scripts/rendering/actors/fire_tower_art.gd`; preserve the common socket anchor and attack outlet. Enemies: circle, small ghost, block shape; each has two eyes.
 - UI: follow [UI_STYLE_GUIDE.md](UI_STYLE_GUIDE.md) Version 2, **Parchment cards**, and its saved Waves reference for all future UI. Every UI enclosure and divider uses the same black 3-unit border (`VigilInterface.OUTLINE`), with 0/4-unit corners. Use shared parchment panels (#e8ddbd), inset surfaces (#dfd0ab), muted blue-gray saved-games page backgrounds (#b8c4c6), clean cards with bold values above labels, and native portraits beside identity information when applicable. Use 12-unit card padding, 8-unit inset padding and cell gaps, and 12-unit section/action gaps. Noto Sans carries functional text and compact titles; Noto Serif is reserved for large titles. Ochre marks primary actions and selected tabs; coral marks destructive confirmations. Preserve fixed navigation, scrolling, touch targets, density scaling and safe areas. World artwork outlines retain their established weights.
-- Campaign play: one compact parchment control bar above edge-to-edge terrain. Level identity and live values float as plain ink over small clearings in the matching ground color, with no battlefield enclosure or bottom action panel. Reuse the shared toolbar and floating HUD; respect safe areas for text and controls.
+- Campaign play: one compact parchment control bar above edge-to-edge terrain. Level identity and live values sit in compact floating parchment cards with the shared 3-unit black border and 4-unit corners. Keep the title card content-sized and the gold/wave cards at the lower corners, leaving terrain visible between them; no shadows, glow, battlefield enclosure or bottom action panel. Reuse the shared toolbar and floating HUD; respect safe areas for text and controls.
 - Infinite footer: Unclaimed earnings and Collect all sit above Spendable gold, Gold per second and Lifetime kills. Collection feedback is an ochre outlined badge centered over the visible Unclaimed earnings caption, using its measured text width rather than its container width; it rises 36 pixels over 0.95 seconds and fades after a brief hold.
 
 The artwork implementation lives in scripts/rendering/terrain/terrain_art.gd, scripts/rendering/terrain/terrain_tile.gd, scripts/rendering/terrain/terrain_grid.gd and scripts/rendering/battlefield.gd. The shared UI theme is scripts/ui/shared/interface.gd; bundled fonts and licenses are in assets/fonts. The app icon uses the separately approved purple woodland and mint gateway illustration documented in docs/APP_ICON.md. Current UI captures are artifacts/style-*.png, regenerated with `./launch.ps1 -StyleTests`.
@@ -46,8 +46,9 @@ The artwork implementation lives in scripts/rendering/terrain/terrain_art.gd, sc
 ## Extension contract
 
 The opening page composes `scripts/ui/shared/welcome_art.gd` illustrations in
-`scripts/ui/welcome_menu.gd`: a portal-and-sentinel title crest and a miniature
-battlefield. These reusable, stateless Controls call the existing terrain,
+`scripts/ui/welcome_menu.gd`: a mint seal, a moonlit valley with a solitary
+watchtower, winding road and core sanctuary, and a compact footer rule.
+These reusable, stateless Controls call the existing terrain,
 tower, enemy and portal drawing library without starting a simulation. Keep the
 mode actions centered, the title readable and the art non-interactive. The
 welcome-menu rendered checks cover phone layouts and both navigation paths.

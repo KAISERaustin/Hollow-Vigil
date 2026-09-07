@@ -14,24 +14,27 @@ func configure(campaign: Callable, infinite: Callable, settings: Callable = Call
 	name = "WelcomeMenu"
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
-	# Keep both illustrations and the caption inside the scrollable composition.
+	# A book-cover composition; the whole page remains reachable on short screens.
 	custom_minimum_size.y = 560
 	crest = Illustration.new()
+	crest.illustration = "seal"
 	add_child(crest)
-	title = UI.heading("Hollow Vigil", 40)
+	title = UI.heading("Hollow\nVigil", 56)
 	title.name = "ScreenTitle"
+	title.accessibility_name = "Hollow Vigil"
+	title.uppercase = true
+	title.autowrap_mode = TextServer.AUTOWRAP_OFF
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_override("font", UI.font(750, true))
-	title.add_theme_color_override("font_color", Color("211c16"))
-	title.add_theme_color_override("font_shadow_color", UI.GOLD)
-	title.add_theme_constant_override("shadow_offset_x", 1)
-	title.add_theme_constant_override("shadow_offset_y", 2)
+	var title_font: FontVariation = UI.font(600, true).duplicate()
+	title_font.spacing_glyph = 4
+	title.add_theme_font_override("font", title_font)
+	title.add_theme_color_override("font_color", UI.PANEL)
+	title.add_theme_constant_override("line_spacing", -16)
 	add_child(title)
-	subtitle = UI.heading("BUILD  ·  DEFEND  ·  ENDURE", 13)
-	var motto_font: FontVariation = UI.font(600, true).duplicate()
+	subtitle = UI.label("KEEP THE LAST LIGHT BURNING", 12, UI.PANEL)
+	var motto_font: FontVariation = UI.font(600).duplicate()
 	motto_font.spacing_glyph = 1
 	subtitle.add_theme_font_override("font", motto_font)
-	subtitle.add_theme_color_override("font_color", Color("574329"))
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(subtitle)
 	modes = VBoxContainer.new()
@@ -50,14 +53,13 @@ func configure(campaign: Callable, infinite: Callable, settings: Callable = Call
 		settings_button.name = "MainSettings"
 		modes.add_child(settings_button)
 	battlefield = Illustration.new()
-	battlefield.illustration = "battlefield"
+	battlefield.illustration = "landscape"
 	add_child(battlefield)
 	footer_rule = Illustration.new()
 	footer_rule.illustration = "rule"
 	add_child(footer_rule)
-	caption = UI.heading("A quiet world. An endless watch.", 14)
-	caption.add_theme_font_override("font", UI.font(500, true))
-	caption.add_theme_color_override("font_color", Color("574329"))
+	caption = UI.label("BUILD   /   DEFEND   /   ENDURE", 12, UI.PANEL)
+	caption.add_theme_font_override("font", motto_font)
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(caption)
 	# Container minimums settle after the first resize, especially on cold startup.
@@ -69,28 +71,26 @@ func configure(campaign: Callable, infinite: Callable, settings: Callable = Call
 func arrange() -> void:
 	var width := size.x
 	var height := size.y
-	# Center the complete composition, keeping every element inside its bounds.
+	title.add_theme_font_size_override("font_size", clampi(int(width / 6.5), 44, 64))
+	var title_height := title.get_minimum_size().y
 	var buttons_height := modes.get_combined_minimum_size().y
-	var art_space := maxf(0, height - buttons_height - 168)
-	var crest_height := minf(180, art_space * 0.48)
-	var battlefield_height := minf(200, art_space * 0.52)
-	var composition_height := crest_height + 98 + buttons_height + 22 + battlefield_height + 48
+	# Wide, short viewports scroll the full cover, including its footer.
+	custom_minimum_size.y = maxf(560, title_height + buttons_height + 256)
+	var landscape_height := clampf(height - title_height - buttons_height - 156, 100, 300)
+	var composition_height := title_height + landscape_height + buttons_height + 140
 	var top := maxf(0, (height - composition_height) * 0.5)
-	var title_top := top + crest_height
-	var modes_top := title_top + 98
 	crest.position = Vector2(0, top)
-	crest.size = Vector2(width, crest_height)
-	title.add_theme_font_size_override("font_size", mini(42, int(width / 7.6)))
-	title.position = Vector2(0, title_top)
-	title.size = Vector2(width, 58)
-	subtitle.position = Vector2(0, title_top + 52)
-	subtitle.size = Vector2(width, 24)
+	crest.size = Vector2(width, 20)
+	title.position = Vector2(0, top + 28)
+	title.size = Vector2(width, title_height)
+	subtitle.position = Vector2(0, title.get_rect().end.y + 4)
+	subtitle.size = Vector2(width, 20)
+	battlefield.position = Vector2(0, subtitle.get_rect().end.y + 12)
+	battlefield.size = Vector2(width, landscape_height)
 	var button_width := minf(320, width - 16)
 	modes.size = Vector2(button_width, buttons_height)
-	modes.position = Vector2((width - button_width) * 0.5, modes_top)
-	battlefield.position = Vector2(0, modes_top + buttons_height + 22)
-	battlefield.size = Vector2(width, battlefield_height)
-	caption.position = Vector2(0, battlefield.position.y + battlefield.size.y + 24)
-	caption.size = Vector2(width, 24)
-	footer_rule.position = Vector2(0, battlefield.position.y + battlefield.size.y + 4)
+	modes.position = Vector2((width - button_width) * 0.5, roundf(battlefield.get_rect().end.y + 20))
+	footer_rule.position = Vector2(0, modes.get_rect().end.y + 16)
 	footer_rule.size = Vector2(width, 12)
+	caption.position = Vector2(0, footer_rule.get_rect().end.y + 8)
+	caption.size = Vector2(width, 20)

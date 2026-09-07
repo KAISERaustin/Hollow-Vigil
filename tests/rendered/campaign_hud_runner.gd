@@ -32,7 +32,8 @@ func run() -> void:
 	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = viewport
 		root.content_scale_size = viewport
-		for level in [0, 5, 11, 15, 20, 25]:
+		for level in [0, 3, 5, 11, 15, 20, 25]:
+			campaign.speed = 1.0
 			campaign.start_mission(level)
 			await frame()
 			var field: Control = campaign.board
@@ -43,6 +44,11 @@ func run() -> void:
 			check(field.find_child("CampaignMapBorder", true, false) == null and not campaign.parchment.visible, "No frame encloses the battlefield")
 			check(field.get_global_rect().encloses(hud.identity.get_global_rect()) and field.get_global_rect().encloses(hud.footer.get_global_rect()), "Floating information fits inside terrain")
 			check(hud.context.text == "Level %d" % (level + 1) and hud.title.text == campaign.run.mission.name, "Level identity is complete")
+			for card in [hud.identity, hud.left_card, hud.right_card]:
+				check(field.get_global_rect().encloses(card.get_global_rect()), "Floating card stays within the battlefield")
+				check(card.mouse_filter == Control.MOUSE_FILTER_IGNORE, "Card surface passes gestures to terrain")
+				check(card.get_theme_stylebox("panel").border_width_left == UI.OUTLINE, "Floating cards use the shared ink border")
+			check(hud.left_card.get_global_rect().end.x + UI.CARD_GAP <= hud.right_card.global_position.x, "Corner cards leave open terrain between them")
 			var next_x := 0.0
 			for control in campaign.game_toolbar.get_children():
 				check(bounds.encloses(control.get_global_rect()) and control.size.x >= UI.TARGET and control.size.y >= UI.TARGET, "Every toolbar action fits and retains its touch target")
@@ -52,7 +58,7 @@ func run() -> void:
 					check(control.get_theme_stylebox(state).border_width_left == UI.OUTLINE, "Toolbar button borders remain uniform in every state")
 			for caption in [hud.context, hud.title, hud.left_value, hud.right_value, hud.detail]:
 				check(caption.mouse_filter == Control.MOUSE_FILTER_IGNORE, "Floating text passes gestures to terrain")
-			if level == 11 or viewport.x == 390:
+			if level in [3, 11] or viewport.x == 390:
 				await Harness.capture(app, "campaign-hud-%02d-%d" % [level + 1, viewport.x])
 			var bar_size: Vector2 = campaign.battle_bar.size
 			await Harness.tap(app, campaign.wave_button.get_global_rect().get_center(), true)
@@ -66,7 +72,8 @@ func run() -> void:
 			check(campaign.speed_button.text == "%d×" % int(campaign.speed), "Speed stays readable while paused")
 			await frame()
 			check(campaign.battle_bar.size == bar_size, "Toolbar height and width stay stable during combat")
-			if level == 11:
+			if level in [3, 11]:
+				check(hud.right_card.get_global_rect().encloses(hud.detail.get_global_rect()), "Remaining enemies share the wave card")
 				await Harness.capture(app, "campaign-hud-active-%d" % viewport.x)
 			await Harness.tap(app, campaign.find_child("CampaignWaves", true, false).get_global_rect().get_center(), true)
 			check(campaign.dialog.visible and campaign.waves_dialog, "Top Waves action opens details")
@@ -91,8 +98,37 @@ func run() -> void:
 			Input.parse_input_event(press)
 			await frame()
 			check(field.dragged and field.touches.is_empty(), "Touch drag crosses floating identity without interception")
+			if level == 11:
+				var checkpoint: Dictionary = campaign.run.checkpoint()
+				campaign.run = campaign.Run.from_checkpoint(checkpoint)
+				campaign.connect_run()
+				campaign.show_battle(true)
+				await frame()
+				check(campaign.paused and campaign.floating_hud.detail.visible and campaign.wave_button.disabled, "Restored wave retains paused playback and floating enemy count")
+				campaign._process(0.1)
+				check(campaign.run.wave_time == 0.0, "Restored wave waits without advancing")
+				await Harness.tap(app, campaign.pause_button.get_global_rect().get_center(), true)
+				campaign._process(0.1)
+				check(not campaign.paused and campaign.run.wave_time > 0.0, "Restored wave resumes through its top playback action")
 			await Harness.tap(app, campaign.game_toolbar.menu_button.get_global_rect().get_center(), true)
 			check(campaign.page == "map", "Top back action returns to the campaign map")
+		campaign.start_mission(3)
+		await frame()
+		var expanded_hud: Control = campaign.floating_hud
+		expanded_hud.title.text = "The Old Watch at the Forgotten Crossing"
+		expanded_hud.left_value.text = "999,999,999 gold"
+		expanded_hud.right_value.text = "Wave 100 / 100"
+		expanded_hud.detail.text = "999 enemies remaining"
+		expanded_hud.detail.show()
+		expanded_hud.notice.text = "Progress saved on this device."
+		expanded_hud.notice.show()
+		expanded_hud.fit()
+		await frame()
+		for card in [expanded_hud.identity, expanded_hud.left_card, expanded_hud.right_card, expanded_hud.notice_card]:
+			check(campaign.board.get_global_rect().encloses(card.get_global_rect()), "Long HUD content remains inside the phone")
+		check(not expanded_hud.left_card.get_global_rect().intersects(expanded_hud.right_card.get_global_rect()), "Large values do not overlap")
+		check(expanded_hud.identity.get_global_rect().encloses(expanded_hud.title.get_global_rect()), "Long title wraps inside its card")
+		await Harness.capture(app, "campaign-hud-long-%d" % viewport.x)
 	app.queue_free()
 	await process_frame
 	print("CAMPAIGN HUD: %d checks, %d failures" % [checks, failures])
