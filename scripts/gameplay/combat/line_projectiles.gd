@@ -10,7 +10,7 @@ static func launch(combat, tower: Dictionary, origin: Vector2, target: Dictionar
 	var volley := {}
 	var count := 1 if returning else int(stats.get("volley_count", 1))
 	for index in range(count):
-		var start := muzzle + normal * (index - (count - 1) / 2.0) * stats.get("volley_spacing", 20.0)
+		var start: Vector2 = muzzle + normal * (index - (count - 1) / 2.0) * stats.get("volley_spacing", 20.0)
 		var relative: Vector2 = start - origin
 		var b := relative.dot(direction)
 		var length := maxf(1.0, -b + sqrt(maxf(0.0, b * b + stats.range * stats.range - relative.length_squared())))

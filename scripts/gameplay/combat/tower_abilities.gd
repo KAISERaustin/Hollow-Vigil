@@ -8,10 +8,12 @@ static func branch_hit(combat: VigilCombat, shot: Dictionary, enemy: Dictionary)
 	# Each splash victim resolves its own conditions without changing the launch.
 	shot = shot.duplicate()
 	combat.Relics.impact(combat, shot, enemy)
+	combat.TowerComponents.before_hit(combat, shot, enemy)
 	var pierce: bool = shot.get("relic_pierce", false)
 	var branch: String = shot.get("branch", "")
 	if branch == "":
 		combat.hit(enemy, shot.damage, shot.tower_id, "", false, pierce)
+		combat.TowerComponents.after_hit(combat, shot, enemy)
 		return
 	var damage: float = shot.damage
 	# The launched branch can differ from the owner's current form (including
@@ -28,6 +30,7 @@ static func branch_hit(combat: VigilCombat, shot: Dictionary, enemy: Dictionary)
 		damage *= 1.0 + curse.stacks * ability.curse_multiplier
 		enemy.curse_stacks = curse.stacks
 	combat.hit(enemy, damage, shot.tower_id, branch, false, pierce)
+	combat.TowerComponents.after_hit(combat, shot, enemy)
 	if enemy.dead:
 		return
 	for entry in shot.get("ability_effects", []):

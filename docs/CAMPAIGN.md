@@ -1,6 +1,6 @@
 # The Last Procession
 
-The campaign is a separate tactical world with 20 authored missions. A procession carries the last sanctuary's ember through a ruined kingdom, relighting sanctuaries on its way to the eclipsed capital. Open **Campaign · The Last Procession** from Saved games, or **Settings → The Last Procession → Play** from a sandbox game.
+The campaign is a separate tactical world with 30 authored missions in six biome chapters. A procession carries the last sanctuary's ember through a ruined kingdom, beyond the eclipsed capital to Castle Ruin and Mourning Orchard. The world map fills the screen below fixed title/Back navigation, using native Infinite biome scenery, curved trails and shared black chapter dividers.
 
 ## Mission rules
 
@@ -11,7 +11,7 @@ The campaign is a separate tactical world with 20 authored missions. A processio
 - Win by clearing every enemy in every wave with core integrity remaining. A victory records the last beaten level and unlocks the next. Replaying a completed level does not advance progression again. There are no medals.
 - Pause and 2× speed operate independently of the sandbox. On phones, tap a socket to build or manage a tower; use +/− to zoom and drag to pan when zoomed in.
 
-## The twenty sanctuaries
+## The thirty sanctuaries
 
 | Level | Sanctuary | Placement problem |
 | --- | --- | --- |
@@ -35,8 +35,18 @@ The campaign is a separate tactical world with 20 authored missions. A processio
 | 18 | The Silent Court | Match specializations to three fronts |
 | 19 | Nightfall Bastion | Sustain a defense through six mixed waves |
 | 20 | The Last Vigil | Defeat the Eclipse Prior and relight the capital |
+| 21 | The Fallen Portcullis | Establish a defense along the inner wall |
+| 22 | Courtyard of Echoes | Cover both courtyard stairways |
+| 23 | Shattered Ramparts | Reach armored formations twice along the ramparts |
+| 24 | The Empty Throne | Reserve damage for the short eastern entrance |
+| 25 | The Ruined King | Break the king's stone body while holding his guards |
+| 26 | Pale Boughs | Meet the orchard's three native enemy types |
+| 27 | The Divided Wake | Cover two intertwined funeral roads |
+| 28 | Roots of Remembrance | Slow durable enemies around a long bend |
+| 29 | The Last Lanterns | Balance three approaches to the final grove |
+| 30 | The Mourning Matriarch | Focus the Matriarch while protecting the side entrance |
 
-Levels 1–5 are forest, 6–10 are Ashen Fortress, 11–15 are Drowned Crypts, and 16–20 are Eclipsed Capital. Regional enemy effects match their visual theme. The first campaign Warden uses 1,800 health, a 300-point shield and a 12-second regrowth timer to introduce boss counters; the sandbox Warden is unchanged.
+Levels 1–5 are Forest, 6–10 are Ashen Forge, 11–15 are Drowned Crypt, 16–20 are Bloodmoon Sanctuary, 21–25 are Castle Ruin, and 26–30 are Mourning Orchard. The first twenty levels keep their existing identities, roads, waves and rules. Their completed saves unlock level 21; legacy twenty-level builds remain readable and the new chapters use default rules for missing entries.
 
 ## Progress and interruption
 

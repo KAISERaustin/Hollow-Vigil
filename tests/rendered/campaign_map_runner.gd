@@ -88,6 +88,8 @@ func run() -> void:
 	check(survival_map.nodes[3].completed and survival_map.nodes[4].current and survival_map.nodes[5].disabled, "Cleared, current and locked progression remains intact")
 	campaign.close()
 	await frame()
+	app.show_game_menu()
+	app.slot_menu.game_type = "campaign"
 	app.slot_menu.campaign_slots.base_path = "user://biome-map-slot-" + str(Time.get_ticks_usec())
 	var saved: Dictionary = app.slot_menu.campaign_slots.create(0, "creative", "Test")
 	app.open_campaign_slot(0, saved)

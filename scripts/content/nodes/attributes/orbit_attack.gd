@@ -8,7 +8,7 @@ func attack(combat, tower: Dictionary, origin: Vector2, target: Dictionary, stat
 	var primary := true
 	for enemy in combat.nearby_enemies(origin, stats.range):
 		if enemy.dead: continue
-		var shot := combat.Projectiles.make_shot(combat, tower, origin, enemy, stats, primary)
+		var shot: Dictionary = combat.Projectiles.make_shot(combat, tower, origin, enemy, stats, primary)
 		shot.fx.pos = enemy.pos
 		shot.tower_effects = snapshot
 		combat.resolve_shot(shot, enemy)

@@ -101,6 +101,7 @@ try {
         }
         if ($StyleTests -or $Check) {
             Invoke-Godot -Name 'campaign-map' -EngineArguments @('--script', 'res://tests/rendered/campaign_map_runner.gd')
+            Invoke-Godot -Name 'campaign-map-menu' -EngineArguments @('--script', 'res://tests/rendered/campaign_map_menu_runner.gd')
             Invoke-Godot -Name 'campaign-hud' -EngineArguments @('--script', 'res://tests/rendered/campaign_hud_runner.gd')
             Invoke-Godot -Name 'parchment-corners' -EngineArguments @('--script', 'res://tests/rendered/parchment_corner_runner.gd')
             Invoke-Godot -Name 'wave-menu' -EngineArguments @('--script', 'res://tests/rendered/wave_menu_runner.gd')

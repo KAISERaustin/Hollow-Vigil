@@ -144,6 +144,9 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 		var statuses: Dictionary = enemy.get("gear_status", {})
 		for key in statuses.keys():
 			var status: Dictionary = statuses[key]
+			if status.has("tower_epoch") and not combat.TowerComponents.valid(combat, status.owner, status.tower_epoch):
+				statuses.erase(key)
+				continue
 			if status.has("ability"):
 				var tower: Dictionary = combat.data.towers.get(status.owner, {})
 				var ability := Balance.Content.ability(status.ability)

@@ -265,7 +265,7 @@ func show_export(source: VigilState = null, campaign: Dictionary = {}, return_to
 	message.hide()
 	add_back(UI.button("Back to game", export_return))
 	content.add_child(UI.rule())
-	content.add_child(UI.paragraph("Share all 20 levels: enemy groups, spawn timing, wave rewards and every edited stat. Include saved tower loadouts or share only campaign rules." if campaign.has("levels") else "Choose what to include. Towers + stats keeps the layout, equipment, resources and rules. Stats only shares the rules and stat changes for a fresh start.", 14))
+	content.add_child(UI.paragraph("Share every campaign level: enemy groups, spawn timing, wave rewards and every edited stat. Include saved tower loadouts or share only campaign rules." if campaign.has("levels") else "Choose what to include. Towers + stats keeps the layout, equipment, resources and rules. Stats only shares the rules and stat changes for a fresh start.", 14))
 	var includes := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
 	includes.name = "ShareConfigurationContents"
 	includes.menu_title = "Choose contents"

@@ -10,6 +10,7 @@ const Targeting = preload("res://scripts/gameplay/combat/targeting.gd")
 const Projectiles = preload("res://scripts/gameplay/combat/projectiles.gd")
 const TowerAbilities = preload("res://scripts/gameplay/combat/tower_abilities.gd")
 const EffectFields = preload("res://scripts/gameplay/combat/effect_fields.gd")
+const TowerComponents = preload("res://scripts/gameplay/combat/tower_components.gd")
 
 const Relics = preload("res://scripts/gameplay/progression/relics.gd")
 const Bosses = preload("res://scripts/gameplay/encounters/bosses.gd")
@@ -44,6 +45,12 @@ var indexed_enemy_count := -1
 var ticking := false
 # Authored missions own their spawn schedule; ordinary worlds keep rift timers.
 var scripted_spawns := false
+var authored_roads: Array = []
+var tower_overrides: Dictionary = {}
+var tower_component_state: Dictionary = {}
+var component_serial := 0
+var line_projectiles: Array[Dictionary] = []
+var traps: Array[Dictionary] = []
 
 func rebuild_enemy_index() -> void:
 	enemy_index.rebuild(enemies)
@@ -65,6 +72,7 @@ func _init(shared_data: Dictionary, transactions: VigilEconomy, shared_paths: Di
 	data = shared_data
 	economy = transactions
 	economy.relic_changed.connect(clear_relic_progress)
+	economy.tower_changed.connect(func(id): TowerComponents.clear(self, id))
 	paths = shared_paths
 	rng.randomize()
 
@@ -91,6 +99,7 @@ func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = ""
 		return false
 	# Mark dead synchronously before any credit, so splash and simultaneous shots are safe.
 	enemy.dead = true
+	TowerComponents.killed(self, enemy)
 	Relics.credited_kill(self, tower_id)
 	sound_requested.emit(Balance.Content.boss(enemy.kind).sound_cue("death") if enemy.get("boss", false) else Balance.Content.enemy(enemy.kind).rule("death_cue"), enemy.pos)
 	var is_boss: bool = enemy.get("boss", false)
@@ -175,6 +184,7 @@ func tick(delta: float) -> void:
 	simulation_time += delta
 	data.active_seconds += delta
 	tick_count += 1
+	TowerComponents.sync(self)
 	# Every rift advances on the same clock. Camera visibility only affects drawing.
 	for r in data.regions.values():
 		if scripted_spawns:
@@ -237,6 +247,7 @@ func tick(delta: float) -> void:
 			e.distance_remaining = -1.0
 	# Resolve arrivals at the same centers used by targeting and drawing.
 	EffectFields.advance(self, delta)
+	TowerComponents.advance(self, delta)
 	advance_shots(delta)
 	advance_fire(delta)
 	var live_targets := {}
@@ -268,22 +279,30 @@ func tick(delta: float) -> void:
 			continue
 		var stats := Balance.tower_stats(t, tuning, data.relics)
 		var pos := VigilWorld.pad_position(t.region, t.pad)
+		var attack := TowerComponents.attack_entry(self, t, stats)
+		if not attack.is_empty():
+			stats = attack.config
+			if not attack.component.ready(self, t, pos, stats): continue
 		var candidates := nearby_enemies(pos, stats.range)
 		var target: Dictionary = live_targets.get(target_locks.get(t.id, -1), {})
 		# Earlier towers can defeat a locked enemy during this same tick.
 		if target.is_empty() or target.dead or pos.distance_squared_to(target.pos) > stats.range * stats.range:
 			target = select_target(candidates, pos, stats.range, t.get("target_mode", "first"))
 		if target.is_empty():
-			continue
+			if attack.is_empty() or not attack.component.has_method("allows_empty_target") or not attack.component.allows_empty_target(): continue
+			target = {"id": -1, "pos": pos, "dead": false}
 		var voice: String = t.get("branch", "")
 		if voice.is_empty():
 			voice = t.kind
 		sound_requested.emit("shot_" + voice, pos)
-		if Balance.Content.locks_target(t.get("target_mode", "first")):
+		if target.id >= 0 and Balance.Content.locks_target(t.get("target_mode", "first")):
 			target_locks[t.id] = target.id
 		stats = Relics.prepare(self, t, target, stats)
 		t.cooldown = stats.period
 		t.angle = pos.angle_to_point(target.pos)
+		if not attack.is_empty():
+			attack.component.attack(self, t, pos, {} if target.id == -1 else target, stats)
+			continue
 		if t.kind == "electric":
 			# A new pulse replaces this tower's previous connections, even when
 			# developer tuning makes attacks faster than the lightning fade.
@@ -385,3 +404,26 @@ func advance_arrow(shot: Dictionary, delta: float, flying: Array[Dictionary]) ->
 
 func clear_relic_progress(id: String) -> void:
 	Relics.clear(self, id)
+	TowerComponents.clear(self, id)
+
+func set_tower_definition(id: String, definition) -> bool:
+	return TowerComponents.set_definition(self, id, definition)
+
+## Planning advances only preparable tower components, never enemies or income.
+func prepare_defenses(delta: float) -> void:
+	if not is_finite(delta) or delta <= 0.0: return
+	simulation_time += delta
+	TowerComponents.sync(self)
+	for tower in data.towers.values():
+		if tower.get("rebuild_remaining", 0.0) > 0.0: continue
+		var stats := Balance.tower_stats(tower, tuning, data.relics)
+		var entry := TowerComponents.attack_entry(self, tower, stats)
+		if entry.is_empty() or not entry.component.has_method("allows_empty_target"): continue
+		stats = entry.config
+		tower.cooldown = maxf(0.0, tower.cooldown - delta)
+		var origin := VigilWorld.pad_position(tower.region, tower.pad)
+		if tower.cooldown <= 0.000001 and entry.component.ready(self, tower, origin, stats):
+			stats = Relics.prepare(self, tower, {"id": -1}, stats)
+			entry.component.attack(self, tower, origin, {}, stats)
+			tower.cooldown = stats.period
+	preload("res://scripts/gameplay/combat/road_traps.gd").advance(self)

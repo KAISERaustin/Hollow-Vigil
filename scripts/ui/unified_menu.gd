@@ -45,7 +45,6 @@ func _ready() -> void:
 	root_layout.add_child(scroll)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	footer.reparent(root_layout, false)
-	footer.size_flags_vertical = Control.SIZE_SHRINK_END
 	if not app.load_saved_progress:
 		slots.base_path = app.game.save_path + ".unified"
 	campaign_slots.base_path = slots.base_path
@@ -420,9 +419,11 @@ func show_library() -> void:
 	paging.add_theme_constant_override("separation", UI.GAP)
 	footer.add_child(paging)
 	var previous := action("Previous", func(): library_page = maxi(0, library_page - 1); show_library(), "PreviousBuilds")
+	previous.autowrap_mode = TextServer.AUTOWRAP_OFF
 	previous.disabled = library_page == 0
 	paging.add_child(previous)
 	var next := action("Next", func(): library_page += 1; show_library(), "NextBuilds")
+	next.autowrap_mode = TextServer.AUTOWRAP_OFF
 	next.disabled = library_entries.size() < 20
 	paging.add_child(next)
 

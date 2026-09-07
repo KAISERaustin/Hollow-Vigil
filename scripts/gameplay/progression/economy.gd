@@ -4,6 +4,7 @@ extends RefCounted
 signal sound_requested(cue: String, position: Vector2)
 
 signal relic_changed(tower_id: String)
+signal tower_changed(tower_id: String)
 
 signal tower_upgraded(region: String, pad: int, kind: String)
 
@@ -93,6 +94,7 @@ func upgrade(id: String, expected_level: int = -1, branch: String = "") -> bool:
 	t.level += 1
 	if t.level == 4:
 		t.branch = branch
+	tower_changed.emit(id)
 	var upgrade_sound: String = Balance.Content.tower(t.kind).rule("upgrade_sound", "")
 	if upgrade_sound.is_empty():
 		upgrade_sound = "menu_upgrade" if branch == "" else "upgrade_" + branch

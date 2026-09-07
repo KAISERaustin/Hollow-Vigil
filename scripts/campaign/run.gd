@@ -41,6 +41,7 @@ func _init(index: int = 0, overrides: Dictionary = {}, game_mode: String = "surv
 				continue
 			game.data.regions[id] = VigilWorld.make_region(id, "0,0", game.data.seed)
 	game.combat.scripted_spawns = true
+	game.combat.authored_roads = mission.routes
 	game.combat.rng.seed = 91000 + index
 	game.combat.enemy_escaped.connect(_escaped)
 
@@ -63,6 +64,7 @@ func tick(delta: float) -> void:
 	if not is_finite(delta) or delta <= 0.0:
 		return
 	if phase != "wave":
+		if phase == "planning": game.combat.prepare_defenses(delta)
 		# Presentation may finish without advancing enemies, damage or rewards.
 		game.combat.advance_effects(delta)
 		_finish_when_effects_end()
@@ -90,6 +92,8 @@ func tick(delta: float) -> void:
 		game.data.balance += mission.wave_rules[wave - 1].reward
 		phase = "victory" if wave == mission.waves.size() else "planning"
 		game.combat.pending_shots.clear()
+		game.combat.line_projectiles.clear()
+		if phase == "victory": game.combat.TowerComponents.reset(game.combat)
 		game.combat.burning_ground.clear()
 		game.combat.effect_fields.clear()
 		game.combat.curses.clear()
@@ -135,6 +139,7 @@ func apply_configuration(overrides: Dictionary) -> bool:
 			game.data.balance = maxf(0.0, game.data.balance + next.gold - mission.gold)
 			health = int(next.flame)
 	mission = next
+	game.combat.authored_roads = mission.routes
 	rules = overrides.duplicate(true)
 	game.data.settings.developer_balance = (mission.wave_rules[wave].tuning if phase == "wave" else mission.tuning).duplicate(true)
 	changed.emit()

@@ -46,7 +46,7 @@ Campaign map top-right Menu / Infinite Menu → shared game menu
     └── Exit game → save → matching Game home
 
 Save build
-├── Campaign scope → Whole campaign / This level
+├── Campaign scope → Whole campaign / One level → explicit level picker
 ├── Contents → two checkboxes, both selected by default
 │   ├── Game rules and resources → all enemies, bosses, towers, gear, rifts, starting resources, and Campaign wave settings
 │   └── Layout and equipment → placed towers, upgrades, equipment, and all explored tiles [Infinite]
