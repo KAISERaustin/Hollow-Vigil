@@ -56,6 +56,11 @@ func run() -> void:
 	check(battle.spawned_counts[0] == 2, "Updated pending spawn runs on original wave clock")
 	check(battle.apply_configuration(changed) and battle.schedule.size() == 4, "Repeated save never duplicates prior spawns")
 	check(Run.new(0).mission.waves != battle.mission.waves and source.spawned_counts.is_empty(), "Definitions and other instances unchanged")
+	for kind in Balance.ENEMIES:
+		var roster_run := Run.new(0, {"waves": {"0": {"groups": [[kind, 1, 0, 0.0, 1.0]]}}}, "creative")
+		check(kind in Configuration.spawn_kinds() and roster_run.start_wave(), "Every registered enemy is available for campaign authoring")
+		roster_run.tick(0.1)
+		check(roster_run.game.combat.enemies.size() == 1 and roster_run.game.combat.enemies[0].kind == kind, "Authored enemy type reaches real gameplay")
 	var session := Session.new()
 	session.path = "user://campaign-session-test-%d.save" % Time.get_ticks_usec()
 	check(session.select_build("survival", code), "Selected campaign persists")

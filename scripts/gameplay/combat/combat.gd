@@ -141,7 +141,7 @@ func spawn(id: String, forced_kind: String = "", escort: bool = false) -> Dictio
 
 func spawn_on_path(kind: String, route: Array[Vector2], style: String = "forest") -> Dictionary:
 	var enemy_type := Balance.Content.enemy(kind)
-	if not scripted_spawns or enemy_type == null or not enemy_type.rule("scripted", false) or route.size() < 2:
+	if not scripted_spawns or enemy_type == null or not enemy_type.rule("authored_paths", false) or route.size() < 2:
 		return {}
 	return _create_enemy("0,0", kind, route, style)
 

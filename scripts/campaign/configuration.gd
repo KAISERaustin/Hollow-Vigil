@@ -132,7 +132,7 @@ static func _number(value: Variant, minimum: float = 0.0, maximum: float = Balan
 static func spawn_kinds() -> Array[String]:
 	var result: Array[String] = []
 	for kind in Balance.ENEMIES:
-		if Balance.Content.enemy(kind).rule("scripted", false): result.append(kind)
+		if Balance.Content.enemy(kind).rule("authored_paths", false): result.append(kind)
 	for kind in Balance.BOSSES: result.append(kind)
 	return result
 
