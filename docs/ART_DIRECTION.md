@@ -2,10 +2,10 @@
 
 Current direction: extremely simple flat drawings with solid black outlines. No painted textures, lighting, gradients, noise or decorative particles. Active artwork is native Godot drawing code; no image generation is needed for these elementary shapes.
 
-Opening-page exception requested September 6, 2026: the tan background uses
+UI texture direction, extended September 7, 2026: tan UI backgrounds use
 `assets/ui/welcome-parchment.png`, generated paper with quiet fibers and mottling.
-It is composed beneath the opening card only; game artwork remains flat and
-the other menus retain their solid parchment surfaces. Title lettering uses
+The shared style applies it to menus, cards, buttons, fields and chrome, with
+yellow/red parchment variants for semantic actions; world artwork remains flat. Title lettering uses
 warm ink and a small ochre offset; motto and footer use the bundled serif.
 The asset and generation prompt are documented in `assets/ui/WELCOME_ART.md`.
 
@@ -27,7 +27,7 @@ in `assets/bosses/` are reference history and are not loaded by the renderer.
 - Terrain: borderless tiles under one shared black world grid. Grid cells match Balance.TILE (300 units); centered lines are 6 world units wide and extend through unowned territory. Draw the grid above all terrain and road crossings, below battlefield objects and controls. Only visible rows and columns are drawn. Roads share their existing route geometry and meet at each edge center.
 - Scenery: at most three tiny outlined symbols per tile. Reserve roads, sockets, and full tower silhouettes.
 - Towers: pointed tower, flame bowl, obelisk. Enemies: circle, small ghost, block shape; each has two eyes.
-- UI: follow [UI_STYLE_GUIDE.md](UI_STYLE_GUIDE.md). Parchment panels (#e8ddbd), inset surfaces (#dfd0ab), black text, 4-unit structural outlines, 2-unit content outlines, and 0/4-unit corners. Noto Serif semibold titles accompany Noto Sans functional text and bold numbers. Group HUD statistics with whitespace. Ochre marks primary actions and selected tabs; coral marks destructive confirmations. Panels keep close controls and confirmations outside scrolling content. Tower-dialog portraits reuse the actual game artwork. Settings offer text enlargement and reduced motion. Tower actions use 48 map units at baseline zoom and scale with their tower, preserving map-space offsets even at screen edges. Desktop layout reflows with window size; mobile applies display-density scaling and safe areas.
+- UI: follow [UI_STYLE_GUIDE.md](UI_STYLE_GUIDE.md) Version 2, **Parchment cards**, and its saved Waves reference for all future UI. Every UI enclosure and divider uses the same thin black 1-unit border (`VigilInterface.OUTLINE`), with 0/4-unit corners. Use shared parchment panels (#e8ddbd), inset surfaces (#dfd0ab), clean cards with bold values above labels, and native portraits beside identity information when applicable. Use 12-unit card padding, 8-unit inset padding and cell gaps, and 12-unit section/action gaps. Noto Sans carries functional text and compact titles; Noto Serif is reserved for large titles. Ochre marks primary actions and selected tabs; coral marks destructive confirmations. Preserve fixed navigation, scrolling, touch targets, density scaling and safe areas. World artwork outlines retain their established weights.
 - Footer: Unclaimed earnings and Collect all sit above Spendable gold, Gold per second and Lifetime kills. Collection feedback is an ochre outlined badge centered over the visible Unclaimed earnings caption, using its measured text width rather than its container width; it rises 36 pixels over 0.95 seconds and fades after a brief hold.
 
 The artwork implementation lives in scripts/rendering/terrain/terrain_art.gd, scripts/rendering/terrain/terrain_tile.gd, scripts/rendering/terrain/terrain_grid.gd and scripts/rendering/battlefield.gd. The shared UI theme is scripts/ui/shared/interface.gd; bundled fonts and licenses are in assets/fonts. The app icon uses the separately approved purple woodland and mint gateway illustration documented in docs/APP_ICON.md. Current UI captures are artifacts/style-*.png, regenerated with `./launch.ps1 -StyleTests`.

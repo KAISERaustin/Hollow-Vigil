@@ -1,8 +1,31 @@
 extends SceneTree
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
+const ParchmentStyle = preload("res://scripts/ui/shared/parchment_style.gd")
 var app: VigilApp
 var failures: Array[String] = []
+
+func check_borders(screen: String) -> void:
+	# Inspect instantiated controls, including local overrides that can bypass
+	# the shared token and silently restore mixed border weights on one screen.
+	for control: Control in app.find_children("*", "Control", true, false):
+		if not control.is_visible_in_tree(): continue
+		var roles: Array[String] = []
+		if control is PanelContainer: roles = ["panel"]
+		elif control is Button: roles = ["normal", "hover", "pressed", "disabled"]
+		elif control is Separator: roles = ["separator"]
+		elif control is Label and control.has_theme_stylebox_override("normal"): roles = ["normal"]
+		for role in roles:
+			var style := control.get_theme_stylebox(role)
+			var context := "%s: %s/%s" % [screen, control.name, role]
+			if style is StyleBoxLine:
+				if style.thickness != 1 or style.color != Color.BLACK:
+					failures.append(context + ": divider must be one unit of black ink")
+			elif style is StyleBoxFlat or style is ParchmentStyle:
+				for side in ["left", "top", "right", "bottom"]:
+					var width: int = style.get("border_width_" + side)
+					if width != 0 and (width != 1 or style.border_color != Color.BLACK):
+						failures.append(context + ": " + side + " border must be one unit of black ink")
 
 func _initialize() -> void:
 	preload("res://tests/support/timeout.gd").arm(self, 180)
@@ -73,6 +96,7 @@ func run() -> void:
 				app.update_hud()
 				await settle()
 				var label := "%s-%d-%d" % [screen, viewport.x, roundi(factor * 100)]
+				check_borders(label)
 				var bounds := Rect2(Vector2.ZERO, Vector2(viewport))
 				if screen == "upgrade":
 					var quote := app.tower_actions.upgrade_quote
