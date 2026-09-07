@@ -149,7 +149,7 @@ func show_slots() -> void:
 		var buttons: Array[Button] = []
 		if value.is_empty():
 			title = "Recovery needed" if exists else "Empty slot"
-			description = "Your game is preserved." if exists else "Start a new Creative or Survival game."
+			description = "Your game is preserved." if exists else ""
 			if exists:
 				buttons.append(action("Backups & recovery", func(): show_backups(show_slots), "RecoverGameSlot" + str(slot + 1)))
 			else:
