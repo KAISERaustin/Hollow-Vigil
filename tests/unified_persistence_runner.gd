@@ -78,6 +78,7 @@ func run() -> void:
 	fixtures.store_string(JSON.stringify({"campaign": cloud_campaign, "infinite": game.data, "build": code}))
 	fixtures.close()
 	test_content_extension()
+	test_grouped_contents()
 	test_combinations()
 	test_wave_and_equipment()
 	var corrupted := FileAccess.open(slots.path_for(2), FileAccess.WRITE)
@@ -99,11 +100,35 @@ func test_content_extension() -> void:
 		check(registry.register_node(node, category, "fixture"), "One registration extends " + category)
 		var group: VigilContentNode = registry.find("build_contents", category)
 		check("fixture" in group.types(), "New registered type appears in " + category + " checklist without menu changes")
+		check("fixture" in Build.all_contents("infinite", "rules")[category], "Rules option automatically includes new registered " + category)
 		var value := Build.capture("infinite", VigilState.new(), {}, "all", -1, {category: ["fixture"]}, "Extension fixture", "")
 		check(not value.is_empty() and not Build.decode(Build.encode(value)).is_empty(), "New type captures and round trips through " + category)
 		if not value.is_empty(): check(value.data.stats[category].keys() == ["fixture"], "New type selection excludes parent and siblings")
 	Balance.Content._shared = original
 	check(not Build.all_contents("infinite").enemies.has("fixture"), "Fixture registration leaves unrelated catalog unchanged")
+
+func test_grouped_contents() -> void:
+	var partial := {"enemies": ["basic"]}
+	var grouped := Build.grouped_contents("infinite", partial)
+	check(partial == {"enemies": ["basic"]}, "Grouping an older build does not mutate its saved selection")
+	check(grouped == Build.all_contents("infinite", "rules"), "Reopening a partial rules build selects all rules and resources")
+	check(Build.grouped_contents("infinite", {"layout": true}) == {"layout": true, "terrain": true}, "Older layouts select explored tiles with equipment")
+	check(Build.grouped_contents("infinite", {"terrain": true}) == {"layout": true, "terrain": true}, "Older terrain builds select layout and equipment together")
+	check(Build.grouped_contents("campaign", {"timing": true}) == Build.all_contents("campaign", "rules"), "Campaign wave options join the complete rules group")
+	check(Build.grouped_contents("campaign", {"layout": true}) == {"layout": true}, "Campaign layout does not acquire Infinite terrain")
+	var game := VigilState.new(845, "creative")
+	var before := game.data.duplicate(true)
+	for type in ["infinite", "campaign"]:
+		for option in ["rules", "layout", ""]:
+			var selected := Build.all_contents(type, option)
+			var captured := Build.capture(type, game, {}, "level" if type == "campaign" else "all", 0, selected, "Grouped build", "")
+			check(not captured.is_empty(), "Grouped " + type + " build captures " + option)
+			if captured.is_empty(): continue
+			var decoded := Build.decode(Build.encode(captured))
+			check(not decoded.is_empty() and decoded.contents == selected, "Grouped " + type + " selection survives saving " + option)
+			var composed := Build.compose_campaign(decoded, {}) if type == "campaign" else Build.infinite_snapshot(decoded, {}, "survival")
+			check(composed.ok, "Grouped " + type + " build starts a fresh game " + option)
+	check(game.data == before, "Capturing either group leaves the active session unchanged")
 
 func test_combinations() -> void:
 	var source := VigilState.new(73, "creative")

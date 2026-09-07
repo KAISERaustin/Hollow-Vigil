@@ -11,11 +11,24 @@ const STAT_GROUPS := ["enemies", "bosses", "towers", "gear", "rifts"]
 static func groups(game_type: String) -> Array:
 	return Balance.Content.catalog().children("build_contents").filter(func(node): return node.rule("game_type") in ["both", game_type])
 
-static func all_contents(game_type: String) -> Dictionary:
+static func all_contents(game_type: String, option: String = "") -> Dictionary:
 	var selected := {}
 	for group in groups(game_type):
+		if not option.is_empty() and group.rule("selection_group") != option: continue
 		var key: String = group.id.get_slice("/", 1)
 		selected[key] = group.types() if key in STAT_GROUPS else true
+	return selected
+
+static func grouped_contents(game_type: String, contents: Dictionary) -> Dictionary:
+	# Older partial builds remain readable; reopening the form selects whole groups.
+	var selected := {}
+	for option in GROUPS.OPTIONS:
+		var members := all_contents(game_type, option)
+		for key in members:
+			var value: Variant = contents.get(key, false)
+			if (value is Array and not value.is_empty()) or (value is bool and value):
+				selected.merge(members)
+				break
 	return selected
 
 static func selected_stats(tuning: Dictionary, contents: Dictionary) -> Dictionary:

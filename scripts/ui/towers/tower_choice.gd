@@ -57,9 +57,10 @@ static func details(kind: String, tuning: Dictionary, tier: int = 1, branch: Str
 	level.name = "TowerLevel"
 	level.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(level)
-	var base := UI.label("Before equipment" if effective.is_empty() else "Equipped stats", 12, UI.MUTED)
-	base.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	header.add_child(base)
+	if not effective.is_empty():
+		var base := UI.label("Equipped stats", 12, UI.MUTED)
+		base.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		header.add_child(base)
 	var description := UI.paragraph(Balance.tower_description(stats), 14)
 	description.name = "TowerDescription"
 	description.add_theme_constant_override("line_spacing", 0)

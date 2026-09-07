@@ -416,10 +416,7 @@ func show_briefing(index: int) -> void:
 	clear_page("briefing")
 	run = configured_run(index)
 	header("%02d · %s" % [index+1, run.mission.name], show_map)
-	layout.add_child(UI.paragraph(Catalog.CHAPTERS[int(index / 5.0)].story, 14))
 	add_board(false)
-	if not run.mission.brief.is_empty():
-		layout.add_child(UI.paragraph(run.mission.brief, 15))
 	var stats := HBoxContainer.new()
 	stats.name = "CampaignLevelStats"
 	stats.add_theme_constant_override("separation", 8)
@@ -504,22 +501,46 @@ func show_battle(start_paused: bool = false) -> void:
 	, func():
 		speed = game_toolbar.next_speed(speed)
 		update_time_controls()
-	, show_map, "%02d · %s" % [run.mission.index + 1, run.mission.name], "Back to campaign map")
+	, show_map, "", "Back to campaign map")
 	pause_button = game_toolbar.pause_button
 	speed_button = game_toolbar.speed_button
 	update_time_controls()
+	var identity := HBoxContainer.new()
+	identity.name = "CampaignIdentity"
+	identity.add_theme_constant_override("separation", UI.CARD_GAP)
+	layout.add_child(identity)
+	var level_card := UI.stat_card("Level", "%02d" % (run.mission.index + 1), 18)
+	level_card.name = "CampaignLevelCard"
+	level_card.custom_minimum_size.x = 64
+	level_card.size_flags_horizontal = Control.SIZE_FILL
+	identity.add_child(level_card)
+	var title := UI.heading(run.mission.name, UI.OBJECT_TITLE)
+	title.name = "CampaignTitle"
+	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var title_card := UI.info_card(title, UI.PANEL, UI.CARD_PADDING)
+	title_card.name = "CampaignTitleCard"
+	identity.add_child(title_card)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
+	row.add_theme_constant_override("separation", UI.CARD_GAP)
 	layout.add_child(row)
-	gold = UI.value("", 21)
+	gold = UI.value("", 18)
+	gold.name = "CampaignGold"
 	gold.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	gold.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(gold)
-	status = UI.value("", 21)
+	gold.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var gold_card := UI.info_card(gold)
+	gold_card.name = "CampaignGoldCard"
+	gold_card.custom_minimum_size.y = UI.TARGET
+	row.add_child(gold_card)
+	status = UI.value("", 18)
 	status.name = "CampaignStatus"
 	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	status.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(status)
+	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var wave_card := UI.info_card(status)
+	wave_card.name = "CampaignWaveCard"
+	wave_card.custom_minimum_size.y = UI.TARGET
+	row.add_child(wave_card)
 	add_board(true)
 	build_tower_ui()
 	var controls := HBoxContainer.new()

@@ -70,7 +70,7 @@ func run() -> void:
 		check(Rect2(Vector2.ZERO,Vector2(viewport)).encloses(start.get_global_rect()), "Start wave fits " + str(viewport))
 		check(campaign.status.text == "Wave 1 / 3", "Opening header shows only the wave count")
 		check(is_equal_approx(campaign.status.get_global_rect().get_center().y, campaign.gold.get_global_rect().get_center().y), "Wave count aligns with gold " + str(viewport))
-		check(is_equal_approx(campaign.status.get_global_rect().end.x, campaign.board.get_global_rect().end.x), "Wave count anchors to the right edge " + str(viewport))
+		check(is_equal_approx(campaign.status.get_global_rect().end.x + VigilInterface.INSET_PADDING, campaign.board.get_global_rect().end.x), "Wave count keeps the shared inset inside its right-hand card " + str(viewport))
 		check(campaign.status.get_theme_font_size("font_size") == campaign.gold.get_theme_font_size("font_size"), "Wave count matches the larger gold text")
 		var socket: Dictionary = campaign.run.mission.sockets[1]
 		await tap(campaign.board.global_position + campaign.board.screen(socket.position))

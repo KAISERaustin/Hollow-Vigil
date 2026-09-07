@@ -47,14 +47,10 @@ Infinite Menu / shared game menu
 
 Save build
 ├── Campaign scope → Whole campaign / This level
-├── Contents → Select all; independent categories; expandable individual types
-│   ├── Enemies / Bosses / Towers / Gear / Rifts
-│   ├── Starting resources
-│   ├── Tower layout and equipment
-│   ├── Explored tiles [Infinite]
-│   └── Wave timing and counts / Enemy types and entrances / Wave rewards [Campaign]
+├── Contents → two checkboxes, both selected by default
+│   ├── Game rules and resources → all enemies, bosses, towers, gear, rifts, starting resources, and Campaign wave settings
+│   └── Layout and equipment → placed towers, upgrades, equipment, and all explored tiles [Infinite]
 ├── Name / Description
-├── Included contents, companion-content explanation, omitted defaults
 ├── Save privately
 └── Share to Community → private copy + explicit publication attempt
     ├── Account when needed → return with prepared form intact

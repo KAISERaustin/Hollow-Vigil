@@ -4,6 +4,7 @@ const Build = preload("res://scripts/persistence/reusable_build.gd")
 const CampaignSlots = preload("res://scripts/persistence/campaign_slots.gd")
 const CheckList = preload("res://scripts/ui/shared/contents_checklist.gd")
 const Confirm = preload("res://scripts/ui/shared/confirmation_popup.gd")
+const SavedGameCard = preload("res://scripts/ui/shared/saved_game_card.gd")
 var campaign_slots := CampaignSlots.new()
 var game_type := "infinite"
 var screen := "main"
@@ -136,23 +137,45 @@ func show_slots() -> void:
 	for slot in 3:
 		var value := slot_summary(slot)
 		var exists := slot_occupied(slot)
-		var body := add_card("Slot %d" % (slot + 1))
-		body.name = "GameSlot" + str(slot + 1)
+		var title := game_name(value, slot)
+		var mode := ""
+		var description := str(value.get("setup", {}).get("description", ""))
+		var stats: Array = []
+		var buttons: Array[Button] = []
 		if value.is_empty():
-			body.add_child(UI.paragraph("Recovery needed. Your game is preserved." if exists else "Empty slot"))
+			title = "Recovery needed" if exists else "Empty slot"
+			description = "Your game is preserved." if exists else "Start a new Creative or Survival game."
 			if exists:
-				body.add_child(action("Backups & recovery", func(): show_backups(show_slots), "RecoverGameSlot" + str(slot + 1)))
+				buttons.append(action("Backups & recovery", func(): show_backups(show_slots), "RecoverGameSlot" + str(slot + 1)))
 			else:
-				body.add_child(action("New game", begin_new.bind(slot), "NewGameSlot" + str(slot + 1)))
+				buttons.append(action("New game", begin_new.bind(slot), "NewGameSlot" + str(slot + 1)))
 		else:
-			body.add_child(UI.heading(game_name(value, slot), 18))
-			body.add_child(UI.paragraph(str(value.get("mode", "creative")).capitalize() + "\n" + progress_text(value)))
-			body.add_child(UI.paragraph(backup_status(game_type, slot)))
-			body.add_child(action("Continue game", continue_game.bind(slot), "ContinueGameSlot" + str(slot + 1), true))
+			mode = str(value.get("mode", "creative")).capitalize()
+			stats = slot_progress(value)
+			buttons.append(action("Continue game", continue_game.bind(slot), "ContinueGameSlot" + str(slot + 1), true))
 		if exists:
 			var remove := UI.accent_button("Delete", confirm_slot_deletion.bind(game_type, slot), UI.DANGER)
 			remove.name = "DeleteGameSlot" + str(slot + 1)
-			body.add_child(remove)
+			buttons.append(remove)
+		content.add_child(SavedGameCard.card(slot, title, mode, description, stats, buttons))
+
+func slot_progress(value: Dictionary) -> Array:
+	if game_type != "campaign":
+		return [
+			{"key": "ExploredTiles", "label": "Explored tiles", "value": str(value.get("regions", {}).size())},
+			{"key": "PlacedTowers", "label": "Towers", "value": str(value.get("towers", {}).size())},
+		]
+	var completed := int(value.get("completed", 0))
+	var checkpoint: Dictionary = value.get("checkpoint", {})
+	var current := {"key": "CurrentLevel", "label": "Current level", "value": "—",
+		"detail": "Campaign complete" if completed == Build.Configuration.Catalog.COUNT else "Choose a level"}
+	if not checkpoint.is_empty() and checkpoint.phase != "victory":
+		current.value = str(int(checkpoint.level) + 1)
+		current.detail = "Start of wave %d" % (int(checkpoint.wave) + 1)
+	return [
+		{"key": "CompletedLevels", "label": "Levels completed", "value": "%d / %d" % [completed, Build.Configuration.Catalog.COUNT]},
+		current,
+	]
 
 func leave_saved_games() -> void:
 	if not release_session(): return
@@ -590,32 +613,8 @@ func show_build_form() -> void:
 	checklist.game_type = form.game_type
 	checklist.selection = form.contents.duplicate(true)
 	content.add_child(checklist)
-	var summary := VBoxContainer.new()
-	summary.add_theme_constant_override("separation", 12)
-	summary.name = "IncludedContentsSummary"
-	var update_summary := func():
-		form.contents = checklist.selection.duplicate(true)
-		var preview := {"game_type": form.game_type, "contents": form.contents}
-		for child in summary.get_children():
-			summary.remove_child(child)
-			child.queue_free()
-		for group in Build.groups(form.game_type):
-			var key: String = group.id.get_slice("/", 1)
-			var selected: Variant = form.contents.get(key, false)
-			if selected is Array and selected.is_empty(): continue
-			if selected is bool and not selected: continue
-			var section := VBoxContainer.new()
-			section.add_theme_constant_override("separation", 4)
-			section.add_child(UI.heading(group.attribute("name"), 18))
-			if selected is Array:
-				var names: PackedStringArray = []
-				for kind in selected: names.append(Balance.definitions(key)[kind].name)
-				section.add_child(UI.paragraph(", ".join(names)))
-			summary.add_child(section)
-		var notes: String = Build.dependencies(preview)
-		if not notes.is_empty(): summary.add_child(UI.paragraph(notes))
-		summary.add_child(UI.paragraph("Omitted contents use original defaults."))
-	checklist.changed.connect(update_summary)
+	form.contents = checklist.selection.duplicate(true)
+	checklist.changed.connect(func(): form.contents = checklist.selection.duplicate(true))
 	var title := LineEdit.new()
 	title.name = "BuildName"
 	title.max_length = 80
@@ -632,9 +631,6 @@ func show_build_form() -> void:
 	style_entry(description)
 	description.text_changed.connect(func(): form.description = description.text.left(4000))
 	content.add_child(UI.form_field("Description (optional)", description))
-	content.add_child(UI.heading("Included contents", 18))
-	content.add_child(summary)
-	update_summary.call()
 	footer.add_child(action("Save privately", submit_build.bind(false), "SavePrivately", true))
 	footer.add_child(action("Share to Community", submit_build.bind(true), "ShareToCommunity"))
 	if not pending_publish.is_empty(): footer.add_child(action("Retry", retry_share, "RetryShare"))
@@ -642,7 +638,7 @@ func show_build_form() -> void:
 
 func submit_build(publish: bool) -> void:
 	if str(form.name).strip_edges().is_empty(): notice("Name this build before saving."); return
-	if form.contents.is_empty(): notice("Choose at least one content group or type."); return
+	if form.contents.is_empty(): notice("Choose at least one content option."); return
 	var build := prepared_form()
 	if build.is_empty(): notice("These contents could not be saved. Check the selected contents and try again."); return
 	var compatible_content := Build.compose_campaign(build, {}) if build.game_type == "campaign" else Build.infinite_snapshot(build, {}, "creative")

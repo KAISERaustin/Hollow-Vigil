@@ -31,17 +31,13 @@ func choose(key: String, index: int) -> void:
 	await press(key)
 	var picker: Button = menu.find_child(key, true, false)
 	if picker == null: return
-	var popup := picker.get_popup()
+	var popup: PopupPanel = picker.get_popup()
 	check(popup.visible, "Touch opens dropdown: " + key)
 	if not popup.visible: return
 	var chosen := [-1]
 	picker.item_selected.connect(func(value: int): chosen[0] = value)
-	var style := popup.get_theme_stylebox("panel")
-	# Long lists are viewport-bounded; their rows retain their full touch height.
-	var item_height := ceili(popup.get_theme_font("font").get_height(popup.get_theme_font_size("font_size"))) + popup.get_theme_constant("v_separation")
-	var point := Vector2(popup.position) + Vector2(popup.size.x * 0.5, style.content_margin_top + item_height * (index + 0.5))
-	await Touch.tap(app, point, true)
-	await frames()
+	# Illustrated pickers expose real, scrollable selection buttons.
+	await press("Choice_" + str(index))
 	check(chosen[0] == index and (not is_instance_valid(popup) or not popup.visible), "Touch selects dropdown item: " + key)
 
 func capture(key: String) -> void:
