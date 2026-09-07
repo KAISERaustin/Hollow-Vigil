@@ -7,7 +7,7 @@ const MapArt = preload("res://scripts/ui/shared/biome_map_art.gd")
 const Marker = preload("res://scripts/campaign/level_marker.gd")
 const Content = preload("res://scripts/content/registry.gd")
 const CHAPTER_HEIGHT := 960.0
-const FIRST_LEVEL_Y := 158.0
+const FIRST_LEVEL_Y := 176.0
 const LEVEL_SPACING := 164.0
 const CHAPTER_NUMERALS := ["I", "II", "III", "IV", "V", "VI"]
 signal level_picked(index: int)
@@ -38,6 +38,8 @@ func _ready() -> void:
 		button.number = index + 1
 		button.completed = index < progress.data.completed_levels
 		button.current = not progress.allow_all and progress.unlocked(index) and index == int(progress.data.completed_levels)
+		button.landscape_profile = chapter_presentation(int(index/5.0))
+		if index%5<4: button.landmark_kind = button.landscape_profile.get("landmarks",[])[index%5]
 		if index % 5 == 4:
 			button.gate = Catalog.CHAPTERS[int(index / 5.0)].get("gate_art")
 			button.gate_style = Catalog.CHAPTERS[int(index / 5.0)].style
@@ -80,11 +82,11 @@ func arrange() -> void:
 		headings[chapter].size = Vector2(size.x - UI.PADDING * 2 - 28, 110)
 	for index in range(nodes.size()):
 		var boss := index % 5 == 4
-		nodes[index].size = Vector2(80,120) if boss else Vector2(54,54)
+		nodes[index].size = Vector2(80,120) if boss else Vector2(88,106)
 		nodes[index].position = point(index) - nodes[index].size * 0.5
 		var right := point(index).x < size.x * 0.5
-		var start := point(index).x + 36 if right else float(UI.PADDING)
-		var width := size.x - start - UI.PADDING if right else point(index).x - UI.PADDING - (52 if boss else 36)
+		var start := point(index).x + 50 if right else float(UI.PADDING)
+		var width := size.x - start - UI.PADDING if right else point(index).x - UI.PADDING - 50
 		labels[index].position = Vector2(start, point(index).y - 22)
 		labels[index].size = Vector2(width, 58)
 		for label: Label in labels[index].get_children():
@@ -108,7 +110,11 @@ func chapter_reserved(chapter: int) -> Array[Rect2]:
 	var reserved: Array[Rect2] = [headings[chapter].get_rect()]
 	for index in range(chapter*5,chapter*5+5):
 		reserved.append(nodes[index].get_rect().grow(4))
-		reserved.append(labels[index].get_rect())
+		for label: Label in labels[index].get_children():
+			var text_width := label.get_theme_font("font").get_string_size(label.text,HORIZONTAL_ALIGNMENT_LEFT,-1,label.get_theme_font_size("font_size")).x
+			var rect := Rect2(labels[index].position+label.position,Vector2(minf(text_width,label.size.x),label.size.y))
+			if label.horizontal_alignment==HORIZONTAL_ALIGNMENT_RIGHT: rect.position.x+=label.size.x-rect.size.x
+			reserved.append(rect)
 	return reserved
 
 func chapter_roads(chapter: int) -> Array[PackedVector2Array]:

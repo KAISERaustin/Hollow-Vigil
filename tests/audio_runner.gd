@@ -174,6 +174,9 @@ func run() -> void:
 			g.combat.pending_shots.clear()
 			var enemy := g.combat.spawn("-1,0", "basic")
 			enemy.pos = VigilWorld.pad_position("0,0", 0)
+			enemy.stun_until = 100000.0
+			g.combat.scripted_spawns = true
+			g.combat.authored_roads = [[enemy.pos, enemy.pos + Vector2(200, 0)]]
 			enemy.hp = 100000.0
 			enemy.max_hp = enemy.hp
 			t.cooldown = 0.0
@@ -185,6 +188,8 @@ func run() -> void:
 			g.combat.tick(Balance.STEP)
 			check(events.has("shot_" + branch), "Weapon emits its own cue: " + branch)
 			g.combat.advance_shots(1.0)
+			g.combat.simulation_time += 2.0
+			g.combat.TowerComponents.advance(g.combat, 2.0)
 			if kind != "electric":
 				check(events.has("impact_" + branch), "Projectile impact: " + branch)
 			if branch == "cinderfield":

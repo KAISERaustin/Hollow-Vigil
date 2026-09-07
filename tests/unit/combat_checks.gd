@@ -43,7 +43,7 @@ static func test_equal_hp_focus(suite: SceneTree) -> void:
 					"%s keeps equal-HP enemy %d as primary target on attack %d" % [kind, index, attack])
 				# Resolve actual projectile impacts before the next attack. Extra
 				# damage makes the locked enemy less healthy even for area attacks.
-				g.combat.advance_shots(1.0)
+				finish_flights(g)
 				g.combat.hit(expected, 100.0, id)
 			g.combat.hit(expected, expected.hp + 1.0, id)
 			suite.check(expected.dead, "%s finishes the focused enemy before selecting the next" % kind)

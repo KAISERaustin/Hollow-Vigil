@@ -7,6 +7,8 @@ var completed := false
 var current := false
 var gate: Texture2D
 var gate_style := ""
+var landmark_kind := ""
+var landscape_profile: Dictionary = {}
 
 func is_gate() -> bool:
 	return gate != null or not gate_style.is_empty()
@@ -32,13 +34,14 @@ func _draw() -> void:
 	if completed:
 		if active:
 			draw_style_box(UI.surface(Color(0,0,0,0), UI.OUTLINE, 4), Rect2(Vector2.ZERO, size))
-		ClearedArt.draw(self, offset, is_gate())
+		var rubble_offset := Vector2.ZERO if is_gate() else (size-Vector2(54,54))*0.5
+		ClearedArt.draw(self, offset+rubble_offset, is_gate())
 		if is_gate():
 			var plaque := Rect2(size.x * 0.5 - 18, size.y - 21, 36, 22)
 			draw_style_box(UI.surface(paper, UI.OUTLINE, 2), plaque)
 			draw_string(UI.font(600), plaque.position + Vector2(6, 16), str(number), HORIZONTAL_ALIGNMENT_CENTER, 24, 14, UI.TEXT)
 		else:
-			draw_string(UI.font(600), Vector2(9,40)+offset, str(number), HORIZONTAL_ALIGNMENT_CENTER, 26, 16, UI.TEXT)
+			draw_string(UI.font(600), Vector2(9,40)+offset+rubble_offset, str(number), HORIZONTAL_ALIGNMENT_CENTER, 26, 16, UI.TEXT)
 		return
 	if is_gate():
 		if not gate_style.is_empty():
@@ -52,6 +55,12 @@ func _draw() -> void:
 		var plaque := Rect2(size.x * 0.5 - 18, size.y - 21, 36, 22)
 		draw_style_box(UI.surface(paper, UI.OUTLINE, 2), plaque)
 		draw_string(UI.font(600), plaque.position + Vector2(6, 16), str(number), HORIZONTAL_ALIGNMENT_CENTER, 24, 14, UI.TEXT)
+		return
+	if not landmark_kind.is_empty():
+		preload("res://scripts/rendering/terrain/map_landmark_art.gd").draw(self,landmark_kind,Rect2(offset,Vector2(size.x,size.x*0.9)),landscape_profile)
+		var plaque := Rect2(size.x*0.5-19,size.y-29,38,26)
+		draw_style_box(UI.surface(paper,UI.OUTLINE,4),plaque)
+		draw_string(UI.font(600),plaque.position+Vector2(4,19),str(number),HORIZONTAL_ALIGNMENT_CENTER,30,17,UI.TEXT)
 		return
 	var outline := PackedVector2Array([Vector2(8,8), Vector2(16,2), Vector2(39,2), Vector2(47,10), Vector2(45,47), Vector2(9,47), Vector2(6,38), Vector2(8,8)])
 	for i in range(outline.size()): outline[i] += offset

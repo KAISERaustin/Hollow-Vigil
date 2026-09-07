@@ -972,7 +972,6 @@ func show_level_balance(index: int, wave_index: int = -1) -> void:
 	if run != null and run.mission.index == index and page == "battle" and run.editable(): editor.live_run = run
 	editor.apply_changes = save_configuration
 	if wave_index >= 0: editor.saved.connect(show_waves)
-	editor.export_requested.connect(show_level_export.bind(index))
 	dialog_body.add_child(editor)
 
 func save_campaign_tuning(changes: Dictionary) -> bool:

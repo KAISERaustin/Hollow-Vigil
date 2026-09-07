@@ -5,7 +5,6 @@ const Configuration = preload("res://scripts/campaign/configuration.gd")
 const Fields = preload("res://scripts/content/catalogs/levels.gd")
 const Picker = preload("res://scripts/ui/shared/illustrated_picker.gd")
 const Portrait = preload("res://scripts/ui/shared/content_portrait.gd")
-signal export_requested
 signal saved
 var store: RefCounted
 var index := 0
