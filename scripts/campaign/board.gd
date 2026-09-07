@@ -129,5 +129,6 @@ func draw_map() -> void:
 		var at := screen(run.mission.routes[lane][0])
 		var wave_index := mini(int(run.wave), run.mission.waves.size() - 1)
 		preload("res://scripts/rendering/actors/rift_art.gd").draw_wave(self, run.mission.style, at, zoom, run.mission.waves[wave_index], lane)
-		centered(String.chr(65 + lane), at + Vector2(0, -64 * zoom), 13, TEXT)
+		if run.can_author():
+			centered(String.chr(65 + lane), at + Vector2(0, -64 * zoom), 13, TEXT)
 	preload("res://scripts/rendering/actors/rift_art.gd").draw_core(self, screen(Catalog.CORE), zoom)
