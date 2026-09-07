@@ -6,9 +6,9 @@ const DURATION := 0.9
 const REVEAL_AT := 0.52
 var instances: Array[Dictionary] = []
 
-func play(at: Vector2, accent: Color, owner_id: String = "") -> void:
+func play(at: Vector2, owner_id: String = "") -> void:
 	remove(at)
-	instances.append({"pos": at, "age": 0.0, "color": Color(accent, 1.0), "owner_id": owner_id})
+	instances.append({"pos": at, "age": 0.0, "owner_id": owner_id})
 
 func remove(at: Vector2) -> void:
 	for i in range(instances.size() - 1, -1, -1):
@@ -39,18 +39,18 @@ static func draw(c: CanvasItem, fx: Dictionary, at: Vector2, zoom: float) -> voi
 	var pulse := 1.0 + 0.035 * sin(age * TAU * 7.0)
 	# A single opaque scalloped silhouette has no translucent overlap seams.
 	if release < 1.0:
-		cloud(c, Vector2(0, -24 - release * 9), Vector2(35, 43) * (1.0 - release) * pulse)
-	# Solid dust lobes peel away and shrink, rather than fading through the tower.
+		# The wider, lower silhouette also covers the terrain's round socket rim.
+		cloud(c, Vector2(0, -19 - release * 6), Vector2(42, 48) * (1.0 - release) * pulse)
+	# Only the departing circles fade; the covering cloud stays fully opaque.
+	var drift := clampf((age - REVEAL_AT) / (DURATION - REVEAL_AT), 0.0, 1.0)
+	var opacity := 1.0 - smoothstep(0.2, 1.0, drift)
 	for side in [-1, 1]:
 		for i in range(3):
-			var radius := (7.0 + i * 1.5) * sin(clampf(age / 0.86, 0.0, 1.0) * PI)
-			if release > 0.0 and radius > 0.2:
-				var p := Vector2(side * (25.0 + release * (12 + i * 4)), -5.0 - i * 19.0 - release * 8)
-				Art.disk(c, p, radius, Art.PAPER, 1.5 * minf(1.0, radius / 3.0))
-		var worker_scale := 1.0 - smoothstep(0.68, DURATION, age)
-		if worker_scale > 0.01:
-			var phase := fposmod(age * 4.0 + (0.35 if side == 1 else 0.0), 1.0)
-			worker(c, Vector2(side * (38.0 + release * 5.0), 12), side, worker_scale, phase, fx.color)
+			var radius := (5.0 + i) * sin(drift * PI)
+			if radius > 0.1:
+				var p := Vector2(side * (29.0 + drift * (14 + i * 3)), 4.0 - i * 22.0 - drift * 10)
+				c.draw_circle(p, radius, Color(Art.PAPER, opacity))
+				c.draw_arc(p, radius, 0, TAU, 24, Color(Art.INK, opacity), 1.5 * minf(1.0, radius / 3.0), true)
 	c.draw_set_transform(Vector2.ZERO)
 
 static func cloud(c: CanvasItem, at: Vector2, radius: Vector2) -> void:
@@ -69,26 +69,3 @@ static func cloud(c: CanvasItem, at: Vector2, radius: Vector2) -> void:
 	if radius.x > 12.0:
 		c.draw_arc(at + Vector2(-15,-12) * size, 8 * size, -2.4, 0.5, 12, Art.ROAD, 1.8 * size, true)
 		c.draw_arc(at + Vector2(16,13) * size, 7 * size, 0.4, 3.2, 12, Art.ROAD, 1.8 * size, true)
-
-static func worker(c: CanvasItem, at: Vector2, side: int, scale: float, phase: float, accent: Color) -> void:
-	# The same tiny villager is mirrored to face the work on either side.
-	var z := Vector2(-side, 1) * scale
-	var bob := Vector2(0, sin(phase * PI) * 1.2)
-	at += bob * scale
-	for foot in [-1, 1]:
-		c.draw_line(at + Vector2(foot * 2, -5) * z, at + Vector2(foot * 3, 0) * z, Art.INK, 2.5 * scale, true)
-	Art.shape(c, [Vector2(-4,-14), Vector2(3,-14), Vector2(5,-5), Vector2(-5,-5)], at, z, accent, 1.5 * scale)
-	Art.disk(c, at + Vector2(0,-19) * z, 4.5 * scale, Art.PAPER, 1.5 * scale)
-	Art.shape(c, [Vector2(-5,-21), Vector2(-3,-25), Vector2(2,-25), Vector2(5,-21)], at, z, Art.ROAD, 1.3 * scale)
-	c.draw_circle(at + Vector2(2,-19) * z, 0.9 * scale, Art.INK)
-	# Fast downstroke, longer backswing: two clearly readable alternating taps.
-	var swing := smoothstep(0.0, 0.3, phase) * (1.0 - smoothstep(0.42, 1.0, phase))
-	var hand := Vector2(4,-13)
-	var head := hand + Vector2.from_angle(lerpf(-1.8, -0.12, swing)) * 12.0
-	c.draw_line(at + Vector2(0,-13) * z, at + hand * z, Art.INK, 3 * scale, true)
-	c.draw_line(at + hand * z, at + head * z, Art.INK, 2.8 * scale, true)
-	Art.shape(c, [head+Vector2(-3,-3), head+Vector2(4,-3), head+Vector2(4,2), head+Vector2(-3,2)], at, z, Art.ROAD, 1.5 * scale)
-	if phase > 0.28 and phase < 0.43:
-		for i in range(3):
-			var ray := Vector2.from_angle(-1.5 + i * 0.7)
-			c.draw_line(at + (head + ray * 5) * z, at + (head + ray * 8) * z, Art.GOLD, 1.5 * scale, true)

@@ -6,19 +6,27 @@ var failures: Array[String] = []
 
 class EffectImage extends Node2D:
 	var age := 0.0
+	var show_socket := false
 	func _draw() -> void:
-		Effect.draw(self, {"age": age, "color": VigilTerrainArt.GOLD}, Vector2(128,190), 2.0)
+		if show_socket:
+			draw_set_transform(Vector2(128,190), 0, Vector2.ONE * 2.0)
+			VigilTerrainArt.socket(self, Vector2.ZERO)
+			draw_set_transform(Vector2.ZERO)
+		Effect.draw(self, {"age": age}, Vector2(128,190), 2.0)
 
 class Sheet extends Node2D:
 	func _draw() -> void:
 		for row in range(4):
 			var kind: String = ["rapid", "heavy", "splash", "electric"][row]
 			for column in range(5):
-				var age: float = [0.0, 0.23, 0.48, 0.68, 0.9][column]
+				var age: float = [0.0, 0.23, 0.60, 0.78, 0.9][column]
 				var at := Vector2(110 + column * 210, 205 + row * 200)
+				draw_set_transform(at, 0, Vector2.ONE * 1.8)
+				VigilTerrainArt.socket(self, Vector2.ZERO)
+				draw_set_transform(Vector2.ZERO)
 				if age >= Effect.REVEAL_AT:
 					VigilTerrainArt.sentinel(self, kind, at, 1.8, 3)
-				Effect.draw(self, {"age": age, "color": Color(Balance.TOWERS[kind].color)}, at, 1.8)
+				Effect.draw(self, {"age": age}, at, 1.8)
 
 func _initialize() -> void:
 	preload("res://tests/support/timeout.gd").arm(self)
@@ -38,12 +46,12 @@ func frame() -> void:
 func run() -> void:
 	var first := Effect.new()
 	var second := Effect.new()
-	first.play(Vector2.ZERO, Color.RED)
+	first.play(Vector2.ZERO)
 	first.advance(0.2)
-	first.play(Vector2.ONE, Color.BLUE)
+	first.play(Vector2.ONE)
 	check(is_equal_approx(first.instances[0].age, 0.2) and first.instances[1].age == 0.0, "Concurrent sockets keep independent clocks")
 	check(second.instances.is_empty(), "Separate battlefields do not share effects")
-	first.play(Vector2.ZERO, Color.GREEN)
+	first.play(Vector2.ZERO)
 	check(first.instances.size() == 2 and first.instances[1].age == 0.0, "Rapid repeat upgrade replaces the socket effect")
 	first.remove(Vector2.ONE)
 	check(first.instances.size() == 1 and first.conceals(Vector2.ZERO) and not first.conceals(Vector2.ONE), "Removal only affects the assigned socket")
@@ -65,7 +73,7 @@ func run() -> void:
 		check(game.economy.upgrade(id, 1), "Actual economy upgrade triggers presentation")
 		check(not field.construction_effect.conceals(VigilWorld.pad_position("0,0",1)) and game.data.towers[other].level == 1, "Unassigned tower stays unchanged and visible")
 		field._process(0.5)
-		check(field.upgrade_poofs.size() == 1 and is_equal_approx(field.upgrade_poofs[0].age,0.5), "Half-second hammer phase survives pause and fast simulation")
+		check(field.upgrade_poofs.size() == 1 and is_equal_approx(field.upgrade_poofs[0].age,0.5), "Half-second cover phase survives pause and fast simulation")
 		field._process(0.4)
 		check(field.upgrade_poofs.is_empty(), "Presentation completes in 0.9 real seconds at every game speed")
 	game.data.towers[id].level = 1
@@ -88,7 +96,7 @@ func run() -> void:
 	root.add_child(viewport)
 	var art := EffectImage.new()
 	viewport.add_child(art)
-	for age in [0.0, 0.23, 0.48, 0.68, 0.9]:
+	for age in [0.0, 0.23, 0.48, 0.68, 0.78, 0.9]:
 		art.age = age
 		art.queue_redraw()
 		await frame()
@@ -97,10 +105,18 @@ func run() -> void:
 			for y in range(90,180,10):
 				for x in range(100,160,10):
 					check(img.get_pixel(x,y).a == 1.0, "Dust core is fully opaque during tower swap")
+			art.show_socket = true
+			art.queue_redraw()
+			await frame()
+			check(img.get_data() == viewport.get_texture().get_image().get_data(), "Cloud fully masks the entire socket, including its lower rim")
+			art.show_socket = false
 		elif age >= Effect.DURATION:
-			check(img.get_used_rect().size == Vector2i.ZERO, "No dust or villagers remain after expiry")
+			check(img.get_used_rect().size == Vector2i.ZERO, "No dust remains after expiry")
+		elif age == 0.78:
+			var alpha := img.get_pixel(205,184).a
+			check(alpha > 0.1 and alpha < 0.9, "Departing circles fade during dispersal")
 	viewport.free()
-	root.size = Vector2i(1050,850)
+	root.size = Vector2i(1050,900)
 	root.content_scale_size = root.size
 	var background := ColorRect.new()
 	background.color = Color("7fa6aa")
@@ -109,7 +125,7 @@ func run() -> void:
 	root.add_child(Sheet.new())
 	for column in range(5):
 		var label := Label.new()
-		label.text = ["Cover · 0.00s", "Hammer · 0.23s", "Hammer · 0.48s", "Reveal · 0.68s", "Done · 0.90s"][column]
+		label.text = ["Cover · 0.00s", "Cover · 0.23s", "Reveal · 0.60s", "Disperse · 0.78s", "Done · 0.90s"][column]
 		label.position = Vector2(25 + column * 210, 20)
 		label.add_theme_color_override("font_color", Color.BLACK)
 		root.add_child(label)

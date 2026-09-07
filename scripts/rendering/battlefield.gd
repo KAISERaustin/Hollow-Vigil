@@ -94,8 +94,8 @@ func bind_upgrade_effects() -> void:
 		observed_economy.relic_changed.connect(on_tower_presentation_changed)
 	construction_effect.clear()
 
-func on_tower_upgraded(region: String, pad: int, kind: String) -> void:
-	construction_effect.play(VigilWorld.pad_position(region, pad), Color(Balance.TOWERS[kind].color), observed_economy.tower_at(region, pad))
+func on_tower_upgraded(region: String, pad: int, _kind: String) -> void:
+	construction_effect.play(VigilWorld.pad_position(region, pad), observed_economy.tower_at(region, pad))
 	queue_redraw()
 
 func on_tower_presentation_changed(tower_id: String) -> void:
