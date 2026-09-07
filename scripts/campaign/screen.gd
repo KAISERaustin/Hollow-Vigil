@@ -263,7 +263,7 @@ func show_setup() -> void:
 	var modes := preload("res://scripts/ui/shared/mode_picker.gd").new()
 	layout.add_child(modes)
 	modes.configure(mode, {"creative": "Create your campaign. Edit any level, enemies, stats and wave timing during play or between rounds, then share the complete build.", "survival": "Play the chosen campaign with its rules locked. Complete levels in order; each build keeps its own progress."})
-	modes.selected.connect(func(next: String): select_campaign(next, session.data.selections[next]))
+	modes.selected.connect(func(next: String): select_campaign(next, session.data.selections[mode]))
 	if can_author():
 		var edit := UI.button("Edit levels & waves", show_balancing_levels)
 		edit.name = "CampaignBalancing"

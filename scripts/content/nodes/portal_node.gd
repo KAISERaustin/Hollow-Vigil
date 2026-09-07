@@ -1,5 +1,11 @@
 extends "res://scripts/content/nodes/content_node.gd"
 
+func visual_parts(level: int, unlocks: Array) -> Dictionary:
+	for attachment in rule("components", []):
+		if attachment.slot == "appearance":
+			return attachment.component.parts(level, available_kinds(unlocks), attachment.config)
+	return {"structure": [], "runes": 0, "ornaments": []}
+
 func enemy_kinds() -> Array:
 	return rule("enemy_kinds", [])
 

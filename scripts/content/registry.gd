@@ -11,6 +11,8 @@ const GearNode = preload("res://scripts/content/nodes/gear_node.gd")
 const LevelNode = preload("res://scripts/content/nodes/level_node.gd")
 const RegionNode = preload("res://scripts/content/nodes/region_node.gd")
 const PortalNode = preload("res://scripts/content/nodes/portal_node.gd")
+const PortalVisualNode = preload("res://scripts/content/nodes/portal_visual_node.gd")
+const PortalVisuals = preload("res://scripts/content/catalogs/portal_visuals.gd")
 const ProjectileNode = preload("res://scripts/content/nodes/projectile_node.gd")
 const WaveNode = preload("res://scripts/content/nodes/wave_node.gd")
 const AbilityNode = preload("res://scripts/content/nodes/ability_node.gd")
@@ -187,6 +189,8 @@ func _populate_actors() -> void:
 
 func _populate_world(root: ContentNode) -> void:
 	var world := _add(ContentNode.new("world", root))
+	var presentation := _add(ContentNode.new("presentation", root))
+	var portal_visual := _add(PortalVisualNode.new("presentation/portal", presentation, {}, {"rate_parts": PortalVisuals.RATE_PARTS, "max_level": 12}))
 	_add(RegionNode.new("region", world, {}, {}, World.REGION_DEFAULTS))
 	_add(PortalNode.new("portal", world, {}, {"tuning_category": "rifts", "exclusive": true, "allow_escorts": true}))
 	var socket := _add(ContentNode.new("socket", world, {}, {"occupants": ["tower"], "capacity": 1}))
@@ -199,6 +203,10 @@ func _populate_world(root: ContentNode) -> void:
 		var config: Dictionary = World.PORTALS[style]
 		var attributes: Dictionary = World.RIFTS.get(style, {"name": config.name})
 		var rules: Dictionary = config.merged({"kind": style, "enemy_kinds": Actors.FAMILIES[style]})
+		var ornaments := {}
+		for kind in Actors.FAMILIES[style]:
+			ornaments[kind] = PortalVisuals.ORNAMENTS[kind]
+		rules["components"] = [{"slot": "appearance", "component": portal_visual, "config": {"order": Actors.FAMILIES[style], "ornaments": ornaments, "mounts": PortalVisuals.PIT_MOUNTS if style == "castle_ruin" else PortalVisuals.MOUNTS}}]
 		_add(PortalNode.new("portal/" + style, get_node("portal"), attributes, rules), "rifts" if World.RIFTS.has(style) else "portals", style)
 
 func _populate_levels(root: ContentNode) -> void:

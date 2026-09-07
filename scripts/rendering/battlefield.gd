@@ -460,7 +460,8 @@ func draw_region(region: Dictionary) -> void:
 func draw_entrance(id: String) -> void:
 	var gate := screen(VigilWorld.center(id))
 	var z := entrance_scale()
-	preload("res://scripts/rendering/actors/rift_art.gd").draw(self, state.data.regions[id].get("style", "forest"), gate, z)
+	var region: Dictionary = state.data.regions[id]
+	preload("res://scripts/rendering/actors/rift_art.gd").draw(self, region.get("style", "forest"), gate, z, int(region.get("traffic", 0)), region.get("unlocks", []))
 
 func draw_core() -> void:
 	var gate := screen(VigilWorld.CORE_POSITION)

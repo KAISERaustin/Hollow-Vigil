@@ -1,10 +1,21 @@
 extends RefCounted
 
 const Art = preload("res://scripts/rendering/terrain/terrain_art.gd")
+const Upgrades = preload("res://scripts/rendering/actors/portal_upgrade_art.gd")
+const Content = preload("res://scripts/content/registry.gd")
 
 # The same flat fills, ink edges and cut-stone geometry as sentinels and scenery.
 # No particle nodes or animation: markers remain legible in reduced-motion mode.
-static func draw(canvas: CanvasItem, style: String, at: Vector2, zoom: float) -> void:
+static func draw(canvas: CanvasItem, style: String, at: Vector2, zoom: float, traffic: int = 0, unlocks: Array = []) -> void:
+	var portal := Content.portal(style)
+	if portal == null:
+		portal = Content.portal("forest")
+	var parts := portal.visual_parts(traffic, unlocks)
+	Upgrades.structure(canvas, style, at, zoom, parts.structure)
+	draw_base(canvas, style, at, zoom)
+	Upgrades.details(canvas, at, zoom, parts)
+
+static func draw_base(canvas: CanvasItem, style: String, at: Vector2, zoom: float) -> void:
 	if style == "mourning_orchard":
 		preload("res://scripts/rendering/actors/orchard_art.gd").portal(canvas, at, zoom)
 		return

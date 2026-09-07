@@ -80,36 +80,20 @@ func show_popup() -> void:
 		child.queue_free()
 	popup.find_child("PickerTitle", true, false).text = menu_title
 	for index in range(item_count):
-		var button := UI.button("", choose.bind(index), 76)
+		var button := UI.button("Select", choose.bind(index))
 		button.name = "Choice_" + str(index)
-		button.add_theme_stylebox_override("normal", UI.plain())
-		button.add_theme_stylebox_override("hover", UI.surface(UI.SURFACE, 0, 8))
-		button.add_theme_stylebox_override("pressed", UI.surface(UI.GOLD, 0, 8))
-		button.add_theme_stylebox_override("hover_pressed", UI.surface(UI.GOLD, 0, 8))
-		button.accessibility_name = str(items[index].label)
 		button.toggle_mode = true
 		button.set_pressed_no_signal(index == selected)
-		rows.add_child(button)
-		var content := HBoxContainer.new()
-		content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		content.offset_left = 8
-		content.offset_right = -8
-		content.add_theme_constant_override("separation", 12)
-		button.add_child(content)
-		if preview_factory.is_valid():
-			content.add_child(preview_factory.call(items[index].metadata))
-		var label := UI.paragraph(str(items[index].label), UI.BODY)
-		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		content.add_child(label)
-		if index < item_count - 1: rows.add_child(UI.rule())
+		var preview: Control = preview_factory.call(items[index].metadata) if preview_factory.is_valid() else null
+		var row := UI.action_row(str(items[index].label), button, "Select", preview)
+		row.name = "ChoiceRow_" + str(index)
+		row.custom_minimum_size.y = 76
+		rows.add_child(row)
 	var available := get_viewport_rect().size - Vector2(24, 24)
 	popup.popup_centered(Vector2i(minf(480, available.x), minf(560, available.y)))
 	scroll.scroll_vertical = 0
 	UI.trap_focus(popup.get_child(0))
 	if selected >= 0:
-		var active := rows.get_node("Choice_" + str(selected)) as Button
+		var active := rows.find_child("Choice_" + str(selected), true, false) as Button
 		active.grab_focus()
 		scroll.ensure_control_visible.call_deferred(active)

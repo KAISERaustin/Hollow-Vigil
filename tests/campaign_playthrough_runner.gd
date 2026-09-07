@@ -4,6 +4,15 @@ const Configuration = preload("res://scripts/campaign/configuration.gd")
 const Run = preload("res://scripts/campaign/run.gd")
 const Session = preload("res://scripts/campaign/session.gd")
 
+func same_numbers(a: Dictionary, b: Dictionary) -> bool:
+	if a.size() != b.size(): return false
+	for key in a:
+		if not b.has(key): return false
+		if a[key] is Dictionary:
+			if not same_numbers(a[key], b[key]): return false
+		elif not is_equal_approx(float(a[key]), float(b[key])): return false
+	return true
+
 func run() -> void:
 	var rules := {"gold": 1000.0, "waves": {"0": {"groups": [["basic", 4, 0, 0.0, 5.0]], "tuning": {"enemies": {"basic": {"hp": 234.0}}}}}}
 	var source := Run.new(0, rules, "creative")
@@ -20,9 +29,10 @@ func run() -> void:
 		var survival := Run.new(index, level.overrides, "survival")
 		check(not survival.can_author() and not survival.apply_configuration({"gold": 99999}), "Survival rejects authoring at service boundary")
 		var baseline := Configuration.resolve(index, rules if index == 0 else {"gold": 9876.0} if index == 19 else {})
-		check(Configuration.gameplay_values(survival.mission.tuning) == Configuration.gameplay_values(baseline.tuning), "All level stats match exported source")
+		check(same_numbers(Configuration.gameplay_values(survival.mission.tuning), Configuration.gameplay_values(baseline.tuning)), "All level stats match exported source within floating point precision")
 		for wave in survival.mission.waves.size():
 			check(Configuration.schedule(survival.mission, wave) == Configuration.schedule(baseline, wave), "Exact wave timing and composition survives")
+			check(same_numbers(Configuration.gameplay_values(survival.mission.wave_rules[wave].tuning), Configuration.gameplay_values(baseline.wave_rules[wave].tuning)), "Every wave's effective stats survive")
 	Playthrough.LevelBuild.apply_loadout(source, Playthrough.level_build(value, 0))
 	check(source.game.data.towers.size() == 1, "Optional tower loadout survives")
 	var invalid := value.duplicate(true)
@@ -36,7 +46,7 @@ func run() -> void:
 	var battle := Run.new(0, rules, "creative")
 	check(battle.start_wave(), "Creative can start waves")
 	battle.tick(0.1)
-	var enemy: Dictionary = battle.game.combat.enemies.values()[0] if battle.game.combat.enemies is Dictionary else battle.game.combat.enemies[0]
+	var enemy: Dictionary = battle.game.combat.enemies[0]
 	var hp: float = enemy.hp
 	var changed := rules.duplicate(true)
 	changed.waves["0"].groups[0] = ["fast", 6, 0, 0.0, 1.0]

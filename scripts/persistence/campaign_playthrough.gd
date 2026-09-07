@@ -38,6 +38,10 @@ static func valid(value: Variant) -> bool:
 		var level := {"version": 1, "setup": value.setup, "level": index, "overrides": entry.get("overrides")}
 		if entry.has("loadout"): level.loadout = entry.loadout
 		if not LevelBuild.valid(level): return false
+		if level.overrides.size() != 5 or not level.overrides.has_all(["gold", "flame", "reward", "tuning", "waves"]): return false
+		if level.overrides.waves.size() != Configuration.Catalog.level(index).waves.size(): return false
+		for wave in level.overrides.waves.values():
+			if wave.size() != 3 or not wave.has_all(["groups", "reward", "tuning"]): return false
 	return true
 
 static func decode(code: String) -> Dictionary:
