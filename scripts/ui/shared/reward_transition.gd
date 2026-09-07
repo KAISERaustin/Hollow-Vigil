@@ -71,24 +71,3 @@ func _update_visuals() -> void:
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, 0.38))
-	var travel := smoothstep(0.0, DURATION, elapsed)
-	for side in [-1.0, 1.0]:
-		var center := Vector2(size.x * 0.5 + side * lerpf(size.x * 0.65, size.x * 0.25, travel), size.y * 0.5 + side * 138)
-		_cloud(center, minf(size.x / 390.0, 1.4))
-
-func _cloud(center: Vector2, scale_factor: float) -> void:
-	var points := PackedVector2Array()
-	# A single outlined scalloped silhouette, using the game's flat palette.
-	for i in range(129):
-		var angle := TAU * float(i) / 128.0
-		var direction := Vector2(cos(angle), sin(angle))
-		var radius := 0.0
-		for lobe in [Vector3(-64, 8, 38), Vector3(-28, -12, 46), Vector3(22, -18, 50), Vector3(65, 8, 36), Vector3(0, 14, 44)]:
-			var offset := Vector2(lobe.x, lobe.y)
-			var projection := direction.dot(offset)
-			var discriminant: float = lobe.z * lobe.z - offset.length_squared() + projection * projection
-			if discriminant >= 0.0:
-				radius = maxf(radius, projection + sqrt(discriminant))
-		points.append(center + direction * radius * scale_factor)
-	draw_colored_polygon(points, UI.PANEL)
-	draw_polyline(points, UI.BORDER, 3.0, true)
