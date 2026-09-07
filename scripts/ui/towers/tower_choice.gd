@@ -45,15 +45,15 @@ static func create(kind: String, title: String, cost: float, action: Callable, l
 	return button
 
 ## One detail renderer for both modes, driven by resolved content and stat metadata.
-static func details(kind: String, tuning: Dictionary) -> VBoxContainer:
+static func details(kind: String, tuning: Dictionary, tier: int = 1, branch: String = "", previous: Dictionary = {}) -> VBoxContainer:
 	var body := VBoxContainer.new()
 	body.name = "TowerDetails"
 	body.add_theme_constant_override("separation", 8)
-	var stats := Balance.stats(kind, 1, tuning)
+	var stats := Balance.stats(kind, tier, tuning, branch)
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 8)
 	body.add_child(header)
-	var level := UI.heading("Level 1", 18)
+	var level := UI.heading("Level %d" % tier, 18)
 	level.name = "TowerLevel"
 	level.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(level)
@@ -71,12 +71,19 @@ static func details(kind: String, tuning: Dictionary) -> VBoxContainer:
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
 	body.add_child(grid)
-	add_stat(grid, "damage", "Damage / hit", UI.exact_money(stats.damage))
-	add_stat(grid, "fire_rate", "Attacks / sec", UI.exact_money(1.0 / stats.period))
-	add_stat(grid, "range", "Range", UI.exact_money(stats.range) + " units")
-	add_stat(grid, "dps", "DPS / target", UI.exact_money(stats.damage / stats.period))
-	add_stat(grid, "targets", "Targets / hit", UI.exact_money(stats.targets))
-	add_stat(grid, "splash", "Blast radius", UI.exact_money(stats.splash) + " units")
+	var values := stats.duplicate(true)
+	values.fire_rate = 1.0 / stats.period
+	values.dps = stats.damage / stats.period
+	var before := previous.duplicate(true)
+	if not before.is_empty():
+		before.fire_rate = 1.0 / before.period
+		before.dps = before.damage / before.period
+	add_numeric_stat(grid, "damage", "Damage / hit", values, before)
+	add_numeric_stat(grid, "fire_rate", "Attacks / sec", values, before)
+	add_numeric_stat(grid, "range", "Range", values, before, " units")
+	add_numeric_stat(grid, "dps", "DPS / target", values, before)
+	add_numeric_stat(grid, "targets", "Targets / hit", values, before)
+	add_numeric_stat(grid, "splash", "Blast radius", values, before, " units")
 	# Cost lives in the pinned Build action; interval complements the fire rate.
 	# Future numeric content fields use the same presentation and schema labels.
 	for field in stats:
@@ -86,13 +93,29 @@ static func details(kind: String, tuning: Dictionary) -> VBoxContainer:
 			continue
 		var spec: Dictionary = Balance.TUNING_FIELDS.towers.get(field, {})
 		var title: String = spec.get("label", str(field).capitalize())
-		add_stat(grid, field, title, UI.exact_money(stats[field]) + str(spec.get("suffix", "")))
+		add_numeric_stat(grid, field, title, values, before, str(spec.get("suffix", "")))
 	var interval := UI.label(UI.exact_money(stats.period) + " s between attacks", 12, UI.MUTED)
 	interval.name = "Stat_period"
 	body.add_child(interval)
+	if not before.is_empty():
+		var change := UI.label(change_text(stats.period, before.period, " s"), 12, UI.MUTED)
+		change.name = "Change_period"
+		body.add_child(change)
 	return body
 
-static func add_stat(grid: GridContainer, key: String, title: String, value: String) -> void:
+static func change_text(value: float, previous: float, suffix: String = "") -> String:
+	var difference := value - previous
+	if is_zero_approx(difference):
+		return "No change"
+	# Preserve small improvements that would otherwise round to +0.00.
+	var amount := UI.exact_money(absf(difference)) if absf(difference) >= 0.01 else String.num(absf(difference), 4)
+	return ("+" if difference > 0.0 else "−") + amount + suffix
+
+static func add_numeric_stat(grid: GridContainer, key: String, title: String, values: Dictionary, before: Dictionary, suffix: String = "") -> void:
+	var change := "" if before.is_empty() else change_text(values[key], before.get(key, 0.0), suffix)
+	add_stat(grid, key, title, UI.exact_money(values[key]) + suffix, change)
+
+static func add_stat(grid: GridContainer, key: String, title: String, value: String, change: String = "") -> void:
 	var column := VBoxContainer.new()
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.add_theme_constant_override("separation", 0)
@@ -104,6 +127,11 @@ static func add_stat(grid: GridContainer, key: String, title: String, value: Str
 	number.name = "Stat_" + key
 	number.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(number)
+	if not change.is_empty():
+		var difference := UI.label(change, 12, UI.MUTED)
+		difference.name = "Change_" + key
+		difference.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		column.add_child(difference)
 
 static func show_details(choices: ScrollContainer, tuning: Dictionary, kind: String) -> void:
 	clear_details(choices)

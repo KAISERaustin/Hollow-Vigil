@@ -56,7 +56,7 @@ func run() -> void:
 			check(app.panels.get_global_rect().encloses(app.panels.action_button.get_global_rect()), "expansion claim clipped")
 		app.panels.select_pad("0,0", 1)
 		await settle()
-		check(app.field.selected_range() == 0.0, "Opening the icon picker waits for a selection")
+		check(app.field.preview_kind == Balance.TOWERS.keys()[0] and app.field.selected_range() > 0.0, "Opening the icon picker previews the first tower")
 		var cards := app.panels.sheet_content.get_child(0) as ScrollContainer
 		var choices := cards.get_node("Cards")
 		root.get_texture().get_image().save_png("res://artifacts/infinite-build-" + str(viewport.x) + ".png")

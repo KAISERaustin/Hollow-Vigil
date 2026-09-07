@@ -514,9 +514,11 @@ func show_battle(start_paused: bool = false) -> void:
 	gold.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	gold.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(gold)
-	status = UI.paragraph("", 14)
+	status = UI.value("", 21)
 	status.name = "CampaignStatus"
-	layout.add_child(status)
+	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	status.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(status)
 	add_board(true)
 	build_tower_ui()
 	var controls := HBoxContainer.new()
@@ -561,7 +563,7 @@ func add_board(interactive: bool) -> void:
 
 func begin_wave() -> void:
 	if reward_transition.active: return
-	if (paused and run.phase == "wave") or run.start_wave():
+	if run.start_wave():
 		paused = false
 		update_time_controls()
 		save_progress()
@@ -580,14 +582,14 @@ func refresh() -> void:
 		return
 	gold.text = "%s gold" % Balance.money(run.game.data.balance)
 	var shown_wave := mini(run.wave+1, run.mission.waves.size())
-	var can_start: bool = run.phase == "planning" or (paused and run.phase == "wave")
-	status.text = "Enemies %d / %d   ·   Wave %d / %d%s" % [run.health, run.mission.flame, shown_wave, run.mission.waves.size(), " · Paused" if paused and run.phase != "planning" else ""]
+	var can_start: bool = run.phase == "planning"
+	status.text = "Wave %d / %d" % [shown_wave, run.mission.waves.size()]
 	wave_button.disabled = not can_start or reward_transition.active
 	wave_button.text = "Start wave %d" % (run.wave+1) if can_start else "%d enemies remaining" % (run.game.combat.enemies.size() + run.schedule.size() - run.next_spawn)
 	if run.phase in ["victory", "defeat"]:
 		wave_button.text = "Sanctuary restored" if run.phase == "victory" else "The flame went out"
 	if reward_transition.active:
-		status.text = "Enemies %d / %d   ·   Wave %d cleared" % [run.health, run.mission.flame, run.wave]
+		status.text = "Wave %d / %d" % [run.wave, run.mission.waves.size()]
 		wave_button.text = "Wave cleared"
 	if observed_phase != run.phase:
 		observed_phase = run.phase
