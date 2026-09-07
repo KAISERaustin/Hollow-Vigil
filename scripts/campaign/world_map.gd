@@ -9,7 +9,9 @@ var progress: RefCounted
 var nodes: Array[Button] = []
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(280, 1810)
+	# The final chapter ends at 1785; add 3 to the page's 12-pixel inset
+	# so the bottom clearance matches the 15-pixel gap between chapters.
+	custom_minimum_size = Vector2(280, 1788)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for index in range(Catalog.COUNT):
 		var button := Marker.new()
