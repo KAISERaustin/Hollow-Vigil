@@ -37,4 +37,3 @@ func run() -> void:
 	check(app.slot_menu.screen == "main", "Settings returns to main")
 	print("WELCOME LAYOUT: %d failures" % failures.size())
 	quit(0 if failures.is_empty() else 1)
-
