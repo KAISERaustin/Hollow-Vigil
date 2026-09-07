@@ -57,10 +57,15 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 			check(not app.field.earnings_badge_visible(g.data.towers[splash]), "Opening a tower dialog restored other towers' gold badges", failures)
 			check(dialog.card.get_global_rect().get_center().distance_to(app.size * 0.5) < 1.0, "Tower dialog is not centered", failures)
 			var stale: Callable = dialog.confirm.pressed.get_connections()[0].callable
-			await harness.tap(app, app.hud.collect_button.get_global_rect().get_center(), touch)
+			var collection_rect: Rect2 = app.hud.collect_button.get_global_rect()
+			# The large info card can overlap the centre of the underlying HUD
+			# button. Probe its exposed edge, which is actually under the backdrop.
+			var backdrop_point := Vector2(collection_rect.end.x - 2, collection_rect.get_center().y)
+			check(not dialog.card.get_global_rect().has_point(backdrop_point), "Backdrop probe overlaps modal content", failures)
+			await harness.tap(app, backdrop_point, touch)
 			await harness.tap(app, Vector2(4, 150), touch)
 			check(dialog.visible and g.data == before, "Modal backdrop allowed a collection or transaction", failures)
-			await harness.tap(app, (dialog.confirm if action == "info" else dialog.cancel).get_global_rect().get_center(), touch)
+			await harness.tap(app, (dialog.confirm if action == "info" else dialog.header_close if action == "equipment" else dialog.cancel).get_global_rect().get_center(), touch)
 			stale.call()
 			check(not dialog.visible and app.tower_actions.visible and g.data == before, "Cancel or its stale confirmation changed state", failures)
 			check(not app.field.earnings_badge_visible(g.data.towers[splash]), "Returning to tower controls restored gold badges too early", failures)
