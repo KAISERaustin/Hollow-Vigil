@@ -297,18 +297,21 @@ func show_review() -> void:
 	footer.add_child(action("Start game", request_start, "StartGame", true))
 
 func level_choice(caption: String, key: String) -> void:
+	add_level_choice(caption, "LevelChoice_" + key, int(new_game.choices.get(key, -1)), func(index: int):
+		if index < 0: new_game.choices.erase(key)
+		else: new_game.choices[key] = index
+	)
+
+func add_level_choice(caption: String, key: String, selected: int, changed: Callable) -> void:
 	var picker := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
-	picker.name = "LevelChoice_" + key
+	picker.name = key
 	picker.menu_title = caption
 	picker.illustration = "levels"
 	picker.custom_minimum_size.y = UI.TARGET
 	picker.add_item("Choose a level")
 	for index in Build.Configuration.Catalog.COUNT: picker.add_item("%02d · %s" % [index + 1, Build.Configuration.Catalog.level(index).name])
-	picker.select(int(new_game.choices.get(key, -1)) + 1)
-	picker.item_selected.connect(func(index: int):
-		if index == 0: new_game.choices.erase(key)
-		else: new_game.choices[key] = index - 1
-	)
+	picker.select(selected + 1)
+	picker.item_selected.connect(func(index: int): changed.call(index - 1))
 	content.add_child(UI.form_field(caption, picker))
 
 func request_start() -> void:
@@ -597,6 +600,7 @@ func open_saved_build_form(entry: Dictionary) -> void:
 	show_build_form()
 
 func prepared_form() -> Dictionary:
+	if form.game_type == "campaign" and form.scope == "level" and int(form.level) < 0: return {}
 	return Build.capture(form.game_type, form.game, form.levels, form.scope, int(form.level), form.contents, form.name, form.description)
 
 func show_build_form() -> void:
@@ -607,12 +611,12 @@ func show_build_form() -> void:
 		scope.menu_title = "Choose build scope"
 		scope.custom_minimum_size.y = UI.TARGET
 		scope.add_item("Whole campaign")
-		scope.add_item("This level")
-		scope.set_item_disabled(1, int(form.level) < 0)
+		scope.add_item("One level")
 		scope.select(1 if form.scope == "level" else 0)
 		scope.item_selected.connect(func(index: int): form.scope = "level" if index == 1 else "all"; show_build_form())
 		content.add_child(UI.form_field("Scope", scope))
-		if form.scope == "level": content.add_child(UI.paragraph("Level %d · %s" % [int(form.level) + 1, Build.Configuration.Catalog.level(int(form.level)).name]))
+		if form.scope == "level":
+			add_level_choice("Level", "BuildLevel", int(form.level), func(index: int): form.level = index)
 	content.add_child(UI.heading("Contents", 18))
 	var checklist := CheckList.new()
 	checklist.game_type = form.game_type
@@ -643,6 +647,7 @@ func show_build_form() -> void:
 
 func submit_build(publish: bool) -> void:
 	if str(form.name).strip_edges().is_empty(): notice("Name this build before saving."); return
+	if form.game_type == "campaign" and form.scope == "level" and int(form.level) < 0: notice("Choose a level before saving."); return
 	if form.contents.is_empty(): notice("Choose at least one content option."); return
 	var build := prepared_form()
 	if build.is_empty(): notice("These contents could not be saved. Check the selected contents and try again."); return

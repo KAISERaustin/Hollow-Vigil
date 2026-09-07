@@ -42,13 +42,18 @@ func run() -> void:
 			check(field.global_position.x == 0 and field.get_global_rect().end == bounds.end, "Terrain fills the screen below the bar")
 			check(field.size.y > viewport.y * 0.85, "Terrain owns over 85 percent of phone height")
 			check(field.find_child("CampaignMapBorder", true, false) == null and not campaign.parchment.visible, "No frame encloses the battlefield")
-			check(field.get_global_rect().encloses(hud.identity.get_global_rect()) and field.get_global_rect().encloses(hud.footer.get_global_rect()), "Floating information fits inside terrain")
-			check(hud.context.text == "Level %d" % (level + 1) and hud.title.text == campaign.run.mission.name, "Level identity is complete")
-			for card in [hud.identity, hud.left_card, hud.right_card]:
+			check(field.get_global_rect().encloses(hud.header.get_global_rect()), "Top information row fits inside terrain")
+			check(hud.identity.get_child_count() == 1 and hud.title.text == campaign.run.mission.name, "Identity contains only the level name")
+			check(hud.header.get_child_count() == 4, "Level, gold, wave and enemies have four separate cards")
+			var card_end: float = hud.header.global_position.x - UI.CARD_GAP
+			for card in [hud.identity, hud.left_card, hud.right_card, hud.detail_card]:
 				check(field.get_global_rect().encloses(card.get_global_rect()), "Floating card stays within the battlefield")
+				check(is_equal_approx(card.global_position.y, hud.header.global_position.y) and is_equal_approx(card.size.y, hud.header.size.y), "All four cards share the same top edge and height")
+				check(card.global_position.x >= card_end + UI.CARD_GAP, "Cards stay in one row with clear gaps")
+				card_end = card.get_global_rect().end.x
 				check(card.mouse_filter == Control.MOUSE_FILTER_IGNORE, "Card surface passes gestures to terrain")
 				check(card.get_theme_stylebox("panel").border_width_left == UI.OUTLINE, "Floating cards use the shared ink border")
-			check(hud.left_card.get_global_rect().end.x + UI.CARD_GAP <= hud.right_card.global_position.x, "Corner cards leave open terrain between them")
+			check(hud.detail.text == "%d enemies remaining" % campaign.Configuration.schedule(campaign.run.mission, 0).size(), "Planning card shows the upcoming wave total")
 			var next_x := 0.0
 			for control in campaign.game_toolbar.get_children():
 				check(bounds.encloses(control.get_global_rect()) and control.size.x >= UI.TARGET and control.size.y >= UI.TARGET, "Every toolbar action fits and retains its touch target")
@@ -56,14 +61,15 @@ func run() -> void:
 				next_x = control.get_global_rect().end.x + UI.CARD_GAP
 				for state in ["normal", "hover", "pressed", "disabled"]:
 					check(control.get_theme_stylebox(state).border_width_left == UI.OUTLINE, "Toolbar button borders remain uniform in every state")
-			for caption in [hud.context, hud.title, hud.left_value, hud.right_value, hud.detail]:
+			for caption in [hud.title, hud.left_value, hud.right_value, hud.detail]:
 				check(caption.mouse_filter == Control.MOUSE_FILTER_IGNORE, "Floating text passes gestures to terrain")
+				check(caption.get_parent().get_global_rect().encloses(caption.get_global_rect()) and caption.get_visible_line_count() == caption.get_line_count(), "Card text wraps without clipping")
 			if level in [3, 11] or viewport.x == 390:
 				await Harness.capture(app, "campaign-hud-%02d-%d" % [level + 1, viewport.x])
 			var bar_size: Vector2 = campaign.battle_bar.size
 			await Harness.tap(app, campaign.wave_button.get_global_rect().get_center(), true)
 			check(campaign.run.phase == "wave" and campaign.wave_button.disabled, "Top wave action starts combat through touch input")
-			check(hud.detail.visible and hud.detail.text.ends_with("enemies remaining"), "Active enemy count floats above the wave count")
+			check(hud.detail.visible and hud.detail.text == "%d enemies remaining" % campaign.run.schedule.size(), "Separate enemy card shows live remaining count")
 			await Harness.tap(app, campaign.pause_button.get_global_rect().get_center(), true)
 			var before: float = campaign.run.wave_time
 			campaign._process(0.1)
@@ -73,7 +79,7 @@ func run() -> void:
 			await frame()
 			check(campaign.battle_bar.size == bar_size, "Toolbar height and width stay stable during combat")
 			if level in [3, 11]:
-				check(hud.right_card.get_global_rect().encloses(hud.detail.get_global_rect()), "Remaining enemies share the wave card")
+				check(hud.detail_card.get_global_rect().encloses(hud.detail.get_global_rect()) and not hud.right_card.get_global_rect().intersects(hud.detail.get_global_rect()), "Remaining enemies occupy their own card beside the wave")
 				await Harness.capture(app, "campaign-hud-active-%d" % viewport.x)
 			await Harness.tap(app, campaign.find_child("CampaignWaves", true, false).get_global_rect().get_center(), true)
 			check(campaign.dialog.visible and campaign.waves_dialog, "Top Waves action opens details")
@@ -124,10 +130,12 @@ func run() -> void:
 		expanded_hud.notice.show()
 		expanded_hud.fit()
 		await frame()
-		for card in [expanded_hud.identity, expanded_hud.left_card, expanded_hud.right_card, expanded_hud.notice_card]:
+		for card in [expanded_hud.identity, expanded_hud.left_card, expanded_hud.right_card, expanded_hud.detail_card, expanded_hud.notice_card]:
 			check(campaign.board.get_global_rect().encloses(card.get_global_rect()), "Long HUD content remains inside the phone")
 		check(not expanded_hud.left_card.get_global_rect().intersects(expanded_hud.right_card.get_global_rect()), "Large values do not overlap")
 		check(expanded_hud.identity.get_global_rect().encloses(expanded_hud.title.get_global_rect()), "Long title wraps inside its card")
+		for caption in [expanded_hud.title, expanded_hud.left_value, expanded_hud.right_value, expanded_hud.detail]:
+			check(caption.get_visible_line_count() == caption.get_line_count(), "Long HUD text remains completely visible")
 		await Harness.capture(app, "campaign-hud-long-%d" % viewport.x)
 	app.queue_free()
 	await process_frame

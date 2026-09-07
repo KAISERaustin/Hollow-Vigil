@@ -33,8 +33,8 @@ Game home [Campaign or Infinite]
 └── Settings → shared Settings
 
 During play [left Menu / right pause and speed toolbar]
-Campaign level Menu → world map → Saved Games
-Infinite Menu / shared game menu
+Campaign level Back → world map → Saved Games
+Campaign map top-right Menu / Infinite Menu → shared game menu
 └── Menu
     ├── Top-left back arrow → held live session, same prior pause state
     ├── Edit rules [Creative] → isolated draft → Apply changes / Cancel
@@ -97,7 +97,7 @@ There are exactly three slots for each game type, shared between Creative and Su
 
 ## Reusable content
 
-Builds are immutable snapshots. Identical private saves are idempotent; a changed snapshot creates another version. A named build can contain any supported combination. Omitted fields start from original defaults. A one-level Campaign build affects that matching level only and never unlocks Survival progress.
+Builds are immutable snapshots. Identical private saves are idempotent; a changed snapshot creates another version. A named build can contain any supported combination. Omitted fields start from original defaults. A one-level Campaign build affects that matching level only and never unlocks Survival progress. From a selected Campaign slot's map, Menu opens the shared Save build form with private and Community actions, whole-campaign or explicit level scope, and rules/resources or tower/equipment contents. The map can export the saved checkpoint's layout before entering a level; returning from battle uses the retained run's latest layout. Creative also exposes per-level and per-wave rule drafts here.
 
 Stats come from registered content nodes. The checklist discovers new enemy, boss and base tower types through the registry. Tower stats include the chosen type's tiers; unselected siblings are excluded. A layout carries its compatible equipment and necessary placement tiles/connecting paths or authored Campaign sockets. Timing-only or composition-only wave edits must have the original number of spawn groups; differing groups require both selections and are explained before starting.
 

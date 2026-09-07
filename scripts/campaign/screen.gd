@@ -414,6 +414,12 @@ func show_map() -> void:
 		var back: Button = heading.get_child(0)
 		back.accessibility_name = "Back to saved games"
 		back.name = "CampaignSavedGames"
+		var menu := UI.button("Menu", app.show_game_menu)
+		menu.name = "CampaignMapMenu"
+		menu.accessibility_name = "Campaign menu"
+		menu.size_flags_horizontal = Control.SIZE_SHRINK_END
+		menu.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		heading.add_child(menu)
 	else: header("The Last Procession", show_setup)
 	var cleared := int(progress.data.completed_levels)
 	var world := WorldMap.new()
@@ -568,7 +574,6 @@ func show_battle(start_paused: bool = false) -> void:
 	add_board(true)
 	floating_hud = preload("res://scripts/ui/shared/floating_game_hud.gd").new()
 	board.add_child(floating_hud)
-	floating_hud.context.text = "Level %d" % (run.mission.index + 1)
 	floating_hud.title.text = run.mission.name
 	floating_hud.title.name = "CampaignTitle"
 	gold = floating_hud.left_value
@@ -630,11 +635,15 @@ func refresh() -> void:
 	var can_start: bool = run.phase == "planning"
 	status.text = "Wave %d / %d" % [shown_wave, run.mission.waves.size()]
 	wave_button.disabled = not can_start or reward_transition.active
-	var remaining := "%d enemies remaining" % (run.game.combat.enemies.size() + run.schedule.size() - run.next_spawn)
+	var enemies_remaining: int = run.game.combat.enemies.size() + run.schedule.size() - run.next_spawn
+	if can_start and not reward_transition.active:
+		enemies_remaining = 0
+		for group in run.mission.waves[run.wave]:
+			enemies_remaining += int(group[1])
+	var remaining := "%d enemies remaining" % enemies_remaining
 	wave_button.text = "Start wave" if can_start else "In progress"
 	wave_button.accessibility_name = "Start wave %d" % (run.wave + 1) if can_start else remaining
 	floating_hud.detail.text = remaining
-	floating_hud.detail.visible = run.phase == "wave" and not reward_transition.active
 	floating_hud.fit()
 	if run.phase in ["victory", "defeat"]:
 		wave_button.text = "Restored" if run.phase == "victory" else "Defeated"
@@ -687,13 +696,21 @@ func session_levels() -> Dictionary:
 		var setup := level_setup(index)
 		result[str(index)] = {"overrides": setup.overrides.duplicate(true)}
 		if setup.has("loadout"): result[str(index)].loadout = setup.loadout.duplicate(true)
-	if run != null and page == "battle":
-		var loadout := {}
-		for key in ["towers", "next_tower", "relics", "balance"]:
-			var value: Variant = run.game.data.get(key, {})
-			loadout[key] = value.duplicate(true) if value is Dictionary else value
-		result[str(int(run.mission.index))].loadout = loadout
+	# Continue opens the map without constructing a run. Its saved layout must
+	# still be exportable; a retained live run supplies newer placements.
+	var checkpoint: Dictionary = campaign_save.get("checkpoint", {})
+	if not checkpoint.is_empty():
+		result[str(int(checkpoint.level))].loadout = session_loadout(checkpoint.state)
+	if run != null and page in ["battle", "map"]:
+		result[str(int(run.mission.index))].loadout = session_loadout(run.game.data)
 	return result
+
+func session_loadout(state: Dictionary) -> Dictionary:
+	var loadout := {}
+	for key in ["towers", "next_tower", "relics", "balance"]:
+		var value: Variant = state.get(key, {})
+		loadout[key] = value.duplicate(true) if value is Dictionary else value
+	return loadout
 
 func show_waves() -> void:
 	open_dialog("Waves")
