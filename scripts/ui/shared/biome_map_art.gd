@@ -82,7 +82,7 @@ static func layout(profile: Dictionary, bounds: Rect2, reserved: Array[Rect2], r
 		var target := bounds.position+Vector2(bounds.size.x*[0.27,0.73,0.25,0.48][index%4],205+index*192)
 		var best := Rect2()
 		var score := INF
-		for width in [126.0,108.0,90.0]:
+		for width in [126.0,108.0,90.0,78.0]:
 			var extent := Vector2(width,width*0.9)
 			for y in range(int(bounds.position.y)+136,int(bounds.end.y-extent.y),8):
 				for x in range(8,int(bounds.end.x-extent.x),12):
@@ -97,9 +97,9 @@ static func layout(profile: Dictionary, bounds: Rect2, reserved: Array[Rect2], r
 			result.append({"kind":profile.landmarks[index],"rect":best,"major":true})
 			occupied.append(best)
 	var natural_index := 0
-	for attempt in range(420):
+	for attempt in range(700):
 		if result.size()>=int(bounds.size.x/10): break
-		var width := rng.randf_range(48,88)
+		var width := rng.randf_range(38,88)
 		var rect := Rect2(Vector2(rng.randf_range(5,bounds.size.x-width-5),rng.randf_range(bounds.position.y+132,bounds.end.y-width*0.9-5)),Vector2(width,width*0.9))
 		if not clear_site(rect,bounds,occupied,roads): continue
 		var kind: String = profile.scenery[natural_index%profile.scenery.size()]

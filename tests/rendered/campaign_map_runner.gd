@@ -55,8 +55,10 @@ func run() -> void:
 			var bounds: Rect2 = map.chapter_rect(chapter)
 			check(bounds.encloses(map.headings[chapter].get_rect()), "Chapter title fits its biome")
 			var scenery: Array = map.landscapes[chapter].sites
-			check(scenery.filter(func(site):return site.major).size()==4,"Every chapter retains four substantial scenery landmarks")
-			check(scenery.filter(func(site):return site.kind!="ground_marks").size()>=9,"Every chapter has a populated landscape at %d"%viewport.x)
+			var architecture_count := scenery.filter(func(site):return site.major).size()
+			var scenery_count := scenery.filter(func(site):return site.kind!="ground_marks").size()
+			check(architecture_count==4,"Four scenery landmarks at %d / chapter %d (found %d)"%[viewport.x,chapter+1,architecture_count])
+			check(scenery_count>=9,"Populated landscape at %d / chapter %d (found %d)"%[viewport.x,chapter+1,scenery_count])
 			var obstacles: Array[PackedVector2Array] = map.chapter_roads(chapter)
 			obstacles.append(Map.MapArt.waterway(bounds))
 			for site in scenery:

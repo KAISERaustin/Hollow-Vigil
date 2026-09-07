@@ -14,7 +14,7 @@ static func draw(field) -> void:
 		var armed: bool = combat.simulation_time >= trap.arm_at
 		A.ellipse(field, Vector2(0, 2), Vector2(9, 4), A.PAPER if armed else A.ROAD, 1.5)
 		if trap.branch == "dreadjaw":
-			Towers.poly(field, [Vector2(-10, -4), Vector2(-6, 3), Vector2(-2, -3), Vector2(2, 3), Vector2(6, -3), Vector2(10, 3)], Towers.BONE)
+			Towers.poly(field, [Vector2(-10, -4), Vector2(-6, 3), Vector2(-2, -3), Vector2(2, 3), Vector2(6, -3), Vector2(10, 3), Vector2(10, 7), Vector2(-10, 7)], Towers.BONE)
 		else: Towers.spike(field, Vector2.ZERO, 7 if armed else 4)
 		field.draw_set_transform(Vector2.ZERO)
 	for projectile in combat.line_projectiles:
