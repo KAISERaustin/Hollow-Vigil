@@ -232,8 +232,8 @@ func _populate_levels(root: ContentNode) -> void:
 	var wave_root := _add(WaveNode.new("wave", root))
 	var landscape := _add(MapLandscapeNode.new("presentation/map_landscape", root))
 	for chapter in range(Levels.CHAPTERS.size()):
-		var chapter_node := LevelNode.new("level/chapter/" + str(chapter), campaign, {}, {"chapter": Levels.CHAPTERS[chapter]})
-		_add(chapter_node.with_component(chapter_node.id, "map_landscape", landscape, ChapterMaps.PROFILES[Levels.CHAPTERS[chapter].style]))
+		_add(LevelNode.new("level/chapter/" + str(chapter), campaign, {}, {"chapter": Levels.CHAPTERS[chapter],
+			"components": [{"slot": "map_landscape", "component": landscape, "config": ChapterMaps.PROFILES[Levels.CHAPTERS[chapter].style]}]}))
 	for index in range(Levels.MISSIONS.size()):
 		var attributes: Dictionary = Levels.MISSIONS[index].duplicate(true)
 		attributes.index = index

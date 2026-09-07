@@ -1,5 +1,8 @@
 extends RefCounted
 
+# Preserve the established four-tower solo contract. New trajectory, trap and
+# support roles have their live cohort and paired-defense checks in
+# tests/tower_expansion_balance_runner.gd.
 const DURATION := 120.0
 const SEEDS := [123, 314, 879]
 
@@ -8,7 +11,7 @@ static func run(suite: SceneTree) -> void:
 		var former_period := 1.7 / (1.0 + traffic * Balance.TRAFFIC_INCREMENT)
 		suite.check(is_equal_approx(former_period / Balance.traffic_period(traffic), 0.4), "Rift rate is 40 percent of its former rate at traffic %d" % traffic)
 	var report := "scenario,tower,level,investment,defeats,escapes,clear_percent,gold_per_minute\n"
-	for kind in Balance.TOWERS:
+	for kind in ["rapid", "splash", "heavy", "electric"]:
 		var opening := sample(suite, [kind], 1, 0, false)
 		if kind != "electric":
 			suite.check(opening.clear >= 0.5, "%s is a viable first tower against basic starting traffic" % kind)
@@ -36,7 +39,7 @@ static func run(suite: SceneTree) -> void:
 	report += row("mixed-traffic-12", "combined", 3, combined)
 	# Keep the original three-enemy progression contract above. The optional
 	# fourth attunement is a harder cohort and must still reward upgrades.
-	for kind in Balance.TOWERS:
+	for kind in ["rapid", "splash", "heavy", "electric"]:
 		var base := sample(suite, [kind], 1, 0, true, Balance.UNLOCK_COSTS.keys())
 		var upgraded := sample(suite, [kind], 3, 0, true, Balance.UNLOCK_COSTS.keys())
 		suite.check(base.gold > 0 and upgraded.clear >= 0.8 and upgraded.gold >= base.gold * 1.5, "%s upgrades handle all four enemy types" % kind)

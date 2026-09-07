@@ -82,14 +82,15 @@ static func trap_targeting(t) -> void:
 
 static func gear_in_combat(t) -> void:
 	for kind in t.NewKinds:
-		for gear in Balance.GEAR:
-			var f := live_fixture(t, kind, 3)
-			f.game.combat.Relics.award(f.game.data, "90,90", gear)
-			t.check(f.game.economy.equip_relic("1", "90,90", ""), kind + " equips " + gear)
-			for tick in range(240): f.game.combat.tick(Balance.STEP)
-			t.check(f.enemy.hp < f.enemy.max_hp and f.game.combat.relic_progress.has("1"), kind + " runs " + gear + " through actual attacks")
-			f.game.economy.equip_relic("1", "", "90,90")
-			t.check(not f.game.combat.relic_progress.has("1") and f.game.combat.line_projectiles.is_empty() and f.game.combat.traps.is_empty(), kind + " removes " + gear + " and owned transient state")
+		for stage in stages(kind):
+			for gear in Balance.GEAR:
+				var f := live_fixture(t, kind, stage[0], stage[1])
+				f.game.combat.Relics.award(f.game.data, "90,90", gear)
+				t.check(f.game.economy.equip_relic("1", "90,90", ""), kind + " equips " + gear)
+				for tick in range(240): f.game.combat.tick(Balance.STEP)
+				t.check(f.enemy.hp < f.enemy.max_hp and f.game.combat.relic_progress.has("1"), kind + " runs " + gear + " through actual attacks")
+				f.game.economy.equip_relic("1", "", "90,90")
+				t.check(not f.game.combat.relic_progress.has("1") and f.game.combat.line_projectiles.is_empty() and f.game.combat.traps.is_empty(), kind + " removes " + gear + " and owned transient state")
 	# A returning blade must not create one ground field at every collision.
 	for kind in ["ironspike", "moonwheel"]:
 		var f := live_fixture(t, kind)
