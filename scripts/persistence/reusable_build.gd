@@ -95,7 +95,7 @@ static func capture(game_type: String, source: VigilState, levels: Dictionary, s
 		"scope": scope if game_type == "campaign" else "all", "level": level if game_type == "campaign" and scope == "level" else -1,
 		"contents": contents.duplicate(true), "data": {}}
 	for key in value.contents.keys():
-		if value.contents[key] == false or (value.contents[key] is Array and value.contents[key].is_empty()): value.contents.erase(key)
+		if (value.contents[key] is bool and not value.contents[key]) or (value.contents[key] is Array and value.contents[key].is_empty()): value.contents.erase(key)
 	if game_type == "infinite":
 		value.data.stats = selected_stats(source.tuning, contents)
 		if contents.get("resources", false): value.data.resources = {"gold": source.data.balance}
@@ -121,6 +121,7 @@ static func capture(game_type: String, source: VigilState, levels: Dictionary, s
 				if contents.get("rewards", false): part.reward = mission.wave_rules[wave].reward
 				entry.waves[str(wave)] = part
 			value.data.levels[str(index)] = entry
+	if not valid(value) and contents.keys() == ["resources"] and level == 0: print("DEBUG_CAPTURE ", value)
 	return value if valid(value) else {}
 
 static func encode(value: Dictionary) -> String:
@@ -131,14 +132,17 @@ static func encode(value: Dictionary) -> String:
 
 static func decode(code: String) -> Dictionary:
 	if code.to_utf8_buffer().size() > MAX_BYTES: return {}
-	var envelope: Variant = JSON.parse_string(code)
+	var parser := JSON.new()
+	if parser.parse(code) != OK: return {}
+	var envelope: Variant = parser.data
 	if not envelope is Dictionary or envelope.size() != 3 or envelope.get("format") != FORMAT or not envelope.get("payload") is String: return {}
 	if envelope.get("checksum") != envelope.payload.sha256_text(): return {}
-	var value: Variant = JSON.parse_string(envelope.payload)
+	if parser.parse(envelope.payload) != OK: return {}
+	var value: Variant = parser.data
 	return value if value is Dictionary and valid(value) else {}
 
 static func valid(value: Dictionary) -> bool:
-	if value.size() != 8 or value.get("version") != 2 or value.get("game_type") not in ["campaign", "infinite"]: return false
+	if value.size() != 7 or value.get("version") != 2 or value.get("game_type") not in ["campaign", "infinite"]: return false
 	if not Stats.valid({"version": 1, "setup": value.get("setup"), "tuning": {}}): return false
 	if value.get("scope") not in ["all", "level"] or not Configuration._number(value.get("level"), -1, Configuration.Catalog.COUNT - 1, true): return false
 	if (value.scope == "level") != (int(value.level) >= 0) or (value.game_type == "infinite" and value.scope != "all"): return false

@@ -1,0 +1,70 @@
+extends "res://tests/test_runner.gd"
+const CampaignSlots = preload("res://scripts/persistence/campaign_slots.gd")
+const Run = preload("res://scripts/campaign/run.gd")
+const Build = preload("res://scripts/persistence/reusable_build.gd")
+
+func run() -> void:
+	var battle := Run.new(0, {}, "creative")
+	check(battle.build(6, "rapid"), "Checkpoint fixture builds a tower")
+	var starting_gold: float = battle.game.data.balance
+	check(battle.start_wave(), "Start checkpoint wave")
+	var checkpoint: Dictionary = battle.checkpoint()
+	check(Run.valid_checkpoint(checkpoint), "Campaign checkpoint validates with authored sockets")
+	for i in 40: battle.tick(Balance.STEP)
+	battle.game.data.balance += 999
+	battle.build(9, "rapid")
+	check(battle.checkpoint() == checkpoint, "Mid-wave gold and tower edits cannot change the starting checkpoint")
+	var restored: RefCounted = Run.from_checkpoint(JSON.parse_string(JSON.stringify(battle.checkpoint(), "", true, true)))
+	check(restored != null, "Checkpoint survives serialized round trip")
+	if restored != null:
+		check(restored.wave == 0 and restored.phase == "wave" and restored.wave_time == 0, "Continue restarts the same wave")
+		check(restored.game.data.balance == starting_gold and restored.game.data.towers.size() == 1, "Continue restores starting resources and tower state together")
+		check(restored.game.combat.enemies.is_empty(), "Continue has no stale live enemies")
+		check(restored.checkpoint() == checkpoint, "Repeated continue does not advance checkpoint")
+	var slots := CampaignSlots.new()
+	slots.base_path = "user://unified-" + str(Time.get_ticks_usec())
+	var before: Array = []
+	for slot in 3:
+		var saved := slots.create(slot, "creative" if slot == 0 else "survival", "Campaign " + str(slot + 1))
+		check(not saved.is_empty(), "Campaign slot can be created")
+		before.append(slots.summary(slot))
+	check(slots.create(3, "creative", "Hidden fourth").is_empty(), "No fourth Campaign slot")
+	check(slots.create(0, "survival", "Unconfirmed replacement").is_empty(), "Occupied slot cannot be silently replaced")
+	var saved: Dictionary = before[0].duplicate(true)
+	saved.checkpoint = checkpoint
+	check(slots.save_slot(0, saved), "Campaign persists incomplete wave")
+	check(slots.summary(1) == before[1] and slots.summary(2) == before[2], "Saving one Campaign leaves siblings untouched")
+	check(slots.replace(0, before[1]), "Confirmed replacement preserves recoverable game")
+	check(slots.summary(0).id == before[1].id, "Replacement uses chosen game identity")
+	var game := VigilState.new(7331, "creative")
+	check(game.set_balance_stat("enemies", "basic", "hp", 431), "Configure individual enemy")
+	check(game.set_balance_stat("bosses", "warden", "hp", 4567), "Configure independent boss")
+	var selected := {"enemies": ["basic"]}
+	var build := Build.capture("infinite", game, {}, "all", -1, selected, "One enemy", "Selected contents only")
+	check(not build.is_empty(), "Capture individual enemy stats")
+	if not build.is_empty():
+		check(build.data.stats.keys() == ["enemies"] and build.data.stats.enemies.keys() == ["basic"], "No boss or sibling stats silently included")
+		var decoded := Build.decode(Build.encode(build))
+		check(decoded == build, "Selected content round trip")
+		var fresh := Build.infinite_snapshot(decoded, {}, "survival")
+		check(fresh.ok and fresh.snapshot.towers.is_empty() and fresh.snapshot.regions.size() == 1, "Stats only starts a fresh world")
+		check(fresh.snapshot.settings.developer_balance.enemies.basic.hp == 431, "Selected stats apply to new Survival game")
+		check(not fresh.snapshot.settings.developer_balance.has("bosses"), "Omitted bosses use original defaults")
+		var campaign := Build.compose_campaign(decoded, {"apply_to": "level", "target_level": 2})
+		check(campaign.ok and campaign.levels.keys() == ["2"], "Portable stats target only explicitly selected Campaign level")
+		check(not Build.compose_campaign(decoded, {}).ok, "Portable Campaign stats require scope choice")
+	var all := Build.all_contents("campaign")
+	var campaign_build := Build.capture("campaign", null, {}, "all", -1, all, "Full campaign", "")
+	check(not campaign_build.is_empty(), "All Campaign contents capture")
+	if not campaign_build.is_empty():
+		check(Build.compose_campaign(campaign_build, {}).ok, "Whole campaign composes validated fresh levels")
+		check(not Build.infinite_snapshot(campaign_build, {}, "creative").ok, "Whole Campaign stats require explicit source level in Infinite")
+		check(Build.infinite_snapshot(campaign_build, {"source_level": 4}, "creative").ok, "Explicit Campaign level stats are portable")
+	var library := VigilSaveSlots.new()
+	library.base_path = slots.base_path
+	var code := Build.encode(build)
+	check(library.save_shared(code) and library.save_shared(code), "Private saving works offline and is idempotent")
+	check(library.shared_configurations("all").size() == 1, "One exact build occupies one library entry")
+	check(not library.occupied(0), "Private build saving never occupies an Infinite slot")
+	print("UNIFIED_PERSISTENCE: %d checks, %d failures" % [checks, failures.size()])
+	quit(0 if failures.is_empty() else 1)

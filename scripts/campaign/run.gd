@@ -190,7 +190,7 @@ func checkpoint() -> Dictionary:
 	return _capture_checkpoint(phase)
 
 static func valid_checkpoint(value: Dictionary) -> bool:
-	if value.size() != 9 or value.get("phase") not in ["planning", "wave", "victory"]: return false
+	if value.size() != 8 or value.get("phase") not in ["planning", "wave", "victory"]: return false
 	if value.get("mode") not in ["creative", "survival"]: return false
 	if not Configuration._number(value.get("level"), 0, Catalog.COUNT - 1, true): return false
 	var index := int(value.level)

@@ -4,6 +4,7 @@ extends RefCounted
 const Stats = preload("res://scripts/persistence/stat_configuration.gd")
 const CampaignBuild = preload("res://scripts/persistence/campaign_build.gd")
 const CampaignPlaythrough = preload("res://scripts/persistence/campaign_playthrough.gd")
+const Reusable = preload("res://scripts/persistence/reusable_build.gd")
 const COUNT := 3
 const BUILD_FORMAT := "hollow-vigil-creative-build-v1"
 var base_path := "user://vigil"
@@ -188,6 +189,9 @@ func stat_configurations() -> Array[Dictionary]:
 	return result
 
 func shared_entry(code: String) -> Dictionary:
+	var build := Reusable.decode(code)
+	if not build.is_empty():
+		return {"name": build.setup.name, "description": build.setup.description, "code": code, "kind": "build", "build": build}
 	var value := CampaignPlaythrough.decode(code)
 	var kind := "campaign"
 	if value.is_empty():
@@ -207,6 +211,20 @@ func save_shared(code: String) -> bool:
 	if entry.is_empty():
 		error = "Invalid or incompatible configuration."
 		return false
+	if entry.kind == "build":
+		if DirAccess.make_dir_recursive_absolute(configurations_path()) != OK:
+			error = "Couldn't open My builds. Please try again."
+			return false
+		var path := configurations_path().path_join(code.sha256_text() + ".hvshared")
+		if FileAccess.file_exists(path): return FileAccess.get_file_as_string(path) == code
+		var file := FileAccess.open(path + ".tmp", FileAccess.WRITE)
+		if file == null: return false
+		file.store_string(code)
+		file.flush()
+		var ok := file.get_error() == OK
+		file.close()
+		if not ok or Reusable.decode(FileAccess.get_file_as_string(path + ".tmp")).is_empty(): return false
+		return DirAccess.rename_absolute(path + ".tmp", path) == OK
 	return _save_configuration_code(code, {"world": "hvbuild", "stats": "hvstats", "campaign_build": "hvcampaign", "campaign_stats": "hvcampaign", "campaign": "hvcampaign"}[entry.kind])
 
 func shared_configurations(kind: String) -> Array[Dictionary]:
@@ -216,7 +234,32 @@ func shared_configurations(kind: String) -> Array[Dictionary]:
 	var files := directory.get_files()
 	files.reverse()
 	for filename in files:
-		if filename.get_extension() not in ["hvbuild", "hvstats", "hvcampaign"]: continue
+		if filename.get_extension() not in ["hvbuild", "hvstats", "hvcampaign", "hvshared"]: continue
 		var entry := shared_entry(FileAccess.get_file_as_string(configurations_path().path_join(filename)))
-		if entry.get("kind") == kind: result.append(entry)
+		if not entry.is_empty() and (entry.get("kind") == kind or kind == "all"): result.append(entry)
 	return result
+
+func reusable_entry(entry: Dictionary) -> Dictionary:
+	if entry.has("build"): return entry
+	var code: String = entry.get("code", "")
+	var kind: String = entry.get("kind", "")
+	var build := {}
+	if kind in ["world", "stats"]:
+		var game := VigilState.new(42)
+		var contents := Reusable.all_contents("infinite")
+		if kind == "world": game.data = decode_build(code)
+		else:
+			var stats := Stats.decode(code)
+			game = VigilState.new(42, "creative", stats.tuning)
+			contents.erase("layout")
+			contents.erase("terrain")
+		build = Reusable.capture("infinite", game, {}, "all", -1, contents, entry.name, entry.description)
+	elif kind in ["campaign", "campaign_build", "campaign_stats"]:
+		var legacy: Dictionary = CampaignPlaythrough.decode(code) if kind == "campaign" else CampaignBuild.decode(code)
+		var levels: Dictionary = legacy.levels if kind == "campaign" else {str(int(legacy.level)): {"overrides": legacy.overrides}}
+		if kind != "campaign" and legacy.has("loadout"): levels[str(int(legacy.level))].loadout = legacy.loadout
+		var contents := Reusable.all_contents("campaign")
+		if kind == "campaign_stats": contents.erase("layout")
+		build = Reusable.capture("campaign", null, levels, "all" if kind == "campaign" else "level", int(legacy.get("level", -1)), contents, entry.name, entry.description)
+	if build.is_empty(): return {}
+	return shared_entry(Reusable.encode(build))
