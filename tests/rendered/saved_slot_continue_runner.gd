@@ -48,4 +48,3 @@ func run() -> void:
 	app.queue_free()
 	await frames()
 	quit(0 if failures.is_empty() else 1)
-
