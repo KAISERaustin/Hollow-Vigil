@@ -64,6 +64,15 @@ func run() -> void:
 		await frame()
 		await Harness.capture(app, "share-configuration-" + str(dimensions.x))
 		check(menu.card.get_global_rect().encloses(includes.get_global_rect()), "Share choices fit " + str(dimensions.x))
+		var upload := menu.find_child("SaveConfiguration", true, false) as Button
+		menu.scroll.ensure_control_visible(upload)
+		await frame()
+		check(menu.scroll.get_global_rect().grow(1).encloses(upload.get_global_rect()), "Upload is reachable " + str(dimensions.x))
+		menu.scroll.scroll_vertical = 0
+	menu.find_child("SetupName", true, false).text = ""
+	menu.find_child("SaveLocalBuild", true, false).pressed.emit()
+	await frame()
+	check(menu.message.is_visible_in_tree() and not menu.message.text.is_empty(), "Invalid title reveals the hidden status row")
 	includes.select(1)
 	includes.item_selected.emit(1)
 	menu.find_child("SetupName", true, false).text = "Shared rules"

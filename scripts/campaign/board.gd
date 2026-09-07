@@ -43,8 +43,11 @@ func _ready() -> void:
 				if Rect2(center - Vector2.ONE * Balance.TILE * 0.5, Vector2.ONE * Balance.TILE).has_point(socket.position):
 					pads.append(socket.position - center)
 			var tile := VigilTerrainTile.new()
-			tile.configure({"id": id, "style": run.mission.style}, state.data.seed, {"roads": run.mission.routes, "pads": pads})
+			tile.configure({"id": id, "style": run.mission.style}, state.data.seed, {"roads": run.mission.routes, "pads": pads, "render_roads": false})
 			landscape.add_child(tile)
+	var roads := preload("res://scripts/rendering/terrain/road_layer.gd").new()
+	roads.configure(run.mission.routes)
+	landscape.add_child(roads)
 	resized.connect(_resize_view)
 	reset_view()
 	accessibility_name = "Campaign battlefield. Tap a socket to build or manage. Drag to explore, pinch or scroll to zoom."

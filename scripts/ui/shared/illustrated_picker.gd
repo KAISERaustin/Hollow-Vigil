@@ -40,6 +40,7 @@ func _ready() -> void:
 	scroll = ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus = true
 	body.add_child(scroll)
 	UI.keyboard_scroll(scroll, "Scroll through choices")
 	rows = VBoxContainer.new()
@@ -81,6 +82,10 @@ func show_popup() -> void:
 	for index in range(item_count):
 		var button := UI.button("", choose.bind(index), 76)
 		button.name = "Choice_" + str(index)
+		button.add_theme_stylebox_override("normal", UI.plain())
+		button.add_theme_stylebox_override("hover", UI.surface(UI.SURFACE, 0, 8))
+		button.add_theme_stylebox_override("pressed", UI.surface(UI.GOLD, 0, 8))
+		button.add_theme_stylebox_override("hover_pressed", UI.surface(UI.GOLD, 0, 8))
 		button.accessibility_name = str(items[index].label)
 		button.toggle_mode = true
 		button.set_pressed_no_signal(index == selected)

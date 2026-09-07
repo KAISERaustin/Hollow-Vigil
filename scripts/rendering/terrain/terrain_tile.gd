@@ -7,6 +7,7 @@ var scenery: Array[Dictionary] = []
 var ground_details: Array[Dictionary] = []
 var world_center := Vector2.ZERO
 var pads: Array = []
+var render_roads := true
 
 func configure(data: Dictionary, seed_value: int, authored: Dictionary = {}) -> void:
 	roads.clear()
@@ -19,6 +20,7 @@ func configure(data: Dictionary, seed_value: int, authored: Dictionary = {}) -> 
 	clip_contents = true
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pads = authored.get("pads", VigilWorld.PADS)
+	render_roads = authored.get("render_roads", true)
 	for side in range(4) if authored.is_empty() else []:
 		var points := PackedVector2Array()
 		for point in VigilWorld.spoke(region, side):
@@ -94,13 +96,8 @@ func _draw() -> void:
 	var style: String = region.get("style", "forest")
 	for detail in ground_details:
 		VigilTerrainArt.ground_detail(self, style, detail.pos, detail.variant, detail.scale)
-	# All outlines first, then all fills keep the four road spokes connected.
-	for road in roads:
-		draw_polyline(road, VigilTerrainArt.INK, 28.0, true)
-	for road in roads:
-		draw_polyline(road, VigilTerrainArt.ROAD, 23.0, true)
-	for road in roads:
-		VigilTerrainArt.road_detail(self, road)
+	if render_roads:
+		preload("res://scripts/rendering/terrain/road_layer.gd").draw_roads(self, roads)
 	for pad in pads:
 		VigilTerrainArt.socket(self, pad)
 	for prop in scenery:

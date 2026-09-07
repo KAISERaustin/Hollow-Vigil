@@ -258,7 +258,10 @@ func show_export(source: VigilState = null, campaign: Dictionary = {}, return_to
 	export_return = return_to if return_to.is_valid() else close
 	export_stats_only = false
 	clear("Save or share configuration")
+	# Empty status labels must not reserve a blank row above the form.
+	message.hide()
 	add_back(UI.button("Back to game", export_return))
+	content.add_child(UI.rule())
 	content.add_child(UI.paragraph("Share all 20 levels: enemy groups, spawn timing, wave rewards and every edited stat. Include saved tower loadouts or share only campaign rules." if campaign.has("levels") else "Choose what to include. Towers + stats keeps the layout, equipment, resources and rules. Stats only shares the rules and stat changes for a fresh start.", 14))
 	var includes := OptionButton.new()
 	includes.name = "ShareConfigurationContents"
@@ -267,7 +270,7 @@ func show_export(source: VigilState = null, campaign: Dictionary = {}, return_to
 	includes.add_item("Campaign rules only" if campaign.has("levels") else "Stats only")
 	includes.item_selected.connect(func(index: int): export_stats_only = index == 1)
 	content.add_child(includes)
-	content.add_child(UI.heading("Title", 18))
+	content.add_child(UI.rule())
 	var title := LineEdit.new()
 	title.name = "SetupName"
 	title.placeholder_text = "For example, Stronger enemies"
@@ -275,8 +278,7 @@ func show_export(source: VigilState = null, campaign: Dictionary = {}, return_to
 	title.text = export_game.data.get("setup", {}).get("name", "")
 	title.custom_minimum_size.y = UI.TARGET
 	style_entry(title)
-	content.add_child(title)
-	content.add_child(UI.heading("Description · optional", 18))
+	content.add_child(UI.form_field("Title", title))
 	var description := TextEdit.new()
 	description.name = "SetupDescription"
 	description.placeholder_text = "What makes this build different?"
@@ -284,13 +286,14 @@ func show_export(source: VigilState = null, campaign: Dictionary = {}, return_to
 	description.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
 	description.custom_minimum_size.y = 120
 	style_entry(description)
-	content.add_child(description)
+	content.add_child(UI.form_field("Description · optional", description))
 	content.add_child(UI.rule())
 	content.add_child(UI.paragraph("Save on this device keeps a private copy. Upload to Community shares the selected content, title, description and player name.", 13))
 	if not app.cloud.signed_in() or app.cloud.display_name.is_empty():
 		content.add_child(UI.paragraph("Public uploads require sign-in and a player name. Failed attempts need an explicit retry. Local builds need no account.", 13))
 	var local := UI.button("Save on this device", save_build.bind(title, description, false))
 	local.name = "SaveLocalBuild"
+	footer.add_child(UI.rule())
 	footer.add_child(local)
 	var upload := UI.accent_button("Upload to Community", save_build.bind(title, description, true), UI.GOLD)
 	upload.name = "SaveConfiguration"
@@ -301,6 +304,7 @@ func save_build(title: LineEdit, description: TextEdit, publish: bool) -> void:
 	var details := description.text
 	if build_name.is_empty() or details.length() > 4000:
 		message.text = "Enter a title and keep the description to 4,000 characters or fewer."
+		message.show()
 		scroll.scroll_vertical = 0
 		return
 	var code: String
@@ -314,6 +318,7 @@ func save_build(title: LineEdit, description: TextEdit, publish: bool) -> void:
 		code = slots.export_build(export_game, build_name, details)
 	if not slots.save_shared(code):
 		message.text = slots.error
+		message.show()
 		return
 	if publish:
 		if app.public_builds.queue_export(code):

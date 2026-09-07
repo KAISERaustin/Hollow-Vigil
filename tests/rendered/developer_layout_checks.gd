@@ -115,7 +115,24 @@ func run() -> void:
 			var popup: PopupPanel = controls.selector.get_popup()
 			check(popup.visible and popup.size.y <= 560, "Selection menu height is bounded: " + category)
 			check(Rect2i(Vector2i.ZERO, dimensions).encloses(Rect2i(popup.position, popup.size)), "Selection menu stays on screen: " + category)
+			check(controls.selector.rows.get_child_count() == controls.selector.item_count * 2 - 1, "Every choice has a separating rule: " + category)
+			var first_choice: Button = controls.selector.rows.get_node("Choice_0")
+			controls.selector.scroll.ensure_control_visible(first_choice)
+			await settle()
+			check(controls.selector.scroll.get_global_rect().encloses(first_choice.get_global_rect()), "First choice is reachable: " + category)
 			await capture(category + "-picker-" + str(dimensions.x))
+			first_choice.pressed.emit()
+			await settle()
+			check(not popup.visible and controls.selected_kind == controls.selector.get_item_metadata(0), "Choice returns to matching editor: " + category)
+			if category == "towers":
+				controls.tier_selector.show_popup()
+				await settle()
+				var branch_choice: Button = controls.tier_selector.rows.get_node("Choice_4")
+				controls.tier_selector.scroll.ensure_control_visible(branch_choice)
+				await settle()
+				branch_choice.pressed.emit()
+				await settle()
+				check(controls.selected_level == 4 and controls.selected_branch != "", "Illustrated tier choice applies specialization")
 			popup.hide()
 			for reset_name in ["ResetSelectedBalance", "ResetAllBalance"]:
 				var reset := controls.find_child(reset_name, true, false) as Button
@@ -135,4 +152,3 @@ func run() -> void:
 	await process_frame
 	print("DEVELOPER_LAYOUT: %d checks, %d failures; all registered categories, every type and tower tier at three viewport sizes" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
-

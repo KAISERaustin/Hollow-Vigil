@@ -478,6 +478,14 @@ static func paragraph(text: String, pixels: int = 14) -> Label:
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return l
 
+static func form_field(caption: String, editor: Control) -> VBoxContainer:
+	var field := VBoxContainer.new()
+	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	field.add_theme_constant_override("separation", 6)
+	field.add_child(heading(caption, 18))
+	field.add_child(editor)
+	return field
+
 static func rule() -> HSeparator:
 	var r := HSeparator.new()
 	var style := StyleBoxLine.new()

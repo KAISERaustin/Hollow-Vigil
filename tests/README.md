@@ -43,7 +43,7 @@ Rendered checks use the native Godot engine, not a browser. Desktop-generated to
 
 ## Developer tier controls
 
-`rendered/developer_layout_checks.gd`, included in `-StyleTests` and `-Check`, opens every registered category with mouse/touch, checks every type and tower tier at all three phone sizes, and captures `artifacts/developer-layout-*.png`. It verifies single-line titles without clipping, square 48×48 navigation buttons, top-right dismissal, immediately visible selectors, bounded dropdowns, complete numeric labels, reachable field/reset rows, and returning to the top when switching categories. Audio is muted in this layout-only fixture.
+`rendered/developer_layout_checks.gd`, included in `-StyleTests` and `-Check`, opens every registered category with mouse/touch, checks every type and tower tier at all three phone sizes, and captures `artifacts/developer-layout-*.png`. It verifies single-line titles without clipping, square 48×48 navigation buttons, top-right dismissal, immediately visible selectors, bounded illustrated selection menus, complete numeric labels, reachable field/reset rows, and returning to the top when switching categories. Audio is muted in this layout-only fixture.
 
 Run `Godot --headless --path . --script tests/developer_tiers_runner.gd` for schema limits, independent tier edits, branch prices/refunds, cooldowns, ability behavior and persistence. These tests are also included in the main headless runner. Run `Godot --path . --script tests/rendered/developer_tiers_runner.gd` for mouse/touch/keyboard step buttons and type-in fields, every tower tier and specialization, numeric input, responsive layout and save/reload. The rendered run captures `artifacts/developer-tier-frostneedle.png` and `artifacts/developer-tier-frostneedle-abilities.png`. Test saves have disposable developer-specific names.
 
@@ -51,7 +51,7 @@ Run `Godot --headless --path . --script tests/developer_tiers_runner.gd` for sch
 
 The main headless suite includes `unit/relic_checks.gd` for guaranteed drops, transfers, ownership validation, legacy rewards, save roundtrips, and combat across every tower and specialization. Run Godot with `--path . --script tests/rendered/relic_runner.gd` for equipment mouse/touch interactions and responsive screenshots at three sizes.
 
-Run `--headless --path . --script tests/gear_runner.gd` for the eighteen-piece catalog, complete boss sets, every gear tuning field, reusable attribute composition, damage/status effects, removal, pooling and legacy save migration. These checks also run in the full unit suite. Run `--path . --script tests/rendered/gear_menu_checks.gd` for every Gear editor field at 360×640, 390×844 and 540×960, source-boss descriptions, exact defaults, dropdown sizing, reset and save-on-close. It produces `artifacts/gear-lineup.png` and per-piece editor screenshots.
+Run `--headless --path . --script tests/gear_runner.gd` for the eighteen-piece catalog, complete boss sets, every gear tuning field, reusable attribute composition, damage/status effects, removal, pooling and legacy save migration. These checks also run in the full unit suite. Run `--path . --script tests/rendered/gear_menu_checks.gd` for every Gear editor field at 360×640, 390×844 and 540×960, source-boss descriptions, exact defaults, illustrated selection menu sizing, reset and save-on-close. It produces `artifacts/gear-lineup.png` and per-piece editor screenshots.
 
 ## Mobile action rows
 

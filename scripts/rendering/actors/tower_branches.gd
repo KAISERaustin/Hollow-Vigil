@@ -29,21 +29,25 @@ static func draw(c: CanvasItem, branch: String, at: Vector2, zoom: float) -> voi
 			for angle in [0.0, PI/3, PI*2/3]:
 				c.draw_line(Vector2(0,-10)+Vector2.from_angle(angle)*6,Vector2(0,-10)-Vector2.from_angle(angle)*6,A.PAPER,1.7,true)
 		"thorn_volley":
-			# Venom reservoir with a single bone dart nozzle.
-			poly(c,[Vector2(-17,6),Vector2(-21,-5),Vector2(-19,-18),Vector2(-8,-30),Vector2(-8,-40),Vector2(8,-40),Vector2(8,-30),Vector2(19,-18),Vector2(21,-5),Vector2(17,6)],Color("b5cbb0"))
-			poly(c,[Vector2(-16,-16),Vector2(16,-16),Vector2(17,-5),Vector2(13,3),Vector2(-13,3),Vector2(-17,-5)],LEAF)
-			A.ellipse(c,Vector2(0,-16),Vector2(16,4),Color("c5da91"),1.5)
+			# A masonry watchtower first; venom stains and barbs dress its defenses.
+			poly(c,[Vector2(-18,6),Vector2(-15,-30),Vector2(15,-30),Vector2(18,6)],Color("a8aa91"))
+			poly(c,[Vector2(8,-30),Vector2(15,-30),Vector2(18,6),Vector2(8,6)],Color("787f69"))
+			for y in [-19,-7]:
+				c.draw_line(Vector2(-15,y),Vector2(8,y),A.INK,1.3,true)
+			c.draw_line(Vector2(-8,-29),Vector2(-8,-19),A.INK,1.3,true)
+			c.draw_line(Vector2(3,-7),Vector2(3,5),A.INK,1.3,true)
+			# Broad crenellated parapet and its stone support ledge.
+			poly(c,[Vector2(-21,-28),Vector2(-23,-46),Vector2(-14,-46),Vector2(-14,-38),Vector2(-5,-38),Vector2(-5,-48),Vector2(5,-48),Vector2(5,-38),Vector2(14,-38),Vector2(14,-46),Vector2(23,-46),Vector2(21,-28)],Color("bfc0a5"))
+			poly(c,[Vector2(-21,-28),Vector2(21,-28),Vector2(18,-23),Vector2(-18,-23)],A.PAPER)
+			# Poison-coated battlements drip down over the parapet.
 			for side in [-1,1]:
-				poly(c,[Vector2(side*13,5),Vector2(side*19,5),Vector2(side*22,-8),Vector2(side*19,-11)],DARK)
-			poly(c,[Vector2(-11,-39),Vector2(-11,-45),Vector2(11,-45),Vector2(11,-39)],DARK)
-			poly(c,[Vector2(-5,-45),Vector2(-5,-51),Vector2(14,-51),Vector2(20,-47),Vector2(14,-43),Vector2(5,-43)],A.PAPER)
-			c.draw_line(Vector2(12,-47),Vector2(19,-47),LEAF,2,true)
-			c.draw_line(Vector2(-13,-23),Vector2(-16,-19),A.PAPER,2,true)
-			A.disk(c,Vector2(8,-7),2.5,Color("c5da91"),1)
-			A.disk(c,Vector2(-2,-7),6,A.PAPER,1.5)
-			for x in [-4,0]:
-				c.draw_circle(Vector2(x,-8),1.4,A.INK)
-			c.draw_line(Vector2(-4,-2),Vector2(0,-2),A.INK,2,true)
+				c.draw_polyline(PackedVector2Array([Vector2(side*19,-43),Vector2(side*17,-43),Vector2(side*17,-33),Vector2(side*13,-33),Vector2(side*13,-28)]),LEAF,3,true)
+				poly(c,[Vector2(side*15,-14),Vector2(side*25,-22),Vector2(side*20,-9)],LEAF)
+			# Narrow arrow slit with venom light; creeping stain follows mortar.
+			poly(c,[Vector2(-4,-18),Vector2(3,-18),Vector2(3,-5),Vector2(-4,-5)],DARK)
+			c.draw_line(Vector2(-1,-15),Vector2(-1,-8),Color("c5da91"),2,true)
+			c.draw_polyline(PackedVector2Array([Vector2(-13,4),Vector2(-11,-3),Vector2(-7,-3),Vector2(-7,-10)]),LEAF,3,true)
+			poly(c,[Vector2(-20,2),Vector2(20,2),Vector2(22,7),Vector2(-22,7)],Color("787f69"))
 		"cinderfield":
 			poly(c,[Vector2(-17,6),Vector2(-12,-10),Vector2(12,-10),Vector2(17,6)],DARK)
 			poly(c,[Vector2(-26,-22),Vector2(26,-22),Vector2(19,-5),Vector2(-19,-5)],DARK)

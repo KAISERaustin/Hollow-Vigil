@@ -36,6 +36,11 @@ var waves_dialog := false
 var shared_setups: Dictionary = {}
 var configuration_picker: Node
 var active_overrides: Dictionary = {}
+var session := preload("res://scripts/campaign/session.gd").new()
+var mode := "survival"
+var selected_build := {}
+var default_progress: RefCounted
+var configuration_base := ""
 
 # Host the same tower components against the mission state.
 var game: VigilState:
@@ -118,7 +123,12 @@ func _ready() -> void:
 	progress.load_progress()
 	if is_instance_valid(app) and not app.load_saved_progress:
 		configuration.path = app.game.save_path + ".campaign-configuration-test"
-	configuration.load_configuration()
+	configuration_base = configuration.path
+	default_progress = progress
+	session.path = configuration_base + ".session"
+	session.load_session()
+	mode = session.data.mode
+	load_context()
 	layout = VBoxContainer.new()
 	layout.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	layout.offset_left = 12
@@ -135,7 +145,7 @@ func _ready() -> void:
 	add_child(page_scroll)
 	resized.connect(fit)
 	_build_dialog()
-	show_map()
+	show_setup()
 	fit()
 
 func fit() -> void:
@@ -202,13 +212,127 @@ func header(title: String, back: Callable, button_size: float = 48) -> HBoxConta
 	row.add_child(caption)
 	return row
 
+func can_author() -> bool:
+	return Balance.Content.catalog().get_node("level/campaign/" + mode).rule("developer_controls", false)
+
+func load_context() -> void:
+	selected_build = VigilSaveSlots.CampaignPlaythrough.decode(session.data.selections[mode])
+	var identity: String = session.identity(mode)
+	configuration = Configuration.new()
+	configuration.path = configuration_base + ("" if identity == "default" else "." + identity)
+	configuration.load_configuration()
+	if mode == "survival" and identity == "default":
+		progress = default_progress
+	else:
+		progress = Progress.new()
+		progress.path = default_progress.path + "." + mode + "." + identity
+		progress.load_progress()
+	progress.allow_all = can_author()
+	shared_setups.clear()
+
+func select_campaign(next_mode: String, code: String) -> bool:
+	if not session.select_build(next_mode, code):
+		toast(session.last_error)
+		return false
+	run = null
+	mode = next_mode
+	load_context()
+	show_setup()
+	return true
+
+func show_setup() -> void:
+	if run != null and page == "battle": save_progress()
+	clear_page("setup")
+	header("Campaign", close)
+	layout.add_child(UI.paragraph("Choose your campaign build and how you want to play.", 15))
+	layout.add_child(UI.heading("1. Campaign build", 18))
+	layout.add_child(UI.paragraph(selected_build.get("setup", {}).get("name", "The Last Procession"), 18))
+	layout.add_child(UI.paragraph(selected_build.get("setup", {}).get("description", "The original 20-level campaign. Creative keeps your level edits on this device."), 14))
+	var sources := HBoxContainer.new()
+	sources.add_theme_constant_override("separation", 8)
+	layout.add_child(sources)
+	for community in [false, true]:
+		var button := UI.button("Community" if community else "My builds", show_playthrough_picker.bind(community))
+		button.name = "CampaignCommunity" if community else "CampaignMyBuilds"
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		sources.add_child(button)
+	if not selected_build.is_empty():
+		layout.add_child(UI.button("Use the original campaign", func(): select_campaign(mode, "")))
+	layout.add_child(UI.rule())
+	layout.add_child(UI.heading("2. Choose your mode", 18))
+	var modes := preload("res://scripts/ui/shared/mode_picker.gd").new()
+	layout.add_child(modes)
+	modes.configure(mode, {"creative": "Create your campaign. Edit any level, enemies, stats and wave timing during play or between rounds, then share the complete build.", "survival": "Play the chosen campaign with its rules locked. Complete levels in order; each build keeps its own progress."})
+	modes.selected.connect(func(next: String): select_campaign(next, session.data.selections[next]))
+	if can_author():
+		var edit := UI.button("Edit levels & waves", show_balancing_levels)
+		edit.name = "CampaignBalancing"
+		layout.add_child(edit)
+		var share := UI.button("Save or share campaign", show_playthrough_share)
+		share.name = "ShareCampaignBuild"
+		layout.add_child(share)
+	var begin := UI.gold_button("Open %s campaign" % mode.capitalize(), show_map)
+	begin.name = "OpenCampaignMap"
+	begin.disabled = session.blocked or progress.blocked
+	layout.add_child(begin)
+	if not session.last_error.is_empty(): layout.add_child(UI.paragraph(session.last_error, 14))
+	layout.add_child(UI.button("Account & backups", func(): app.show_backups()))
+	if not app.public_builds.outbox.is_empty(): layout.add_child(UI.button("Retry public uploads", app.public_builds.flush))
+
+func show_playthrough_picker(community: bool = false) -> void:
+	var menu := configuration_menu()
+	if is_instance_valid(configuration_picker): configuration_picker.queue_free()
+	configuration_picker = preload("res://scripts/ui/configuration_picker.gd").new()
+	menu.add_child(configuration_picker)
+	configuration_picker.menu = menu
+	configuration_picker.kind = "campaign"
+	configuration_picker.back = func():
+		menu.view_revision += 1
+		menu.hide()
+	configuration_picker.selected = func(entry: Dictionary):
+		if select_campaign(mode, entry.code):
+			menu.view_revision += 1
+			menu.hide()
+	configuration_picker.show_page(community)
+
+func level_setup(index: int) -> Dictionary:
+	if shared_setups.has(index): return shared_setups[index].duplicate(true)
+	var value := VigilSaveSlots.CampaignPlaythrough.level_build(selected_build, index)
+	if value.is_empty(): value = {"version": 1, "setup": {"name": "Campaign", "description": ""}, "level": index, "overrides": {}}
+	if can_author() and configuration.data.levels.has(str(index)):
+		value.overrides = configuration.overrides(index)
+	return value
+
+func show_playthrough_share() -> void:
+	if not can_author(): return
+	var was_paused := paused
+	paused = true
+	var levels := {}
+	for index in Catalog.COUNT:
+		var value := level_setup(index)
+		levels[str(index)] = {"overrides": value.overrides}
+		if value.has("loadout"): levels[str(index)].loadout = value.loadout.duplicate(true)
+	var source: RefCounted = run if run != null else Run.new(0, level_setup(0).overrides, mode)
+	if run != null:
+		var index: int = run.mission.index
+		levels[str(index)].overrides = active_overrides.duplicate(true)
+		levels[str(index)].loadout = {}
+		for key in ["towers", "next_tower", "relics", "balance"]:
+			levels[str(index)].loadout[key] = run.game.data[key]
+	var menu := configuration_menu()
+	menu.show_export(source.game, {"levels": levels}, func():
+		menu.view_revision += 1
+		menu.hide()
+		paused = was_paused
+	)
+
 func show_map() -> void:
 	if run != null and page == "battle":
 		save_progress()
 	clear_page("map")
-	header("The Last Procession", close)
+	header("The Last Procession", show_setup)
 	var cleared := int(progress.data.completed_levels)
-	layout.add_child(UI.paragraph("%d / %d levels completed" % [cleared, Catalog.COUNT], 13))
+	layout.add_child(UI.paragraph("Creative · All levels available" if can_author() else "Survival · %d / %d levels completed" % [cleared, Catalog.COUNT], 13))
 	var world := WorldMap.new()
 	world.progress = progress
 	world.level_picked.connect(show_briefing)
@@ -219,9 +343,11 @@ func show_map() -> void:
 		layout.add_child(next)
 	var balancing := UI.button("Campaign balancing", show_balancing_levels)
 	balancing.name = "CampaignBalancing"
+	balancing.visible = can_author()
 	layout.add_child(balancing)
 	var reset := UI.button("Reset campaign progress", confirm_progress_reset)
 	reset.name = "ResetCampaignProgress"
+	reset.visible = not can_author()
 	layout.add_child(reset)
 	var backups := UI.button("Account & backups", func(): app.show_backups())
 	backups.name = "CampaignBackups"
@@ -246,7 +372,7 @@ func show_briefing(index: int) -> void:
 	layout.add_child(details)
 	var sources := HBoxContainer.new()
 	layout.add_child(sources)
-	for kind in ["campaign_build", "campaign_stats"]:
+	for kind in (["campaign_build", "campaign_stats"] if can_author() else []):
 		var choose := UI.button("My builds" if kind == "campaign_build" else "Stats", show_configuration_picker.bind(index, kind))
 		choose.name = "CampaignChooseBuild" if kind == "campaign_build" else "CampaignChooseStats"
 		choose.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -332,8 +458,9 @@ func show_battle() -> void:
 	waves.custom_minimum_size.x = 80
 	waves.size_flags_horizontal = Control.SIZE_FILL
 	controls.add_child(waves)
-	var share := UI.button("Share", show_campaign_share.bind(index_for_run()))
+	var share := UI.button("Share", show_playthrough_share)
 	share.name = "ShareCampaignConfiguration"
+	share.visible = can_author()
 	controls.add_child(share)
 	wave_button = UI.gold_button("", begin_wave, 48)
 	wave_button.name = "StartCampaignWave"
@@ -427,6 +554,10 @@ func show_waves() -> void:
 			var previous: Dictionary = reports[index - 1]
 			section.add_child(UI.paragraph("From previous wave: %+d enemies · %+.2f total health · %+.2f completion gold" % [report.spawn_count - previous.spawn_count, report.total_spawn_health - previous.total_spawn_health, report.completion_gold - previous.completion_gold], 13))
 		section.add_child(UI.button("Wave %d balancing details" % (index + 1), show_wave_balance.bind(index)))
+		if can_author():
+			var edit := UI.button("Edit wave %d" % (index + 1), show_level_balance.bind(int(run.mission.index), index))
+			edit.name = "EditCampaignWave" + str(index + 1)
+			section.add_child(edit)
 		var counts := {}
 		for group in run.mission.waves[index]:
 			counts[group[0]] = int(counts.get(group[0], 0)) + int(group[1])
@@ -588,7 +719,9 @@ func go_back() -> void:
 		tower_move.cancel()
 	elif dialog.visible:
 		close_dialog()
-	elif page != "map":
+	elif page == "map":
+		show_setup()
+	elif page != "setup":
 		show_map()
 	else:
 		close()
@@ -606,20 +739,33 @@ func close() -> void:
 	queue_free()
 
 func show_balancing_levels() -> void:
+	if not can_author(): return
 	open_dialog("Campaign balancing")
 	for index in range(Catalog.COUNT):
 		var choose := UI.button("%02d · %s" % [index + 1, Catalog.level(index).name], show_level_balance.bind(index))
 		choose.name = "BalanceLevel" + str(index + 1)
 		dialog_body.add_child(choose)
 
-func show_level_balance(index: int) -> void:
+func show_level_balance(index: int, wave_index: int = -1) -> void:
+	if not can_author(): return
+	var rules: Dictionary = level_setup(index).overrides
+	if not configuration.save_level(index, rules):
+		toast(configuration.last_error)
+		return
 	open_dialog("Level configuration")
 	var editor := preload("res://scripts/campaign/balance_panel.gd").new()
 	editor.store = configuration
 	editor.index = index
+	editor.initial_scope = wave_index
+	if run != null and run.mission.index == index and page == "battle" and run.editable(): editor.live_run = run
+	editor.apply_changes = save_configuration
 	editor.export_requested.connect(show_level_export.bind(index))
-	editor.saved.connect(func(): shared_setups.erase(index))
 	dialog_body.add_child(editor)
+	if editor.live_run != null:
+		dialog_body.add_child(UI.button("Pause / resume battle", func():
+			paused = not paused
+			update_time_controls()
+		))
 	var share := UI.button("Save or share configuration", show_campaign_share.bind(index, true))
 	share.name = "ShareSavedCampaignConfiguration"
 	dialog_body.add_child(share)
@@ -629,10 +775,24 @@ func index_for_run() -> int:
 	return int(run.mission.index)
 
 func configured_run(index: int) -> RefCounted:
-	active_overrides = shared_setups.get(index, {}).get("overrides", configuration.overrides(index)).duplicate(true)
-	var next := Run.new(index, active_overrides)
-	if shared_setups.has(index): VigilSaveSlots.CampaignBuild.apply_loadout(next, shared_setups[index])
+	var setup := level_setup(index)
+	active_overrides = setup.overrides.duplicate(true)
+	var next := Run.new(index, active_overrides, mode)
+	VigilSaveSlots.CampaignBuild.apply_loadout(next, setup)
 	return next
+
+func save_configuration(index: int, rules: Dictionary) -> bool:
+	if not can_author() or not Configuration.valid_level(index, rules): return false
+	var live: bool = run != null and run.mission.index == index and page == "battle" and run.editable()
+	if live and run.phase == "wave" and Configuration.resolve(index, rules).waves[run.wave].size() < run.mission.waves[run.wave].size():
+		configuration.last_error = "Keep active wave groups in place; change their remaining counts instead."
+		return false
+	if not configuration.save_level(index, rules): return false
+	shared_setups.erase(index)
+	if live:
+		run.apply_configuration(rules)
+		active_overrides = rules.duplicate(true)
+	return true
 
 func configuration_menu() -> Control:
 	if not is_instance_valid(app.slot_menu):
@@ -644,6 +804,7 @@ func configuration_menu() -> Control:
 	return app.slot_menu
 
 func show_configuration_picker(index: int, kind: String) -> void:
+	if not can_author(): return
 	var was_paused := paused
 	paused = true
 	var menu := configuration_menu()
@@ -669,6 +830,7 @@ func show_configuration_picker(index: int, kind: String) -> void:
 	configuration_picker.show_page()
 
 func show_campaign_share(index: int, saved: bool = false) -> void:
+	if not can_author(): return
 	var was_paused := paused
 	paused = true
 	var source: RefCounted = Run.new(index, configuration.overrides(index)) if saved else run
