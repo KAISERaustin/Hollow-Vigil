@@ -71,6 +71,7 @@ func fit() -> void:
 
 func clear(title: String, header_action: Button = null) -> void:
 	view_revision += 1
+	UI.tint_parchment(welcome_paper)
 	header.get_parent().add_theme_constant_override("separation", UI.GAP)
 	header.show()
 	footer.show()
@@ -93,6 +94,7 @@ func clear(title: String, header_action: Button = null) -> void:
 
 func show_main_menu() -> void:
 	clear("Hollow Vigil")
+	UI.tint_parchment(welcome_paper, UI.MAIN_MENU_BACKGROUND)
 	for child in header.get_children():
 		header.remove_child(child)
 		child.queue_free()

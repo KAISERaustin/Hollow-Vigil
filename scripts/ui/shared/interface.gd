@@ -3,6 +3,7 @@ extends RefCounted
 
 const BG := VigilTerrainArt.BACKDROP
 const PANEL := VigilTerrainArt.PAPER
+const MAIN_MENU_BACKGROUND := Color("a6b79b")
 const SURFACE := VigilTerrainArt.ROAD
 const BORDER := VigilTerrainArt.INK
 const GOLD := VigilTerrainArt.GOLD
@@ -74,6 +75,10 @@ static func fullscreen_parchment() -> TextureRect:
 	paper.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	paper.add_child(rounded_viewport_frame())
 	return paper
+
+static func tint_parchment(paper: TextureRect, background: Color = PANEL) -> void:
+	# Tint the paper and its corner fill together; black frame ink stays black.
+	paper.modulate = Color(background.r / PANEL.r, background.g / PANEL.g, background.b / PANEL.b, background.a)
 
 static func rounded_viewport_frame(background: Color = PANEL, outline: int = OUTLINE) -> Control:
 	var frame := Control.new()

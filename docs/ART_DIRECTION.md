@@ -16,6 +16,8 @@ The shared style applies it to menus, cards, buttons, fields and chrome, with
 yellow/red parchment variants for semantic actions; world artwork remains flat. Title lettering uses
 warm ink and a small ochre offset; motto and footer use the bundled serif.
 The asset and generation prompt are documented in `assets/ui/WELCOME_ART.md`.
+The main menu uses a muted sage tint (#a6b79b) on that shared paper texture;
+its buttons retain their semantic colors and other pages retain parchment.
 
 Boss direction, revised September 6, 2026: use native flat drawings in
 `boss_art.gd`, referenced against the current tiles, core/rift portals and enemy

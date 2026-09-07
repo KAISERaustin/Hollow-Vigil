@@ -34,6 +34,7 @@ Use semantic names in UI code. The hex values are sRGB; default fills and text a
 | --- | --- | --- |
 | ink | #000000 | Primary text, structural outlines, icons |
 | backdrop | #222A30 | Unowned world and surrounding dark canvas |
+| main-menu.background | #A6B79B | Muted sage tint on the main menu's shared parchment texture |
 | paper | #E8DDBD | Main panels, dialogs |
 | inset | #DFD0AB | Secondary controls and grouped information |
 | text.secondary | #222A30 | Supporting text on paper or inset |

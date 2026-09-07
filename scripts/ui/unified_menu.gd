@@ -87,6 +87,7 @@ func notice(text: String) -> void:
 
 func show_main_menu() -> void:
 	page_view("main", "Hollow Vigil", Callable())
+	UI.tint_parchment(welcome_paper, UI.MAIN_MENU_BACKGROUND)
 	header.hide()
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var welcome := preload("res://scripts/ui/welcome_menu.gd").new()

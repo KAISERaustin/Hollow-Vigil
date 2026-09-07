@@ -8,7 +8,7 @@ class Lineup extends Node2D:
 		var titles := ["Level 1", "Level 2", "Level 3", "Cinderfield", "Rupture Pyre"]
 		for index in range(5):
 			var at := Vector2(110+index*220,222)
-			var branch := "" if index < 3 else ["cinderfield", "rupture_pyre"][index-3]
+			var branch: String = "" if index < 3 else ["cinderfield", "rupture_pyre"][index-3]
 			VigilTerrainArt.sentinel(self,"splash",at,2.5,mini(index+1,4),branch)
 			draw_string(font,Vector2(at.x-66,282),titles[index],HORIZONTAL_ALIGNMENT_LEFT,-1,20,VigilTerrainArt.INK)
 		draw_rect(Rect2(0,308,1100,162),VigilTerrainArt.ground_color("bloodmoon_sanctuary"))
