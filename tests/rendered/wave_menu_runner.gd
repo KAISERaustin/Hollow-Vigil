@@ -1,6 +1,5 @@
 extends SceneTree
 
-const Screen = preload("res://scripts/campaign/screen.gd")
 var failures: Array[String] = []
 var checks := 0
 
@@ -18,8 +17,14 @@ func settle() -> void:
 	for frame in range(8): await process_frame
 
 func run() -> void:
-	var screen := Screen.new()
-	root.add_child(screen)
+	var app := VigilApp.new()
+	app.load_saved_progress = false
+	app.game.save_path = "user://wave-menu-%d.save" % Time.get_ticks_usec()
+	root.add_child(app)
+	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	app.set_process(false)
+	app.show_campaign()
+	var screen: Control = app.campaign
 	screen.set_process(false)
 	screen.progress.data.completed_levels = 20
 	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960), Vector2i(640, 360)]:
@@ -29,12 +34,12 @@ func run() -> void:
 			screen.mode = mode
 			for level in [0, 9, 19]:
 				screen.start_mission(level)
-				var before: Dictionary = screen.run.game.snapshot().duplicate(true)
+				var before: Dictionary = screen.run.game.data.duplicate(true)
 				screen.show_waves()
 				await settle()
 				var context := "%s level %d at %s" % [mode, level + 1, viewport]
 				var scroll := screen.dialog_body.get_parent() as ScrollContainer
-				var list := screen.dialog_body.get_node("WaveSummaries")
+				var list: VBoxContainer = screen.dialog_body.get_node("WaveSummaries")
 				check(Rect2(Vector2.ZERO, Vector2(viewport)).encloses(screen.dialog_card.get_global_rect()), "Dialog fits " + context)
 				check(list.get_child_count() == screen.run.mission.waves.size(), "Every wave is present " + context)
 				var previous: Control
@@ -51,7 +56,7 @@ func run() -> void:
 						var edit: Button = actions.get_child(1)
 						check(is_equal_approx(details.global_position.y, edit.global_position.y) and edit.global_position.x - details.get_global_rect().end.x >= 12, "Wave actions share a spaced row " + context)
 						check(details.size.y >= 48 and edit.size.y >= 48, "Action touch targets stay usable " + context)
-				check(screen.run.game.snapshot() == before, "Reading waves leaves gameplay unchanged " + context)
+				check(screen.run.game.data == before, "Reading waves leaves gameplay unchanged " + context)
 				if mode == "creative" and level in [0, 19] and viewport.y > viewport.x:
 					await RenderingServer.frame_post_draw
 					root.get_texture().get_image().save_png("res://artifacts/wave-menu-%d-level-%d.png" % [viewport.x, level + 1])
@@ -81,6 +86,6 @@ func run() -> void:
 	check(screen.find_child("WaveSummary1", true, false).find_child("WaveStatus", true, false).text == "Cleared", "Completed wave is marked cleared")
 	check(screen.find_child("WaveSummary2", true, false).find_child("WaveStatus", true, false).text == "In progress", "Active wave is identified")
 	print("WAVE_MENU: %d checks, %d failures" % [checks, failures.size()])
-	screen.queue_free()
+	app.queue_free()
 	await process_frame
 	quit(0 if failures.is_empty() else 1)

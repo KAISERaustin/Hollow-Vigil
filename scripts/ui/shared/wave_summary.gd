@@ -31,10 +31,11 @@ static func card(report: Dictionary, status: String, details: Callable, edit: Ca
 	stats.add_theme_constant_override("h_separation", 16)
 	stats.add_theme_constant_override("v_separation", 8)
 	body.add_child(stats)
-	stats.add_child(stat("Enemies", str(report.spawn_count)))
-	stats.add_child(stat("Wave gold", UI.exact_money(report.completion_gold)))
-	stats.add_child(stat("Total health", UI.exact_money(report.total_spawn_health)))
-	stats.add_child(stat("Last spawn", "%s s" % UI.exact_money(report.last_spawn_seconds)))
+	stats.add_child(UI.stat("Enemies", str(report.spawn_count)))
+	stats.add_child(UI.stat("Wave gold", UI.exact_money(report.completion_gold)))
+	stats.add_child(UI.stat("Total health", UI.exact_money(report.total_spawn_health)))
+	stats.add_child(UI.stat("Last spawn", "%s s" % UI.exact_money(report.last_spawn_seconds)))
+	stats.resized.connect(func(): stats.columns = 4 if stats.size.x >= 400 else 2)
 	var roster := VBoxContainer.new()
 	roster.name = "EnemyRoster"
 	roster.add_theme_constant_override("separation", 8)
@@ -58,15 +59,6 @@ static func card(report: Dictionary, status: String, details: Callable, edit: Ca
 		edit_button.add_theme_font_size_override("font_size", UI.type_size(UI.CAPTION))
 		actions.add_child(edit_button)
 	return panel
-
-static func stat(caption: String, text: String) -> VBoxContainer:
-	var column := VBoxContainer.new()
-	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	column.add_theme_constant_override("separation", 0)
-	var value := UI.heading(text, 18)
-	column.add_child(value)
-	column.add_child(UI.paragraph(caption, UI.META))
-	return column
 
 static func enemy_row(kind: String, count: int) -> HBoxContainer:
 	var boss := Balance.BOSSES.has(kind)

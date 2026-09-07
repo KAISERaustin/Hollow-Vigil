@@ -46,12 +46,13 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	check(scroll.get_global_rect().size.y >= 94 and scroll.scroll_vertical == 0, label + " fits compact icons without vertical scrolling")
 	check(scroll.get_parent().get_parent().get_global_rect().grow(1).encloses(scroll.get_global_rect()), label + " parent viewport shows complete cards")
 	var start := scroll.global_position + Vector2(scroll.size.x - 24, 45)
+	var overflow := scroll.get_h_scroll_bar().max_value > scroll.get_h_scroll_bar().page
 	await swipe(start, -180)
-	check(scroll.scroll_horizontal > 0, label + " swipes left across button contents")
+	check(scroll.scroll_horizontal > 0 if overflow else scroll.scroll_horizontal == 0, label + " swipes left when the catalog overflows")
 	check(host.field.preview_kind.is_empty() and host.game.data.balance == funds, label + " swipe does not select or spend")
 	var offset := scroll.scroll_horizontal
 	await swipe(scroll.global_position + Vector2(24, 45), 180)
-	check(scroll.scroll_horizontal < offset, label + " swipes right")
+	check(scroll.scroll_horizontal < offset if overflow else scroll.scroll_horizontal == 0, label + " swipes right when the catalog overflows")
 	var last := cards.get_child(-1) as Button
 	last.grab_focus()
 	await settle()
@@ -70,6 +71,17 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 			var value := details.find_child("Stat_" + field, true, false) as Label
 			check(value != null and value.text.begins_with(VigilInterface.exact_money(stats[field])), label + " exposes resolved " + field)
 	var back := menu.find_child("BackToTowers", true, false) as Button
+	var vertical := scroll.get_parent().get_parent() as ScrollContainer
+	if vertical == null:
+		vertical = host.panels.content_scroll
+	for number in details.find_children("Stat_*", "Label", true, false):
+		vertical.ensure_control_visible(number)
+		await settle()
+		check(vertical.get_global_rect().grow(1).encloses(number.get_global_rect()), label + " detail stat is reachable: " + number.name)
+	vertical.ensure_control_visible(details.get_child(-1))
+	await settle()
+	check(vertical.get_global_rect().grow(1).encloses(details.get_child(-1).get_global_rect()), label + " final specialization description is reachable")
+	check(back.is_visible_in_tree() and menu.get_global_rect().encloses(back.get_global_rect()) and menu.get_global_rect().encloses(confirm.get_global_rect()), label + " navigation and Build stay pinned while scrolling")
 	back.pressed.emit()
 	await settle()
 	check(scroll.visible and not confirm.is_visible_in_tree() and host.field.preview_kind.is_empty(), label + " Back restores picker without building")
@@ -112,6 +124,7 @@ func run() -> void:
 	app.field.set_process(false)
 	app.game.data.balance = 100000
 	app.game.expand("1,0")
+	app.game.data.settings.developer_balance = {"towers": {"electric": {"damage": 7.0, "period": 0.25, "targets": 3, "range": 175.0, "cost": 250.0}}}
 	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = viewport
 		root.content_scale_size = viewport

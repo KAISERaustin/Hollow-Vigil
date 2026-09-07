@@ -419,11 +419,18 @@ func show_briefing(index: int) -> void:
 	header("%02d · %s" % [index+1, run.mission.name], show_map)
 	layout.add_child(UI.paragraph(Catalog.CHAPTERS[int(index / 5.0)].story, 14))
 	add_board(false)
-	layout.add_child(UI.paragraph(run.mission.brief, 15))
-	layout.add_child(UI.paragraph("%d waves  ·  %s starting gold  ·  %d flame" % [run.mission.waves.size(), UI.exact_money(run.mission.gold), run.mission.flame], 13))
-	var details := UI.button("Preview waves", show_waves, 48)
-	layout.add_child(details)
+	if not run.mission.brief.is_empty():
+		layout.add_child(UI.paragraph(run.mission.brief, 15))
+	var stats := HBoxContainer.new()
+	stats.name = "CampaignLevelStats"
+	stats.add_theme_constant_override("separation", UI.GAP)
+	layout.add_child(stats)
+	stats.add_child(UI.stat("Waves", str(run.mission.waves.size()), 24))
+	stats.add_child(UI.stat("Starting gold", UI.exact_money(run.mission.gold), 24))
+	stats.add_child(UI.stat("Flame", str(run.mission.flame), 24))
 	var sources := HBoxContainer.new()
+	sources.visible = can_author() and active_campaign_slot < 0
+	sources.add_theme_constant_override("separation", UI.GAP)
 	layout.add_child(sources)
 	for kind in (["campaign_build", "campaign_stats"] if can_author() and active_campaign_slot < 0 else []):
 		var choose := UI.button("My builds" if kind == "campaign_build" else "Stats", show_configuration_picker.bind(index, kind))
@@ -436,9 +443,16 @@ func show_briefing(index: int) -> void:
 			shared_setups.erase(index)
 			show_briefing(index)
 		))
+	var actions := HBoxContainer.new()
+	actions.name = "CampaignLevelActions"
+	actions.add_theme_constant_override("separation", UI.GAP)
+	layout.add_child(actions)
+	var details := UI.button("Preview waves", show_waves, 52)
+	details.name = "PreviewCampaignWaves"
+	actions.add_child(details)
 	var start := UI.gold_button("Begin level", start_mission.bind(index), 52)
 	start.name = "BeginCampaignMission"
-	layout.add_child(start)
+	actions.add_child(start)
 
 func start_mission(index: int) -> void:
 	if not progress.unlocked(index):
@@ -569,13 +583,13 @@ func refresh() -> void:
 	gold.text = "%s gold" % Balance.money(run.game.data.balance)
 	var shown_wave := mini(run.wave+1, run.mission.waves.size())
 	var can_start: bool = run.phase == "planning" or (paused and run.phase == "wave")
-	status.text = "Flame %d / %d   ·   Wave %d / %d%s" % [run.health, run.mission.flame, shown_wave, run.mission.waves.size(), " · Prepare" if run.phase == "planning" else (" · Paused" if paused else "")]
+	status.text = "Enemies %d / %d   ·   Wave %d / %d%s" % [run.health, run.mission.flame, shown_wave, run.mission.waves.size(), " · Paused" if paused and run.phase != "planning" else ""]
 	wave_button.disabled = not can_start or reward_transition.active
 	wave_button.text = "Start wave %d" % (run.wave+1) if can_start else "%d enemies remaining" % (run.game.combat.enemies.size() + run.schedule.size() - run.next_spawn)
 	if run.phase in ["victory", "defeat"]:
 		wave_button.text = "Sanctuary restored" if run.phase == "victory" else "The flame went out"
 	if reward_transition.active:
-		status.text = "Flame %d / %d   ·   Wave %d cleared" % [run.health, run.mission.flame, run.wave]
+		status.text = "Enemies %d / %d   ·   Wave %d cleared" % [run.health, run.mission.flame, run.wave]
 		wave_button.text = "Wave cleared"
 	if observed_phase != run.phase:
 		observed_phase = run.phase
@@ -638,7 +652,7 @@ func show_waves() -> void:
 	for index in range(run.mission.waves.size()):
 		var report: Dictionary = reports[index]
 		var state := "Cleared" if index < run.wave else ""
-		if index == run.wave:
+		if index == run.wave and run.phase in ["planning", "wave"]:
 			state = "In progress" if run.phase == "wave" else "Up next"
 		var edit := Callable()
 		if can_author():

@@ -30,7 +30,7 @@ const MISSIONS := [
 	{"name": "A Single Ember", "brief": "Build beside the bend. Two towers can cover the same stretch of road.", "gold": 240, "pads": [5, 6, 9, 10, 13, 14],
 	 "roads": [[[0,-610],[0,-450],[150,-450],[150,-150],[0,-150],[0,80]]],
 	 "waves": [[["basic",8,0,0,1.8]], [["basic",12,0,0,1.4]], [["basic",10,0,0,1.1],["fast",4,0,14,1.8]]]},
-	{"name": "Briar Bend", "brief": "The long hairpin rewards towers that can reach both sides.", "gold": 260, "pads": [1,2,5,6,9,10,13,14],
+	{"name": "Briar Bend", "brief": "", "gold": 260, "pads": [1,2,5,6,9,10,13,14],
 	 "roads": [[[-270,-600],[150,-600],[150,-300],[-150,-300],[-150,0],[0,0],[0,80]]],
 	 "waves": [[["basic",12,0,0,1.3]], [["fast",10,0,0,1.5]], [["basic",18,0,0,0.7]], [["lantern",5,0,0,2.4],["fast",8,0,5,1.2]]]},
 	{"name": "Pilgrim's Fork", "brief": "Two entrances meet halfway down. Defend the junction or divide your gold.", "gold": 300, "pads": [0,3,5,6,9,10,13,14],

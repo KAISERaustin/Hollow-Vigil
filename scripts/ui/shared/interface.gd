@@ -516,6 +516,16 @@ static func form_field(caption: String, editor: Control) -> VBoxContainer:
 	field.add_child(editor)
 	return field
 
+static func stat(caption: String, text: String, pixels: int = 18) -> VBoxContainer:
+	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation", 4)
+	var number := value(text, pixels)
+	number.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(number)
+	column.add_child(paragraph(caption, CAPTION))
+	return column
+
 static func rule() -> HSeparator:
 	var r := HSeparator.new()
 	var style := StyleBoxLine.new()

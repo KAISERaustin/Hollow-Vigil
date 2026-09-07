@@ -61,8 +61,11 @@ static func details(kind: String, tuning: Dictionary) -> VBoxContainer:
 	grid.add_theme_constant_override("v_separation", 4)
 	body.add_child(grid)
 	# Include every numeric content statistic, including future optional fields.
+	var fields: Array = ["cost", "damage", "range", "period", "splash", "targets"]
 	for field in stats:
-		if not (stats[field] is float or stats[field] is int):
+		if not fields.has(field): fields.append(field)
+	for field in fields:
+		if not stats.has(field) or not (stats[field] is float or stats[field] is int):
 			continue
 		var spec: Dictionary = Balance.TUNING_FIELDS.towers.get(field, {})
 		var title: String = {"cost": "Build cost", "range": "Range"}.get(field, spec.get("label", str(field).capitalize()))
