@@ -58,6 +58,12 @@ func run() -> void:
 	app.show_save_slots(true)
 	var includes: OptionButton = menu.find_child("ShareConfigurationContents", true, false)
 	check(includes.item_count == 2, "Sharing offers exactly towers plus stats or stats only")
+	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
+		root.size = dimensions
+		root.content_scale_size = dimensions
+		await frame()
+		await Harness.capture(app, "share-configuration-" + str(dimensions.x))
+		check(menu.card.get_global_rect().encloses(includes.get_global_rect()), "Share choices fit " + str(dimensions.x))
 	includes.select(1)
 	includes.item_selected.emit(1)
 	menu.find_child("SetupName", true, false).text = "Shared rules"
@@ -86,6 +92,11 @@ func run() -> void:
 	screen.progress.data.completed_levels = 0
 	screen.start_mission(0)
 	check(screen.run.build(6, "rapid"), "Campaign has a tower to share")
+	root.size = Vector2i(360, 640)
+	root.content_scale_size = root.size
+	await frame()
+	await Harness.capture(app, "campaign-share-action-360")
+	check(Rect2(Vector2.ZERO, Vector2(root.size)).encloses(screen.find_child("ShareCampaignConfiguration", true, false).get_global_rect()), "Campaign sharing fits a small phone")
 	screen.show_campaign_share(0)
 	menu.find_child("SetupName", true, false).text = "Campaign opening"
 	menu.find_child("SaveConfiguration", true, false).pressed.emit()

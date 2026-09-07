@@ -10,6 +10,7 @@ var level := -1
 
 func show_page(community: bool = false, page: int = 0) -> void:
 	menu.clear("Community stats" if community and kind.ends_with("stats") else "Choose stats" if kind.ends_with("stats") else "Choose campaign build")
+	menu.message.custom_minimum_size.y = UI.type_size(16)
 	var revision: int = menu.view_revision
 	menu.add_back(UI.button("Back", back))
 	menu.content.add_child(UI.paragraph("Choose gameplay rules for a fresh start, with no towers or progress." if kind.ends_with("stats") else "Choose a campaign setup with towers, equipment and gameplay rules.", 14))
