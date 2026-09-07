@@ -2,4 +2,7 @@ extends "res://scripts/content/nodes/attribute_node.gd"
 
 func prepare(_state: Dictionary, context: Dictionary, stats: Dictionary, config: Dictionary) -> void:
 	if active(context, config):
-		stats.relic_radius = maxf(stats.relic_radius, maxf(config.blast_radius, stats.get("splash", 0.0) * config.get("blast_multiplier", 1.0)))
+		effect(stats, config)
+
+func arrive(combat, shot: Dictionary, config: Dictionary) -> void:
+	combat.EffectFields.add(combat, shot, self, config)

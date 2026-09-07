@@ -25,6 +25,8 @@ func run() -> void:
 			var socket: Dictionary = screen.run.mission.sockets[0]
 			screen.run.build(socket.index, "rapid")
 			screen.show_socket(socket.index)
+			check(screen.tower_dialog.visible and screen.tower_dialog.mode == "preview", "Tower selection opens its upgrade preview")
+			screen.tower_dialog.dismiss()
 			await frame()
 			var tower: Dictionary = screen.game.data.towers[screen.run.tower_at(socket.index)]
 			var upgrade: Button = screen.tower_actions.buttons.upgrade
@@ -39,6 +41,7 @@ func run() -> void:
 			check(tower.level == 2 and screen.game.data.balance == before - quote, context + " second tap purchases upgrade")
 			screen.begin_wave()
 			screen.show_socket(socket.index)
+			screen.tower_dialog.dismiss()
 			screen.game.data.balance = 10000.0
 			await click_action(app, upgrade, touch)
 			await click_action(app, upgrade, touch)

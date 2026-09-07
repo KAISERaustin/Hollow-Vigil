@@ -36,14 +36,16 @@ func set_corner_radius_all(radius: int) -> void:
 	corner_radius_bottom_left = radius
 
 func _draw(canvas_item: RID, rect: Rect2) -> void:
-	# The rim's antialiasing extends inward from the panel bounds. Keep paper
-	# under its solid portion so it cannot show through the softened outer edge.
+	# Match the rim's fully opaque edge, including its antialiasing radius.
+	# Paper must cover the inner edge even on a one-pixel rim, without reaching
+	# the softened outer edge where it would show through the rounded corners.
 	var fill_rect := rect
 	var radii := [corner_radius_top_left, corner_radius_top_right, corner_radius_bottom_right, corner_radius_bottom_left]
 	if radii.max() > 0 and border_color.a > 0.0:
-		fill_rect = rect.grow_individual(
-			-minf(border_width_left, 1.0), -minf(border_width_top, 1.0),
-			-minf(border_width_right, 1.0), -minf(border_width_bottom, 1.0))
+		var insets := [minf(border_width_left, 0.5), minf(border_width_top, 0.5), minf(border_width_right, 0.5), minf(border_width_bottom, 0.5)]
+		fill_rect = rect.grow_individual(-insets[0], -insets[1], -insets[2], -insets[3])
+		for corner in range(4):
+			radii[corner] += minf(insets[corner], insets[(corner + 1) % 4])
 	if draw_center and bg_color.a > 0.0 and fill_rect.has_area():
 		var points := PackedVector2Array()
 		var uvs := PackedVector2Array()

@@ -169,7 +169,7 @@ func frame_controls(tower: Dictionary) -> void:
 		# Wrapped text needs a layout frame when it is first assigned a width.
 		if available.size.y <= 0.0:
 			return
-	var radius: float = Balance.tower_stats(tower, field.state.tuning).range
+	var radius: float = Balance.tower_stats(tower, field.state.tuning, field.state.data.relics).range
 	var signature := [field.state, field.selected_tower, tower.region, tower.pad, tower.level, radius, available]
 	if signature == framing_signature:
 		return

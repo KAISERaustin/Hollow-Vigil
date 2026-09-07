@@ -61,8 +61,13 @@ static func valid_branch(kind: String, branch: String) -> bool:
 	var node := Content.tower(kind)
 	return node != null and node.valid_branch(branch)
 
-static func tower_stats(tower: Dictionary, tuning: Dictionary = {}) -> Dictionary:
-	return stats(tower.kind, tower.level, tuning, tower.get("branch", ""))
+static func tower_stats(tower: Dictionary, tuning: Dictionary = {}, inventory: Dictionary = {}) -> Dictionary:
+	var result := stats(tower.kind, tower.level, tuning, tower.get("branch", ""))
+	return equipment_stats(result, tower, tuning, inventory)
+
+static func equipment_stats(base: Dictionary, tower: Dictionary, tuning: Dictionary, inventory: Dictionary) -> Dictionary:
+	var gear := Content.gear(inventory.get(tower.get("relic", ""), ""))
+	return gear.modify_stats(base, tuning) if gear != null else base
 
 # One schema drives the editor and save validation. Overrides belong to a save,
 # never to these shared defaults. Tower keys may identify a tier or branch.

@@ -47,7 +47,7 @@ func run() -> void:
 			controls.selector.item_selected.emit(index)
 			await settle()
 			var kind: String = controls.selected_kind
-			check(controls.inputs.size() == Balance.fields_for("gear", kind).size(), "Every numeric field is present: " + kind)
+			check(controls.inputs.size() == Balance.editable_fields_for("gear", kind).size(), "Every active numeric field is present: " + kind)
 			check(controls.description.text.contains(Balance.BOSSES[Relics.DEFINITIONS[kind].boss].name), "Editor identifies source boss")
 			for stat in controls.inputs:
 				var input: SpinBox = controls.inputs[stat]

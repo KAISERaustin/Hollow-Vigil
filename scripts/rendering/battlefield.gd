@@ -386,7 +386,7 @@ func selected_range() -> float:
 	if state == null:
 		return 0.0
 	if state.data.towers.has(selected_tower):
-		return Balance.tower_stats(state.data.towers[selected_tower], state.tuning).range
+		return Balance.tower_stats(state.data.towers[selected_tower], state.tuning, state.data.relics).range
 	if selected_pad >= 0 and Balance.TOWERS.has(preview_kind):
 		return Balance.Content.tower(preview_kind).stats(1, state.tuning).range
 	return 0.0
@@ -408,7 +408,7 @@ func _draw() -> void:
 	if range_radius > 0.0:
 		# A single outline keeps the range preview uncluttered.
 		draw_arc(screen(range_pos), range_radius * zoom, 0, TAU, 72, GOLD, 1.5, true)
-	for patch in state.combat.burning_ground:
+	for patch in state.combat.burning_ground + state.combat.effect_fields:
 		var center := screen(patch.pos)
 		if not visible_rect.grow(patch.radius*zoom).has_point(center):
 			continue
@@ -441,6 +441,8 @@ func _draw() -> void:
 		elif fx.kind == "seal":
 			draw_arc(p,(1.0-fade)*35*zoom,0,TAU,32,Color(color,fade),3*zoom,true)
 			draw_circle(p,8*fade*zoom,Color(VigilTerrainArt.PAPER,fade))
+		elif fx.kind == "gear_stun":
+			draw_arc(p, (1.0 - fade) * fx.radius * zoom, 0, TAU, 40, Color(color, fade), 2.0 * zoom, true)
 		elif fx.kind == "escape":
 			draw_arc(p, (7.0 + fade * 18.0) * zoom, 0, TAU, 32, VigilTerrainArt.MINT, 2.0 * zoom, true)
 		else:

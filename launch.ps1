@@ -103,6 +103,7 @@ try {
             Invoke-Godot -Name 'parchment-corners' -EngineArguments @('--script', 'res://tests/rendered/parchment_corner_runner.gd')
             Invoke-Godot -Name 'wave-menu' -EngineArguments @('--script', 'res://tests/rendered/wave_menu_runner.gd')
             Invoke-Godot -Name 'build-cards' -EngineArguments @('--script', 'res://tests/rendered/build_cards_runner.gd')
+            Invoke-Godot -Name 'tower-upgrade-preview' -EngineArguments @('--script', 'res://tests/rendered/tower_upgrade_preview_runner.gd')
             Invoke-Godot -Name 'build-preview' -EngineArguments @('--script', 'res://tests/rendered/build_preview_runner.gd')
             Invoke-Godot -Name 'tower-framing' -EngineArguments @('--script', 'res://tests/rendered/tower_framing_runner.gd')
             Invoke-Godot -Name 'welcome-menu' -EngineArguments @('--script', 'res://tests/rendered/welcome_menu_checks.gd')

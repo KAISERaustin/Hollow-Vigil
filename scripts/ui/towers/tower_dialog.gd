@@ -61,7 +61,7 @@ func _ready() -> void:
 			preload("res://scripts/rendering/actors/relic_art.gd").draw(portrait, app.game.data.relics[relic_choice], portrait.size * 0.5)
 		else:
 			var shown_level := mini(tower_level + 1, Balance.MAX_TOWER_LEVEL) if mode == "preview" else tower_level
-			VigilTerrainArt.sentinel(portrait, tower_kind, Vector2(24, 51), 0.85, shown_level, tower_branch)
+			VigilTerrainArt.sentinel(portrait, tower_kind, Vector2(20, 41) if mode == "preview" else Vector2(24, 51), 0.65 if mode == "preview" else 0.85, shown_level, tower_branch)
 	)
 	identity.add_child(portrait)
 	heading = UI.heading("", 24)
@@ -105,6 +105,8 @@ func _ready() -> void:
 
 func open_action(action: String, branch: String = "") -> void:
 	if action == "upgrade":
+		if visible:
+			dismiss()
 		app.tower_actions.request_upgrade()
 		return
 	app.tower_actions.cancel_upgrade()
@@ -115,6 +117,8 @@ func open_action(action: String, branch: String = "") -> void:
 	revision += 1
 	mode = action
 	layout.add_theme_constant_override("separation", 8 if action == "preview" else 16)
+	body.add_theme_constant_override("separation", 8 if action == "preview" else 12)
+	portrait.custom_minimum_size = Vector2(40, 48) if action == "preview" else Vector2(48, 64)
 	header_back.hide()
 	header_close.visible = action in ["equipment", "preview"]
 	header_divider.visible = action == "equipment"
@@ -145,7 +149,7 @@ func open_action(action: String, branch: String = "") -> void:
 			parent.remove_child(child)
 			child.queue_free()
 	equipment_summary.visible = action == "equipment"
-	var stats := Balance.tower_stats(tower, app.game.tuning)
+	var stats := Balance.tower_stats(tower, app.game.tuning, app.game.data.relics)
 	heading.text = stats.name
 	var label := {"info": "Tower information · Level %d", "upgrade": "Upgrade · Level %d", "sell": "Sell tower · Level %d", "move": "Move tower · Level %d", "target": "Targeting · Level %d", "equipment": "Equipment · Level %d"}
 	if action not in ["equipment", "preview"]:
@@ -156,7 +160,8 @@ func open_action(action: String, branch: String = "") -> void:
 		var next_level := mini(tower_level + 1, Balance.MAX_TOWER_LEVEL)
 		var next := Balance.stats(tower_kind, next_level, app.game.tuning, tower_branch)
 		heading.text = next.name
-		body.add_child(UI.label("Maximum level reached" if tower_level == Balance.MAX_TOWER_LEVEL else "Upgrade from level %d · Stat changes below" % tower_level, 12, UI.MUTED))
+		if tower_level == Balance.MAX_TOWER_LEVEL:
+			body.add_child(UI.label("Maximum level reached", 12, UI.MUTED))
 		if tower_level == 3:
 			var branches := HBoxContainer.new()
 			branches.name = "UpgradeBranches"
@@ -169,7 +174,8 @@ func open_action(action: String, branch: String = "") -> void:
 				choice.set_pressed_no_signal(option == tower_branch)
 				choice.add_theme_font_size_override("font_size", UI.type_size(14))
 				branches.add_child(choice)
-		body.add_child(TowerChoice.details(tower_kind, app.game.tuning, next_level, tower_branch, stats if tower_level < Balance.MAX_TOWER_LEVEL else {}))
+		var next_stats := Balance.equipment_stats(Balance.stats(tower_kind, next_level, app.game.tuning, tower_branch), tower, app.game.tuning, app.game.data.relics)
+		body.add_child(TowerChoice.details(tower_kind, app.game.tuning, next_level, tower_branch, stats if tower_level < Balance.MAX_TOWER_LEVEL else {}, true, next_stats))
 	if action == "equipment":
 		preload("res://scripts/ui/towers/relic_picker.gd").build(self)
 	if action == "target":
@@ -207,7 +213,7 @@ func open_action(action: String, branch: String = "") -> void:
 				var option := Balance.stats(tower.kind, 4, app.game.tuning, branch_options[side])
 				body.add_child(UI.heading(("Left · " if side == 0 else "Right · ") + option.name, 16))
 				body.add_child(UI.paragraph(Balance.tower_description(option), 14))
-		var next := Balance.stats(tower.kind, mini(tower_level + 1, Balance.MAX_TOWER_LEVEL), app.game.tuning)
+		var next := Balance.equipment_stats(Balance.stats(tower.kind, mini(tower_level + 1, Balance.MAX_TOWER_LEVEL), app.game.tuning), tower, app.game.tuning, app.game.data.relics)
 		var grid := GridContainer.new()
 		grid.name = "TowerStats"
 		grid.columns = 2
@@ -386,7 +392,7 @@ func equipment_fingerprint() -> String:
 
 func preview_fingerprint() -> String:
 	var tower: Dictionary = app.game.data.towers[tower_id]
-	return JSON.stringify([Balance.tower_stats(tower, app.game.tuning), Balance.stats(tower.kind, mini(tower_level + 1, Balance.MAX_TOWER_LEVEL), app.game.tuning, tower_branch), Balance.upgrade_cost(tower, app.game.tuning, tower_branch)])
+	return JSON.stringify([Balance.tower_stats(tower, app.game.tuning, app.game.data.relics), Balance.stats(tower.kind, mini(tower_level + 1, Balance.MAX_TOWER_LEVEL), app.game.tuning, tower_branch), Balance.upgrade_cost(tower, app.game.tuning, tower_branch)])
 
 func commit(opened_revision: int) -> void:
 	if not visible or opened_revision != revision:

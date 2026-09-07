@@ -22,6 +22,7 @@ func run() -> void:
 		screen.game.data.balance = 10000.0
 		screen.run.build(socket.index, "rapid")
 		screen.show_socket(socket.index)
+		screen.tower_dialog.dismiss()
 		await frame()
 		var tower: Dictionary = screen.game.data.towers[screen.run.tower_at(socket.index)]
 		var actions: VigilTowerActions = screen.tower_actions

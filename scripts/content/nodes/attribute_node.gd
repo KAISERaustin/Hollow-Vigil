@@ -7,6 +7,17 @@ func prepare(_state: Dictionary, _context: Dictionary, _stats: Dictionary, _conf
 func impact(_combat, _shot: Dictionary, _enemy: Dictionary, _config: Dictionary) -> void:
 	pass
 
+## Passive stats resolve before targeting; these hooks never advance counters.
+func modify_stats(_stats: Dictionary, _config: Dictionary) -> void:
+	pass
+
+## Runs once at the impact position, independently of splash victim count.
+func arrive(_combat, _shot: Dictionary, _config: Dictionary) -> void:
+	pass
+
+func credited_kill(_state: Dictionary, _now: float, _config: Dictionary) -> void:
+	pass
+
 func retune(_state: Dictionary, _now: float, _before: Dictionary, _after: Dictionary) -> void:
 	pass
 

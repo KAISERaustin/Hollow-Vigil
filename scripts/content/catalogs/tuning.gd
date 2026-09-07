@@ -3,6 +3,9 @@ extends RefCounted
 const TUNING_FIELDS := {
 	"session": {"starting_gold": {"label": "Starting gold", "suffix": " gold", "min": 0.0, "max": 1000000000000.0, "step": 1.0}},
 	"gear": {
+		"area_radius": {"label":"Effect radius","suffix":" units","min":0,"max":500,"step":1},
+		"blast_multiplier": {"label":"Existing blast radius multiplier","suffix":"×","min":1,"max":5,"step":0.05},
+		"range_percent": {"label":"Attack range bonus","suffix":"%","min":0,"max":200,"step":1},
 		"echo_delay": {"label":"Echo delay","suffix":" s","min":0,"max":10,"step":0.01},
 		"damage_per_stack": {"label":"Damage per stack","suffix":"%","min":0,"max":100,"step":1},
 		"dot_multiplier": {"label":"Damage each second","suffix":"× base damage","min":0,"max":20,"step":0.05},
@@ -99,4 +102,4 @@ const TUNING_FIELDS := {
 }
 
 # Accepted when reading old configurations, but no longer gameplay controls.
-const RETIRED_FIELDS := {"towers": {"rapid:thorn_volley": ["arrow_count", "fan_angle"]}}
+const RETIRED_FIELDS := {"towers": {"rapid:thorn_volley": ["arrow_count", "fan_angle"]}, "gear": {"matriarch_lantern": ["opening_attacks", "opening_speed", "reset_timeout"]}}

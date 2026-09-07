@@ -17,6 +17,7 @@ var selection_kind := "rapid"
 var action_button: Button
 var action_cost := 0.0
 var build_choices: ScrollContainer
+var build_selection := preload("res://scripts/ui/towers/build_selection.gd").new()
 var build_back: Button
 var sheet_revision := 0
 var prices: Array[Dictionary] = []
@@ -228,7 +229,8 @@ func select_pad(region: String, pad: int) -> void:
 func show_build() -> void:
 	mode = "build"
 	clear_sheet("Build")
-	selection_kind = preload("res://scripts/ui/towers/tower_choice.gd").first_kind()
+	build_selection.bind_game(game)
+	selection_kind = build_selection.kind
 	field.preview_kind = selection_kind
 	if game.economy.needs_first_property():
 		sheet_content.add_child(UI.paragraph("Buy your first property before building a tower. Close this panel and select a neighboring territory marked + to buy it for 100 gold. You will have 180 gold left for towers.", 14))
@@ -264,10 +266,14 @@ func show_build() -> void:
 	)
 	action_footer.add_child(action_button)
 	action_footer.get_parent().hide()
-	field.build_preview.open(field, self)
+	if build_selection.details_open:
+		select_build_kind(selection_kind, build_choices)
+	else:
+		field.build_preview.open(field, self)
 	app.update_hud()
 
 func select_build_kind(kind: String, choices: ScrollContainer) -> void:
+	build_selection.select(kind)
 	selection_kind = kind
 	field.preview_kind = kind
 	preload("res://scripts/ui/towers/tower_choice.gd").show_details(choices, game.tuning, kind)
@@ -284,6 +290,7 @@ func select_build_kind(kind: String, choices: ScrollContainer) -> void:
 	app.update_hud()
 
 func show_build_choices() -> void:
+	build_selection.show_choices()
 	preload("res://scripts/ui/towers/tower_choice.gd").clear_details(build_choices)
 	build_back.hide()
 	action_footer.get_parent().hide()

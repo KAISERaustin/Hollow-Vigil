@@ -40,11 +40,13 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 		app.update_hud()
 		var location: Vector2 = app.field.global_position + app.field.screen(VigilWorld.pad_position("0,0", 0))
 		await harness.tap(app, location, touch)
-		check(not app.panels.visible and app.tower_actions.visible and not dialog.visible, "Tower click should reveal the six in-world controls", failures)
+		check(not app.panels.visible and not app.tower_actions.visible and dialog.visible and dialog.mode == "preview", "Tower click should open its next-level build details", failures)
 		check(g.data.balance == 410.0 and g.data.towers[rapid].earnings == 0.0, "Tower click did not collect its stored gold exactly once", failures)
 		check(g.data.towers[splash].earnings == 73.0 and g.data.reserve == 13.0, "Tower click collected another source's gold", failures)
 		await harness.tap(app, location, touch)
 		check(g.data.balance == 410.0, "Repeated tower click duplicated gold", failures)
+		await harness.tap(app, dialog.header_close.get_global_rect().get_center(), touch)
+		check(app.tower_actions.visible and not dialog.visible, "Closing the preview exposes all tower controls", failures)
 		g.economy.credit(rapid, 25.0)
 		for tower in g.data.towers.values():
 			check(not app.field.earnings_badge_visible(tower), "Tower selection left an earnings badge visible", failures)
@@ -132,7 +134,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 		check(g.data.towers[splash].earnings == 73.0, "Removed earnings badge collected gold", failures)
 		g.economy.collect()
 	g.economy.credit(splash, 11.0)
-	app.panels.select_pad("0,0", 0)
+	select_controls(app, "0,0", 0)
 	app.panels.show_settings()
 	check(not app.field.earnings_badge_visible(g.data.towers[splash]), "Leaving tower controls restored removed gold badges", failures)
 	app.panels.close_sheet()
@@ -140,7 +142,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 	g.data.balance = 2000.0
 	g.data.towers[rapid].level = 2
 	app.field.camera = VigilWorld.pad_position("0,0", 0)
-	app.panels.select_pad("0,0", 0)
+	select_controls(app, "0,0", 0)
 	var reference_layout := {}
 	for action in app.tower_actions.buttons:
 		var rect: Rect2 = app.tower_actions.buttons[action].get_rect()
@@ -153,7 +155,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 		for id in [rapid, splash, heavy]:
 			# Pan explicitly to exercise the controls without selection moving the camera.
 			app.field.camera = VigilWorld.pad_position("0,0", int(g.data.towers[id].pad))
-			app.panels.select_pad("0,0", int(g.data.towers[id].pad))
+			select_controls(app, "0,0", int(g.data.towers[id].pad))
 			await harness.capture(app, "tower-actions-%s-%d" % [g.data.towers[id].kind, viewport.x])
 			for action in ["info", "sell", "move", "target", "equipment"]:
 				await harness.tap(app, app.tower_actions.buttons[action].get_global_rect().get_center(), true)
@@ -176,7 +178,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 				var world := VigilWorld.pad_position("0,0", pad)
 				for edge in [Vector2(4, 4), Vector2(app.field.size.x - 4, 4), app.field.size - Vector2(4, 4), Vector2(4, app.field.size.y - 4), app.field.size * 0.5]:
 					app.field.camera = world - (edge - app.field.size * 0.5) / zoom
-					app.panels.select_pad("0,0", pad)
+					select_controls(app, "0,0", pad)
 					await app.get_tree().process_frame
 					check_layout(app, reference_layout, failures)
 				app.field.camera += Vector2(12, 8)
@@ -196,7 +198,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 					var selected: bool = app.field.selected_tower == rapid
 					check((g.data.towers[rapid].earnings == 0.0 and g.data.balance == before_collection + 1900.0) if selected else (g.data.towers[rapid].earnings == 1900.0 and g.data.balance == before_collection), "Former badge only collects through actual tower selection at zoom %.2f" % zoom, failures)
 					g.economy.collect()
-					app.panels.select_pad("0,0", 0)
+					select_controls(app, "0,0", 0)
 					await harness.settle(app)
 					for touch in [false, true]:
 						for action in ["info", "sell", "move", "target", "equipment"]:
@@ -206,7 +208,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 		app.field.zoom = 1.0
 	# Real zoom scales tower controls with the map while the HUD stays fixed.
 	app.field.camera = VigilWorld.pad_position("0,0", 0)
-	app.panels.select_pad("0,0", 0)
+	select_controls(app, "0,0", 0)
 	var hud_rects := {}
 	for control in [app.hud.gold_label, app.hud.rate_label, app.hud.kills_label, app.hud.collect_button, app.toast_label]:
 		hud_rects[control] = control.get_global_rect()
@@ -219,7 +221,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 	# Sale includes earnings generated after opening the dialog and persists the empty socket.
 	app.field.zoom = 1.0
 	app.field.camera = Vector2.ZERO
-	app.panels.select_pad("0,0", 0)
+	select_controls(app, "0,0", 0)
 	var before_sale: float = g.data.balance
 	var refund := Balance.sell_refund(g.data.towers[rapid])
 	await harness.tap(app, app.tower_actions.buttons.sell.get_global_rect().get_center())
@@ -254,3 +256,7 @@ static func check_layout(app: Control, reference_layout: Dictionary, failures: A
 		var rect: Rect2 = app.tower_actions.buttons[action].get_global_rect()
 		check((rect.size / app.field.zoom).is_equal_approx(reference_layout[action].size), "World zoom changed the map size of the " + action + " button", failures)
 		check(((rect.position - center) / app.field.zoom).is_equal_approx(reference_layout[action].position), "Pan or zoom detached the " + action + " button from its tower", failures)
+
+static func select_controls(app: Control, region: String, pad: int) -> void:
+	app.panels.select_pad(region, pad)
+	app.tower_dialog.dismiss()

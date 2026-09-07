@@ -28,13 +28,13 @@ static func card(report: Dictionary, status: String, details: Callable, edit: Ca
 	var stats := GridContainer.new()
 	stats.name = "WaveStats"
 	stats.columns = 2
-	stats.add_theme_constant_override("h_separation", 16)
+	stats.add_theme_constant_override("h_separation", 8)
 	stats.add_theme_constant_override("v_separation", 8)
 	body.add_child(stats)
-	stats.add_child(UI.stat("Enemies", str(report.spawn_count)))
-	stats.add_child(UI.stat("Wave gold", UI.exact_money(report.completion_gold)))
-	stats.add_child(UI.stat("Total health", UI.exact_money(report.total_spawn_health)))
-	stats.add_child(UI.stat("Last spawn", "%s s" % UI.exact_money(report.last_spawn_seconds)))
+	stats.add_child(UI.info_card(UI.stat("Enemies", str(report.spawn_count))))
+	stats.add_child(UI.info_card(UI.stat("Wave gold", UI.exact_money(report.completion_gold))))
+	stats.add_child(UI.info_card(UI.stat("Total health", UI.exact_money(report.total_spawn_health))))
+	stats.add_child(UI.info_card(UI.stat("Last spawn", "%s s" % UI.exact_money(report.last_spawn_seconds))))
 	stats.resized.connect(func(): stats.columns = 4 if stats.size.x >= 400 else 2)
 	var roster := VBoxContainer.new()
 	roster.name = "EnemyRoster"
@@ -60,7 +60,7 @@ static func card(report: Dictionary, status: String, details: Callable, edit: Ca
 		actions.add_child(edit_button)
 	return panel
 
-static func enemy_row(kind: String, count: int) -> HBoxContainer:
+static func enemy_row(kind: String, count: int) -> PanelContainer:
 	var boss := Balance.BOSSES.has(kind)
 	var definition := Balance.definition("bosses" if boss else "enemies", kind)
 	var row := HBoxContainer.new()
@@ -78,5 +78,10 @@ static func enemy_row(kind: String, count: int) -> HBoxContainer:
 	var quantity := UI.value("×%d" % count, 18)
 	quantity.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	quantity.accessibility_name = "%d %s" % [count, definition.name]
-	row.add_child(quantity)
-	return row
+	var badge := UI.info_card(quantity, UI.SURFACE, 6)
+	badge.size_flags_horizontal = Control.SIZE_SHRINK_END
+	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(badge)
+	var panel := UI.info_card(row)
+	panel.name = "EnemyCard_" + kind
+	return panel

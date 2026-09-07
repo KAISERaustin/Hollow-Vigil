@@ -9,6 +9,7 @@ signal enemy_escaped(enemy: Dictionary)
 const Targeting = preload("res://scripts/gameplay/combat/targeting.gd")
 const Projectiles = preload("res://scripts/gameplay/combat/projectiles.gd")
 const TowerAbilities = preload("res://scripts/gameplay/combat/tower_abilities.gd")
+const EffectFields = preload("res://scripts/gameplay/combat/effect_fields.gd")
 
 const Relics = preload("res://scripts/gameplay/progression/relics.gd")
 const Bosses = preload("res://scripts/gameplay/encounters/bosses.gd")
@@ -30,6 +31,7 @@ var enemy_serial := 0
 var tick_count := 0
 var enemy_pool: Array[Dictionary] = []
 var burning_ground: Array[Dictionary] = []
+var effect_fields: Array[Dictionary] = []
 var curses: Dictionary = {}
 var relic_progress: Dictionary = {}
 var relic_epochs: Dictionary = {}
@@ -89,6 +91,7 @@ func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = ""
 		return false
 	# Mark dead synchronously before any credit, so splash and simultaneous shots are safe.
 	enemy.dead = true
+	Relics.credited_kill(self, tower_id)
 	sound_requested.emit(Balance.Content.boss(enemy.kind).sound_cue("death") if enemy.get("boss", false) else Balance.Content.enemy(enemy.kind).rule("death_cue"), enemy.pos)
 	var is_boss: bool = enemy.get("boss", false)
 	var reward: float = Balance.tuned_value("bosses", enemy.kind, "payout", tuning) if is_boss else Balance.tuned_value("enemies", enemy.kind, "payout", tuning)
@@ -233,6 +236,7 @@ func tick(delta: float) -> void:
 		if not e.dead:
 			e.distance_remaining = -1.0
 	# Resolve arrivals at the same centers used by targeting and drawing.
+	EffectFields.advance(self, delta)
 	advance_shots(delta)
 	advance_fire(delta)
 	var live_targets := {}
@@ -248,7 +252,7 @@ func tick(delta: float) -> void:
 		if not Balance.Content.locks_target(tower.get("target_mode", "first")):
 			target_locks.erase(tower_id)
 			continue
-		var radius: float = Balance.tower_stats(tower, tuning).range
+		var radius: float = Balance.tower_stats(tower, tuning, data.relics).range
 		if VigilWorld.pad_position(tower.region, tower.pad).distance_squared_to(locked.pos) > radius * radius:
 			target_locks.erase(tower_id)
 	for t in data.towers.values():
@@ -262,7 +266,7 @@ func tick(delta: float) -> void:
 		# Do not turn a 0.40-second attack into a 0.45-second attack.
 		if t.cooldown > 0.000001:
 			continue
-		var stats := Balance.tower_stats(t, tuning)
+		var stats := Balance.tower_stats(t, tuning, data.relics)
 		var pos := VigilWorld.pad_position(t.region, t.pad)
 		var candidates := nearby_enemies(pos, stats.range)
 		var target: Dictionary = live_targets.get(target_locks.get(t.id, -1), {})

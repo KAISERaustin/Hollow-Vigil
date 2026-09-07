@@ -51,6 +51,15 @@ static func surface(bg: Color = PANEL, outline: int = OUTLINE, padding: int = PA
 static func plain() -> StyleBox:
 	return surface(Color.TRANSPARENT, 0, 0)
 
+## Passive content cards share a light inset rim and let scroll drags through.
+static func info_card(content: Control, background: Color = PANEL, padding: int = 8, outline: int = 1) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.mouse_filter = Control.MOUSE_FILTER_PASS
+	panel.add_theme_stylebox_override("panel", surface(background, outline, padding))
+	panel.add_child(content)
+	return panel
+
 static func fullscreen_parchment() -> TextureRect:
 	var paper := TextureRect.new()
 	paper.name = "FullscreenParchment"
@@ -525,6 +534,14 @@ static func stat(caption: String, text: String, pixels: int = 18) -> VBoxContain
 	column.add_child(number)
 	column.add_child(paragraph(caption, CAPTION))
 	return column
+
+static func stat_card(caption: String, text: String, pixels: int = 24) -> PanelContainer:
+	var column := stat(caption, text, pixels)
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for entry: Label in column.get_children():
+		entry.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	return info_card(column, SURFACE, 8, 2)
 
 static func rule() -> HSeparator:
 	var r := HSeparator.new()

@@ -45,19 +45,19 @@ static func create(kind: String, title: String, cost: float, action: Callable, l
 	return button
 
 ## One detail renderer for both modes, driven by resolved content and stat metadata.
-static func details(kind: String, tuning: Dictionary, tier: int = 1, branch: String = "", previous: Dictionary = {}) -> VBoxContainer:
+static func details(kind: String, tuning: Dictionary, tier: int = 1, branch: String = "", previous: Dictionary = {}, show_range: bool = false, effective: Dictionary = {}) -> VBoxContainer:
 	var body := VBoxContainer.new()
 	body.name = "TowerDetails"
 	body.add_theme_constant_override("separation", 8)
-	var stats := Balance.stats(kind, tier, tuning, branch)
+	var stats := Balance.stats(kind, tier, tuning, branch) if effective.is_empty() else effective
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 8)
 	body.add_child(header)
-	var level := UI.heading("Level %d" % tier, 18)
+	var level := UI.heading("Level %d" % tier if previous.is_empty() else "Level %d → %d" % [tier - 1, tier], 18)
 	level.name = "TowerLevel"
 	level.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(level)
-	var base := UI.label("Before equipment", 12, UI.MUTED)
+	var base := UI.label("Before equipment" if effective.is_empty() else "Equipped stats", 12, UI.MUTED)
 	base.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	header.add_child(base)
 	var description := UI.paragraph(Balance.tower_description(stats), 14)
@@ -80,11 +80,14 @@ static func details(kind: String, tuning: Dictionary, tier: int = 1, branch: Str
 		before.dps = before.damage / before.period
 	add_numeric_stat(grid, "damage", "Damage / hit", values, before)
 	add_numeric_stat(grid, "fire_rate", "Attacks / sec", values, before)
-	add_numeric_stat(grid, "range", "Range", values, before, " units")
+	if show_range:
+		add_numeric_stat(grid, "range", "Range", values, before, " units")
+	else:
+		add_numeric_stat(grid, "period", "Seconds / attack", values, before, " s")
 	add_numeric_stat(grid, "dps", "DPS / target", values, before)
 	add_numeric_stat(grid, "targets", "Targets / hit", values, before)
 	add_numeric_stat(grid, "splash", "Blast radius", values, before, " units")
-	# Cost lives in the pinned Build action; interval complements the fire rate.
+	# Cost lives in the pinned Build action; build details omit range.
 	# Future numeric content fields use the same presentation and schema labels.
 	for field in stats:
 		if field in ["cost", "damage", "range", "period", "splash", "targets"]:
@@ -94,13 +97,14 @@ static func details(kind: String, tuning: Dictionary, tier: int = 1, branch: Str
 		var spec: Dictionary = Balance.TUNING_FIELDS.towers.get(field, {})
 		var title: String = spec.get("label", str(field).capitalize())
 		add_numeric_stat(grid, field, title, values, before, str(spec.get("suffix", "")))
-	var interval := UI.label(UI.exact_money(stats.period) + " s between attacks", 12, UI.MUTED)
-	interval.name = "Stat_period"
-	body.add_child(interval)
-	if not before.is_empty():
-		var change := UI.label(change_text(stats.period, before.period, " s"), 12, UI.MUTED)
-		change.name = "Change_period"
-		body.add_child(change)
+	if show_range:
+		var interval := UI.label(UI.exact_money(stats.period) + " s between attacks", 12, UI.MUTED)
+		interval.name = "Stat_period"
+		body.add_child(interval)
+		if not before.is_empty():
+			var change := UI.label(change_text(stats.period, before.period, " s"), 12, UI.MUTED)
+			change.name = "Change_period"
+			body.add_child(change)
 	return body
 
 static func change_text(value: float, previous: float, suffix: String = "") -> String:

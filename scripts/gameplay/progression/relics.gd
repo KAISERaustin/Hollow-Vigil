@@ -8,6 +8,8 @@ static func description(relic_kind: String, tuning: Dictionary = {}) -> String:
 	if not DEFINITIONS.has(relic_kind):
 		return ""
 	var gear := Balance.definition("gear", relic_kind, tuning)
+	gear.damage_type = "fire damage" if gear.get("fire_damage", 0.0) > 0.0 else "non-fire damage"
+	gear.defense_text = "This shot bypasses boss defenses." if gear.get("defense_bypass", 0.0) > 0.0 else "Boss defenses still apply."
 	for stat in gear:
 		if gear[stat] is float or gear[stat] is int:
 			gear[stat] = String.num(gear[stat], 2).trim_suffix(".0")
@@ -70,6 +72,21 @@ static func prepare(combat: VigilCombat, tower: Dictionary, target: Dictionary, 
 	result.gear_color = DEFINITIONS[relic_kind].color
 	combat.relic_progress[tower.id] = progress
 	return result
+
+static func credited_kill(combat: VigilCombat, tower_id: String) -> void:
+	var tower: Dictionary = combat.data.towers.get(tower_id, {})
+	var node := Balance.Content.gear(kind(combat.data, tower))
+	if node == null:
+		return
+	var progress: Dictionary = combat.relic_progress.get(tower_id, node.make_record())
+	node.credited_kill(progress, combat.simulation_time, combat.tuning)
+	combat.relic_progress[tower_id] = progress
+
+static func arrive(combat: VigilCombat, shot: Dictionary) -> void:
+	if not combat.data.towers.has(shot.tower_id) or shot.get("gear_epoch", -1) != combat.relic_epochs.get(shot.tower_id, 0):
+		return
+	for entry in shot.get("gear_effects", []):
+		entry.attribute.arrive(combat, shot, entry.config)
 
 static func root_target(combat: VigilCombat, shot: Dictionary, enemy: Dictionary) -> void:
 	if not shot.get("relic_root", false):
@@ -141,6 +158,7 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 
 static func clear(combat: VigilCombat, tower_id: String) -> void:
 	combat.relic_progress.erase(tower_id)
+	combat.EffectFields.clear(combat, tower_id)
 	combat.relic_epochs[tower_id] = int(combat.relic_epochs.get(tower_id, 0)) + 1
 	for enemy in combat.enemies:
 		var statuses: Dictionary = enemy.get("gear_status", {})

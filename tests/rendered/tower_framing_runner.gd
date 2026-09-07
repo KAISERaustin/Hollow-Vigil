@@ -153,7 +153,10 @@ func run() -> void:
 	app.game.expand("1,0")
 	var id := app.game.economy.build("rapid", "0,0", 0)
 	await frame()
-	await exercise(app, id, func(): app.panels.select_pad("0,0", 0), "infinite")
+	await exercise(app, id, func():
+		app.panels.select_pad("0,0", 0)
+		app.tower_dialog.dismiss()
+	, "infinite")
 	app.panels.close_sheet()
 	app.show_campaign()
 	var campaign: Control = app.campaign
@@ -164,7 +167,10 @@ func run() -> void:
 	campaign.run.build(socket, "heavy")
 	id = campaign.run.tower_at(socket)
 	await frame()
-	await exercise(campaign, id, func(): campaign.show_socket(socket), "campaign")
+	await exercise(campaign, id, func():
+		campaign.show_socket(socket)
+		campaign.tower_dialog.dismiss()
+	, "campaign")
 	check(app.field.camera_framing != campaign.field.camera_framing, "Modes own independent framing state")
 	app.free()
 	print("TOWER FRAMING: %d checks, %d failures" % [checks, failures.size()])

@@ -36,6 +36,7 @@ var dialog_header: HBoxContainer
 var save_notice: Label
 var socket_dialog := false
 var build_choices: ScrollContainer
+var build_selection := preload("res://scripts/ui/towers/build_selection.gd").new()
 var waves_dialog := false
 var shared_setups: Dictionary = {}
 var configuration_picker: Node
@@ -421,11 +422,11 @@ func show_briefing(index: int) -> void:
 		layout.add_child(UI.paragraph(run.mission.brief, 15))
 	var stats := HBoxContainer.new()
 	stats.name = "CampaignLevelStats"
-	stats.add_theme_constant_override("separation", UI.GAP)
+	stats.add_theme_constant_override("separation", 8)
 	layout.add_child(stats)
-	stats.add_child(UI.stat("Waves", str(run.mission.waves.size()), 24))
-	stats.add_child(UI.stat("Starting gold", UI.exact_money(run.mission.gold), 24))
-	stats.add_child(UI.stat("Flame", str(run.mission.flame), 24))
+	stats.add_child(UI.stat_card("Waves", str(run.mission.waves.size())))
+	stats.add_child(UI.stat_card("Starting gold", UI.exact_money(run.mission.gold)))
+	stats.add_child(UI.stat_card("Flame", str(run.mission.flame)))
 	var sources := HBoxContainer.new()
 	sources.visible = can_author() and active_campaign_slot < 0
 	sources.add_theme_constant_override("separation", UI.GAP)
@@ -680,6 +681,7 @@ func show_socket(socket: int) -> void:
 		tower_dialog.open_action("preview")
 		return
 	open_dialog("Build a tower", true)
+	build_selection.bind_game(game)
 	var confirm := UI.gold_button("", func():
 		if board.preview_kind.is_empty() or not dialog_actions.is_visible_in_tree():
 			return
@@ -691,18 +693,22 @@ func show_socket(socket: int) -> void:
 	confirm.name = "CampaignBuildConfirm"
 	var choices := TowerChoice.build_list(run.game.tuning, func(kind: String):
 		select_build_preview(kind, confirm)
-	, TowerChoice.first_kind(), INF, "CampaignBuild_")
+	, build_selection.kind, INF, "CampaignBuild_")
 	build_choices = choices
 	dialog_body.add_child(choices)
 	dialog_actions.add_child(confirm)
 	add_dialog_back("Back to towers", show_build_choices)
 	dialog_header.get_node("BackButton").name = "BackToTowers"
 	dialog_header.get_node("BackToTowers").hide()
-	board.preview_kind = TowerChoice.first_kind()
-	board.build_preview.open(board, dialog_card)
+	board.preview_kind = build_selection.kind
+	if build_selection.details_open:
+		select_build_preview(build_selection.kind, confirm)
+	else:
+		board.build_preview.open(board, dialog_card)
 	fit.call_deferred()
 
 func select_build_preview(kind: String, confirm: Button) -> void:
+	build_selection.select(kind)
 	board.preview_kind = kind
 	var definition := Balance.definition("towers", kind, game.tuning)
 	confirm.text = "Build %s · %s gold" % [definition.name, UI.exact_money(definition.cost)]
@@ -719,7 +725,8 @@ func select_build_preview(kind: String, confirm: Button) -> void:
 	board.queue_redraw()
 
 func show_build_choices() -> void:
-	var kind: String = board.preview_kind
+	build_selection.show_choices()
+	var kind: String = build_selection.kind
 	TowerChoice.clear_details(build_choices)
 	dialog_header.get_node("BackToTowers").hide()
 	dialog_actions.hide()

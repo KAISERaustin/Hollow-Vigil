@@ -39,7 +39,7 @@ func run() -> void:
 	actual_view.add_child(actual)
 	reference_view.add_child(reference)
 	for color in [UI.PANEL, UI.SURFACE, UI.GOLD, UI.DANGER]:
-		for width in [2, 3, 4]:
+		for width in [1, 2, 3, 4]:
 			for radius in [0, 4]:
 				actual.style = UI.surface(color, width, 0)
 				actual.style.set_corner_radius_all(radius)

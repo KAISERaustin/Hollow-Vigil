@@ -193,7 +193,7 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 				var curse: Dictionary = combat.curses[tid]
 				if curse.target == e.id and curse.stacks >= stats.curse_threshold and combat.data.towers.has(tid):
 					var t: Dictionary = combat.data.towers[tid]
-					if t.get("rebuild_remaining", 0.0) <= 0.0 and VigilWorld.pad_position(t.region, t.pad).distance_to(e.pos) <= Balance.tower_stats(t, combat.tuning).range:
+					if t.get("rebuild_remaining", 0.0) <= 0.0 and VigilWorld.pad_position(t.region, t.pad).distance_to(e.pos) <= Balance.tower_stats(t, combat.tuning, combat.data.relics).range:
 						blocked = true
 		if e.kind == "prior":
 			var rate: float = 1.0 - stats.regrowth_suppression / 100.0 if blocked else 1.0
