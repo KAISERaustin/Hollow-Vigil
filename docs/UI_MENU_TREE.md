@@ -47,9 +47,9 @@ Campaign map top-right Menu / Infinite Menu → shared game menu
 
 Save build
 ├── Campaign scope → Whole campaign / One level → explicit level picker
-├── Contents → two checkboxes, both selected by default
+├── Contents → applicable checkboxes, selected by default
 │   ├── Game rules and resources → all enemies, bosses, towers, gear, rifts, starting resources, and Campaign wave settings
-│   └── Layout and equipment → placed towers, upgrades, equipment, and all explored tiles [Infinite]
+│   └── Layout and equipment [Infinite only] → placed towers, upgrades, equipment, and all explored tiles
 ├── Name / Description
 ├── Save privately
 └── Share to Community → private copy + explicit publication attempt
@@ -97,7 +97,7 @@ There are exactly three slots for each game type, shared between Creative and Su
 
 ## Reusable content
 
-Builds are immutable snapshots. Identical private saves are idempotent; a changed snapshot creates another version. A named build can contain any supported combination. Omitted fields start from original defaults. A one-level Campaign build affects that matching level only and never unlocks Survival progress. From a selected Campaign slot's map, Menu opens the shared Save build form with private and Community actions, whole-campaign or explicit level scope, and rules/resources or tower/equipment contents. The map can export the saved checkpoint's layout before entering a level; returning from battle uses the retained run's latest layout. Creative also exposes per-level and per-wave rule drafts here.
+Builds are immutable snapshots. Identical private saves are idempotent; a changed snapshot creates another version. A named build can contain any supported combination. Omitted fields start from original defaults. A one-level Campaign build affects that matching level only and never unlocks Survival progress. From a selected Campaign slot's map, the fixed top-right Menu opens the shared Save build form with private and Community actions and whole-campaign or explicit level scope. Campaign saves and uploads contain game rules, starting resources and wave content; tower placements and owned equipment are excluded and have no export option. Creative also exposes per-level and per-wave rule drafts here. Existing saved games and older imported builds retain their layouts.
 
 Stats come from registered content nodes. The checklist discovers new enemy, boss and base tower types through the registry. Tower stats include the chosen type's tiers; unselected siblings are excluded. A layout carries its compatible equipment and necessary placement tiles/connecting paths or authored Campaign sockets. Timing-only or composition-only wave edits must have the original number of spawn groups; differing groups require both selections and are explained before starting.
 

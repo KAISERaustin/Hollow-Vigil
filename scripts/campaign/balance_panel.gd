@@ -110,7 +110,6 @@ func build_scope() -> void:
 	controls.categories.assign(preload("res://scripts/persistence/reusable_build.gd").STAT_GROUPS)
 	controls.configuration_only = true
 	body.add_child(controls)
-	body.add_child(UI.button("All stat categories", controls.show_categories))
 
 func build_groups() -> void:
 	body.add_child(UI.heading("Wave spawn groups", 18))
