@@ -58,7 +58,6 @@ func fit() -> void:
 func page_view(key: String, title: String, back: Callable) -> void:
 	screen = key
 	clear(title)
-	UI.set_parchment_color(welcome_paper, UI.SAVED_GAMES_PAPER if key == "slots" else UI.PANEL)
 	message.hide()
 	navigation_back = back
 	if back.is_valid(): add_back(UI.button("Back", go_back))
@@ -135,6 +134,7 @@ func progress_text(value: Dictionary, type: String = "") -> String:
 
 func show_slots() -> void:
 	page_view("slots", "Saved games", leave_saved_games)
+	UI.tint_parchment(welcome_paper, UI.SAVED_GAMES_PAPER)
 	content.add_child(UI.paragraph(game_type.capitalize() + " · Three slots shared by Creative and Survival."))
 	for slot in 3:
 		var value := slot_summary(slot)

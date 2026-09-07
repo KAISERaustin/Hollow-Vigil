@@ -13,7 +13,8 @@ const GROUP_FIELDS := {
 	3: {"label": "Spawn delay (seconds)", "min": 0, "max": 3600, "step": 0.1},
 	4: {"label": "Spawn interval (seconds)", "min": 0.05, "max": 120, "step": 0.05}
 }
-const COUNT := 20
+const LEGACY_COUNT := 20
+const LEVELS_PER_CHAPTER := 5
 const MAX_HEALTH := 3
 const BOARD := Rect2(-310, -660, 620, 800)
 const CORE := Vector2(0, 80)
@@ -21,8 +22,11 @@ const CHAPTERS := [
 	{"name": "The Overgrown Road", "map_art": preload("res://assets/campaign/overgrown-road.svg"), "gate_art": preload("res://assets/campaign/overgrown-road-gate.svg"), "style": "forest", "story": "The last sanctuary has gone dark. Carry its ember beyond the forest."},
 	{"name": "The Ashen Fortress", "map_art": preload("res://assets/campaign/ashen-fortress.svg"), "gate_art": preload("res://assets/campaign/ashen-fortress-gate.svg"), "style": "ashen_forge", "story": "The old watchfires still burn, but something else tends them now."},
 	{"name": "The Drowned Crypts", "map_art": preload("res://assets/campaign/drowned-crypts.svg"), "gate_art": preload("res://assets/campaign/drowned-crypts-gate.svg"), "style": "drowned_crypt", "story": "Beneath the flood, a bell calls the dead back to their posts."},
-	{"name": "The Eclipsed Capital", "map_art": preload("res://assets/campaign/eclipsed-capital.svg"), "gate_art": preload("res://assets/campaign/eclipsed-capital-gate.svg"), "style": "bloodmoon_sanctuary", "story": "One core stands between the kingdom and a night without end."}
+	{"name": "The Eclipsed Capital", "map_art": preload("res://assets/campaign/eclipsed-capital.svg"), "gate_art": preload("res://assets/campaign/eclipsed-capital-gate.svg"), "style": "bloodmoon_sanctuary", "story": "One core stands between the kingdom and a night without end."},
+	{"name": "Castle Ruin", "style": "castle_ruin", "story": "Beyond the capital, the fallen king still guards a crown of broken stone."},
+	{"name": "Mourning Orchard", "style": "mourning_orchard", "story": "Carry the rekindled ember beneath the funeral boughs. The last procession waits among the roots."}
 ]
+const COUNT := CHAPTERS.size() * LEVELS_PER_CHAPTER
 
 # Each road is authored from its entrance to the same sanctuary. Wave groups are
 # [enemy, count, lane, delay, interval]; there is no random map or wave selection.
@@ -86,5 +90,35 @@ const MISSIONS := [
 	 "waves": [[["basic",40,0,0,0.4],["lantern",20,1,0,1]], [["sentinel",10,0,0,2.5]], [["shade",22,1,0,1.1],["fast",30,0,0,0.6]], [["heavy",16,0,0,1.6],["lantern",24,1,0,1]], [["sentinel",10,0,0,2.5],["shade",20,1,0,1.2]], [["sentinel",8,1,0,3],["shade",26,0,3,1]]]},
 	{"name": "The Last Vigil", "brief": "Defeat the Eclipse Prior and relight the capital. Doomstone pierces its renewing wards.", "gold": 1500, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
 	 "roads": [[[-270,-610],[150,-610],[150,-450],[-150,-450],[-150,-150],[150,-150],[150,0],[0,0],[0,80]],[[270,-450],[150,-450],[150,-300],[0,-300],[0,80]],[[0,-610],[0,-450],[-150,-450],[-150,0],[0,0],[0,80]]],
-	 "waves": [[["lantern",24,0,0,0.9],["basic",36,2,0,0.5]], [["sentinel",10,0,0,2.5],["fast",24,1,4,0.8]], [["shade",20,1,0,1.3],["shade",20,2,0,1.3]], [["heavy",16,0,0,1.8],["sentinel",8,2,0,3]], [["lantern",24,1,0,1],["shade",24,0,0,1.1]], [["prior",1,0,0,1],["sentinel",8,2,5,3.5],["shade",18,1,8,1.5]]]}
+	 "waves": [[["lantern",24,0,0,0.9],["basic",36,2,0,0.5]], [["sentinel",10,0,0,2.5],["fast",24,1,4,0.8]], [["shade",20,1,0,1.3],["shade",20,2,0,1.3]], [["heavy",16,0,0,1.8],["sentinel",8,2,0,3]], [["lantern",24,1,0,1],["shade",24,0,0,1.1]], [["prior",1,0,0,1],["sentinel",8,2,5,3.5],["shade",18,1,8,1.5]]]},
+	{"name": "The Fallen Portcullis", "brief": "Castle sentinels endure light fire. Build a lasting defense along the inner wall.", "gold": 1600, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
+	 "roads": [[[-270,-610],[-150,-610],[-150,-450],[150,-450],[150,-300],[-150,-300],[-150,-150],[0,-150],[0,80]]],
+	 "waves": [[["shade",16,0,0,1.2]], [["sentinel",8,0,0,3]], [["shade",24,0,0,0.8]], [["sepulcher",2,0,0,6],["sentinel",8,0,3,2.8]], [["sentinel",12,0,0,2.5],["shade",24,0,4,0.9]]]},
+	{"name": "Courtyard of Echoes", "brief": "Two stairways meet at the courtyard. Cover both approaches before the procession divides.", "gold": 1700, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
+	 "roads": [[[-270,-600],[-150,-600],[-150,-300],[150,-300],[150,-150],[0,-150],[0,80]],[[270,-600],[150,-600],[150,-450],[-150,-450],[-150,-150],[0,-150],[0,80]]],
+	 "waves": [[["shade",18,0,0,1.2],["shade",12,1,4,1.4]], [["sentinel",6,0,0,3],["sentinel",6,1,3,3]], [["shade",24,1,0,0.8]], [["sepulcher",2,0,0,6],["shade",20,1,4,1]], [["sentinel",10,0,0,2.6],["sentinel",8,1,4,2.8]]]},
+	{"name": "Shattered Ramparts", "brief": "The rampart road doubles back through the ruins. Heavy towers can strike the same formation twice.", "gold": 1800, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
+	 "roads": [[[270,-610],[150,-610],[150,-600],[-150,-600],[-150,-450],[150,-450],[150,-300],[-150,-300],[-150,0],[0,0],[0,80]]],
+	 "waves": [[["sentinel",10,0,0,2.8]], [["shade",32,0,0,0.7]], [["sepulcher",3,0,0,5]], [["sentinel",14,0,0,2.4],["shade",20,0,6,0.9]], [["sepulcher",4,0,0,4.5],["sentinel",10,0,3,2.8]]]},
+	{"name": "The Empty Throne", "brief": "A passage beneath the throne opens close to home. Reserve a defense for the eastern entrance.", "gold": 1900, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
+	 "roads": [[[-150,-610],[-150,-600],[150,-600],[150,-450],[-150,-450],[-150,-150],[0,-150],[0,80]],[[270,-450],[150,-450],[150,-150],[0,-150],[0,80]]],
+	 "waves": [[["sentinel",12,0,0,2.6]], [["shade",20,1,0,1]], [["sepulcher",3,0,0,5],["sentinel",6,1,5,3]], [["shade",24,0,0,0.8],["shade",24,1,2,0.9]], [["sepulcher",4,0,0,5],["sentinel",10,1,6,3]]]},
+	{"name": "The Ruined King", "brief": "Break the king's stone body with sustained heavy damage. His guards arrive from the eastern stair.", "gold": 2100, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
+	 "roads": [[[0,-610],[-150,-610],[-150,-450],[150,-450],[150,-300],[-150,-300],[-150,-150],[150,-150],[150,0],[0,0],[0,80]],[[270,-600],[150,-600],[150,-450],[0,-450],[0,80]]],
+	 "waves": [[["shade",28,0,0,0.9]], [["sentinel",12,0,0,2.6],["shade",16,1,3,1.2]], [["sepulcher",4,0,0,5]], [["sentinel",14,0,0,2.4],["sentinel",8,1,4,3]], [["ruined_king",1,0,0,1],["shade",24,1,8,1.2]]]},
+	{"name": "Pale Boughs", "brief": "The orchard's funeral road winds beneath pale roots. Prepare for a new procession.", "gold": 1800, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
+	 "roads": [[[150,-610],[150,-600],[-150,-600],[-150,-300],[150,-300],[150,-150],[0,-150],[0,80]]],
+	 "waves": [[["pallbearer",18,0,0,1.4]], [["veil_wisp",20,0,0,1.2]], [["rootbound",6,0,0,3.5]], [["pallbearer",28,0,0,0.9],["veil_wisp",14,0,6,1.1]], [["rootbound",10,0,0,3],["veil_wisp",20,0,4,1.2]]]},
+	{"name": "The Divided Wake", "brief": "Two funeral roads converge beneath the boughs. Spread your opening defense across both lanes.", "gold": 1900, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
+	 "roads": [[[-270,-550],[-150,-550],[-150,-300],[0,-300],[0,-150],[150,-150],[150,0],[0,0],[0,80]],[[270,-550],[150,-550],[150,-300],[0,-300],[0,-150],[-150,-150],[-150,0],[0,0],[0,80]]],
+	 "waves": [[["pallbearer",20,0,0,1.2]], [["veil_wisp",22,1,0,1.1]], [["rootbound",6,0,0,3.5],["pallbearer",20,1,4,1.2]], [["veil_wisp",22,0,0,1],["veil_wisp",22,1,3,1]], [["rootbound",8,0,0,3],["rootbound",8,1,4,3]]]},
+	{"name": "Roots of Remembrance", "brief": "The oldest roots force a long turn. Slowing attacks keep the procession within your strongest towers' reach.", "gold": 2000, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
+	 "roads": [[[-270,-600],[-150,-600],[-150,-450],[150,-450],[150,-150],[-150,-150],[-150,0],[0,0],[0,80]]],
+	 "waves": [[["pallbearer",30,0,0,0.9]], [["rootbound",10,0,0,3]], [["veil_wisp",32,0,0,0.8]], [["rootbound",12,0,0,2.8],["pallbearer",24,0,5,0.9]], [["rootbound",16,0,0,2.6],["veil_wisp",24,0,8,1]]]},
+	{"name": "The Last Lanterns", "brief": "Three processions approach the final grove. Keep your late upgrades close to the core.", "gold": 2300, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
+	 "roads": [[[-150,-610],[-150,-450],[0,-450],[0,-300],[-150,-300],[-150,0],[0,0],[0,80]],[[0,-610],[0,-600],[150,-600],[150,-150],[0,-150],[0,80]],[[270,-450],[150,-450],[150,-300],[0,-300],[0,80]]],
+	 "waves": [[["pallbearer",20,0,0,1.2],["pallbearer",16,2,4,1.4]], [["veil_wisp",24,1,0,1]], [["rootbound",8,0,0,3],["veil_wisp",20,2,4,1.2]], [["pallbearer",22,0,0,1],["pallbearer",22,1,2,1],["veil_wisp",18,2,6,1.1]], [["rootbound",10,0,0,3],["rootbound",8,1,4,3],["pallbearer",20,2,8,1.2]]]},
+	{"name": "The Mourning Matriarch", "brief": "Slow the Matriarch beneath the funeral boughs and focus your strongest towers on her final approach.", "gold": 2500, "pads": [0,1,2,3,4,5,6,7,8,9,10,11,13,14],
+	 "roads": [[[270,-610],[-150,-610],[-150,-450],[150,-450],[150,-300],[-150,-300],[-150,-150],[150,-150],[150,0],[0,0],[0,80]], [[-270,-450],[-150,-450],[-150,-300],[0,-300],[0,80]]],
+	 "waves": [[["pallbearer",30,0,0,1]], [["rootbound",12,0,0,3],["veil_wisp",20,1,4,1.2]], [["veil_wisp",32,0,0,0.9],["pallbearer",24,1,6,1.1]], [["rootbound",16,0,0,2.8],["veil_wisp",24,1,4,1.1]], [["mourning_matriarch",1,0,0,1],["rootbound",8,0,8,3.5],["pallbearer",24,1,10,1.2]]]}
 ]

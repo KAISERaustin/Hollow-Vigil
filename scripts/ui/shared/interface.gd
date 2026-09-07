@@ -77,12 +77,6 @@ static func fullscreen_parchment() -> TextureRect:
 	paper.add_child(rounded_viewport_frame())
 	return paper
 
-## Tint this page's paper and corner fill while retaining its black frame.
-static func set_parchment_color(paper: TextureRect, background: Color = PANEL) -> void:
-	var tint := Color(background.r / PANEL.r, background.g / PANEL.g, background.b / PANEL.b, background.a)
-	paper.self_modulate = tint
-	paper.get_child(0).self_modulate = tint
-
 static func tint_parchment(paper: TextureRect, background: Color = PANEL) -> void:
 	# Tint the paper and its corner fill together; black frame ink stays black.
 	paper.modulate = Color(background.r / PANEL.r, background.g / PANEL.g, background.b / PANEL.b, background.a)
