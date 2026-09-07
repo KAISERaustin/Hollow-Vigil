@@ -9,10 +9,9 @@ var menu_button: Button
 func configure(pause: Callable, speed: Callable, menu: Callable, title: String = "", back_label: String = "") -> void:
 	name = "GameToolbar"
 	add_theme_constant_override("separation", UI.GAP)
-	menu_button = UI.button("Menu" if back_label.is_empty() else "←", menu, UI.TOOLBAR_BUTTON_SIZE)
+	menu_button = UI.button("Menu", menu, UI.TOOLBAR_BUTTON_SIZE) if back_label.is_empty() else UI.back_button(back_label, menu)
 	menu_button.name = "GameMenuButton"
-	menu_button.custom_minimum_size.x = 88 if back_label.is_empty() else UI.TOOLBAR_BUTTON_SIZE
-	menu_button.accessibility_name = "Menu" if back_label.is_empty() else back_label
+	if back_label.is_empty(): menu_button.custom_minimum_size.x = 88
 	menu_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	add_child(menu_button)
 	if title.is_empty():

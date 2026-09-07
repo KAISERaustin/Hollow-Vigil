@@ -32,6 +32,7 @@ var dialog_card: PanelContainer
 var dialog_body: VBoxContainer
 var dialog_actions: VBoxContainer
 var dialog_title: Label
+var dialog_header: HBoxContainer
 var save_notice: Label
 var socket_dialog := false
 var waves_dialog := false
@@ -229,16 +230,12 @@ func clear_page(next: String) -> void:
 	dialog.hide()
 	accumulator = 0.0
 
-func header(title: String, back: Callable, button_size: float = 48) -> BoxContainer:
+func header(title: String, back: Callable) -> BoxContainer:
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
+	row.add_theme_constant_override("separation", UI.GAP)
 	layout.add_child(row)
-	var button := UI.button("←", back, button_size)
+	var button := UI.back_button("Back", back)
 	button.name = "CampaignBack"
-	button.custom_minimum_size.x = button_size
-	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	button.accessibility_name = "Back"
 	row.add_child(button)
 	var caption := UI.heading(title, 24)
 	caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -743,11 +740,13 @@ func _build_dialog() -> void:
 	add_child(dialog)
 	dialog_card = PanelContainer.new()
 	dialog_card.minimum_size_changed.connect(func(): call_deferred("fit"))
-	dialog_card.add_theme_stylebox_override("panel",UI.surface(UI.PANEL,3,16))
+	dialog_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 3, 0))
 	dialog.add_child(dialog_card)
-	var content := UI.margin(dialog_card,14)
+	var content := UI.margin(dialog_card, UI.SCREEN_PADDING)
 	content.add_theme_constant_override("separation",10)
 	var row := HBoxContainer.new()
+	dialog_header = row
+	row.add_theme_constant_override("separation", UI.GAP)
 	content.add_child(row)
 	dialog_title = UI.heading("",22)
 	dialog_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -784,6 +783,10 @@ func close_dialog() -> void:
 	clear_selection()
 
 func open_dialog(title: String, for_socket: bool = false) -> void:
+	var previous_back := dialog_header.get_node_or_null("BackButton")
+	if previous_back != null:
+		dialog_header.remove_child(previous_back)
+		previous_back.queue_free()
 	for child in dialog_actions.get_children():
 		dialog_actions.remove_child(child)
 		child.queue_free()
@@ -793,7 +796,7 @@ func open_dialog(title: String, for_socket: bool = false) -> void:
 	waves_dialog = false
 	dialog.z_index = 101
 	socket_dialog = for_socket
-	dialog_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 3, 0 if for_socket else 16))
+	dialog_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 3, 0))
 	dialog_body.add_theme_constant_override("separation", 6 if for_socket else 12)
 	dialog.color = Color(0, 0, 0, 0) if for_socket else Color(0.03, 0.04, 0.05, 0.8)
 	dialog.mouse_filter = Control.MOUSE_FILTER_IGNORE if for_socket else Control.MOUSE_FILTER_STOP
@@ -805,6 +808,12 @@ func open_dialog(title: String, for_socket: bool = false) -> void:
 	dialog.show()
 	dialog.move_to_front()
 	fit()
+
+func add_dialog_back(label: String, action: Callable) -> void:
+	var back := UI.back_button(label, action)
+	dialog_header.add_child(back)
+	dialog_header.move_child(back, 0)
+	fit.call_deferred()
 
 func _process(delta: float) -> void:
 	# Only the player's playback control pauses an active battle; overlays do not.
@@ -1000,7 +1009,7 @@ func show_level_export(index: int) -> void:
 	)
 	copy.name = "CopyCampaignExport"
 	dialog_body.add_child(copy)
-	dialog_body.add_child(UI.button("Back to level configuration", show_level_balance.bind(index)))
+	add_dialog_back("Back to level configuration", show_level_balance.bind(index))
 
 func show_wave_balance(wave: int) -> void:
 	var report := Configuration.wave_reports(run.mission)[wave]
@@ -1030,7 +1039,7 @@ Spawn health %.2f · Speed %.2f · Defeat gold %.2f" % [group.name, group.count,
 					var change: Dictionary = changes.effective_stats[category][kind][stat]
 					dialog_body.add_child(UI.paragraph("%s · %s: %.2f → %.2f" % [Balance.definitions(category)[kind].name, Balance.field_limits(category, kind, stat).label, change.before, change.after], 14))
 		if changes.is_empty(): dialog_body.add_child(UI.paragraph("No numeric changes from the previous wave.", 14))
-	dialog_body.add_child(UI.button("Back to all waves", show_waves))
+	add_dialog_back("Back to all waves", show_waves)
 
 func confirm_progress_reset() -> void:
 	var popup := preload("res://scripts/ui/shared/confirmation_popup.gd").new()

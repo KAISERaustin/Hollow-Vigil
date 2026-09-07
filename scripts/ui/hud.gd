@@ -35,16 +35,16 @@ func fit_safe_area() -> void:
 	var top := maxf(0.0, safe.position.y) * canvas_scale.y
 	safe_bottom = maxf(0.0, screen_size.y - safe.end.y) * canvas_scale.y
 	for margin in [header_margin, footer_margin]:
-		margin.add_theme_constant_override("margin_left", 12 + ceili(left))
-		margin.add_theme_constant_override("margin_right", 12 + ceili(right))
-	header_margin.add_theme_constant_override("margin_top", 12 + ceili(top))
-	footer_margin.add_theme_constant_override("margin_bottom", 12 + ceili(safe_bottom))
+		margin.add_theme_constant_override("margin_left", UI.SCREEN_PADDING + ceili(left))
+		margin.add_theme_constant_override("margin_right", UI.SCREEN_PADDING + ceili(right))
+	header_margin.add_theme_constant_override("margin_top", UI.SCREEN_PADDING + ceili(top))
+	footer_margin.add_theme_constant_override("margin_bottom", UI.SCREEN_PADDING + ceili(safe_bottom))
 
 func build_header() -> void:
 	var top := PanelContainer.new()
 	top.add_theme_stylebox_override("panel", UI.chrome())
 	add_child(top)
-	var header := UI.margin(top, 12)
+	var header := UI.margin(top, UI.SCREEN_PADDING)
 	header_margin = header.get_parent() as MarginContainer
 	header.add_theme_constant_override("separation", 8)
 	var toolbar := preload("res://scripts/ui/shared/game_toolbar.gd").new()

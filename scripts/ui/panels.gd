@@ -30,7 +30,7 @@ func _ready() -> void:
 	var layout := VBoxContainer.new()
 	layout.add_theme_constant_override("separation", 8)
 	add_child(layout)
-	header_content = UI.margin(layout, 16)
+	header_content = UI.margin(layout, UI.SCREEN_PADDING)
 	header_divider = ColorRect.new()
 	header_divider.name = "SettingsHeaderDivider"
 	header_divider.color = UI.BORDER
@@ -39,7 +39,7 @@ func _ready() -> void:
 	header_divider.hide()
 	layout.add_child(header_divider)
 	action_footer = UI.margin(layout, 16)
-	header_content.get_parent().add_theme_constant_override("margin_top", 12)
+	header_content.get_parent().add_theme_constant_override("margin_top", UI.SCREEN_PADDING)
 	header_content.get_parent().add_theme_constant_override("margin_bottom", 0)
 	action_footer.get_parent().add_theme_constant_override("margin_top", 0)
 	action_footer.get_parent().add_theme_constant_override("margin_bottom", 12)
@@ -100,8 +100,7 @@ func clear_sheet(title: String, subtitle: String = "") -> void:
 		node.queue_free()
 	action_button = null
 	var row := HBoxContainer.new()
-	if mode == "developer":
-		row.add_theme_constant_override("separation", 8)
+	row.add_theme_constant_override("separation", UI.GAP)
 	header_content.add_child(row)
 	var heading := UI.fitted_heading(title) if mode == "developer" else UI.heading(title, 30 if mode == "settings" else 24)
 	heading.name = "SheetTitle"
@@ -131,9 +130,10 @@ func fit_sheet() -> void:
 	# Inset only the contents for notches and home indicators, not the background.
 	var safe := UI.safe_rect(app) if mode == "cloud" else Rect2(Vector2.ZERO, app.size)
 	for section in [header_content, sheet_content, action_footer]:
-		section.get_parent().add_theme_constant_override("margin_left", 16 + int(safe.position.x))
-		section.get_parent().add_theme_constant_override("margin_right", 16 + int(app.size.x - safe.end.x))
-	header_content.get_parent().add_theme_constant_override("margin_top", 12 + int(safe.position.y))
+		var padding: int = UI.SCREEN_PADDING if section == header_content else UI.PADDING
+		section.get_parent().add_theme_constant_override("margin_left", padding + int(safe.position.x))
+		section.get_parent().add_theme_constant_override("margin_right", padding + int(app.size.x - safe.end.x))
+	header_content.get_parent().add_theme_constant_override("margin_top", UI.SCREEN_PADDING + int(safe.position.y))
 	if mode == "cloud":
 		sheet_content.get_parent().add_theme_constant_override("margin_bottom", 12 + int(app.size.y - safe.end.y))
 		self.position = Vector2.ZERO

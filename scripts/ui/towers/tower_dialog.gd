@@ -14,6 +14,7 @@ var identity: HBoxContainer
 var equipment_summary: VBoxContainer
 var portrait: Control
 var header_close: Button
+var header_back: Button
 var header_divider: ColorRect
 var tower_kind := "rapid"
 var tower_branch := ""
@@ -42,11 +43,14 @@ func _ready() -> void:
 	card = PanelContainer.new()
 	card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, 4, 0))
 	add_child(card)
-	layout = UI.margin(card, 16)
+	layout = UI.margin(card, UI.SCREEN_PADDING)
 	layout.add_theme_constant_override("separation", 16)
 	identity = HBoxContainer.new()
 	identity.add_theme_constant_override("separation", 12)
 	layout.add_child(identity)
+	header_back = UI.back_button("Back to equipment", func(): open_action("equipment"))
+	header_back.hide()
+	identity.add_child(header_back)
 	portrait = Control.new()
 	portrait.custom_minimum_size = Vector2(48, 64)
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -107,6 +111,7 @@ func open_action(action: String) -> void:
 	opener = get_viewport().gui_get_focus_owner()
 	revision += 1
 	mode = action
+	header_back.hide()
 	header_close.visible = action == "equipment"
 	header_divider.visible = action == "equipment"
 	footer.show()
@@ -238,11 +243,11 @@ func show_equipment_details(relic_id: String) -> void:
 	confirm.text = "Equipped" if relic_choice == relic_original else ("Transfer equipment" if relic_owner != "" else "Equip")
 	confirm.show()
 	footer.show()
-	cancel.text = "Back"
-	cancel.pressed.disconnect(dismiss)
-	cancel.pressed.connect(func(): open_action("equipment"))
+	cancel.hide()
+	header_close.hide()
+	header_back.show()
 	refresh()
-	cancel.grab_focus()
+	header_back.grab_focus()
 	call_deferred("fit_dialog")
 	UI.trap_focus(card)
 

@@ -342,18 +342,26 @@ static func playback_button(action: Callable, fast_forward: bool = false) -> But
 
 static func back_button(back_label: String, action: Callable) -> Button:
 	var back := button("", action)
+	configure_back_button(back, back_label)
+	return back
+
+static func configure_back_button(back: Button, back_label: String) -> void:
+	# All navigation hosts share the map's arrow, target and internal padding.
+	# Align to the top even when a title or adjacent playback control is taller.
 	back.name = "BackButton"
+	back.text = "←"
 	back.accessibility_name = back_label
 	back.accessibility_description = back_label
-	back.custom_minimum_size.x = TARGET
+	back.custom_minimum_size = Vector2.ONE * TARGET
+	back.autowrap_mode = TextServer.AUTOWRAP_OFF
+	back.clip_text = true
+	back.add_theme_font_override("font", font(600))
+	back.add_theme_font_size_override("font_size", BODY)
 	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	back.draw.connect(func():
-		var center := back.size * 0.5
-		back.draw_line(center - Vector2(8, 0), center + Vector2(8, 0), TEXT, 3)
-		back.draw_polyline(PackedVector2Array([center + Vector2(0, -8), center - Vector2(8, 0), center + Vector2(0, 8)]), TEXT, 3)
-	)
-	return back
+	back.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
+		back.add_theme_stylebox_override(state, box(SURFACE))
+	back.add_theme_stylebox_override("focus", focus_box())
 
 static func gold_button(text: String, action: Callable, height: float = 50) -> Button:
 	return accent_button(text, action, GOLD, height)

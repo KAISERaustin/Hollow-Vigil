@@ -51,8 +51,8 @@ func _ready() -> void:
 
 func fit() -> void:
 	var safe := UI.safe_rect(app).grow(-UI.SCREEN_PADDING)
-	card.size = Vector2(minf(680, safe.size.x), safe.size.y)
-	card.position = Vector2(safe.get_center().x - card.size.x * 0.5, safe.position.y)
+	card.size = safe.size
+	card.position = safe.position
 
 func page_view(key: String, title: String, back: Callable) -> void:
 	screen = key

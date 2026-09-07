@@ -389,13 +389,7 @@ func style_entry(entry: Control) -> void:
 	entry.add_theme_font_size_override("font_size", UI.type_size(14))
 
 func add_back(back: Button) -> void:
-	back.accessibility_name = back.text
-	back.accessibility_description = back.text
-	back.text = "←"
-	back.name = "BackButton"
-	back.custom_minimum_size.x = UI.TARGET
-	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	UI.configure_back_button(back, back.text)
 	header.add_child(back)
 	header.move_child(back, 0)
 
