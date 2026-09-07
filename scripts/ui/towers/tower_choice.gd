@@ -48,11 +48,16 @@ static func create(kind: String, title: String, cost: float, action: Callable, l
 static func details(kind: String, tuning: Dictionary, tier: int = 1, branch: String = "", previous: Dictionary = {}, show_range: bool = false, effective: Dictionary = {}) -> VBoxContainer:
 	var body := VBoxContainer.new()
 	body.name = "TowerDetails"
-	body.add_theme_constant_override("separation", 8)
+	body.add_theme_constant_override("separation", UI.GAP)
 	var stats := Balance.stats(kind, tier, tuning, branch) if effective.is_empty() else effective
+	var summary := VBoxContainer.new()
+	summary.add_theme_constant_override("separation", UI.GAP)
+	var summary_card := UI.info_card(summary, UI.SURFACE, UI.CARD_PADDING)
+	summary_card.name = "TowerSummary"
+	body.add_child(summary_card)
 	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 8)
-	body.add_child(header)
+	header.add_theme_constant_override("separation", UI.CARD_GAP)
+	summary.add_child(header)
 	var level := UI.heading("Level %d" % tier if previous.is_empty() else "Level %d → %d" % [tier - 1, tier], 18)
 	level.name = "TowerLevel"
 	level.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -64,13 +69,14 @@ static func details(kind: String, tuning: Dictionary, tier: int = 1, branch: Str
 	var description := UI.paragraph(Balance.tower_description(stats), 14)
 	description.name = "TowerDescription"
 	description.add_theme_constant_override("line_spacing", 0)
-	body.add_child(description)
-	body.add_child(UI.rule())
+	summary.add_child(description)
+	_ignore_mouse(summary)
 	var grid := GridContainer.new()
 	grid.name = "TowerStats"
-	grid.columns = 3
-	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 8)
+	grid.columns = 2
+	grid.resized.connect(func(): grid.columns = 3 if grid.size.x >= 400 else 2)
+	grid.add_theme_constant_override("h_separation", UI.CARD_GAP)
+	grid.add_theme_constant_override("v_separation", UI.CARD_GAP)
 	body.add_child(grid)
 	var values := stats.duplicate(true)
 	values.fire_rate = 1.0 / stats.period
@@ -81,10 +87,9 @@ static func details(kind: String, tuning: Dictionary, tier: int = 1, branch: Str
 		before.dps = before.damage / before.period
 	add_numeric_stat(grid, "damage", "Damage / hit", values, before)
 	add_numeric_stat(grid, "fire_rate", "Attacks / sec", values, before)
+	add_numeric_stat(grid, "period", "Seconds / attack", values, before, " s")
 	if show_range:
 		add_numeric_stat(grid, "range", "Range", values, before, " units")
-	else:
-		add_numeric_stat(grid, "period", "Seconds / attack", values, before, " s")
 	add_numeric_stat(grid, "dps", "DPS / target", values, before)
 	add_numeric_stat(grid, "targets", "Targets / hit", values, before)
 	add_numeric_stat(grid, "splash", "Blast radius", values, before, " units")
@@ -98,17 +103,6 @@ static func details(kind: String, tuning: Dictionary, tier: int = 1, branch: Str
 		var spec: Dictionary = Balance.TUNING_FIELDS.towers.get(field, {})
 		var title: String = spec.get("label", str(field).capitalize())
 		add_numeric_stat(grid, field, title, values, before, str(spec.get("suffix", "")))
-	if show_range:
-		var timing := HBoxContainer.new()
-		timing.add_theme_constant_override("separation", 8)
-		body.add_child(timing)
-		var interval := UI.label(UI.exact_money(stats.period) + " s between attacks", 12, UI.MUTED)
-		interval.name = "Stat_period"
-		timing.add_child(interval)
-		if not before.is_empty():
-			var change := UI.label(change_text(stats.period, before.period, " s"), 12, UI.MUTED)
-			change.name = "Change_period"
-			timing.add_child(change)
 	return body
 
 static func change_text(value: float, previous: float, suffix: String = "") -> String:
@@ -124,22 +118,18 @@ static func add_numeric_stat(grid: GridContainer, key: String, title: String, va
 	add_stat(grid, key, title, UI.exact_money(values[key]) + suffix, change)
 
 static func add_stat(grid: GridContainer, key: String, title: String, value: String, change: String = "") -> void:
-	var column := VBoxContainer.new()
-	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	column.add_theme_constant_override("separation", 0)
-	grid.add_child(column)
-	var label := UI.label(title, 12, UI.MUTED)
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(label)
-	var number := UI.value(value, 18)
+	var column := UI.stat(title, value)
+	var panel := UI.info_card(column)
+	panel.name = "StatCard_" + key
+	grid.add_child(panel)
+	var number: Label = column.get_child(0)
 	number.name = "Stat_" + key
-	number.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(number)
 	if not change.is_empty():
 		var difference := UI.label(change, 12, UI.MUTED)
 		difference.name = "Change_" + key
 		difference.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		column.add_child(difference)
+	_ignore_mouse(column)
 
 static func show_details(choices: ScrollContainer, tuning: Dictionary, kind: String) -> void:
 	clear_details(choices)
