@@ -1,7 +1,8 @@
 # Tower artwork
 
-Every tower has three visual stages. `VigilTerrainArt.sentinel` accepts the
-saved tower level; the battlefield and tower dialog both display that stage.
+Every tower has three base visual stages and two level-four specializations.
+`VigilTerrainArt.sentinel` accepts the saved tower level and branch; the
+battlefield and tower dialog both display that stage.
 `tower_tiers.gd` adds details to the original
 base silhouettes, preserving the game's flat palette and black outlines.
 

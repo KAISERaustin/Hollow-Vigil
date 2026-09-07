@@ -418,6 +418,7 @@ func show_map() -> void:
 	world.progress = progress
 	world.level_picked.connect(show_briefing)
 	layout.add_child(world)
+	page_scroll.queue_sort.call_deferred()
 	if active_campaign_slot >= 0:
 		return
 	var footer := UI.margin(layout, UI.SCREEN_PADDING)

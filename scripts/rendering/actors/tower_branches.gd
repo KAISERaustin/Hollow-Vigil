@@ -3,7 +3,6 @@ extends RefCounted
 const A = preload("res://scripts/rendering/terrain/terrain_art.gd")
 const ICE := Color("96d6e6")
 const LEAF := Color("93b979")
-const EMBER := Color("f19b57")
 const IRON := Color("626671")
 const VIOLET := Color("c3a0ed")
 const DARK := Color("494252")

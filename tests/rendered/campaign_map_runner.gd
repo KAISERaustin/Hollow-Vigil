@@ -51,7 +51,7 @@ func run() -> void:
 		for chapter in Catalog.CHAPTERS.size():
 			campaign.page_scroll.scroll_vertical = roundi(chapter * Map.CHAPTER_HEIGHT)
 			await frame()
-			print("MAP SCROLL ", viewport, " chapter ", chapter, " actual ", campaign.page_scroll.scroll_vertical, " range ", campaign.page_scroll.get_v_scroll_bar().max_value, " map ", map.global_position, " layout ", campaign.layout.get_combined_minimum_size(), " visible ", campaign.layout.visible, " mode ", campaign.page_scroll.vertical_scroll_mode, " children ", campaign.page_scroll.get_child_count())
+			print("MAP SCROLL ", viewport, " chapter ", chapter, " actual ", campaign.page_scroll.scroll_vertical, " range ", campaign.page_scroll.get_v_scroll_bar().max_value, " map ", map.global_position, " layout ", campaign.layout.get_combined_minimum_size(), " visible ", campaign.layout.visible, " scroll size ", campaign.page_scroll.size, " layout size ", campaign.layout.size, " top_level ", campaign.layout.top_level)
 			check(back.get_global_rect() == back_bounds, "Back remains fixed while scrolling")
 			var bounds: Rect2 = map.chapter_rect(chapter)
 			check(bounds.encloses(map.headings[chapter].get_rect()), "Chapter title fits its biome")
