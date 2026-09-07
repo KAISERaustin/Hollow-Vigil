@@ -30,12 +30,13 @@ func _initialize() -> void:
 func run() -> void:
 	root.size = Vector2i(1100,470)
 	root.content_scale_size = root.size
-	root.add_child(Lineup.new())
+	var lineup := Lineup.new()
+	root.add_child(lineup)
 	await process_frame
 	await process_frame
 	await RenderingServer.frame_post_draw
 	var result := root.get_texture().get_image().save_png("res://artifacts/fire-tower-preview.png")
-	root.get_child(root.get_child_count()-1).queue_free()
+	lineup.queue_free()
 	await process_frame
 	var app := VigilApp.new()
 	app.load_saved_progress = false
