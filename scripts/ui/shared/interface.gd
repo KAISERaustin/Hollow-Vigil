@@ -333,13 +333,16 @@ static func close_button(action: Callable, height: float = 48) -> Button:
 
 ## Dense gameplay bars keep full touch targets with compact text and insets.
 static func toolbar_action(text: String, action: Callable, primary: bool = false) -> Button:
-	var control := gold_button(text, action) if primary else button(text, action)
+	var control := gold_button(text, action, TARGET) if primary else button(text, action)
 	control.add_theme_font_size_override("font_size", type_size(CAPTION))
 	control.autowrap_mode = TextServer.AUTOWRAP_OFF
 	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
-		var style := control.get_theme_stylebox(state).duplicate()
+		var style := box(GOLD if primary and state != "disabled" else SURFACE)
 		style.content_margin_left = INSET_PADDING
 		style.content_margin_right = INSET_PADDING
+		if state in ["pressed", "hover_pressed"]:
+			style.content_margin_top += 1
+			style.content_margin_bottom -= 1
 		control.add_theme_stylebox_override(state, style)
 	return control
 

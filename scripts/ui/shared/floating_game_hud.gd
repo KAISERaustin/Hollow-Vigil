@@ -9,6 +9,7 @@ var left_value: Label
 var right_value: Label
 var detail: Label
 var notice: Label
+var ground_color := Color.TRANSPARENT
 
 func _init() -> void:
 	name = "FloatingGameHUD"
@@ -54,6 +55,19 @@ func fit() -> void:
 	identity.size = Vector2(safe.size.x, identity.get_combined_minimum_size().y)
 	footer.size = Vector2(safe.size.x, footer.get_combined_minimum_size().y)
 	footer.position = Vector2(safe.position.x, safe.end.y - footer.size.y)
+	queue_redraw()
+
+func _draw() -> void:
+	# Clear scenery immediately behind the ink with the world's own flat ground.
+	# These unframed clearings move with the labels and keep every biome readable.
+	if ground_color.a == 0.0: return
+	for caption in [context, title, left_value, right_value, detail, notice]:
+		if not caption.visible or caption.text.is_empty(): continue
+		var width: float = minf(caption.size.x, caption.get_theme_font("font").get_string_size(caption.text, HORIZONTAL_ALIGNMENT_LEFT, -1, caption.get_theme_font_size("font_size")).x)
+		var at: Vector2 = caption.global_position - global_position
+		if caption.horizontal_alignment == HORIZONTAL_ALIGNMENT_RIGHT:
+			at.x += caption.size.x - width
+		draw_rect(Rect2(at, Vector2(width, caption.size.y)).grow(4), ground_color)
 
 func overview_padding() -> Vector4:
 	return Vector4(UI.SCREEN_PADDING, identity.position.y + identity.size.y + UI.SCREEN_PADDING,

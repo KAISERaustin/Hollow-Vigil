@@ -161,7 +161,7 @@ func run() -> void:
 		check(campaign.paused and campaign.run.game.data.active_seconds == time_before, "Bottom button cannot resume or advance a paused wave")
 		await Harness.capture(app, "campaign-paused-" + str(viewport.x))
 		campaign.pause_button.pressed.emit()
-		check(not campaign.paused and start.disabled and start.text == remaining_text, "Toolbar play resumes while the bottom count stays disabled")
+		check(not campaign.paused and start.disabled and campaign.floating_hud.detail.text == remaining_text, "Toolbar play resumes while the wave action stays disabled")
 		campaign.show_waves()
 		wave_time_before = campaign.run.wave_time
 		campaign._process(0.1)
