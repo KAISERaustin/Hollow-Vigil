@@ -131,7 +131,7 @@ func progress_text(value: Dictionary, type: String = "") -> String:
 	return "%d explored tiles · %d towers" % [value.get("regions", {}).size(), value.get("towers", {}).size()]
 
 func show_slots() -> void:
-	page_view("slots", "Saved games", open_game_menu if held else show_home)
+	page_view("slots", "Saved games", leave_saved_games)
 	content.add_child(UI.paragraph(game_type.capitalize() + " · Three slots shared by Creative and Survival."))
 	for slot in 3:
 		var value := slot_summary(slot)
@@ -153,6 +153,10 @@ func show_slots() -> void:
 			var remove := UI.accent_button("Delete", confirm_slot_deletion.bind(game_type, slot), UI.DANGER)
 			remove.name = "DeleteGameSlot" + str(slot + 1)
 			body.add_child(remove)
+
+func leave_saved_games() -> void:
+	if held and not release_session(): return
+	show_main_menu()
 
 func confirm_slot_deletion(type: String, slot: int) -> void:
 	var value: Dictionary = campaign_slots.summary(slot) if type == "campaign" else slots.summary(slot)

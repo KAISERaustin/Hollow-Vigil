@@ -230,7 +230,9 @@ func clear_page(next: String) -> void:
 	accumulator = 0.0
 
 func header(title: String, back: Callable, button_size: float = 48, stacked: bool = false) -> BoxContainer:
-	var row: BoxContainer = VBoxContainer.new() if stacked else HBoxContainer.new()
+	var row: BoxContainer
+	if stacked: row = VBoxContainer.new()
+	else: row = HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	layout.add_child(row)
 	var button := UI.button("←", back, button_size)

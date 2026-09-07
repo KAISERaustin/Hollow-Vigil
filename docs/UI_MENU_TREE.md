@@ -4,12 +4,13 @@ Implemented from `UI_REDESIGN_DRAFT.md`, September 7, 2026. This describes sourc
 
 ```text
 Hollow Vigil
-├── Campaign → Campaign home
-├── Infinite → Infinite home
+├── Campaign → Saved games if occupied; otherwise Campaign home
+├── Infinite → Saved games if occupied; otherwise Infinite home
 └── Settings → shared Settings
 
 Game home [Campaign or Infinite]
 ├── Continue → Saved games
+│   ├── Back → Hollow Vigil main menu
 │   ├── Slot 1 / Slot 2 / Slot 3
 │   ├── Occupied → name, Creative/Survival, progress, private backup status
 │   │   └── Continue game
