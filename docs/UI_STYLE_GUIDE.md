@@ -188,7 +188,7 @@ Hover produces no response anywhere in the app; every action must work by tap an
 
 Centralize UI colors, type roles, spacing, and surface variants in `scripts/ui/shared/interface.gd` or a dedicated theme resource owned by it. Continue reusing `hud.gd`, `panels.gd`, `tower_actions.gd`, and `tower_dialog.gd`. The shared theme provides structural, content, badge, chrome, and borderless surface helpers. Keep gameplay statistics in `scripts/gameplay/balance.gd`.
 
-Preserve the implemented shared fonts and tokens, readable HUD, surface hierarchy, responsive comparisons, focus rules, and standard text size and normal motion. Use `./launch.ps1 -StyleTests` to review fifteen screens at three viewport sizes at standard text size. Keep this guide and the UI paragraph in `ART_DIRECTION.md` consistent with intentional changes.
+Preserve the implemented shared fonts and tokens, readable HUD, responsive comparisons, focus rules, and standard text size and normal motion. Use `./launch.ps1 -StyleTests` for the rendered UI suite, including sixteen style-audit screens at three viewport sizes and Waves in portrait and landscape. Keep this guide and the UI paragraph in `ART_DIRECTION.md` consistent with intentional changes. After editing this Markdown guide, run `./tools/render_ui_style_guide.ps1` in PowerShell 7 to regenerate its HTML companion.
 
 Before accepting a new screen, confirm:
 
