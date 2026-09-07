@@ -10,7 +10,7 @@ var subtitle: Label
 var caption: Label
 var footer_rule: Control
 
-func configure(campaign: Callable, infinite: Callable, settings: Callable) -> void:
+func configure(campaign: Callable, infinite: Callable, settings: Callable = Callable()) -> void:
 	name = "WelcomeMenu"
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -45,9 +45,10 @@ func configure(campaign: Callable, infinite: Callable, settings: Callable) -> vo
 	infinite_button.name = "OpenInfinite"
 	infinite_button.accessibility_description = "Open your saved worlds or begin a new one."
 	modes.add_child(infinite_button)
-	var settings_button := UI.gold_button("Settings", settings, 56)
-	settings_button.name = "MainSettings"
-	modes.add_child(settings_button)
+	if settings.is_valid():
+		var settings_button := UI.gold_button("Settings", settings, 56)
+		settings_button.name = "MainSettings"
+		modes.add_child(settings_button)
 	battlefield = Illustration.new()
 	battlefield.illustration = "battlefield"
 	add_child(battlefield)
@@ -66,7 +67,8 @@ func arrange() -> void:
 	var width := size.x
 	var height := size.y
 	# Anchor the composition to the buttons, with bounded gaps on tall screens.
-	var modes_top := height * 0.5 - 98
+	var buttons_height := modes.get_combined_minimum_size().y
+	var modes_top := (height - buttons_height) * 0.5
 	var title_top := modes_top - 98
 	var crest_height := minf(180, height * 0.22)
 	crest.position = Vector2(0, title_top + 8 - crest_height)
@@ -77,7 +79,6 @@ func arrange() -> void:
 	subtitle.position = Vector2(0, title_top + 52)
 	subtitle.size = Vector2(width, 24)
 	var button_width := minf(320, width - 16)
-	var buttons_height := modes.get_combined_minimum_size().y
 	modes.size = Vector2(button_width, buttons_height)
 	modes.position = Vector2((width - button_width) * 0.5, modes_top)
 	battlefield.position = Vector2(0, modes_top + buttons_height + 22)
