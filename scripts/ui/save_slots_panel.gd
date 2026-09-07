@@ -259,13 +259,13 @@ func show_export(source: VigilState = null, campaign: Dictionary = {}, return_to
 	export_game = source if source != null else app.game
 	export_campaign = campaign
 	export_return = return_to if return_to.is_valid() else close
-	export_stats_only = false
+	export_stats_only = not campaign.is_empty()
 	clear("Save or share configuration")
 	# Empty status labels must not reserve a blank row above the form.
 	message.hide()
 	add_back(UI.button("Back to game", export_return))
 	content.add_child(UI.rule())
-	content.add_child(UI.paragraph("Share every campaign level: enemy groups, spawn timing, wave rewards and every edited stat. Include saved tower loadouts or share only campaign rules." if campaign.has("levels") else "Choose what to include. Towers + stats keeps the layout, equipment, resources and rules. Stats only shares the rules and stat changes for a fresh start.", 14))
+	content.add_child(UI.paragraph("Share campaign content: enemy groups, spawn timing, wave rewards, starting resources and every edited stat." if not campaign.is_empty() else "Choose what to include. Towers + stats keeps the layout, equipment, resources and rules. Stats only shares the rules and stat changes for a fresh start.", 14))
 	var includes := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
 	includes.name = "ShareConfigurationContents"
 	includes.menu_title = "Choose contents"
@@ -274,6 +274,7 @@ func show_export(source: VigilState = null, campaign: Dictionary = {}, return_to
 	includes.add_item("Campaign rules only" if campaign.has("levels") else "Stats only")
 	includes.item_selected.connect(func(index: int): export_stats_only = index == 1)
 	content.add_child(includes)
+	includes.visible = campaign.is_empty()
 	content.add_child(UI.rule())
 	var title := LineEdit.new()
 	title.name = "SetupName"
@@ -313,9 +314,9 @@ func save_build(title: LineEdit, description: TextEdit, publish: bool) -> void:
 		return
 	var code: String
 	if export_campaign.has("levels"):
-		code = VigilSaveSlots.CampaignPlaythrough.encode(export_campaign.levels, build_name, details, export_stats_only)
+		code = VigilSaveSlots.CampaignPlaythrough.encode(export_campaign.levels, build_name, details, true)
 	elif not export_campaign.is_empty():
-		code = VigilSaveSlots.CampaignBuild.encode(export_campaign.level, export_campaign.overrides, export_game, build_name, details, export_stats_only)
+		code = VigilSaveSlots.CampaignBuild.encode(export_campaign.level, export_campaign.overrides, export_game, build_name, details, true)
 	elif export_stats_only:
 		code = VigilSaveSlots.Stats.encode(export_game.tuning, build_name, details)
 	else:

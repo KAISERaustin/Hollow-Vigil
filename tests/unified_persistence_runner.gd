@@ -115,12 +115,13 @@ func test_grouped_contents() -> void:
 	check(Build.grouped_contents("infinite", {"layout": true}) == {"layout": true, "terrain": true}, "Older layouts select explored tiles with equipment")
 	check(Build.grouped_contents("infinite", {"terrain": true}) == {"layout": true, "terrain": true}, "Older terrain builds select layout and equipment together")
 	check(Build.grouped_contents("campaign", {"timing": true}) == Build.all_contents("campaign", "rules"), "Campaign wave options join the complete rules group")
-	check(Build.grouped_contents("campaign", {"layout": true}) == {"layout": true}, "Campaign layout does not acquire Infinite terrain")
+	check(Build.grouped_contents("campaign", {"layout": true}).is_empty(), "Campaign exports do not offer layout or equipment")
 	var game := VigilState.new(845, "creative")
 	var before := game.data.duplicate(true)
 	for type in ["infinite", "campaign"]:
 		for option in ["rules", "layout", ""]:
 			var selected := Build.all_contents(type, option)
+			if selected.is_empty(): continue
 			var captured := Build.capture(type, game, {}, "level" if type == "campaign" else "all", 0, selected, "Grouped build", "")
 			check(not captured.is_empty(), "Grouped " + type + " build captures " + option)
 			if captured.is_empty(): continue
@@ -161,12 +162,18 @@ func test_wave_and_equipment() -> void:
 	check(not Build.compose_campaign(partial, {}).ok, "Timing cannot silently replace enemy composition")
 	var selected := {"timing": true, "composition": true, "resources": true, "rewards": true, "layout": true}
 	var build := Build.capture("campaign", level.game, levels, "level", 0, selected, "Wave and layout", "")
-	check(not build.is_empty(), "Companion wave groups and equipped layout can be combined")
+	check(not build.is_empty() and not build.contents.has("layout"), "Campaign export strips requested layout while keeping wave content")
 	if not build.is_empty():
 		var composed := Build.compose_campaign(Build.decode(Build.encode(build)), {})
 		check(composed.ok and composed.levels.keys() == ["0"], "One-level contents leave all other levels at defaults")
 		check(composed.levels["0"].overrides.gold == 500.0 and composed.levels["0"].overrides.waves["0"].reward == 99.0, "Selected starting gold and wave rewards retain independent values")
-		check(composed.levels["0"].loadout.relics == {"0,0": "warden"} and composed.levels["0"].loadout.towers.values()[0].relic == "0,0", "Layout includes owned equipment and its assigned tower")
+		check(not composed.levels["0"].has("loadout"), "Fresh Campaign from exported content has no placed towers or owned equipment")
+		# Earlier portable builds keep loading, but resaving them removes layouts.
+		var legacy := build.duplicate(true)
+		legacy.contents.layout = true
+		legacy.data.levels["0"].layout = Build.clean_loadout(level.game.data)
+		check(not Build.decode(Build.encode(legacy)).is_empty(), "Legacy Campaign layouts remain readable")
+		check(Build.compose_campaign(legacy, {}).levels["0"].loadout.relics == {"0,0": "warden"}, "Legacy imports preserve existing equipment")
 	level.start_wave()
 	var restored: RefCounted = Run.from_checkpoint(JSON.parse_string(JSON.stringify(level.checkpoint())))
 	check(restored != null and restored.game.data.relics == level.game.data.relics and restored.game.data.towers.values()[0].relic == "0,0", "Complete checkpoint restores equipment with its tower")
