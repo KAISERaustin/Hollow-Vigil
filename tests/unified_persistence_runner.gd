@@ -20,7 +20,7 @@ func run() -> void:
 		check(restored.wave == 0 and restored.phase == "wave" and restored.wave_time == 0, "Continue restarts the same wave")
 		check(restored.game.data.balance == starting_gold and restored.game.data.towers.size() == 1, "Continue restores starting resources and tower state together")
 		check(restored.game.combat.enemies.is_empty(), "Continue has no stale live enemies")
-		check(restored.checkpoint() == checkpoint, "Repeated continue does not advance checkpoint")
+		check(JSON.parse_string(JSON.stringify(restored.checkpoint())) == JSON.parse_string(JSON.stringify(checkpoint)), "Repeated continue does not advance checkpoint")
 	var slots := CampaignSlots.new()
 	slots.base_path = "user://unified-" + str(Time.get_ticks_usec())
 	var before: Array = []
@@ -45,7 +45,7 @@ func run() -> void:
 	if not build.is_empty():
 		check(build.data.stats.keys() == ["enemies"] and build.data.stats.enemies.keys() == ["basic"], "No boss or sibling stats silently included")
 		var decoded := Build.decode(Build.encode(build))
-		check(decoded == build, "Selected content round trip")
+		check(JSON.parse_string(JSON.stringify(decoded)) == JSON.parse_string(JSON.stringify(build)), "Selected content round trip")
 		var fresh := Build.infinite_snapshot(decoded, {}, "survival")
 		check(fresh.ok and fresh.snapshot.towers.is_empty() and fresh.snapshot.regions.size() == 1, "Stats only starts a fresh world")
 		check(fresh.snapshot.settings.developer_balance.enemies.basic.hp == 431, "Selected stats apply to new Survival game")

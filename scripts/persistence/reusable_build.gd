@@ -121,7 +121,6 @@ static func capture(game_type: String, source: VigilState, levels: Dictionary, s
 				if contents.get("rewards", false): part.reward = mission.wave_rules[wave].reward
 				entry.waves[str(wave)] = part
 			value.data.levels[str(index)] = entry
-	if not valid(value) and contents.keys() == ["resources"] and level == 0: print("DEBUG_CAPTURE ", value)
 	return value if valid(value) else {}
 
 static func encode(value: Dictionary) -> String:
@@ -161,7 +160,7 @@ static func valid(value: Dictionary) -> bool:
 		if not _valid_stats(value.data.get("stats"), value.contents): return false
 		var composed := infinite_snapshot(value, {}, "creative")
 		return composed.get("ok", false)
-	if value.data.keys() != ["levels"] or not value.data.levels is Dictionary: return false
+	if value.data.size() != 1 or not value.data.get("levels") is Dictionary: return false
 	var indices: Array = [int(value.level)] if value.scope == "level" else range(Configuration.Catalog.COUNT)
 	if value.data.levels.size() != indices.size(): return false
 	for index in indices:
