@@ -77,13 +77,14 @@ func run() -> void:
 		check(campaign.dialog_card.get_global_rect().end.y < start.get_global_rect().position.y, "Build menu leaves bottom controls uncovered")
 		var build: Button = campaign.find_child("CampaignBuild_rapid",true,false)
 		check(build != null and not build.disabled, "Mission opening affords an Ashneedle")
-		var choices: VBoxContainer = campaign.dialog_body.get_child(0)
+		var cards := campaign.dialog_body.get_child(0) as ScrollContainer
+		var choices := cards.get_node("Cards")
 		check(choices.get_child_count() == Balance.TOWERS.size(), "Build menu contains tower choices without hint paragraphs")
 		for choice in choices.get_children():
 			check(choice.find_child("TowerPortrait", true, false) != null, "Every tower choice shows its artwork")
-			(campaign.dialog_body.get_parent() as ScrollContainer).ensure_control_visible(choice)
+			cards.ensure_control_visible(choice)
 			await frame()
-			check(campaign.dialog_body.get_parent().get_global_rect().grow(1).encloses(choice.get_global_rect()), "Tower choice is reachable at " + str(viewport))
+			check(cards.get_global_rect().grow(1).encloses(choice.get_global_rect()), "Tower choice is reachable at " + str(viewport))
 		(campaign.dialog_body.get_parent() as ScrollContainer).scroll_vertical = 0
 		await frame()
 		await Harness.capture(app,"campaign-build-"+str(viewport.x))

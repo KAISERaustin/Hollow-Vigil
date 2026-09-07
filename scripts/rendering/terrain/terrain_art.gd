@@ -47,9 +47,19 @@ static func ellipse(canvas: CanvasItem, at: Vector2, radius: Vector2, fill: Colo
 	polygon(canvas, points, fill, width)
 
 static func socket(canvas: CanvasItem, at: Vector2) -> void:
-	# A shallow stone rim leaves the center clear for the build affordance.
+	# Shared worn stone surface; all details scale with the cached terrain.
 	disk(canvas, at + Vector2(0, 3), 20.0, Color("a4977d"))
 	disk(canvas, at, 19.0, PAPER)
+	canvas.draw_arc(at, 16.5, 3.45, 5.65, 18, Color("f5ecd3"), 1.6, true)
+	# Fixed local grain stays still across redraws, camera movement and saves.
+	for index in range(22):
+		var angle := float(index) * 2.399963
+		var radius := sqrt((float(index) + 0.5) / 22.0) * 15.0
+		var grain := at + Vector2.from_angle(angle) * radius
+		var tint := Color("c8ba98") if index % 3 == 0 else Color("d7c9a8")
+		canvas.draw_circle(grain, 0.45 + float(index % 3) * 0.15, tint, true, -1.0, true)
+	canvas.draw_line(at + Vector2(-10, -4), at + Vector2(-6, -5), Color("c8ba98"), 0.8, true)
+	canvas.draw_line(at + Vector2(4, 8), at + Vector2(8, 7), Color("c8ba98"), 0.8, true)
 	canvas.draw_arc(at, 14.5, 0.15, PI - 0.15, 18, Color("a4977d"), 1.2, true)
 	for angle in [0.65, 2.5, 4.2]:
 		canvas.draw_line(at + Vector2.from_angle(angle) * 15, at + Vector2.from_angle(angle) * 19, INK, 1.2, true)

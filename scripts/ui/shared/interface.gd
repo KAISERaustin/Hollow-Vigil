@@ -124,15 +124,28 @@ static func trap_focus(root: Control) -> void:
 		controls[i].focus_neighbor_left = controls[i].get_path() if controls[i] is Slider else before
 		controls[i].focus_neighbor_right = controls[i].get_path() if controls[i] is Slider else after
 
-static func keyboard_scroll(scroll: ScrollContainer, description: String) -> void:
+static func keyboard_scroll(scroll: ScrollContainer, description: String, horizontal: bool = false) -> void:
 	# Retain wheel, touch and keyboard scrolling without visible menu rails.
 	preload("res://scripts/ui/shared/touch_scroll.gd").attach(scroll)
-	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED if horizontal else ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	if horizontal:
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	scroll.focus_mode = Control.FOCUS_ALL
 	scroll.add_theme_stylebox_override("focus", focus_box())
 	scroll.accessibility_name = description + ". Use arrow keys or Page Up and Page Down to scroll."
 	scroll.gui_input.connect(func(event: InputEvent):
 		if not event is InputEventKey or not event.pressed:
+			return
+		if horizontal:
+			match event.keycode:
+				KEY_RIGHT: scroll.scroll_horizontal += 160
+				KEY_LEFT: scroll.scroll_horizontal -= 160
+				KEY_PAGEDOWN: scroll.scroll_horizontal += roundi(scroll.size.x * 0.9)
+				KEY_PAGEUP: scroll.scroll_horizontal -= roundi(scroll.size.x * 0.9)
+				KEY_HOME: scroll.scroll_horizontal = 0
+				KEY_END: scroll.scroll_horizontal = roundi(scroll.get_h_scroll_bar().max_value)
+				_: return
+			scroll.accept_event()
 			return
 		match event.keycode:
 			KEY_DOWN: scroll.scroll_vertical += 48

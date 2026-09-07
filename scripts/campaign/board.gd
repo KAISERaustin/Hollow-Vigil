@@ -120,11 +120,6 @@ func draw_map() -> void:
 		return
 	landscape.position = size * 0.5 - camera * zoom
 	landscape.scale = Vector2.ONE * zoom
-	for socket in run.mission.sockets:
-		if run.tower_at(socket.index).is_empty():
-			var at := screen(socket.position)
-			draw_line(at - Vector2(5, 0), at + Vector2(5, 0), Color.BLACK, 2.5, true)
-			draw_line(at - Vector2(0, 5), at + Vector2(0, 5), Color.BLACK, 2.5, true)
 	for lane in range(run.mission.routes.size()):
 		var at := screen(run.mission.routes[lane][0])
 		var wave_index := mini(int(run.wave), run.mission.waves.size() - 1)

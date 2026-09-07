@@ -488,7 +488,6 @@ func open_game_menu() -> void:
 			if app.tower_move.visible: app.tower_move.cancel()
 	page_view("game_menu", "Menu", resume_game)
 	content.add_child(UI.paragraph(game_type.capitalize()))
-	content.add_child(action("Resume game", resume_game, "ResumeGame", true))
 	var creative: bool = app.campaign.can_author() if live_campaign() else app.game.is_creative()
 	if creative: content.add_child(action("Edit rules", open_rules, "EditRules"))
 	content.add_child(action("Save build", open_build_form, "SaveBuild"))

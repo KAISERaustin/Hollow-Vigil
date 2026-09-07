@@ -197,7 +197,7 @@ func fit() -> void:
 			dialog_card.size.y = minf(safe.size.y, dialog_card.get_combined_minimum_size().y + dialog_body.get_combined_minimum_size().y)
 		if socket_dialog:
 			var bounds := safe
-			var height := 400.0
+			var height := dialog_card.get_combined_minimum_size().y + dialog_body.get_combined_minimum_size().y
 			if is_instance_valid(board) and board.size.x > 16 and board.size.y > 16:
 				bounds = Rect2(board.global_position - global_position, board.size).grow(-8).intersection(safe)
 				height = minf(height, BuildPreview.menu_height(board))
@@ -229,8 +229,8 @@ func clear_page(next: String) -> void:
 	dialog.hide()
 	accumulator = 0.0
 
-func header(title: String, back: Callable, button_size: float = 48) -> HBoxContainer:
-	var row := HBoxContainer.new()
+func header(title: String, back: Callable, button_size: float = 48, stacked: bool = false) -> BoxContainer:
+	var row: BoxContainer = VBoxContainer.new() if stacked else HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	layout.add_child(row)
 	var button := UI.button("←", back, button_size)
@@ -372,13 +372,12 @@ func show_map() -> void:
 	clear_page("map")
 	if active_campaign_slot >= 0:
 		persist_slot()
-		var heading := header(campaign_save.name, app.slot_menu.open_saved_games)
+		var heading := header(campaign_save.name, app.slot_menu.open_saved_games, 48, true)
 		var back: Button = heading.get_child(0)
 		back.text = "Saved Games"
 		back.autowrap_mode = TextServer.AUTOWRAP_OFF
 		back.accessibility_name = "Saved Games"
 		back.name = "CampaignSavedGames"
-		heading.move_child(back, heading.get_child_count() - 1)
 	else: header("The Last Procession", show_setup)
 	var cleared := int(progress.data.completed_levels)
 	layout.add_child(UI.paragraph("Creative · All levels available" if can_author() else "Survival · %d / %d levels completed" % [cleared, Catalog.COUNT], 13))
@@ -712,8 +711,7 @@ func select_build_preview(kind: String, confirm: Button) -> void:
 	var definition := Balance.definition("towers", kind, game.tuning)
 	confirm.text = "Build %s · %s gold" % [definition.name, UI.exact_money(definition.cost)]
 	confirm.disabled = game.data.balance < definition.cost
-	for button in dialog_body.get_child(0).get_children():
-		button.set_pressed_no_signal(button.get_meta("tower_kind") == kind)
+	TowerChoice.select(dialog_body.get_child(0) as ScrollContainer, kind)
 	board.queue_redraw()
 
 func show_result() -> void:

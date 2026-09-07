@@ -57,15 +57,16 @@ func run() -> void:
 		app.panels.select_pad("0,0", 1)
 		await settle()
 		check(app.field.selected_range() == Balance.Content.tower(app.panels.selection_kind).stats(1, app.game.tuning).range, "Opening build previews the selected card's range")
-		var choices := app.panels.sheet_content.get_child(0)
+		var cards := app.panels.sheet_content.get_child(0) as ScrollContainer
+		var choices := cards.get_node("Cards")
 		root.get_texture().get_image().save_png("res://artifacts/infinite-build-" + str(viewport.x) + ".png")
 		check(choices.get_child_count() == Balance.TOWERS.size(), "missing build choices")
 		var build_close := app.panels.find_child("CloseSheet", true, false)
 		var build_revision := app.panels.sheet_revision
 		for choice in choices.get_children():
-			app.panels.content_scroll.ensure_control_visible(choice)
+			cards.ensure_control_visible(choice)
 			await settle()
-			check(app.panels.content_scroll.get_global_rect().grow(1).encloses(choice.get_global_rect()), "build choice unreachable at " + str(viewport))
+			check(cards.get_global_rect().grow(1).encloses(choice.get_global_rect()), "build choice unreachable at " + str(viewport))
 			var select := choice as Button
 			check(select.find_child("TowerPortrait", true, false) != null, "Every build choice shows base tower artwork")
 			select.grab_focus()

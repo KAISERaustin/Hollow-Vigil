@@ -138,7 +138,7 @@ func run() -> void:
 				await open_game_menu()
 				await capture(type + "-game-menu")
 				check(app.campaign.paused, "Menu pauses Campaign")
-				await press("ResumeGame")
+				await press("BackButton")
 				check(app.campaign.run == held_run and app.campaign.run.wave_time == held_time, "Resume holds live wave without restarting")
 				await open_game_menu()
 			else:

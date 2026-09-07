@@ -31,9 +31,11 @@ Game home [Campaign or Infinite]
 ├── Backups → shared Backups
 └── Settings → shared Settings
 
-During play [matching pause / speed / top-right Menu toolbar]
+During play [left Menu / right pause and speed toolbar]
+Campaign level Menu → world map → Saved Games
+Infinite Menu / shared game menu
 └── Menu
-    ├── Resume game → held live session, same prior pause state
+    ├── Top-left back arrow → held live session, same prior pause state
     ├── Edit rules [Creative] → isolated draft → Apply changes / Cancel
     │   ├── Infinite → registered rule categories and types
     │   └── Campaign → level → Level defaults / Wave overrides

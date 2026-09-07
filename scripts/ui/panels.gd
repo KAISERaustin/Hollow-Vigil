@@ -232,7 +232,7 @@ func show_build() -> void:
 	if game.economy.needs_first_property():
 		sheet_content.add_child(UI.paragraph("Buy your first property before building a tower. Close this panel and select a neighboring territory marked + to buy it for 100 gold. You will have 180 gold left for towers.", 14))
 	var row := preload("res://scripts/ui/towers/tower_choice.gd").build_list(game.tuning, func(kind: String):
-		select_build_kind(kind, sheet_content.get_child(-1) as VBoxContainer)
+		select_build_kind(kind, sheet_content.get_child(-1) as ScrollContainer)
 	, selection_kind)
 	sheet_content.add_child(row)
 	var s := Balance.definition("towers", selection_kind, game.tuning)
@@ -259,13 +259,11 @@ func show_build() -> void:
 	field.build_preview.open(field, self)
 	app.update_hud()
 
-func select_build_kind(kind: String, choices: VBoxContainer) -> void:
+func select_build_kind(kind: String, choices: ScrollContainer) -> void:
 	# Keep the header, focus and scroll position intact when changing a choice.
 	selection_kind = kind
 	field.preview_kind = kind
-	for child in choices.get_children():
-		var choice := child as Button
-		choice.set_pressed_no_signal(choice.get_meta("tower_kind") == kind)
+	preload("res://scripts/ui/towers/tower_choice.gd").select(choices, kind)
 	var definition := Balance.definition("towers", kind, game.tuning)
 	action_cost = definition.cost
 	action_button.text = "Build " + definition.name + "  ·  " + UI.exact_money(definition.cost) + " gold"

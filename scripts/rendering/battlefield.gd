@@ -476,7 +476,9 @@ func draw_map() -> void:
 
 
 func draw_region(region: Dictionary) -> void:
-	# Terrain is cached behind this interactive layer; only + glyphs redraw.
+	# The shared terrain owns pad artwork; this layer adds relocation feedback.
+	if moving_tower.is_empty():
+		return
 	for pad in range(4):
 		if state.economy.tower_at(region.id, pad) != "":
 			continue
@@ -484,10 +486,6 @@ func draw_region(region: Dictionary) -> void:
 		if moving_tower != "":
 			draw_circle(p, 22.0 * zoom, Color(GOLD, 0.22))
 			draw_arc(p, 22.0 * zoom, 0, TAU, 32, GOLD, 2, true)
-		var radius := 5.0
-		var width := 2.5
-		draw_line(p - Vector2(radius, 0), p + Vector2(radius, 0), Color.BLACK, width, true)
-		draw_line(p - Vector2(0, radius), p + Vector2(0, radius), Color.BLACK, width, true)
 
 func draw_entrance(id: String) -> void:
 	var gate := screen(VigilWorld.center(id))
