@@ -5,6 +5,7 @@ const RegionQuery = preload("res://scripts/rendering/terrain/region_query.gd")
 const CameraFraming = preload("res://scripts/rendering/camera_framing.gd")
 
 const AttackEffects = preload("res://scripts/rendering/effects/attack_effects.gd")
+const ConstructionEffect = preload("res://scripts/rendering/effects/construction_effect.gd")
 
 signal picked(region: String, pad: int)
 signal relocation_picked(region: String, pad: int)
@@ -36,7 +37,8 @@ var selected_region := "0,0"
 var preview_kind := "rapid"
 var show_expansion := false
 var effect_offset := 0.0
-var upgrade_poofs: Array[Dictionary] = []
+var construction_effect := ConstructionEffect.new()
+var upgrade_poofs: Array[Dictionary] = construction_effect.instances
 var observed_economy: VigilEconomy
 var mouse_down := false
 var dragged := false
@@ -80,16 +82,18 @@ func background_color() -> Color:
 	return VigilTerrainArt.BACKDROP
 
 func bind_upgrade_effects() -> void:
-	if state == null or observed_economy == state.economy:
+	var next_economy: VigilEconomy = state.economy if state != null else null
+	if observed_economy == next_economy:
 		return
 	if observed_economy != null:
 		observed_economy.tower_upgraded.disconnect(on_tower_upgraded)
-	observed_economy = state.economy
-	observed_economy.tower_upgraded.connect(on_tower_upgraded)
-	upgrade_poofs.clear()
+	observed_economy = next_economy
+	if observed_economy != null:
+		observed_economy.tower_upgraded.connect(on_tower_upgraded)
+	construction_effect.clear()
 
 func on_tower_upgraded(region: String, pad: int, kind: String) -> void:
-	upgrade_poofs.append({"pos": VigilWorld.pad_position(region, pad), "age": 0.0, "color": Color(Balance.TOWERS[kind].color)})
+	construction_effect.play(VigilWorld.pad_position(region, pad), Color(Balance.TOWERS[kind].color))
 	queue_redraw()
 
 var simulation_rate := 1.0
@@ -100,24 +104,13 @@ func _process(delta: float) -> void:
 	bind_upgrade_effects()
 	if upgrade_poofs.is_empty():
 		return
-	for i in range(upgrade_poofs.size() - 1, -1, -1):
-		upgrade_poofs[i].age += delta * simulation_rate
-		if upgrade_poofs[i].age >= 0.65:
-			upgrade_poofs.remove_at(i)
+	# Presentation uses wall time, including while campaign setup is paused.
+	construction_effect.advance(delta)
 	queue_redraw()
 
 func draw_upgrade_poofs() -> void:
 	for fx in upgrade_poofs:
-		var progress: float = fx.age / 0.65
-		var opacity := 1.0 - smoothstep(0.25, 1.0, progress)
-		var center := screen(fx.pos + Vector2(0, -17))
-		for i in range(9):
-			var direction := Vector2.from_angle(TAU * i / 9.0)
-			var offset := direction * (9.0 + progress * 28.0) + Vector2(0, -progress * 13.0)
-			var radius := (8.0 + sin(progress * PI) * 5.0) * zoom
-			draw_circle(center + offset * zoom, radius, Color(VigilTerrainArt.PAPER, opacity * 0.85))
-			if i % 2 == 0:
-				draw_circle(center + offset * zoom, 2.0 * zoom, Color(fx.color, opacity))
+		ConstructionEffect.draw(self, fx, screen(fx.pos), zoom)
 
 func screen(pos: Vector2) -> Vector2:
 	return (pos - camera) * zoom + size * 0.5
@@ -470,6 +463,8 @@ func draw_core() -> void:
 	preload("res://scripts/rendering/actors/rift_art.gd").draw_core(self, gate, zoom)
 
 func draw_tower(t: Dictionary) -> void:
+	if construction_effect.conceals(VigilWorld.pad_position(t.region, t.pad)):
+		return
 	var p := screen(VigilWorld.pad_position(t.region, t.pad))
 	var z := zoom
 	VigilTerrainArt.sentinel(self, t.kind, p, z, int(t.level), t.get("branch", ""))

@@ -97,7 +97,7 @@ func run() -> void:
 			await frame()
 			if kind == "rapid" and level == 1:
 				root.get_texture().get_image().save_png("res://artifacts/tower-upgrade-poof.png")
-			field._process(0.5)
+			field._process(0.71)
 			check(field.upgrade_poofs.is_empty(), "Poof expires in real time")
 		check(not game.economy.upgrade(id) and field.upgrade_poofs.is_empty(), "Max level does not poof")
 	var old_economy := game.economy
