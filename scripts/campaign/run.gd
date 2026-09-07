@@ -14,11 +14,14 @@ var wave_time := 0.0
 var schedule: Array[Dictionary] = []
 var next_spawn := 0
 var finish_pending := false
+var mode := "survival"
+var spawned_counts := {}
 
-func _init(index: int = 0, overrides: Dictionary = {}) -> void:
+func _init(index: int = 0, overrides: Dictionary = {}, game_mode: String = "survival") -> void:
+	mode = game_mode if game_mode in ["creative", "survival"] else "survival"
 	mission = Configuration.resolve(index, overrides)
 	health = int(mission.flame)
-	game = VigilState.new(81000 + index, "survival")
+	game = VigilState.new(81000 + index, mode)
 	game.economy.set_sale_rules(Balance.Content.level(index))
 	game.data.balance = float(mission.gold)
 	game.data.settings.developer_balance = mission.tuning.duplicate(true)
@@ -44,6 +47,7 @@ func start_wave() -> bool:
 	game.data.settings.developer_balance = mission.wave_rules[wave].tuning.duplicate(true)
 	schedule = Configuration.schedule(mission, wave)
 	next_spawn = 0
+	spawned_counts.clear()
 	wave_time = 0.0
 	phase = "wave"
 	changed.emit()
@@ -60,6 +64,8 @@ func tick(delta: float) -> void:
 	wave_time += delta
 	while next_spawn < schedule.size() and schedule[next_spawn].at <= wave_time:
 		var spawn: Dictionary = schedule[next_spawn]
+		var group_id := int(spawn.group)
+		spawned_counts[group_id] = int(spawned_counts.get(group_id, 0)) + 1
 		var route: Array[Vector2] = mission.routes[spawn.lane]
 		if Balance.BOSSES.has(spawn.kind):
 			game.combat.Bosses.create(game.combat, "0,0", spawn.kind, route)
@@ -100,6 +106,29 @@ func _escaped(enemy: Dictionary) -> void:
 
 func editable() -> bool:
 	return phase in ["planning", "wave"]
+
+func can_author() -> bool:
+	return Balance.Content.catalog().get_node("level/campaign/" + mode).rule("developer_controls", false)
+
+func apply_configuration(overrides: Dictionary) -> bool:
+	if not can_author() or not editable() or not Configuration.valid_level(mission.index, overrides): return false
+	var next := Configuration.resolve(mission.index, overrides)
+	# Already spawned enemies keep their health/effects. Only outstanding group members change.
+	if phase == "wave":
+		var pending: Array[Dictionary] = []
+		for spawn in Configuration.schedule(next, wave):
+			if int(spawn.member) >= int(spawned_counts.get(int(spawn.group), 0)):
+				pending.append(spawn)
+		schedule = pending
+		next_spawn = 0
+	else:
+		if wave == 0:
+			game.data.balance = maxf(0.0, game.data.balance + next.gold - mission.gold)
+			health = int(next.flame)
+	mission = next
+	game.data.settings.developer_balance = (mission.wave_rules[wave].tuning if phase == "wave" else mission.tuning).duplicate(true)
+	changed.emit()
+	return true
 
 func tower_at(socket: int) -> String:
 	var pad := Catalog.socket(socket)

@@ -3,6 +3,7 @@ extends RefCounted
 
 const Stats = preload("res://scripts/persistence/stat_configuration.gd")
 const CampaignBuild = preload("res://scripts/persistence/campaign_build.gd")
+const CampaignPlaythrough = preload("res://scripts/persistence/campaign_playthrough.gd")
 const COUNT := 3
 const BUILD_FORMAT := "hollow-vigil-creative-build-v1"
 var base_path := "user://vigil"
@@ -187,8 +188,11 @@ func stat_configurations() -> Array[Dictionary]:
 	return result
 
 func shared_entry(code: String) -> Dictionary:
-	var value := Stats.decode(code)
-	var kind := "stats"
+	var value := CampaignPlaythrough.decode(code)
+	var kind := "campaign"
+	if value.is_empty():
+		value = Stats.decode(code)
+		kind = "stats"
 	if value.is_empty():
 		value = CampaignBuild.decode(code)
 		kind = "campaign_build" if value.has("loadout") else "campaign_stats"
@@ -203,7 +207,7 @@ func save_shared(code: String) -> bool:
 	if entry.is_empty():
 		error = "Invalid or incompatible configuration."
 		return false
-	return _save_configuration_code(code, {"world": "hvbuild", "stats": "hvstats", "campaign_build": "hvcampaign", "campaign_stats": "hvcampaign"}[entry.kind])
+	return _save_configuration_code(code, {"world": "hvbuild", "stats": "hvstats", "campaign_build": "hvcampaign", "campaign_stats": "hvcampaign", "campaign": "hvcampaign"}[entry.kind])
 
 func shared_configurations(kind: String) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
