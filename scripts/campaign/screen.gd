@@ -279,7 +279,7 @@ func header(title: String, back: Callable) -> BoxContainer:
 	var button := UI.back_button("Back", back)
 	button.name = "CampaignBack"
 	row.add_child(button)
-	var caption := UI.heading(title, 24)
+	var caption := UI.fitted_heading(title, 24) if page == "map" else UI.heading(title, 24)
 	caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	caption.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	caption.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
