@@ -36,6 +36,7 @@ Use semantic names in UI code. The hex values are sRGB; default fills and text a
 | backdrop | #222A30 | Unowned world and surrounding dark canvas |
 | main-menu.background | #A6B79B | Muted sage tint on the main menu's shared parchment texture |
 | paper | #E8DDBD | Main panels, dialogs |
+| paper.saved-games | #B8C4C6 | Campaign and Infinite saved-games page background; retain parchment cards and ink text |
 | inset | #DFD0AB | Secondary controls and grouped information |
 | text.secondary | #222A30 | Supporting text on paper or inset |
 | text.inverse | #E8DDBD | Labels on backdrop; never use black here |
@@ -120,6 +121,8 @@ Use this recipe whenever a screen presents a content item or related summary. Om
 4. **Actions:** explicit text buttons at the bottom, separated by 12 units and at least 48 high. A longer action may take more width, as Balancing details does in the reference. Stack actions if their labels cannot fit. Passive card content passes drag gestures to the owning scroll container.
 
 Compose `UI.info_card()`, `UI.stat()`, `UI.rule()`, `UI.button()`, and `content_portrait.gd`. `wave_summary.gd` is the implemented reference composition. Reuse this structure for towers, enemies, gear, levels, and other content; keep reports and callbacks supplied by their existing model/service owners. Shared styles contain configuration only; live values and interaction state belong to each control instance.
+
+Saved games uses the shared `saved_game_card.gd` composition in Campaign and Infinite. Put the save name and game mode in separate parchment cards with an 8-unit gap; allow the name to wrap while the mode stays content-sized. Use the muted blue-gray `paper.saved-games` background behind the slot cards, with the existing paper texture and ink text. Other menu pages retain their normal paper background.
 
 ### Buttons and control states
 

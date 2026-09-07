@@ -97,6 +97,8 @@ func run() -> void:
 	root.add_child(app)
 	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	app.set_process(false)
+	Engine.max_fps = 240
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	app.show_game_menu()
 	menu = app.slot_menu
 	menu.resume_game()
@@ -351,7 +353,9 @@ func extended_workflows() -> void:
 	network.unavailable = false
 	await press("RetryCommunity")
 	# Drive both pagination directions through the real library controls.
-	var sample: Dictionary = network.publications.values()[0].duplicate(true)
+	# Pagination needs distinct entries, not 21 copies of every Campaign rule.
+	var pagination := Build.capture("infinite", VigilState.new(), {}, "all", -1, {"enemies": ["basic"]}, "Pagination fixture", "")
+	var sample: Dictionary = JSON.parse_string(Build.encode(pagination))
 	for index in 21:
 		var payload: Dictionary = JSON.parse_string(sample.payload)
 		payload.setup.name = "Community page fixture " + str(index)

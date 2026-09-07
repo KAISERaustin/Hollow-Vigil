@@ -5,6 +5,7 @@ const BG := VigilTerrainArt.BACKDROP
 const PANEL := VigilTerrainArt.PAPER
 const MAIN_MENU_BACKGROUND := Color("a6b79b")
 const SURFACE := VigilTerrainArt.ROAD
+const SAVED_GAMES_PAPER := Color("#B8C4C6")
 const BORDER := VigilTerrainArt.INK
 const GOLD := VigilTerrainArt.GOLD
 const TEXT := VigilTerrainArt.INK
@@ -75,6 +76,12 @@ static func fullscreen_parchment() -> TextureRect:
 	paper.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	paper.add_child(rounded_viewport_frame())
 	return paper
+
+## Tint this page's paper and corner fill while retaining its black frame.
+static func set_parchment_color(paper: TextureRect, background: Color = PANEL) -> void:
+	var tint := Color(background.r / PANEL.r, background.g / PANEL.g, background.b / PANEL.b, background.a)
+	paper.self_modulate = tint
+	paper.get_child(0).self_modulate = tint
 
 static func tint_parchment(paper: TextureRect, background: Color = PANEL) -> void:
 	# Tint the paper and its corner fill together; black frame ink stays black.

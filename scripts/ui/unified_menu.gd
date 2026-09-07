@@ -58,6 +58,7 @@ func fit() -> void:
 func page_view(key: String, title: String, back: Callable) -> void:
 	screen = key
 	clear(title)
+	UI.set_parchment_color(welcome_paper, UI.SAVED_GAMES_PAPER if key == "slots" else UI.PANEL)
 	message.hide()
 	navigation_back = back
 	if back.is_valid(): add_back(UI.button("Back", go_back))

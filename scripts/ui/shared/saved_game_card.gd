@@ -17,20 +17,24 @@ static func card(slot: int, title: String, mode: String, description: String, st
 	body.add_child(identity)
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", UI.CARD_GAP)
-	var identity_card := UI.info_card(header)
-	identity_card.name = "GameIdentityCard"
-	identity.add_child(identity_card)
+	identity.add_child(header)
 	var heading := UI.heading(title, 18)
 	heading.name = "GameTitle"
 	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	header.add_child(heading)
+	var name_card := UI.info_card(heading)
+	name_card.name = "GameNameCard"
+	header.add_child(name_card)
 	if not mode.is_empty():
 		var mode_label := UI.heading(mode, 18)
 		mode_label.name = "GameMode"
 		mode_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 		mode_label.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-		header.add_child(mode_label)
+		var mode_card := UI.info_card(mode_label)
+		mode_card.name = "GameModeCard"
+		mode_card.size_flags_horizontal = Control.SIZE_SHRINK_END
+		mode_card.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		header.add_child(mode_card)
 	if not description.is_empty():
 		var detail := UI.paragraph(description)
 		detail.name = "GameDescription"
