@@ -121,6 +121,8 @@ Previous-menu actions use `VigilInterface.back_button` or `configure_back_button
 
 ## Shared mobile navigation components
 
+Wave overviews use `ui/shared/wave_summary.gd` to compose a bordered section, labeled statistics, native Enemy/Boss portraits with counts, and a shared action row. The Campaign screen supplies reports resolved from the Wave content nodes and its navigation callbacks; the component owns presentation only. Detailed balancing comparisons stay in the existing report view, and editing remains gated by the owning campaign mode. Each card has independent controls and never changes a run or shared content.
+
 Screen owners attach `ui/shared/mobile_layout.gd` to refit when display safe areas or orientation change. `VigilInterface.safe_rect` converts physical display insets to the screen's local UI coordinates. The native keyboard overlays the existing UI without shrinking or clipping menu layout. The observer follows focused form controls after display layout changes; its state belongs to that screen and is removed with it.
 
 Every menu scroll area uses `VigilInterface.keyboard_scroll`, which attaches `touch_scroll.gd`. This component lets swipes pass through cards and buttons, opens dropdowns on release, bounds dropdown lists, and restores input settings when content leaves its owner. Nested scrolling and editable fields retain their own input boundaries. Confirmation descriptions and errors share a bounded scroll area with persistent confirm/cancel actions. Android Back dismisses the top popup before navigating the active game menu. Both battlefield types inherit touch cancellation on lost focus and releases intercepted by overlays.
