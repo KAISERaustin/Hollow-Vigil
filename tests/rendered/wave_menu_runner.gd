@@ -45,7 +45,8 @@ func run() -> void:
 				var previous: Control
 				for card: Control in list.get_children():
 					if previous != null:
-						check(card.position.y - previous.get_rect().end.y >= 24, "Wave sections have distinct gaps " + context)
+						var gap := card.position.y - previous.get_rect().end.y
+						check(gap >= 8 and gap <= 12, "Wave sections have compact, distinct gaps " + context)
 					previous = card
 					for child: Control in card.find_children("*", "Control", true, false):
 						check(child.get_global_rect().position.x >= card.global_position.x and child.get_global_rect().end.x <= card.get_global_rect().end.x + 1, "Content fits horizontally: %s in %s" % [child.name, context])

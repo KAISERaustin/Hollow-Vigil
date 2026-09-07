@@ -171,7 +171,7 @@ func fit_sheet() -> void:
 		top = maxf(140.0, top)
 	self.size.y = minf(desired_height, bottom - top)
 	if mode == "build":
-		self.size.y = minf(self.size.y, BuildPreview.menu_height(field))
+		self.size.y = minf(self.size.y, BuildPreview.menu_height(field, desired_height))
 	self.position.y = bottom - self.size.y
 	UI.trap_focus(self)
 
@@ -229,8 +229,9 @@ func select_pad(region: String, pad: int) -> void:
 
 func show_build() -> void:
 	mode = "build"
-	field.preview_kind = ""
 	clear_sheet("Build")
+	selection_kind = preload("res://scripts/ui/towers/tower_choice.gd").first_kind()
+	field.preview_kind = selection_kind
 	if game.economy.needs_first_property():
 		sheet_content.add_child(UI.paragraph("Buy your first property before building a tower. Close this panel and select a neighboring territory marked + to buy it for 100 gold. You will have 180 gold left for towers.", 14))
 	var row := preload("res://scripts/ui/towers/tower_choice.gd").build_list(game.tuning, func(kind: String):
@@ -265,6 +266,7 @@ func show_build() -> void:
 	)
 	action_footer.add_child(action_button)
 	action_footer.get_parent().hide()
+	field.build_preview.open(field, self)
 	app.update_hud()
 
 func select_build_kind(kind: String, choices: ScrollContainer) -> void:

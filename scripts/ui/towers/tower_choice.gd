@@ -50,39 +50,60 @@ static func details(kind: String, tuning: Dictionary) -> VBoxContainer:
 	body.name = "TowerDetails"
 	body.add_theme_constant_override("separation", 8)
 	var stats := Balance.stats(kind, 1, tuning)
-	body.add_child(UI.label("Level 1 · " + str(stats.get("role", "Tower")).capitalize(), 12))
-	var description := UI.paragraph(Balance.tower_description(stats), 13)
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
+	body.add_child(header)
+	var level := UI.heading("Level 1", 18)
+	level.name = "TowerLevel"
+	level.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(level)
+	var base := UI.label("Before equipment", 12, UI.MUTED)
+	base.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	header.add_child(base)
+	var description := UI.paragraph(Balance.tower_description(stats), 14)
 	description.name = "TowerDescription"
+	description.add_theme_constant_override("line_spacing", 0)
 	body.add_child(description)
+	body.add_child(UI.rule())
 	var grid := GridContainer.new()
 	grid.name = "TowerStats"
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 12)
-	grid.add_theme_constant_override("v_separation", 4)
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
 	body.add_child(grid)
-	# Include every numeric content statistic, including future optional fields.
-	var fields: Array = ["cost", "damage", "range", "period", "splash", "targets"]
+	add_stat(grid, "damage", "Damage / hit", UI.exact_money(stats.damage))
+	add_stat(grid, "fire_rate", "Attacks / sec", UI.exact_money(1.0 / stats.period))
+	add_stat(grid, "range", "Range", UI.exact_money(stats.range) + " units")
+	add_stat(grid, "dps", "DPS / target", UI.exact_money(stats.damage / stats.period))
+	add_stat(grid, "targets", "Targets / hit", UI.exact_money(stats.targets))
+	add_stat(grid, "splash", "Blast radius", UI.exact_money(stats.splash) + " units")
+	# Cost lives in the pinned Build action; interval complements the fire rate.
+	# Future numeric content fields use the same presentation and schema labels.
 	for field in stats:
-		if not fields.has(field): fields.append(field)
-	for field in fields:
+		if field in ["cost", "damage", "range", "period", "splash", "targets"]:
+			continue
 		if not stats.has(field) or not (stats[field] is float or stats[field] is int):
 			continue
 		var spec: Dictionary = Balance.TUNING_FIELDS.towers.get(field, {})
-		var title: String = {"cost": "Build cost", "range": "Range"}.get(field, spec.get("label", str(field).capitalize()))
+		var title: String = spec.get("label", str(field).capitalize())
 		add_stat(grid, field, title, UI.exact_money(stats[field]) + str(spec.get("suffix", "")))
-	add_stat(grid, "fire_rate", "Attacks per second", UI.exact_money(1.0 / stats.period))
-	add_stat(grid, "dps", "Base DPS / target", UI.exact_money(stats.damage / stats.period))
-	body.add_child(UI.label("Base stats before equipment bonuses.", 12))
+	var interval := UI.label(UI.exact_money(stats.period) + " s between attacks", 12, UI.MUTED)
+	interval.name = "Stat_period"
+	body.add_child(interval)
 	return body
 
 static func add_stat(grid: GridContainer, key: String, title: String, value: String) -> void:
-	var label := UI.paragraph(title, 13)
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	grid.add_child(label)
-	var number := UI.value(value, 13)
+	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation", 0)
+	grid.add_child(column)
+	var label := UI.label(title, 12, UI.MUTED)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(label)
+	var number := UI.value(value, 18)
 	number.name = "Stat_" + key
-	number.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	grid.add_child(number)
+	number.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(number)
 
 static func show_details(choices: ScrollContainer, tuning: Dictionary, kind: String) -> void:
 	clear_details(choices)
@@ -104,6 +125,9 @@ static func _ignore_mouse(control: Control) -> void:
 			_ignore_mouse(child)
 
 ## Shared base-tower catalog; hosts retain placement and transaction ownership.
+static func first_kind() -> String:
+	return str(Balance.TOWERS.keys()[0])
+
 static func build_list(tuning: Dictionary, action: Callable, selected_kind: String = "", balance: float = INF, prefix: String = "Build_") -> ScrollContainer:
 	var scroll := ScrollContainer.new()
 	scroll.name = "TowerCards"

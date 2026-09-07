@@ -37,9 +37,10 @@ func minimum_zoom(field: Control, normal: float) -> float:
 	var bounds: Rect2 = field.camera_bounds()
 	return maxf(field.size.x / bounds.size.x, field.size.y / bounds.size.y)
 
-static func menu_height(field: Control) -> float:
-	# Reserve the complete 112px card strip plus the header and pinned Build action.
-	return clampf(field.size.y * 0.5, 260.0, 380.0)
+static func menu_height(field: Control, content_height: float = 0.0) -> float:
+	# Fit tower information while retaining a preview above the sheet. The host
+	# still bounds unusual future content to its available battlefield/safe area.
+	return maxf(clampf(field.size.y * 0.5, 260.0, 380.0), content_height)
 
 func camera_padding() -> float:
 	# Tall cards leave a smaller preview area on short phones. A temporary margin

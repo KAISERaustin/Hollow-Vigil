@@ -203,7 +203,7 @@ func fit() -> void:
 			var height := dialog_card.get_combined_minimum_size().y + dialog_body.get_combined_minimum_size().y
 			if is_instance_valid(board) and board.size.x > 16 and board.size.y > 16:
 				bounds = Rect2(board.global_position - global_position, board.size).grow(-8).intersection(safe)
-				height = minf(height, BuildPreview.menu_height(board))
+				height = minf(height, BuildPreview.menu_height(board, height))
 			dialog_card.size = Vector2(minf(470, bounds.size.x), minf(bounds.size.y, height))
 			dialog_card.position = Vector2(bounds.get_center().x - dialog_card.size.x * 0.5, bounds.end.y - dialog_card.size.y)
 		else:
@@ -650,7 +650,7 @@ func show_waves() -> void:
 	fit()
 	var preview := VBoxContainer.new()
 	preview.name = "WaveSummaries"
-	preview.add_theme_constant_override("separation", 24)
+	preview.add_theme_constant_override("separation", 8)
 	dialog_body.add_child(preview)
 	var reports := Configuration.wave_reports(run.mission)
 	for index in range(run.mission.waves.size()):
@@ -680,7 +680,7 @@ func show_socket(socket: int) -> void:
 		return
 	open_dialog("Build a tower", true)
 	var confirm := UI.gold_button("", func():
-		if board.preview_kind.is_empty():
+		if board.preview_kind.is_empty() or not dialog_actions.is_visible_in_tree():
 			return
 		if run.build(socket, board.preview_kind):
 			board.build_preview.clear(board)
@@ -690,13 +690,15 @@ func show_socket(socket: int) -> void:
 	confirm.name = "CampaignBuildConfirm"
 	var choices := TowerChoice.build_list(run.game.tuning, func(kind: String):
 		select_build_preview(kind, confirm)
-	, "rapid", INF, "CampaignBuild_")
+	, TowerChoice.first_kind(), INF, "CampaignBuild_")
 	build_choices = choices
 	dialog_body.add_child(choices)
 	dialog_actions.add_child(confirm)
 	add_dialog_back("Back to towers", show_build_choices)
 	dialog_header.get_node("BackButton").name = "BackToTowers"
 	dialog_header.get_node("BackToTowers").hide()
+	board.preview_kind = TowerChoice.first_kind()
+	board.build_preview.open(board, dialog_card)
 	fit.call_deferred()
 
 func select_build_preview(kind: String, confirm: Button) -> void:

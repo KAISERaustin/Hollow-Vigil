@@ -36,18 +36,25 @@ func set_corner_radius_all(radius: int) -> void:
 	corner_radius_bottom_left = radius
 
 func _draw(canvas_item: RID, rect: Rect2) -> void:
-	if draw_center and bg_color.a > 0.0 and rect.has_area():
+	# The rim's antialiasing extends inward from the panel bounds. Keep paper
+	# under its solid portion so it cannot show through the softened outer edge.
+	var fill_rect := rect
+	var radii := [corner_radius_top_left, corner_radius_top_right, corner_radius_bottom_right, corner_radius_bottom_left]
+	if radii.max() > 0 and border_color.a > 0.0:
+		fill_rect = rect.grow_individual(
+			-minf(border_width_left, 1.0), -minf(border_width_top, 1.0),
+			-minf(border_width_right, 1.0), -minf(border_width_bottom, 1.0))
+	if draw_center and bg_color.a > 0.0 and fill_rect.has_area():
 		var points := PackedVector2Array()
 		var uvs := PackedVector2Array()
-		var radii := [corner_radius_top_left, corner_radius_top_right, corner_radius_bottom_right, corner_radius_bottom_left]
-		var corners := [rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]
+		var corners := [fill_rect.position, Vector2(fill_rect.end.x, fill_rect.position.y), fill_rect.end, Vector2(fill_rect.position.x, fill_rect.end.y)]
 		var directions := [Vector2.ONE, Vector2(-1, 1), -Vector2.ONE, Vector2(1, -1)]
 		# Cover instead of stretching: paper grain keeps the same proportions.
 		var texture_size := Vector2(paper.get_size())
 		var scale_factor := maxf(rect.size.x / texture_size.x, rect.size.y / texture_size.y)
 		var covered_size := texture_size * scale_factor
 		for corner in range(4):
-			var radius := minf(radii[corner], minf(rect.size.x, rect.size.y) * 0.5)
+			var radius := minf(radii[corner], minf(fill_rect.size.x, fill_rect.size.y) * 0.5)
 			var center: Vector2 = corners[corner] + directions[corner] * radius
 			for step in range(9):
 				var angle := PI + corner * PI * 0.5 + step * PI / 16.0

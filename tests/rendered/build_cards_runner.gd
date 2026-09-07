@@ -78,20 +78,17 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	check(details.find_child("TowerDescription", true, false).text == Balance.tower_description(stats), label + " description resolves current stats")
 	for field in stats:
 		if stats[field] is float or stats[field] is int:
+			if field == "cost":
+				check(confirm.text.contains(VigilInterface.exact_money(stats.cost) + " gold"), label + " shows exact cost in pinned Build")
+				continue
 			var value := details.find_child("Stat_" + field, true, false) as Label
 			check(value != null and value.text.begins_with(VigilInterface.exact_money(stats[field])), label + " exposes resolved " + field)
 	var back := menu.find_child("BackToTowers", true, false) as Button
 	var vertical := scroll.get_parent().get_parent() as ScrollContainer
 	if vertical == null:
 		vertical = host.panels.content_scroll
-	for number in details.find_children("Stat_*", "Label", true, false):
-		vertical.ensure_control_visible(number)
-		await settle()
-		check(vertical.get_global_rect().grow(1).encloses(number.get_global_rect()), label + " detail stat is reachable: " + number.name)
-	vertical.ensure_control_visible(details.get_child(-1))
-	await settle()
-	check(vertical.get_global_rect().grow(1).encloses(details.get_child(-1).get_global_rect()), label + " final detail is reachable")
-	check(back.is_visible_in_tree() and menu.get_global_rect().encloses(back.get_global_rect()) and menu.get_global_rect().encloses(confirm.get_global_rect()), label + " navigation and Build stay pinned while scrolling")
+	check_details(details, vertical, label)
+	check(back.is_visible_in_tree() and menu.get_global_rect().encloses(back.get_global_rect()) and menu.get_global_rect().encloses(confirm.get_global_rect()), label + " navigation and Build stay visible")
 	back.pressed.emit()
 	await settle()
 	check(scroll.visible and not confirm.is_visible_in_tree() and host.field.preview_kind.is_empty(), label + " Back restores picker without building")
@@ -113,6 +110,16 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	root.get_texture().get_image().save_png("res://artifacts/build-details-%s-%d.png" % [label, root.size.x])
 	back.pressed.emit()
 	await settle()
+	for choice in cards.get_children():
+		choice.pressed.emit()
+		await settle()
+		details = menu.find_child("TowerDetails", true, false)
+		var kind: String = choice.get_meta("tower_kind")
+		check_details(details, vertical, label + " " + kind + " " + str(root.size))
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://artifacts/build-polished-%s-%s-%d.png" % [label, kind, root.size.x])
+		back.pressed.emit()
+		await settle()
 	# An additional card extends the strip without changing its height or host.
 	var height := menu.size.y
 	var extra := preload("res://scripts/ui/towers/tower_choice.gd").create("rapid", "Future tower", 90, func(): pass, 1, "", 150)
@@ -123,6 +130,12 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	check(is_equal_approx(menu.size.y, height) and scroll.get_global_rect().grow(1).encloses(extra.get_global_rect()), label + " extra content stays reachable at the same menu height")
 	cards.remove_child(extra)
 	extra.queue_free()
+
+func check_details(details: Control, viewport: ScrollContainer, context: String) -> void:
+	check(details.find_child("TowerLevel", true, false).text == "Level 1", context + " uses a standalone level heading")
+	check(viewport.scroll_vertical == 0 and viewport.get_v_scroll_bar().max_value <= viewport.get_v_scroll_bar().page + 1, context + " fits all details without scrolling")
+	for content in details.find_children("*", "Label", true, false):
+		check(viewport.get_global_rect().grow(1).encloses(content.get_global_rect()), context + " shows complete " + content.name)
 
 func run() -> void:
 	var app := VigilApp.new()
