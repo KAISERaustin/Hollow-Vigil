@@ -55,6 +55,8 @@ func check_campaign_continue() -> void:
 		var slot: int = 0 if mode == "survival" else 1
 		var value: Dictionary = menu.campaign_slots.create(slot, mode, "Saved " + mode)
 		var saved_run := preload("res://scripts/campaign/run.gd").new(2, {}, mode)
+		check(saved_run.build(6, "rapid"), "Prepare saved Campaign tower")
+		saved_run.wave = slot
 		check(saved_run.start_wave(), "Prepare saved Campaign wave")
 		value.completed = 2
 		value.checkpoint = saved_run.checkpoint()
@@ -80,7 +82,7 @@ func check_campaign_continue() -> void:
 			check(app.campaign.page == "battle" and app.campaign.run.mission.index == 2, "Selecting saved level resumes its battle")
 			check(app.campaign.run.checkpoint() == checkpoint, "Resumed level preserves saved wave and build")
 			check(app.campaign.paused, "Loaded Campaign wave waits for player to start")
-			check(not app.campaign.wave_button.disabled and app.campaign.wave_button.text == "Start wave 1", "Loaded wave offers Start")
+			check(not app.campaign.wave_button.disabled and app.campaign.wave_button.text == "Start wave %d" % (saved_run.wave + 1), "Loaded wave offers Start for its saved wave number")
 			for step in 20: app.campaign._process(0.1)
 			check(app.campaign.run.wave_time == 0.0 and app.campaign.run.game.combat.enemies.is_empty(), "Waiting after Continue never advances or spawns the wave")
 			await press("CampaignWaves")
@@ -94,6 +96,12 @@ func check_campaign_continue() -> void:
 			app.campaign._process(0.1)
 			check(app.campaign.run.wave_time > 0.0 and app.campaign.run.next_spawn > 0, "Wave advances and spawns only after Start")
 			check(app.campaign.run.checkpoint() == checkpoint, "Starting loaded wave preserves the original checkpoint")
+			var wave_time: float = app.campaign.run.wave_time
+			await press("PauseButton")
+			app.campaign._process(0.1)
+			check(app.campaign.run.wave_time == wave_time, "Playback pause still freezes a running wave")
+			await press("StartCampaignWave")
+			check(not app.campaign.paused and app.campaign.run.wave_time == wave_time, "Start resumes a paused wave without restarting it")
 			await press("GameMenuButton")
 			await press("ExitGame")
 			check(menu.screen == "home" and not is_instance_valid(app.campaign), "Campaign exits back to home")
