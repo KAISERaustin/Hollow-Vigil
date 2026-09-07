@@ -451,7 +451,7 @@ func open_game_menu() -> void:
 	content.add_child(action("Save build", open_build_form, "SaveBuild"))
 	content.add_child(action("Backups", func(): show_backups(open_game_menu), "GameBackups"))
 	content.add_child(action("Settings", func(): show_settings(open_game_menu), "GameSettings"))
-	footer.add_child(action("Exit game", exit_game, "ExitGame"))
+	content.add_child(action("Exit game", exit_game, "ExitGame"))
 
 func resume_game() -> void:
 	hide()

@@ -34,7 +34,7 @@ var selected_tower := "":
 var selected_pad := -1
 var moving_tower := ""
 var selected_region := "0,0"
-var preview_kind := "rapid"
+var preview_kind := ""
 var show_expansion := false
 var effect_offset := 0.0
 var construction_effect := ConstructionEffect.new()
@@ -380,6 +380,15 @@ func centered(text: String, at: Vector2, pixels: int, color: Color) -> void:
 	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, pixels).x
 	text_at(text, at - Vector2(width * 0.5, 0), pixels, color)
 
+func selected_range() -> float:
+	if state == null:
+		return 0.0
+	if state.data.towers.has(selected_tower):
+		return Balance.tower_stats(state.data.towers[selected_tower], state.tuning).range
+	if selected_pad >= 0 and Balance.TOWERS.has(preview_kind):
+		return Balance.Content.tower(preview_kind).stats(1, state.tuning).range
+	return 0.0
+
 func _draw() -> void:
 	if state == null:
 		return
@@ -388,14 +397,12 @@ func _draw() -> void:
 	var world_view := Rect2(world(visible_rect.position), visible_rect.size / zoom)
 	var visible_regions := RegionQuery.in_view(state.data.regions, world_view, Balance.TILE * 0.5)
 	var range_pos := Vector2.ZERO
-	var range_radius := 0.0
+	var range_radius := selected_range()
 	if state.data.towers.has(selected_tower):
 		var t: Dictionary = state.data.towers[selected_tower]
 		range_pos = VigilWorld.pad_position(t.region, t.pad)
-		range_radius = Balance.tower_stats(t, state.tuning).range
 	elif selected_pad >= 0:
 		range_pos = VigilWorld.pad_position(selected_region, selected_pad)
-		range_radius = Balance.tuned_value("towers", preview_kind, "range", state.tuning)
 	if range_radius > 0.0:
 		# A single outline keeps the range preview uncluttered.
 		draw_arc(screen(range_pos), range_radius * zoom, 0, TAU, 72, GOLD, 1.5, true)

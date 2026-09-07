@@ -222,7 +222,7 @@ func select_pad(region: String, pad: int) -> void:
 
 func show_build() -> void:
 	mode = "build"
-	field.preview_kind = selection_kind
+	field.preview_kind = ""
 	clear_sheet("Build")
 	if game.economy.needs_first_property():
 		sheet_content.add_child(UI.paragraph("Buy your first property before building a tower. Close this panel and select a neighboring territory marked + to buy it for 100 gold. You will have 180 gold left for towers.", 14))

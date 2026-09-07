@@ -2,7 +2,7 @@ extends RefCounted
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
 
-static func create(kind: String, title: String, cost: float, action: Callable, level: int = 1, branch: String = "") -> Button:
+static func create(kind: String, title: String, cost: float, action: Callable, level: int = 1, branch: String = "", reach: float = -1.0) -> Button:
 	var button := UI.button("", action, 56)
 	button.accessibility_name = "%s · %s gold" % [title, UI.exact_money(cost)]
 	var margin := MarginContainer.new()
@@ -29,7 +29,11 @@ static func create(kind: String, title: String, cost: float, action: Callable, l
 	copy.add_theme_constant_override("separation", 0)
 	row.add_child(copy)
 	copy.add_child(UI.heading(title, 16))
-	copy.add_child(UI.label("%s gold" % UI.exact_money(cost), 13))
+	var detail := "%s gold" % UI.exact_money(cost)
+	if reach >= 0.0:
+		detail += " · Range %s" % UI.exact_money(reach)
+		button.accessibility_name += " · Range %s" % UI.exact_money(reach)
+	copy.add_child(UI.label(detail, 13))
 	_ignore_mouse(margin)
 	button.draw.connect(func(): copy.modulate.a = 0.45 if button.disabled else 1.0)
 	return button
@@ -46,7 +50,7 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 	choices.add_theme_constant_override("separation", 6)
 	for kind in Balance.TOWERS:
 		var definition := Balance.definition("towers", kind, tuning)
-		var button := create(kind, definition.name, definition.cost, action.bind(kind))
+		var button := create(kind, definition.name, definition.cost, action.bind(kind), 1, "", definition.range)
 		button.name = prefix + kind
 		button.set_meta("tower_kind", kind)
 		button.disabled = balance < definition.cost

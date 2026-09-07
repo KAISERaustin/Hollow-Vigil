@@ -4,10 +4,10 @@ extends RefCounted
 const UPGRADE_SOUNDS := {"rapid": "upgrade_rapid"}
 
 const TOWERS := {
-	"rapid": {"name": "Ashneedle", "role": "RAPID", "cost": 60.0, "damage": 6.0, "period": 0.48, "range": 132.0, "splash": 0.0, "color": "e0b568", "description": "Swift pointed darts cut through hollows and wraiths."},
-	"splash": {"name": "Pyre", "role": "SPLASH", "cost": 120.0, "damage": 15.0, "period": 1.5, "range": 126.0, "splash": 46.0, "color": "db8d73", "description": "Flame waves burst on impact, striking every enemy within the blast radius."},
-	"heavy": {"name": "Obelisk", "role": "HEAVY", "cost": 160.0, "damage": 40.0, "period": 1.8, "range": 157.0, "splash": 0.0, "color": "b49dcc", "description": "Large magic orbs reach distant foes and deal heavy damage to resilient enemies."},
-	"electric": {"name": "Stormspire", "role": "MULTI-TARGET", "cost": 140.0, "damage": 3.0, "period": 0.4, "range": 145.0, "splash": 0.0, "targets": 5, "color": "91bbff", "description": "Forked lightning zaps up to {targets} enemies at a time within reach, of any troop type."}
+	"rapid": {"name": "Ashneedle", "role": "RAPID", "cost": 60.0, "damage": 6.0, "period": 0.48, "range": 140.0, "splash": 0.0, "color": "e0b568", "description": "Swift pointed darts cut through hollows and wraiths."},
+	"splash": {"name": "Pyre", "role": "SPLASH", "cost": 120.0, "damage": 15.0, "period": 1.5, "range": 115.0, "splash": 46.0, "color": "db8d73", "description": "Flame waves burst on impact, striking every enemy within the blast radius."},
+	"heavy": {"name": "Obelisk", "role": "HEAVY", "cost": 160.0, "damage": 40.0, "period": 1.8, "range": 185.0, "splash": 0.0, "color": "b49dcc", "description": "Large magic orbs reach distant foes and deal heavy damage to resilient enemies."},
+	"electric": {"name": "Stormspire", "role": "MULTI-TARGET", "cost": 140.0, "damage": 3.0, "period": 0.4, "range": 160.0, "splash": 0.0, "targets": 5, "color": "91bbff", "description": "Forked lightning zaps up to {targets} enemies at a time within reach, of any troop type."}
 }
 
 const PROJECTILES := {
@@ -19,20 +19,20 @@ const PROJECTILES := {
 
 const TOWER_UPGRADES := {
 	"rapid": [
-		{"cost": 60.0, "damage": 10.0, "period": 0.4, "range": 146.0, "splash": 0.0},
-		{"cost": 100.0, "damage": 15.0, "period": 0.3, "range": 160.0, "splash": 0.0}
+		{"cost": 60.0, "damage": 10.0, "period": 0.4, "range": 154.0, "splash": 0.0},
+		{"cost": 100.0, "damage": 15.0, "period": 0.3, "range": 168.0, "splash": 0.0}
 	],
 	"splash": [
-		{"cost": 120.0, "damage": 24.0, "period": 1.3, "range": 140.0, "splash": 56.0},
-		{"cost": 200.0, "damage": 36.0, "period": 1.1, "range": 154.0, "splash": 66.0}
+		{"cost": 120.0, "damage": 24.0, "period": 1.3, "range": 129.0, "splash": 56.0},
+		{"cost": 200.0, "damage": 36.0, "period": 1.1, "range": 143.0, "splash": 66.0}
 	],
 	"heavy": [
-		{"cost": 140.0, "damage": 60.0, "period": 1.35, "range": 173.0, "splash": 0.0},
-		{"cost": 220.0, "damage": 90.0, "period": 0.9, "range": 189.0, "splash": 0.0}
+		{"cost": 140.0, "damage": 60.0, "period": 1.35, "range": 201.0, "splash": 0.0},
+		{"cost": 220.0, "damage": 90.0, "period": 0.9, "range": 217.0, "splash": 0.0}
 	],
 	"electric": [
-		{"cost": 120.0, "damage": 5.0, "period": 0.35, "range": 159.0, "splash": 0.0, "targets": 5},
-		{"cost": 200.0, "damage": 7.0, "period": 0.3, "range": 173.0, "splash": 0.0, "targets": 5}
+		{"cost": 120.0, "damage": 5.0, "period": 0.35, "range": 174.0, "splash": 0.0, "targets": 5},
+		{"cost": 200.0, "damage": 7.0, "period": 0.3, "range": 188.0, "splash": 0.0, "targets": 5}
 	]
 }
 
