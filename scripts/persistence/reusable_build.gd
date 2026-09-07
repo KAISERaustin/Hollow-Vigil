@@ -98,7 +98,7 @@ static func capture(game_type: String, source: VigilState, levels: Dictionary, s
 		if (value.contents[key] is bool and not value.contents[key]) or (value.contents[key] is Array and value.contents[key].is_empty()): value.contents.erase(key)
 	if game_type == "infinite":
 		value.data.stats = selected_stats(source.tuning, contents)
-		if contents.get("resources", false): value.data.resources = {"gold": source.data.balance}
+		if contents.get("resources", false): value.data.resources = {"gold": source.tuning.get("session", {}).get("start", {}).get("starting_gold", source.data.balance)}
 		if contents.get("layout", false): value.data.layout = clean_loadout(source.data)
 		if contents.get("terrain", false) or contents.get("layout", false):
 			value.data.map = {"seed": source.data.seed, "regions": clean_regions(source.data, contents.get("terrain", false))}

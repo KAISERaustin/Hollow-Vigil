@@ -36,7 +36,9 @@ static func valid(value: Dictionary) -> bool:
 		var level := {"version": 1, "level": int(key), "setup": {"name": value.name, "description": ""}, "overrides": entry.get("overrides", {})}
 		if entry.has("loadout"): level.loadout = entry.loadout
 		if not LevelBuild.valid(level): return false
-	return value.get("checkpoint") is Dictionary and (value.checkpoint.is_empty() or Run.valid_checkpoint(value.checkpoint))
+	if not value.get("checkpoint") is Dictionary: return false
+	if value.checkpoint.is_empty(): return true
+	return Run.valid_checkpoint(value.checkpoint) and value.checkpoint.mode == value.mode and (value.mode == "creative" or int(value.checkpoint.level) <= int(value.completed))
 
 func create(slot: int, mode: String, title: String, levels: Dictionary = {}) -> Dictionary:
 	if slot < 0 or slot >= COUNT or occupied(slot):

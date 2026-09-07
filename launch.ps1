@@ -5,6 +5,7 @@ param(
     [switch]$Smoke,
     [switch]$StyleTests,
     [switch]$MobileTests,
+    [switch]$UnifiedTests,
     [switch]$TerrainTests,
     [switch]$TerrainPreview,
     [switch]$ArtSmoke,
@@ -15,7 +16,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $projectPath = $PSScriptRoot
-$modes = @($Editor, $Tests, $Smoke, $StyleTests, $MobileTests, $TerrainTests, $TerrainPreview, $ArtSmoke, $Check, $Import) | Where-Object { $_ }
+$modes = @($Editor, $Tests, $Smoke, $StyleTests, $MobileTests, $UnifiedTests, $TerrainTests, $TerrainPreview, $ArtSmoke, $Check, $Import) | Where-Object { $_ }
 if (@($modes).Count -gt 1) { throw 'Choose one launch mode at a time.' }
 
 if (-not $GodotPath) {
@@ -57,7 +58,7 @@ $savedAppData = $env:APPDATA
 $savedLocalAppData = $env:LOCALAPPDATA
 try {
     $runtimePath = Join-Path $projectPath '.runtime'
-    if ($Tests -or $Smoke -or $StyleTests -or $MobileTests -or $TerrainTests -or $TerrainPreview -or $ArtSmoke -or $Check -or $Import) {
+    if ($Tests -or $Smoke -or $StyleTests -or $MobileTests -or $UnifiedTests -or $TerrainTests -or $TerrainPreview -or $ArtSmoke -or $Check -or $Import) {
         $runtimePath = Join-Path $runtimePath 'tests'
     }
     $env:APPDATA = Join-Path $runtimePath 'Roaming'
@@ -75,6 +76,11 @@ try {
             Invoke-Godot -Name 'audio' -EngineArguments @('--headless', '--script', 'res://tests/audio_runner.gd')
             Invoke-Godot -Name 'audio-pitch' -EngineArguments @('--headless', '--script', 'res://tests/audio_pitch_runner.gd')
             Invoke-Godot -Name 'unit' -EngineArguments @('--headless', '--script', 'res://tests/test_runner.gd')
+        }
+        if ($UnifiedTests -or $Check) {
+            Invoke-Godot -Name 'unified-persistence' -EngineArguments @('--headless', '--script', 'res://tests/unified_persistence_runner.gd')
+            Invoke-Godot -Name 'private-backups' -EngineArguments @('--headless', '--script', 'res://tests/private_backups_runner.gd')
+            Invoke-Godot -Name 'unified-menu' -EngineArguments @('--script', 'res://tests/rendered/unified_menu_runner.gd')
         }
         if ($Smoke -or $Check) {
             Invoke-Godot -Name 'visual' -EngineArguments @('--script', 'res://tests/rendered/visual_runner.gd')

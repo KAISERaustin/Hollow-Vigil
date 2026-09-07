@@ -373,7 +373,7 @@ func toggle_pause() -> void:
 	refresh_time_controls()
 
 func toggle_speed() -> void:
-	simulation_speed = 1.0 if simulation_speed == 2.0 else 2.0
+	simulation_speed = preload("res://scripts/ui/shared/game_toolbar.gd").next_speed(simulation_speed)
 	refresh_time_controls()
 
 func refresh_time_controls() -> void:

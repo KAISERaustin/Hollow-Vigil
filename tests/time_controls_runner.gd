@@ -46,6 +46,7 @@ func combat_snapshot(app: ClockApp) -> Array:
 func run() -> void:
 	var normal := fixture()
 	var fast := fixture()
+	check(fast.hud.speed_button.text == "1×", "Initial speed label is 1×")
 	fast.hud.speed_button.pressed.emit()
 	advance(normal, 240)
 	advance(fast, 120)
@@ -65,14 +66,25 @@ func run() -> void:
 	advance(normal, 120)
 	check(combat_snapshot(normal) == combat_snapshot(fast), "Resume keeps 2× without a catch-up burst")
 	fast.hud.speed_button.pressed.emit()
-	check(fast.simulation_speed == 1.0 and not fast.hud.speed_button.button_pressed, "Speed toggles back to normal")
+	check(fast.simulation_speed == 4.0 and fast.hud.speed_button.text == "4×", "Second click selects and displays 4×")
+	advance(fast, 60)
+	advance(normal, 240)
+	check(combat_snapshot(normal) == combat_snapshot(fast), "4× matches four times the real time for combat")
+	fast.hud.pause_button.pressed.emit()
+	frozen = combat_snapshot(fast)
+	advance(fast, 120)
+	check(combat_snapshot(fast) == frozen, "Pause freezes 4× combat")
+	fast.hud.pause_button.pressed.emit()
+	check(fast.field.simulation_rate == 4.0, "Resume preserves 4× animation speed")
+	fast.hud.speed_button.pressed.emit()
+	check(fast.simulation_speed == 1.0 and not fast.hud.speed_button.button_pressed and fast.hud.speed_button.text == "1×", "Third click cycles back to normal")
 	normal.hide()
 	root.size = Vector2i(390, 844)
 	fast.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	await process_frame
 	await process_frame
-	var settings := fast.hud.find_child("SettingsButton", true, false) as Button
-	check(settings.get_global_rect().end.x <= fast.hud.pause_button.global_position.x, "Pause sits to the right of Settings")
+	var settings := fast.hud.find_child("GameMenuButton", true, false) as Button
+	check(fast.hud.speed_button.get_global_rect().end.x <= settings.global_position.x, "Menu sits to the right of speed")
 	check(fast.hud.pause_button.get_global_rect().end.x <= fast.hud.speed_button.global_position.x, "Speed sits to the right of Pause")
 	check(fast.hud.speed_button.get_global_rect().end.x <= 390, "Controls fit mobile width")
 	if "--capture" in OS.get_cmdline_user_args():

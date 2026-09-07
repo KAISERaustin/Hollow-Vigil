@@ -468,7 +468,7 @@ func show_battle() -> void:
 		paused = not paused
 		update_time_controls()
 	, func():
-		speed = 1.0 if speed == 2.0 else 2.0
+		speed = game_toolbar.next_speed(speed)
 		update_time_controls()
 	, app.show_game_menu if active_campaign_slot >= 0 else show_map)
 	pause_button = game_toolbar.pause_button
@@ -539,9 +539,7 @@ func update_time_controls() -> void:
 	pause_button.accessibility_description = "Play" if paused else "Pause"
 	pause_button.accessibility_name = pause_button.accessibility_description
 	pause_button.queue_redraw()
-	speed_button.set_pressed_no_signal(speed == 2.0)
-	speed_button.accessibility_description = "Return to normal speed" if speed == 2.0 else "Double game speed"
-	speed_button.accessibility_name = speed_button.accessibility_description
+	game_toolbar.update_speed_button(speed_button, speed)
 
 func refresh() -> void:
 	if page != "battle":

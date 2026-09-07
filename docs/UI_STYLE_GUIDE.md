@@ -1,6 +1,6 @@
 # Hollow Vigil UI Style Guide
 
-Version 1.1 · September 5, 2026
+Version 1.2 · September 7, 2026
 
 ## Purpose and authority
 
@@ -122,7 +122,9 @@ Focus can coexist with selected states. Pointer entry must not change fills, out
 
 ### Persistent HUD
 
-Keep Settings on the left and location identity in the middle. The location should be recognizable without competing with the world. The footer places unclaimed earnings beside Collect all, with spendable gold, gold per second, and lifetime kills in a lower row. Separate those statistics with alignment and spacing before adding boxes. Shorten visible captions to Gold / sec and Kills when width is limited; retain full accessible names.
+Use the shared gameplay toolbar in Campaign and Infinite: pause and speed on the left, Menu at the top right. Put game-specific identity below the toolbar. Menu opens the same full-page navigation and pauses the held session. Resume preserves that live session and its prior pause state. The Infinite footer places unclaimed earnings beside Collect all, with spendable gold, gold per second, and lifetime kills in a lower row. Separate those statistics with alignment and spacing before adding boxes. Shorten visible captions to Gold / sec and Kills when width is limited; retain full accessible names.
+
+Game home, Saved games, New game, libraries, Save build, Backups, Settings and rule drafts use the shared page shell. Keep Back/title fixed above scrolling content and progression actions fixed below it. Full pages render above gameplay frames and short dialogs. Save privately and Share to Community appear together in that order. Use Apply changes and Cancel for rule drafts; the shared contents checklist remains separate from editing the active game. See `UI_MENU_TREE.md` for the complete implemented navigation.
 
 Aim to leave at least 60% of screen height to the battlefield during ordinary play at default text size. When nothing is collectable, keep the layout stable and show No earnings yet. Never collapse the primary action or move neighboring stats as values change.
 

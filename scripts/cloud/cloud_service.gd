@@ -21,7 +21,7 @@ var email := ""
 var display_name := ""
 const MAX_NAME_LENGTH := 32
 var busy := false
-var status := "Your progress saves on this device. Cloud backups upload only when you choose Upload."
+var status := "Your progress saves on this device. Sign in for automatic private backups."
 var worlds: Array = []
 var backup_slot := -1
 var conflict: Dictionary = {}
@@ -50,7 +50,7 @@ func signed_in() -> bool:
 func linked() -> bool:
 	return signed_in() and game.data.get("cloud", {}).get("player_id", "") == player_id
 
-# Uploads are manual only. In particular, legacy outboxes never run on a timer.
+# Legacy world uploads stay manual. PrivateBackups owns the new automatic service.
 func _process(_delta: float) -> void:
 	pass
 

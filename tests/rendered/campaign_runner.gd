@@ -63,6 +63,10 @@ func run() -> void:
 		campaign.find_child("BeginCampaignMission",true,false).pressed.emit()
 		await frame()
 		var start: Button = campaign.find_child("StartCampaignWave",true,false)
+		for expected_speed in [2.0, 4.0, 1.0]:
+			await tap(campaign.speed_button.get_global_rect().get_center())
+			check(campaign.speed == expected_speed and campaign.speed_button.text == "%d×" % int(expected_speed), "Campaign speed cycles through 2×, 4× and 1×")
+		check(app.simulation_speed == 1.0, "Campaign speed leaves Infinite Worlds speed unchanged")
 		check(Rect2(Vector2.ZERO,Vector2(viewport)).encloses(start.get_global_rect()), "Start wave fits " + str(viewport))
 		var socket: Dictionary = campaign.run.mission.sockets[1]
 		await tap(campaign.board.global_position + campaign.board.screen(socket.position))
@@ -125,13 +129,13 @@ func run() -> void:
 		campaign._process(0.1)
 		check(not campaign.paused and campaign.run.wave_time > wave_time_before, "Backups keep the battle running")
 		app.panels.hide()
-		campaign.find_child("CampaignPause",true,false).pressed.emit()
+		campaign.pause_button.pressed.emit()
 		campaign._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
 		campaign._notification(Node.NOTIFICATION_APPLICATION_FOCUS_IN)
 		var time_before: float = campaign.run.game.data.active_seconds
 		campaign._process(0.1)
 		check(campaign.run.game.data.active_seconds == time_before, "Pause stops the campaign clock")
-		campaign.find_child("CampaignPause",true,false).pressed.emit()
+		campaign.pause_button.pressed.emit()
 		campaign.show_waves()
 		wave_time_before = campaign.run.wave_time
 		campaign._process(0.1)

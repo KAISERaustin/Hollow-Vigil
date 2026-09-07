@@ -104,7 +104,7 @@ func build_scope() -> void:
 	editing_game = VigilState.new(42, "creative", mission.tuning if scope < 0 else mission.wave_rules[scope].tuning)
 	controls = Controls.new()
 	controls.game = editing_game
-	controls.categories.assign(Balance.TUNING_FIELDS.keys().filter(func(category): return category != "session"))
+	controls.categories.assign(preload("res://scripts/persistence/reusable_build.gd").STAT_GROUPS)
 	controls.configuration_only = true
 	body.add_child(controls)
 	body.add_child(UI.button("All stat categories", controls.show_categories))

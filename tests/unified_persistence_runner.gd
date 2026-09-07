@@ -32,6 +32,9 @@ func run() -> void:
 	check(slots.create(0, "survival", "Unconfirmed replacement").is_empty(), "Occupied slot cannot be silently replaced")
 	var saved: Dictionary = before[0].duplicate(true)
 	saved.checkpoint = checkpoint
+	var mismatched := saved.duplicate(true)
+	mismatched.mode = "survival"
+	check(not CampaignSlots.valid(mismatched), "Campaign slot cannot change play style through its checkpoint")
 	check(slots.save_slot(0, saved), "Campaign persists incomplete wave")
 	check(slots.summary(1) == before[1] and slots.summary(2) == before[2], "Saving one Campaign leaves siblings untouched")
 	check(slots.replace(0, before[1]), "Confirmed replacement preserves recoverable game")
@@ -66,8 +69,13 @@ func run() -> void:
 	check(library.save_shared(code) and library.save_shared(code), "Private saving works offline and is idempotent")
 	check(library.shared_configurations("all").size() == 1, "One exact build occupies one library entry")
 	check(not library.occupied(0), "Private build saving never occupies an Infinite slot")
+	game.set_balance_stat("session", "start", "starting_gold", 912.0)
+	var resources := Build.capture("infinite", game, {}, "all", -1, {"resources": true}, "Starting gold", "")
+	check(Build.infinite_snapshot(resources, {}, "survival").snapshot.balance == 912.0, "Selected resources preserve an explicitly edited starting-gold rule")
 	var fixtures := FileAccess.open("res://artifacts/unified-cloud-fixtures.json", FileAccess.WRITE)
-	fixtures.store_string(JSON.stringify({"campaign": slots.summary(0), "infinite": game.data, "build": code}))
+	var cloud_campaign: Dictionary = before[0].duplicate(true)
+	cloud_campaign.checkpoint = checkpoint
+	fixtures.store_string(JSON.stringify({"campaign": cloud_campaign, "infinite": game.data, "build": code}))
 	fixtures.close()
 	test_content_extension()
 	test_combinations()

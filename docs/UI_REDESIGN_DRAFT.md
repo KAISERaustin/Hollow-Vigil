@@ -1,5 +1,7 @@
 # Unified UI design discussion
 
+Implementation note, September 7, 2026: the discussion below is retained as the original decision record. The implemented routes are documented in `UI_MENU_TREE.md`, with architecture and verification tracked in `UI_REDESIGN_IMPLEMENTATION.md`.
+
 Decision record started September 7, 2026. This is a proposed design being developed with the user; it does not describe implemented changes. The current implementation is mapped in `docs/UI_MENU_TREE.md`.
 
 ## Confirmed direction

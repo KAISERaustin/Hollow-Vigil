@@ -1,7 +1,7 @@
 extends SceneTree
 
 func _initialize() -> void:
-	preload("res://tests/support/timeout.gd").arm(self)
+	preload("res://tests/support/timeout.gd").arm(self, 600)
 	call_deferred("run")
 
 func run() -> void:

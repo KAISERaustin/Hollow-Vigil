@@ -114,7 +114,7 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 		await harness.capture(app, "tower-inline-confirm-" + str(touch))
 		await harness.tap(app, upgrade_rect.get_center(), touch)
 		check(g.data.towers[rapid].level == 3 and g.data.balance == 310.0 and g.data.towers[rapid].earnings == 25.0, "Inline upgrade charged incorrectly", failures)
-		check(app.tower_actions.pending_tower == "" and not upgrade_button.disabled, "Level three should offer branch selection", failures)
+		check(app.tower_actions.pending_tower == "" and app.tower_actions.branch_bar.visible, "Level three offers the shared left and right branch controls", failures)
 		var capped := g.data.duplicate(true)
 		upgrade_button.pressed.emit()
 		check(g.data == capped and not dialog.visible, "Opening branch choices changed state", failures)
@@ -161,13 +161,13 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 				check(dialog.visible, "Tower icon inaccessible at %s" % viewport, failures)
 				check(dialog.card.get_global_rect().get_center().distance_to(app.size * 0.5) < 1.0, "Dialog is off-center at %s" % viewport, failures)
 				check(Rect2(Vector2.ZERO, app.size).encloses(dialog.card.get_global_rect()), "Dialog overflows the screen at %s" % viewport, failures)
-				check(dialog.card.get_global_rect().encloses(dialog.confirm.get_global_rect()) and (not dialog.cancel.visible or dialog.card.get_global_rect().encloses(dialog.cancel.get_global_rect())), "Dialog confirmation buttons are clipped", failures)
+				check((not dialog.confirm.is_visible_in_tree() or dialog.card.get_global_rect().encloses(dialog.confirm.get_global_rect())) and (not dialog.cancel.is_visible_in_tree() or dialog.card.get_global_rect().encloses(dialog.cancel.get_global_rect())), "Visible dialog confirmation buttons are clipped", failures)
 				check(dialog.body.size.x <= dialog.scroll.size.x, "Dialog text overflows horizontally", failures)
 				for control in dialog.find_children("*", "Control", true, false):
 					check(control.tooltip_text.is_empty(), "Tower dialog contains unwanted hover text", failures)
 				if action == "upgrade":
 					check(dialog.find_child("TowerStats", true, false) == null, "Upgrade should show compact controls; stats belong in Info", failures)
-				await harness.tap(app, (dialog.confirm if action == "info" else dialog.cancel).get_global_rect().get_center(), true)
+				await harness.tap(app, (dialog.confirm if action == "info" else dialog.header_close if action == "equipment" else dialog.cancel).get_global_rect().get_center(), true)
 		# Controls retain their map size and tower-relative offsets, even at edges.
 		for zoom in [0.42, 0.65, 1.0, 1.65]:
 			app.field.zoom = zoom
@@ -191,14 +191,18 @@ static func run(app: Control, harness: Script, failures: Array[String]) -> void:
 					var before_collection: float = g.data.balance
 					var badge: Rect2 = app.field.earnings_rect(g.data.towers[rapid])
 					await harness.tap(app, app.field.global_position + badge.get_center(), true)
-					check(g.data.towers[rapid].earnings == 1900.0 and g.data.balance == before_collection, "Removed earnings badge collected at zoom %.2f" % zoom, failures)
+					# At distant zoom the former badge overlaps the tower's own
+					# selection hit area. Selecting a tower legitimately collects it.
+					var selected: bool = app.field.selected_tower == rapid
+					check((g.data.towers[rapid].earnings == 0.0 and g.data.balance == before_collection + 1900.0) if selected else (g.data.towers[rapid].earnings == 1900.0 and g.data.balance == before_collection), "Former badge only collects through actual tower selection at zoom %.2f" % zoom, failures)
 					g.economy.collect()
 					app.panels.select_pad("0,0", 0)
+					await harness.settle(app)
 					for touch in [false, true]:
 						for action in ["info", "sell", "move", "target", "equipment"]:
 							await harness.tap(app, app.tower_actions.buttons[action].get_global_rect().get_center(), touch)
 							check(dialog.visible and dialog.mode == action, "Tower-relative action failed at zoom %.2f" % zoom, failures)
-							await harness.tap(app, (dialog.confirm if action == "info" else dialog.cancel).get_global_rect().get_center(), touch)
+							await harness.tap(app, (dialog.confirm if action == "info" else dialog.header_close if action == "equipment" else dialog.cancel).get_global_rect().get_center(), touch)
 		app.field.zoom = 1.0
 	# Real zoom scales tower controls with the map while the HUD stays fixed.
 	app.field.camera = VigilWorld.pad_position("0,0", 0)

@@ -5,6 +5,7 @@ var failures: Array[String] = []
 var app: VigilApp
 var menu: Control
 var network: Node
+var toolbar_rects := {}
 
 func _initialize() -> void:
 	preload("res://tests/support/timeout.gd").arm(self, 600)
@@ -89,6 +90,7 @@ func run() -> void:
 	menu.show_main_menu()
 	await frames()
 	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
+		toolbar_rects.clear()
 		if is_instance_valid(network): network.refresh_token = ""
 		root.size = dimensions
 		root.content_scale_size = dimensions
@@ -119,6 +121,7 @@ func run() -> void:
 				await press("CampaignLevel1")
 				await press("BeginCampaignMission")
 				await press("StartCampaignWave")
+				remember_toolbar()
 				app.campaign.run.tick(0.25)
 				var held_run: RefCounted = app.campaign.run
 				var held_time: float = held_run.wave_time
@@ -129,10 +132,15 @@ func run() -> void:
 				check(app.campaign.run == held_run and app.campaign.run.wave_time == held_time, "Resume holds live wave without restarting")
 				await press("GameMenuButton")
 			else:
+				compare_toolbar()
 				await press("GameMenuButton")
 				check(app.game.suspended, "Menu pauses Infinite")
 				await capture(type + "-game-menu")
 			await press("SaveBuild")
+			if type == "campaign":
+				await choose("BuildScope", 1)
+				check(menu.form.scope == "level" and menu.form.level == 0, "This-level build scope remains explicit")
+				await choose("BuildScope", 0)
 			await capture(type + "-save-build")
 			await press("SelectAllContents")
 			await press("ExpandContents_enemies")
@@ -184,7 +192,11 @@ func check_rules(type: String) -> void:
 	await capture(type + "-rules")
 	var prior: Dictionary = app.campaign.level_setup(0).overrides.duplicate(true) if type == "campaign" else app.game.tuning.duplicate(true)
 	if type == "campaign": menu.rules_editor.find_child("Campaign_gold", true, false).value = 777
-	else: menu.editor_game.set_balance_stat("enemies", "basic", "hp", 777)
+	else:
+		await press("EnemiesCategory")
+		menu.rules_editor.find_child("hpValue", true, false).value = 777
+		await press("BackButton")
+		check(menu.screen == "rules" and menu.rules_editor.category_list.visible and menu.editor_game.tuning.enemies.basic.hp == 777, "Back returns from type editor while retaining draft")
 	await press("CancelRules")
 	await press("CancelConfirmation")
 	check(menu.screen == "rules", "Cancel confirmation leaves rule draft available")
@@ -194,11 +206,24 @@ func check_rules(type: String) -> void:
 	if type == "campaign": await press("EditLevel1")
 	else: await press("EditRules")
 	if type == "campaign": menu.rules_editor.find_child("Campaign_gold", true, false).value = 888
-	else: menu.editor_game.set_balance_stat("enemies", "basic", "hp", 888)
+	else:
+		await press("EnemiesCategory")
+		menu.rules_editor.find_child("hpValue", true, false).value = 888
 	await press("ApplyRules")
 	check(app.campaign.level_setup(0).overrides.get("gold") == 888 if type == "campaign" else app.game.tuning.enemies.basic.hp == 888, "Apply commits rules to only the selected session")
 	if type == "campaign": await press("BackButton")
 	check(menu.screen == "game_menu", "Rules return to held game menu")
+
+func remember_toolbar() -> void:
+	for key in ["PauseButton", "SpeedButton", "GameMenuButton"]:
+		var control := button(key)
+		check(control != null, "Shared Campaign toolbar control " + key)
+		if control != null: toolbar_rects[key] = control.get_global_rect()
+
+func compare_toolbar() -> void:
+	for key in toolbar_rects:
+		var control := button(key)
+		check(control != null and control.get_global_rect().is_equal_approx(toolbar_rects[key]), "Matching toolbar position and size in both game types: " + key)
 
 func install_network() -> void:
 	if is_instance_valid(network): return
@@ -252,14 +277,28 @@ func extended_workflows() -> void:
 	await press("ShareToCommunity")
 	check(button("RetryShare") != null and not menu.form_saved_code.is_empty(), "Failed public share keeps a private copy and explicit Retry")
 	network.unavailable = false
+	network.player_id = preload("res://scripts/cloud/cloud_codec.gd").uuid()
+	network.generation += 1
 	await press("RetryShare")
-	check(menu.pending_publish.is_empty() and not network.publications.is_empty(), "Explicit Retry publishes prepared contents")
+	check(menu.pending_publish.is_empty() and not network.publications.is_empty(), "Explicit Retry publishes prepared contents under the current account after an account switch")
 	menu.show_home("infinite")
 	network.unavailable = true
 	await press("Community")
 	check(button("RetryCommunity") != null, "Community connection failure offers Retry")
 	network.unavailable = false
 	await press("RetryCommunity")
+	# Drive both pagination directions through the real library controls.
+	var sample: Dictionary = network.publications.values()[0].duplicate(true)
+	for index in 21:
+		var payload: Dictionary = JSON.parse_string(sample.payload)
+		payload.setup.name = "Community page fixture " + str(index)
+		var payload_text := JSON.stringify(payload)
+		network.publications["page-fixture-" + str(index)] = {"format": Build.FORMAT, "payload": payload_text, "checksum": payload_text.sha256_text()}
+	await press("RefreshCommunity")
+	check(button("PreviousBuilds").disabled and not button("NextBuilds").disabled, "Community page controls match available results")
+	await press("NextBuilds")
+	check(menu.library_page == 1 and not button("PreviousBuilds").disabled, "Next opens another Community page")
+	await press("PreviousBuilds")
 	await press("BuildDetails")
 	await capture("community-detail")
 	var slots_before: Array = []
@@ -300,4 +339,18 @@ func extended_workflows() -> void:
 	await choose("LevelChoice_target_level", 3)
 	check(menu.prepare_new().levels.keys() == ["2"], "Selected stat contents affect only the chosen Campaign level")
 	await capture("portable-review")
+	if root.size.x == 540:
+		fill("GameName", "Survival campaign")
+		await choose("SaveSlotChoice", 3)
+		var siblings: Array = [menu.campaign_slots.summary(0), menu.campaign_slots.summary(1)]
+		await press("StartGame")
+		await press("ConfirmAction")
+		app.campaign.set_process(false)
+		check(button("CampaignLevel3").disabled and app.campaign.mode == "survival", "Using a one-level build does not unlock Survival levels")
+		await press("CampaignLevel1")
+		await press("BeginCampaignMission")
+		await press("GameMenuButton")
+		check(button("EditRules") == null, "Campaign Survival cannot edit rules")
+		await press("ExitGame")
+		check(menu.campaign_slots.summary(0) == siblings[0] and menu.campaign_slots.summary(1) == siblings[1], "New Campaign in a full slot preserves the other Campaign games")
 	menu.show_main_menu()

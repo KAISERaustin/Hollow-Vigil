@@ -59,9 +59,7 @@ func update_time_controls(paused: bool, speed: float) -> void:
 	pause_button.accessibility_description = "Play" if paused else "Pause"
 	pause_button.accessibility_name = "Resume game" if paused else "Pause game"
 	pause_button.queue_redraw()
-	speed_button.set_pressed_no_signal(speed == 2.0)
-	speed_button.accessibility_description = "Return to normal speed" if speed == 2.0 else "Double game speed"
-	speed_button.accessibility_name = "Game speed: 2×. Switch to 1×" if speed == 2.0 else "Game speed: 1×. Switch to 2×"
+	preload("res://scripts/ui/shared/game_toolbar.gd").update_speed_button(speed_button, speed)
 
 func build_footer() -> void:
 	var bottom := PanelContainer.new()

@@ -20,7 +20,18 @@ func run() -> void:
 	var first := service(cloud)
 	var owner := Codec.uuid()
 	for slot in 3:
-		check(not first.campaign_slots.create(slot, "survival", "Campaign " + str(slot + 1)).is_empty(), "Create complete Campaign backup fixture")
+		var campaign: Dictionary = first.campaign_slots.create(slot, "survival", "Campaign " + str(slot + 1))
+		check(not campaign.is_empty(), "Create complete Campaign backup fixture")
+		if slot == 0:
+			var rules := {"gold": 500.0, "tuning": {"enemies": {"basic": {"hp": 240.0}}}}
+			var run := preload("res://scripts/campaign/run.gd").new(0, rules, "survival")
+			run.build(6, "rapid")
+			run.game.data.relics["0,0"] = "warden"
+			run.game.data.towers.values()[0].relic = "0,0"
+			run.start_wave()
+			campaign.levels = {"0": {"overrides": rules}}
+			campaign.checkpoint = run.checkpoint()
+			check(first.campaign_slots.save_slot(0, campaign), "Complete cloud fixture includes custom rules, wave checkpoint, tower and equipment")
 		var world := VigilState.new(600 + slot, "creative")
 		world.data.setup = {"name": "Infinite " + str(slot + 1), "description": ""}
 		check(first.slots.storage.write(first.slots.path_for(slot), world.data), "Create complete Infinite backup fixture")
@@ -49,6 +60,7 @@ func run() -> void:
 	check(second.slots.shared_configurations("all").size() == 1, "Another device automatically recovers My builds")
 	var saved: Dictionary = await second.read_backup("campaign", 0)
 	check(not saved.is_empty(), "Validated complete Campaign backup is readable")
+	check(saved.snapshot.checkpoint.rules.gold == 500 and saved.snapshot.checkpoint.state.towers.size() == 1 and saved.snapshot.checkpoint.state.relics == {"0,0": "warden"}, "Cross-device read retains corresponding rules, resources, tower and equipment")
 	check(second.campaign_slots.replace(0, saved.snapshot), "Explicit destination restore writes complete record")
 	second.accept_restored("campaign", 0, 0, saved.revision)
 	var local: Dictionary = second.campaign_slots.summary(0)

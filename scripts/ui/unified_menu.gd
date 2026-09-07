@@ -19,6 +19,7 @@ var form := {}
 var held := false
 var held_paused := false
 var pending_publish := ""
+var pending_publish_owner := ""
 var form_saved_code := ""
 var account_return: Callable
 var settings_return: Callable
@@ -32,6 +33,8 @@ var restore_choice := {}
 func _ready() -> void:
 	super._ready()
 	name = "UnifiedMenu"
+	# Full pages cover gameplay's map rims and short tower dialogs as well.
+	z_index = 200
 	# One fixed header and action area; only the content scrolls.
 	card.remove_child(scroll)
 	root_layout = VBoxContainer.new()
@@ -84,6 +87,7 @@ func notice(text: String) -> void:
 func show_main_menu() -> void:
 	page_view("main", "Hollow Vigil", Callable())
 	header.hide()
+	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var welcome := preload("res://scripts/ui/welcome_menu.gd").new()
 	welcome.configure(show_home.bind("campaign"), show_home.bind("infinite"))
 	content.add_child(welcome)
@@ -557,20 +561,27 @@ func submit_build(publish: bool) -> void:
 		show_account(show_build_form)
 		notice("Your private copy and selections are ready. Sign in and choose a player name, then return to Share to Community.")
 		return
-	if pending_publish != code:
+	if pending_publish != code or pending_publish_owner != app.cloud.player_id:
 		if not app.public_builds.queue_export(code): notice("Private copy saved. Couldn't prepare Community sharing. Please retry."); return
 		pending_publish = code
+		pending_publish_owner = app.cloud.player_id
 	await retry_share()
 
 func retry_share() -> void:
 	if app.public_builds.busy or app.cloud.busy: notice("Another account operation is finishing. Please retry in a moment."); return
+	if not app.cloud.signed_in() or app.cloud.display_name.is_empty(): show_account(show_build_form); return
+	if pending_publish_owner != app.cloud.player_id:
+		# Retry is an explicit publication action for the currently signed-in
+		# player. An older account's pending upload remains owned by that account.
+		if not app.public_builds.queue_export(pending_publish): notice("Couldn't prepare sharing. Your private copy is safe."); return
+		pending_publish_owner = app.cloud.player_id
 	var revision := view_revision
 	notice("Sharing to Community… Your private copy is saved.")
 	await app.public_builds.flush()
 	if revision != view_revision: return
 	var pending := false
 	for item in app.public_builds.outbox:
-		if item.configuration.get("checksum") == JSON.parse_string(pending_publish).get("checksum"): pending = true
+		if item.owner in ["", pending_publish_owner] and item.configuration.get("checksum") == JSON.parse_string(pending_publish).get("checksum"): pending = true
 	if pending:
 		show_build_form()
 		notice("Private copy saved. Community sharing hasn't finished. Check your connection and choose Retry.")
@@ -679,12 +690,13 @@ func show_rule_levels() -> void:
 		content.add_child(action("%02d · %s" % [index + 1, Build.Configuration.Catalog.level(index).name], show_campaign_rules.bind(index), "EditLevel" + str(index + 1)))
 
 func show_infinite_rules() -> void:
-	page_view("rules", "Edit rules", cancel_rules)
+	page_view("rules", "Edit rules", rules_back)
 	editor_game = VigilState.new(42, "creative", app.game.tuning)
 	content.add_child(UI.paragraph("Changes stay in this draft until you choose Apply changes."))
 	rules_editor = preload("res://scripts/ui/developer/developer_controls.gd").new()
 	rules_editor.game = editor_game
 	rules_editor.configuration_only = true
+	rules_editor.categories.assign(Build.STAT_GROUPS + ["session"])
 	content.add_child(rules_editor)
 	footer.add_child(action("Apply changes", func():
 		rules_editor.commit_fields()
@@ -694,7 +706,7 @@ func show_infinite_rules() -> void:
 	footer.add_child(action("Cancel", cancel_rules, "CancelRules"))
 
 func show_campaign_rules(index: int, wave: int = -1) -> void:
-	page_view("rules", "Edit rules", cancel_rules)
+	page_view("rules", "Edit rules", rules_back)
 	var store := Build.Configuration.new()
 	store.data.levels[str(index)] = app.campaign.level_setup(index).overrides.duplicate(true)
 	rules_editor = preload("res://scripts/campaign/balance_panel.gd").new()
@@ -708,6 +720,13 @@ func show_campaign_rules(index: int, wave: int = -1) -> void:
 	content.add_child(rules_editor)
 	footer.add_child(action("Apply changes", func(): rules_editor.save_changes(), "ApplyRules", true))
 	footer.add_child(action("Cancel", cancel_rules, "CancelRules"))
+
+func rules_back() -> void:
+	var controls: Control = rules_editor.controls if live_campaign() else rules_editor
+	if controls.editor.visible:
+		controls.show_categories()
+		scroll.scroll_vertical = 0
+	else: cancel_rules()
 
 func cancel_rules() -> void:
 	confirm("Discard rule changes?", "Leave this draft and keep the game's existing rules?", "Discard changes", show_rule_levels if live_campaign() else open_game_menu)

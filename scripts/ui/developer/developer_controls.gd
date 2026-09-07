@@ -65,7 +65,7 @@ func _ready() -> void:
 	add_child(category_list)
 	move_child(category_list, 0)
 	for section in categories:
-		var tab := UI.button(section.capitalize(), show_category.bind(section))
+		var tab := UI.button("Starting resources" if section == "session" else section.capitalize(), show_category.bind(section))
 		tab.name = section.capitalize() + "Category"
 		tabs[section] = tab
 		category_list.add_child(UI.action_row(tab.text, tab, "Open"))
