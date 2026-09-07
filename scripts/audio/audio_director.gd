@@ -207,10 +207,10 @@ func play(cue: String, position: Vector2 = Vector2.INF, source_field: Control = 
 		return # Full pools drop events instead of queuing a delayed combat roar.
 
 func playback_pitch(cue: String) -> float:
-	# Every effect category shares a fresh +/-0.1 shift around normal pitch.
+	# Every effect category shares a fresh +/-0.2 shift around normal pitch.
 	# Music and unknown cues keep normal pitch; RNG belongs to this director.
 	var varied := LIMITS.has(CATALOG.get(cue, {}).get("category", ""))
-	return pitch_rng.randf_range(0.9, 1.1) if varied else 1.0
+	return pitch_rng.randf_range(0.8, 1.2) if varied else 1.0
 
 func observe_control(node: Node) -> void:
 	if not app.is_ancestor_of(node):

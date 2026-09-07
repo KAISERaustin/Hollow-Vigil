@@ -31,10 +31,10 @@ func run() -> void:
 			check(a.accepted_events == accepted + 1 and active.size() == 1, "Playback accepted for " + cue)
 			if active.is_empty(): continue
 			var pitch: float = active[0].pitch_scale
-			check(pitch >= 0.9 and pitch <= 1.1, "Playback pitch bounds: " + cue)
+			check(pitch >= 0.8 and pitch <= 1.2, "Playback pitch bounds: " + cue)
 			observed[pitch] = true
 		check(observed.size() > 1, "Independent playback variation: " + cue)
-		check(observed.keys().min() < 1.0 and observed.keys().max() > 1.0, "Pitch varies above and below normal: " + cue)
+		check(observed.keys().min() < 0.9 and observed.keys().max() > 1.1, "Pitch reaches the wider variation range: " + cue)
 		check(a.streams[cue].mix_rate == rate, "Playback does not modify source stream: " + cue)
 	check(app.game.combat.rng.state == gameplay_state, "Audio variation never consumes gameplay RNG")
 	check(Director.CATALOG == specs, "Playback never changes shared audio configuration")
