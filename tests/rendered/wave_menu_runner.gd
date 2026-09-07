@@ -16,6 +16,22 @@ func check(ok: bool, message: String) -> void:
 func settle() -> void:
 	for frame in range(8): await process_frame
 
+func check_balance(screen: Control, context: String) -> void:
+	var scroll := screen.dialog_body.get_parent() as ScrollContainer
+	var details: Control = screen.dialog_body.get_node("WaveBalanceDetails")
+	check(Rect2(Vector2.ZERO, Vector2(root.size)).encloses(screen.dialog_card.get_global_rect()), "Balancing dialog fits " + context)
+	for child: Control in details.find_children("*", "Control", true, false):
+		check(child.get_global_rect().position.x >= scroll.global_position.x - 1 and child.get_global_rect().end.x <= scroll.get_global_rect().end.x + 1, "Balancing content fits horizontally: %s in %s" % [child.name, context])
+		if child is PanelContainer:
+			var style: StyleBox = child.get_theme_stylebox("panel")
+			check(style.border_width_left == 3 and style.border_width_top == 3 and style.border_width_right == 3 and style.border_width_bottom == 3, "Balancing cards share the standard outline " + context)
+	var header: Rect2 = screen.dialog_header.get_global_rect()
+	scroll.scroll_vertical = 100000
+	await settle()
+	check(details.get_global_rect().end.y <= scroll.get_global_rect().end.y + 1, "Final balancing content is reachable " + context)
+	check(screen.dialog_header.get_global_rect() == header, "Balancing navigation stays fixed while scrolling " + context)
+	check(screen.dialog_header.get_node("BackButton").size.y >= 48 and screen.find_child("CloseCampaignDialog", true, false).size.y >= 48, "Balancing navigation keeps touch targets " + context)
+
 func run() -> void:
 	var app := VigilApp.new()
 	app.load_saved_progress = false
@@ -68,9 +84,24 @@ func run() -> void:
 				last.pressed.emit()
 				await settle()
 				check(screen.dialog_title.text == "Wave %d balancing" % screen.run.mission.waves.size(), "Details open the selected wave " + context)
+				await check_balance(screen, context)
+				check(screen.run.game.data == before, "Reading balancing leaves gameplay unchanged " + context)
 				screen.dialog_header.get_node("BackButton").pressed.emit()
 				await settle()
 				check(screen.waves_dialog and screen.dialog_title.text == "Waves", "Details return to the wave list " + context)
+	# Opening and second-wave reports cover the small card and scrolling comparison.
+	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960), Vector2i(640, 360)]:
+		root.size = viewport
+		root.content_scale_size = viewport
+		screen.start_mission(15)
+		for wave in [0, 1]:
+			screen.show_wave_balance(wave)
+			await settle()
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png("res://artifacts/wave-balance-%dx%d-wave-%d.png" % [viewport.x, viewport.y, wave + 1])
+			await check_balance(screen, "wave %d at %s" % [wave + 1, viewport])
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png("res://artifacts/wave-balance-%dx%d-wave-%d-bottom.png" % [viewport.x, viewport.y, wave + 1])
 	# Editing still opens the selected scope through the existing authoring owner.
 	screen.mode = "creative"
 	screen.start_mission(0)
