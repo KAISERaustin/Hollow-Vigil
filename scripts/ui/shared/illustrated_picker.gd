@@ -28,16 +28,19 @@ func _ready() -> void:
 		if is_visible_in_tree(): grab_focus()
 	)
 	var body := VBoxContainer.new()
-	body.add_theme_constant_override("separation", 8)
+	body.add_theme_constant_override("separation", 0)
 	popup.add_child(body)
+	var heading := VBoxContainer.new()
+	heading.add_theme_constant_override("separation", 8)
+	body.add_child(heading)
 	var header := HBoxContainer.new()
-	body.add_child(header)
+	heading.add_child(header)
 	var title := UI.fitted_heading(menu_title, 24)
 	title.name = "PickerTitle"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 	header.add_child(UI.close_button(popup.hide))
-	body.add_child(UI.rule())
+	heading.add_child(UI.rule())
 	scroll = ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -46,7 +49,8 @@ func _ready() -> void:
 	UI.keyboard_scroll(scroll, "Scroll through choices")
 	rows = VBoxContainer.new()
 	rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	rows.add_theme_constant_override("separation", 4)
+	# Row contents center between adjacent rules, without extra space above them.
+	rows.add_theme_constant_override("separation", 0)
 	scroll.add_child(rows)
 
 func clear() -> void:

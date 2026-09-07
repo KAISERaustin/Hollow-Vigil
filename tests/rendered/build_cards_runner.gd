@@ -80,7 +80,7 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 		check(vertical.get_global_rect().grow(1).encloses(number.get_global_rect()), label + " detail stat is reachable: " + number.name)
 	vertical.ensure_control_visible(details.get_child(-1))
 	await settle()
-	check(vertical.get_global_rect().grow(1).encloses(details.get_child(-1).get_global_rect()), label + " final specialization description is reachable")
+	check(vertical.get_global_rect().grow(1).encloses(details.get_child(-1).get_global_rect()), label + " final detail is reachable")
 	check(back.is_visible_in_tree() and menu.get_global_rect().encloses(back.get_global_rect()) and menu.get_global_rect().encloses(confirm.get_global_rect()), label + " navigation and Build stay pinned while scrolling")
 	back.pressed.emit()
 	await settle()

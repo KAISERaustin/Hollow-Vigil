@@ -14,9 +14,9 @@ static func draw(art: Control, kind: String) -> void:
 	if kind == "gold":
 		var center := art.size * 0.5
 		var scale := minf(art.size.x, art.size.y) / 64.0
-		for height in [14, 7, 0]:
+		for height in [7, 0, -7]:
 			VigilTerrainArt.ellipse(art, center + Vector2(-10, height) * scale, Vector2(13, 6) * scale, UI.GOLD, 2 * scale)
-		var coin := center + Vector2(11, 7) * scale
+		var coin := center + Vector2(11, 0) * scale
 		VigilTerrainArt.disk(art, coin, 13 * scale, UI.GOLD, 2 * scale)
 		art.draw_arc(coin, 9 * scale, 0, TAU, 32, UI.TEXT, scale, true)
 		VigilTerrainArt.shape(art, [Vector2(0, -5), Vector2(3, 0), Vector2(0, 5), Vector2(-3, 0)], coin, Vector2.ONE * scale, UI.TEXT, 0)

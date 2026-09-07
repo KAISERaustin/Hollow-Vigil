@@ -73,13 +73,6 @@ static func details(kind: String, tuning: Dictionary) -> VBoxContainer:
 	add_stat(grid, "fire_rate", "Attacks per second", UI.exact_money(1.0 / stats.period))
 	add_stat(grid, "dps", "Base DPS / target", UI.exact_money(stats.damage / stats.period))
 	body.add_child(UI.label("Base stats before equipment bonuses.", 12))
-	var branches: Dictionary = Balance.BRANCHES.get(kind, {})
-	if not branches.is_empty():
-		body.add_child(UI.heading("Level 4 specializations", 14))
-		for branch in branches:
-			var option := Balance.stats(kind, 4, tuning, branch)
-			body.add_child(UI.heading(option.name, 13))
-			body.add_child(UI.paragraph(Balance.tower_description(option), 13))
 	return body
 
 static func add_stat(grid: GridContainer, key: String, title: String, value: String) -> void:
