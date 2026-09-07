@@ -64,6 +64,8 @@ Run `Godot --headless --path . --script tests/developer_tiers_runner.gd` for sch
 
 ## Relic equipment
 
+The revised roster also runs `unit/gear_rework_checks.gd`: actual ground damage and overlap, area-stun boundaries and immunity, credited-kill stacks, range acquisition, scaling Pyre blasts, component reassignment/removal, campaign cleanup and retired Lantern settings. `rendered/gear_gameplay_runner.gd` opens every item at 360×640, 390×844 and 540×960 in both modes and checks the equipped range circle and upgrade comparison. `rendered/gear_art_runner.gd` exports all eighteen native illustrations to `assets/gear/`, verifies transparent padding and small silhouettes, and renders the parchment board. The art runner is included in `-ArtSmoke` and `-Check`.
+
 The main headless suite includes `unit/relic_checks.gd` for guaranteed drops, transfers, ownership validation, legacy rewards, save roundtrips, and combat across every tower and specialization. Run Godot with `--path . --script tests/rendered/relic_runner.gd` for equipment mouse/touch interactions and responsive screenshots at three sizes.
 
 Run `--headless --path . --script tests/gear_runner.gd` for the eighteen-piece catalog, complete boss sets, every gear tuning field, reusable attribute composition, damage/status effects, removal, pooling and legacy save migration. These checks also run in the full unit suite. Run `--path . --script tests/rendered/gear_menu_checks.gd` for every Gear editor field at 360×640, 390×844 and 540×960, source-boss descriptions, exact defaults, illustrated selection menu sizing, reset and save-on-close. It produces `artifacts/gear-lineup.png` and per-piece editor screenshots.

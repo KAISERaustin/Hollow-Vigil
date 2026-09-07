@@ -10,6 +10,7 @@ static func run(t) -> void:
 	kill_stacks(t)
 	range_and_blast(t)
 	composition(t)
+	ground_composition(t)
 	persistence(t)
 	campaign_cleanup(t)
 	print("PASS GROUP: revised gear ground fields, area stun, kill stacks, range, splash and legacy saves")
@@ -185,6 +186,36 @@ static func composition(t) -> void:
 	t.check(b.prepare(sibling, 1, 0.0, stats).relic_damage_multiplier == 1.05, "Same kill component works on another assigned type")
 	var removed = a.without_component("gear/no_kills", "kills")
 	t.check(removed.prepare(first, 1, 0.1, stats).relic_damage_multiplier == 1.0 and not first.components.has("kills"), "Explicit kill-component removal discards its runtime counter")
+
+static func ground_composition(t) -> void:
+	# Install prototypes only in this process's isolated catalog, then restore it.
+	var original := Content.catalog()
+	Content._shared = Content.new()
+	var component = Content.catalog().get_node("attribute/ground_damage")
+	for base in ["king_edge", "king_signet"]:
+		var prototype = Content.gear(base).with_component("gear/ground_" + base, "field", component, {"attack_count": 1.0, "duration": 3.0, "area_radius": 45.0, "dot_multiplier": 0.2, "fire_damage": 1.0})
+		var key: String = "ground_" + base
+		t.check(Content.catalog().register_node(prototype, "gear", key), "Register another recipient of shared ground damage")
+		var f := Gear.fixture(t, base)
+		f.game.data.relics["90,90"] = key
+		var progress: Dictionary = prototype.make_record()
+		var stats: Dictionary = prototype.prepare(progress, f.enemy.id, 0.0, Balance.tower_stats(f.tower))
+		stats.gear_epoch = f.game.combat.relic_epochs.get(f.tower.id, 0)
+		f.game.combat.launch_shot(f.tower, f.enemy.pos, f.enemy, stats)
+		f.game.combat.advance_shots(1.0)
+		var before: float = f.enemy.hp
+		f.game.combat.simulation_time = 1.0
+		f.game.combat.EffectFields.advance(f.game.combat, 1.0)
+		t.check(is_equal_approx(before - f.enemy.hp, 1.2), "Ground damage executes on another assigned gear type: " + base)
+		t.check(Content.gear(base).prepare(Content.gear(base).make_record(), 1, 0.0, Balance.tower_stats(f.tower)).gear_effects.size() == 1, "Unassigned original keeps only its own conditional attribute")
+		var removed = prototype.without_component("gear/removed_" + base, "field")
+		Content.catalog().register_node(removed, "gear", "removed_" + base)
+		f.game.data.relics["90,90"] = "removed_" + base
+		f.game.combat.simulation_time = 2.0
+		before = f.enemy.hp
+		f.game.combat.EffectFields.advance(f.game.combat, 1.0)
+		t.check(f.game.combat.effect_fields.is_empty() and f.enemy.hp == before, "Component removal expires its active ground field")
+	Content._shared = original
 
 static func persistence(t) -> void:
 	var f := Gear.fixture(t, "matriarch_lantern")
