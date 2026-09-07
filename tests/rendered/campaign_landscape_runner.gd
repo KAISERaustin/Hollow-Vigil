@@ -68,6 +68,7 @@ func run() -> void:
 	var progress := preload("res://scripts/campaign/progress.gd").new()
 	progress.allow_all=true
 	for width in [360,390,540]:
+		var width_gallery := Image.create(width*3,960*2,false,Image.FORMAT_RGBA8)
 		viewport=SubViewport.new()
 		viewport.size=Vector2i(width,960)
 		viewport.render_target_update_mode=SubViewport.UPDATE_ALWAYS
@@ -85,7 +86,9 @@ func run() -> void:
 			await frame()
 			var picture := viewport.get_texture().get_image()
 			picture.save_png("res://artifacts/campaign-landscape-%d-%d.png"%[width,index+1])
+			width_gallery.blit_rect(picture,Rect2i(0,0,width,960),Vector2i((index%3)*width,int(index/3.0)*960))
 			if width==390: gallery.blit_rect(picture,Rect2i(0,0,390,960),Vector2i((index%3)*390,int(index/3.0)*960))
+		width_gallery.save_png("res://artifacts/campaign-landscape-gallery-%d.png"%width)
 		viewport.queue_free()
 		await process_frame
 	gallery.save_png("res://artifacts/campaign-landscape-gallery.png")

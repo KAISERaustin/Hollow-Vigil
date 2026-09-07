@@ -922,13 +922,18 @@ func go_back() -> void:
 		if back != null: back.pressed.emit()
 		return
 	if is_instance_valid(tower_dialog) and tower_dialog.visible:
-		tower_dialog.dismiss()
+		tower_dialog.go_back()
 	elif is_instance_valid(tower_move) and tower_move.visible:
 		tower_move.cancel()
 	elif dialog.visible:
-		close_dialog()
-	elif active_campaign_slot >= 0 and page in ["map", "battle"]:
-		app.show_game_menu()
+		var back := dialog_header.get_node_or_null("BackToTowers") as Button
+		if back == null: back = dialog_header.get_node_or_null("BackButton") as Button
+		if back != null and back.visible: back.pressed.emit()
+		else: close_dialog()
+	elif page == "battle":
+		show_map()
+	elif active_campaign_slot >= 0 and page == "map":
+		app.show_save_slots("campaign")
 	elif page == "map":
 		show_setup()
 	elif page != "setup":

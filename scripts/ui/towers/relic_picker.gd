@@ -26,10 +26,10 @@ static func build(dialog) -> void:
 	equipped_name.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	summary_row.add_child(equipped_name)
 	if equipped_kind != "":
-		var remove := UI.button("×", dialog.request_equipment_removal, 44)
+		var remove := UI.button("×", dialog.request_equipment_removal, UI.TARGET)
 		remove.name = "RemoveEquipment"
 		remove.accessibility_description = "Remove equipment"
-		remove.custom_minimum_size.x = 44
+		remove.custom_minimum_size.x = UI.TARGET
 		remove.size_flags_horizontal = Control.SIZE_SHRINK_END
 		remove.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		summary_row.add_child(remove)

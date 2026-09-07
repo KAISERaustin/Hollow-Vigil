@@ -112,6 +112,7 @@ try {
             Invoke-Godot -Name 'campaign-global-rules' -EngineArguments @('--script', 'res://tests/rendered/campaign_configuration_runner.gd')
             Invoke-Godot -Name 'build-cards' -EngineArguments @('--script', 'res://tests/rendered/build_cards_runner.gd')
             Invoke-Godot -Name 'tower-upgrade-preview' -EngineArguments @('--script', 'res://tests/rendered/tower_upgrade_preview_runner.gd')
+            Invoke-Godot -Name 'tower-expansion-art' -EngineArguments @('--script', 'res://tests/rendered/tower_expansion_art_runner.gd')
             Invoke-Godot -Name 'build-preview' -EngineArguments @('--script', 'res://tests/rendered/build_preview_runner.gd')
             Invoke-Godot -Name 'build-selection' -EngineArguments @('--script', 'res://tests/rendered/build_selection_runner.gd')
             Invoke-Godot -Name 'tower-framing' -EngineArguments @('--script', 'res://tests/rendered/tower_framing_runner.gd')

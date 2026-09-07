@@ -28,6 +28,14 @@ func run() -> void:
 		var column := 0
 		for stage in [[1, ""], [4, Balance.BRANCHES[kind].keys()[0]], [4, Balance.BRANCHES[kind].keys()[1]]]:
 			var f := Integration.live_fixture(fixtures, kind, stage[0], stage[1])
+			f.game.combat.authored_roads = f.game.paths.values()
+			var nearest := INF
+			for road in f.game.combat.authored_roads:
+				for segment in range(1, road.size()):
+					var point := Geometry2D.get_closest_point_to_segment(f.origin, road[segment - 1], road[segment])
+					if point.distance_squared_to(f.origin) < nearest:
+						nearest = point.distance_squared_to(f.origin)
+						f.enemy.pos = point
 			var viewport := SubViewport.new()
 			viewport.size = Vector2i(320, 240)
 			viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
@@ -37,8 +45,8 @@ func run() -> void:
 			field.size = viewport.size
 			viewport.add_child(field)
 			field.set_process(false)
-			field.camera = f.origin + Vector2(15, -10)
-			field.zoom = 1.6
+			field.camera = f.origin + Vector2(0, 10)
+			field.zoom = 1.2
 			# Freeze a real launched projectile, mark or armed trap for inspection.
 			f.game.combat.tick(Balance.STEP)
 			f.tower.cooldown = 100.0

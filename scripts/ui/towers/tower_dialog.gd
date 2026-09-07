@@ -82,7 +82,7 @@ func _ready() -> void:
 	identity.add_child(header_close)
 	header_divider = ColorRect.new()
 	header_divider.color = UI.BORDER
-	header_divider.custom_minimum_size.y = 2
+	header_divider.custom_minimum_size.y = UI.OUTLINE
 	header_divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layout.add_child(header_divider)
 	equipment_summary = VBoxContainer.new()
@@ -455,5 +455,12 @@ func dismiss(restore_actions: bool = true) -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if visible and event.is_action_pressed("ui_cancel"):
-		dismiss()
+		go_back()
 		get_viewport().set_input_as_handled()
+
+func go_back() -> void:
+	# System Back follows the same nested equipment route as its visible controls.
+	if mode in ["equipment_detail", "equipment_remove"]:
+		open_action("equipment")
+	else:
+		dismiss()
