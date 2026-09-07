@@ -1,6 +1,7 @@
 extends "res://tests/branch_runner.gd"
 const Content = preload("res://scripts/content/registry.gd")
 const Relics = preload("res://scripts/gameplay/progression/relics.gd")
+const AfflictionArt = preload("res://scripts/rendering/effects/affliction_art.gd")
 
 func fire(g: VigilState, target: Dictionary, id: String = "1", primary: bool = true) -> void:
 	var tower: Dictionary = g.data.towers[id]
@@ -15,7 +16,11 @@ func advance(g: VigilState, seconds: float) -> void:
 func run() -> void:
 	var g := fixture("rapid", "thorn_volley")
 	var target := enemy(g)
+	check(not AfflictionArt.poisoned(target, 0.0), "Unassigned enemy has no poison cue")
 	fire(g, target)
+	check(AfflictionArt.poisoned(target, 0.0), "Applied poison enables target cue")
+	check(not AfflictionArt.poisoned(target, 3.0), "Poison cue ends exactly at expiry")
+	check(not AfflictionArt.poisoned({"gear_status": {"burn": {"type": "dot", "damage": 5.0, "fire": true, "until": 3.0}}}, 0.0), "Fire damage does not display poison")
 	check(target.hp == 9985.0 and target.gear_status.size() == 1, "Aimed hit deals direct damage and applies one poison")
 	var poison: Dictionary = target.gear_status.values()[0]
 	check(poison.damage == 5.0 and poison.until == 3.0 and not poison.fire, "Default poison deals five damage per second for three seconds")

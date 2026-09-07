@@ -18,17 +18,23 @@ var numbers: Array[SpinBox] = []
 var message: Label
 var inherited := {}
 var groups: Array = []
+var live_run: RefCounted
+var initial_scope := -1
+var apply_changes: Callable
 
 func _ready() -> void:
 	name = "CampaignBalancePanel"
 	add_theme_constant_override("separation", 12)
 	draft = store.overrides(index)
-	add_child(UI.paragraph("Level %d · %s\nSave changes to use them next time this level starts." % [index + 1, Configuration.Catalog.level(index).name], 16))
+	add_child(UI.paragraph("Level %d · %s" % [index + 1, Configuration.Catalog.level(index).name], 16))
+	add_child(UI.paragraph("Save applies rules to this run and future replays. Existing enemies keep their stats; pending spawns use the new settings. Times are measured from the wave's start. Starting gold and flame apply during initial setup or on restart." if live_run != null else "Save changes to use them next time this level starts.", 14))
 	scope_picker = OptionButton.new()
 	scope_picker.name = "CampaignBalanceScope"
 	scope_picker.custom_minimum_size.y = UI.TARGET
 	scope_picker.add_item("Level defaults")
 	for wave in Configuration.Catalog.level(index).waves.size(): scope_picker.add_item("Wave %d overrides" % (wave + 1))
+	scope = initial_scope
+	scope_picker.select(scope + 1)
 	scope_picker.item_selected.connect(func(selected: int):
 		commit_scope()
 		scope = selected - 1
@@ -121,7 +127,7 @@ func build_groups() -> void:
 			if column == 2: limits.max = Configuration.Catalog.level(index).routes.size() - 1
 			var input := number_row(limits.label, group[column], limits, func(value: float): group[column] = value)
 			input.name = "CampaignGroup%d_%d" % [group_index, column]
-		if groups.size() > 1:
+		if groups.size() > 1 and not (live_run != null and live_run.phase == "wave" and live_run.wave == scope):
 			body.add_child(UI.button("Remove group %d" % (group_index + 1), func():
 				commit_scope()
 				groups.remove_at(group_index)
@@ -150,8 +156,9 @@ func commit_scope() -> void:
 
 func save_changes() -> void:
 	commit_scope()
-	if store.save_level(index, draft):
-		message.text = "Level configuration saved. Existing missions keep their current rules."
+	var ok: bool = apply_changes.call(index, draft) if apply_changes.is_valid() else store.save_level(index, draft)
+	if ok:
+		message.text = "Level configuration saved. Active rules updated." if live_run != null else "Level configuration saved."
 		saved.emit()
 	else:
 		message.text = store.last_error

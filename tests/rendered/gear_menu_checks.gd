@@ -68,13 +68,13 @@ func run() -> void:
 			check(app.get_global_rect().encloses(app.panels.get_global_rect()), "Gear editor fits viewport")
 			if kind in ["warden", "prior_mirror", "mourning_matriarch"]:
 				await Harness.capture(app, "gear-" + kind + "-" + str(dimensions.x))
-		# The final entry is reachable in the bounded dropdown, including touch.
+		# The final entry is reachable in the bounded selection menu, including touch.
 		app.panels.content_scroll.ensure_control_visible(controls.selector)
 		await settle()
 		await Harness.tap(app, controls.selector.get_global_rect().get_center())
 		await settle()
-		var popup: PopupMenu = controls.selector.get_popup()
-		check(popup.visible and popup.size.y <= mini(336, dimensions.y), "Eighteen-item dropdown remains bounded")
+		var popup: PopupPanel = controls.selector.get_popup()
+		check(popup.visible and popup.size.y <= mini(560, dimensions.y - 24), "Eighteen-item selection menu remains bounded")
 		popup.hide()
 		var reset: Button = controls.find_child("ResetSelectedBalance", true, false)
 		app.panels.content_scroll.ensure_control_visible(reset)

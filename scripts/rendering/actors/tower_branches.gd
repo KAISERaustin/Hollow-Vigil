@@ -29,17 +29,21 @@ static func draw(c: CanvasItem, branch: String, at: Vector2, zoom: float) -> voi
 			for angle in [0.0, PI/3, PI*2/3]:
 				c.draw_line(Vector2(0,-10)+Vector2.from_angle(angle)*6,Vector2(0,-10)-Vector2.from_angle(angle)*6,A.PAPER,1.7,true)
 		"thorn_volley":
-			poly(c,[Vector2(-14,6),Vector2(-11,-22),Vector2(11,-22),Vector2(14,6)],LEAF)
-			poly(c,[Vector2(-22,-18),Vector2(-27,-30),Vector2(0,-39),Vector2(27,-30),Vector2(22,-18)],A.GOLD)
-			for index in range(5):
-				var x := (index-2)*10.0
-				var base := Vector2(x,-26-absf(x)*0.05)
-				var tip := base + Vector2((index-2)*4,-19+absf(index-2)*2)
-				var normal := (tip-base).normalized().orthogonal()*3
-				poly(c,[base-normal,tip-normal,tip+Vector2(0,-5),tip+normal,base+normal],LEAF)
+			# Venom reservoir with a single bone dart nozzle.
+			poly(c,[Vector2(-17,6),Vector2(-21,-5),Vector2(-19,-18),Vector2(-8,-30),Vector2(-8,-40),Vector2(8,-40),Vector2(8,-30),Vector2(19,-18),Vector2(21,-5),Vector2(17,6)],Color("b5cbb0"))
+			poly(c,[Vector2(-16,-16),Vector2(16,-16),Vector2(17,-5),Vector2(13,3),Vector2(-13,3),Vector2(-17,-5)],LEAF)
+			A.ellipse(c,Vector2(0,-16),Vector2(16,4),Color("c5da91"),1.5)
 			for side in [-1,1]:
-				poly(c,[Vector2(side*10,-9),Vector2(side*23,-17),Vector2(side*18,-4),Vector2(side*24,1),Vector2(side*11,5)],LEAF)
-			c.draw_line(Vector2(-6,0),Vector2(6,-17),A.PAPER,2,true)
+				poly(c,[Vector2(side*13,5),Vector2(side*19,5),Vector2(side*22,-8),Vector2(side*19,-11)],DARK)
+			poly(c,[Vector2(-11,-39),Vector2(-11,-45),Vector2(11,-45),Vector2(11,-39)],DARK)
+			poly(c,[Vector2(-5,-45),Vector2(-5,-51),Vector2(14,-51),Vector2(20,-47),Vector2(14,-43),Vector2(5,-43)],A.PAPER)
+			c.draw_line(Vector2(12,-47),Vector2(19,-47),LEAF,2,true)
+			c.draw_line(Vector2(-13,-23),Vector2(-16,-19),A.PAPER,2,true)
+			A.disk(c,Vector2(8,-7),2.5,Color("c5da91"),1)
+			A.disk(c,Vector2(-2,-7),6,A.PAPER,1.5)
+			for x in [-4,0]:
+				c.draw_circle(Vector2(x,-8),1.4,A.INK)
+			c.draw_line(Vector2(-4,-2),Vector2(0,-2),A.INK,2,true)
 		"cinderfield":
 			poly(c,[Vector2(-17,6),Vector2(-12,-10),Vector2(12,-10),Vector2(17,6)],DARK)
 			poly(c,[Vector2(-26,-22),Vector2(26,-22),Vector2(19,-5),Vector2(-19,-5)],DARK)

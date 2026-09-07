@@ -4,7 +4,8 @@ signal changed
 signal layout_changed
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
-const SELECTOR_ARROW = preload("res://assets/ui/selector_arrow.svg")
+const Picker = preload("res://scripts/ui/shared/illustrated_picker.gd")
+const Portrait = preload("res://scripts/ui/shared/content_portrait.gd")
 var categories: Array[String] = ["session", "bosses", "rifts", "enemies", "towers", "gear"]
 var configuration_only := false
 var game: VigilState
@@ -15,8 +16,8 @@ var tabs: Dictionary = {}
 var general: VBoxContainer
 var category_list: VBoxContainer
 var editor: VBoxContainer
-var selector: OptionButton
-var tier_selector: OptionButton
+var selector: Button
+var tier_selector: Button
 var selected_level := 1
 var selected_branch := ""
 var fields: VBoxContainer
@@ -93,21 +94,9 @@ func _ready() -> void:
 	description = UI.paragraph("", UI.CAPTION)
 	description.name = "BalanceDescription"
 	editor.add_child(description)
-	selector = OptionButton.new()
+	selector = Picker.new()
 	selector.name = "BalanceUnit"
-	selector.get_popup().about_to_popup.connect(limit_dropdown.bind(selector))
-	selector.custom_minimum_size.y = UI.TARGET
-	selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	selector.add_theme_stylebox_override("normal", UI.box(UI.SURFACE))
-	selector.add_theme_stylebox_override("hover", UI.box(UI.SURFACE))
-	selector.add_theme_stylebox_override("pressed", UI.box(UI.GOLD))
-	selector.add_theme_stylebox_override("hover_pressed", UI.box(UI.GOLD))
-	selector.add_theme_stylebox_override("focus", UI.focus_box())
-	selector.add_theme_icon_override("arrow", SELECTOR_ARROW)
-	selector.add_theme_constant_override("modulate_arrow", 0)
-	selector.add_theme_color_override("font_color", UI.TEXT)
-	selector.add_theme_color_override("font_hover_color", UI.TEXT)
-	selector.add_theme_color_override("font_pressed_color", UI.TEXT)
+	selector.preview_factory = func(kind: String): return Portrait.preview(category, kind)
 	selector.item_selected.connect(func(index: int):
 		commit_fields()
 		selected_kind = selector.get_item_metadata(index)
@@ -115,11 +104,10 @@ func _ready() -> void:
 		show_fields()
 	)
 	editor.add_child(selector)
-	limit_dropdown(selector)
-	selector.get_popup().shrink_width = false
-	tier_selector = selector.duplicate(0)
+	tier_selector = Picker.new()
 	tier_selector.name = "BalanceTier"
-	tier_selector.get_popup().about_to_popup.connect(limit_dropdown.bind(tier_selector))
+	tier_selector.menu_title = "Choose tower tier"
+	tier_selector.preview_factory = func(choice: Dictionary): return Portrait.preview("towers", selected_kind, choice.level, choice.branch)
 	tier_selector.item_selected.connect(func(index: int):
 		commit_fields()
 		var choice: Dictionary = tier_selector.get_item_metadata(index)
@@ -131,8 +119,6 @@ func _ready() -> void:
 	# Keep type and tier selection reachable before artwork or long descriptions.
 	editor.move_child(selector, 0)
 	editor.move_child(tier_selector, 1)
-	limit_dropdown(tier_selector)
-	tier_selector.get_popup().shrink_width = false
 	hint = UI.paragraph("", 12)
 	editor.add_child(hint)
 	description_rule = UI.rule()
@@ -160,12 +146,6 @@ func _ready() -> void:
 	editor.add_child(UI.action_row(reset_all.text, reset_all, "Reset"))
 	show_categories()
 
-func limit_dropdown(option: OptionButton) -> void:
-	# Set this before the first popup layout; about_to_popup alone runs too late
-	# to constrain its initial minimum height and screen placement.
-	var viewport_size := get_viewport_rect().size
-	option.get_popup().max_size = Vector2i(int(viewport_size.x), mini(UI.TARGET * 6, int(viewport_size.y)))
-
 func commit_fields() -> void:
 	for number in inputs.values():
 		if is_instance_valid(number) and number.is_inside_tree():
@@ -185,6 +165,7 @@ func show_category(section: String) -> void:
 	general.hide()
 	editor.show()
 	selector.clear()
+	selector.menu_title = "Choose " + category
 	var definitions: Dictionary = Balance.TOWERS if category == "towers" else Balance.definitions(category)
 	for kind in definitions:
 		selector.add_item(definitions[kind].name)
@@ -281,14 +262,7 @@ func refresh_identity() -> void:
 	portrait.queue_redraw()
 
 func draw_portrait() -> void:
-	var center := portrait.size * 0.5
-	var art_scale := portrait.size.y / 144.0
-	match category:
-		"enemies": VigilEnemyArt.draw(portrait, selected_kind, center + Vector2(0, 10) * art_scale, 3.0 * art_scale)
-		"bosses": preload("res://scripts/rendering/actors/boss_art.gd").portrait(portrait, selected_kind, center + Vector2(0, 5) * art_scale, 1.1 * art_scale)
-		"rifts": preload("res://scripts/rendering/actors/rift_art.gd").draw(portrait, selected_kind, center + Vector2(0, 20) * art_scale, 1.8 * art_scale)
-		"gear": preload("res://scripts/rendering/actors/relic_art.gd").draw(portrait, selected_kind, center, 3.6 * art_scale)
-		"towers": VigilTerrainArt.sentinel(portrait, selected_kind, center + Vector2(0, 46) * art_scale, 1.7 * art_scale, selected_level, selected_branch)
+	Portrait.draw(portrait, category, selected_kind, selected_level, selected_branch)
 
 func add_number(stat: String) -> void:
 	var descriptor: Dictionary = Balance.field_limits(category, editing_kind(), stat)

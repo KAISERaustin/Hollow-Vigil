@@ -113,6 +113,7 @@ func can_author() -> bool:
 func apply_configuration(overrides: Dictionary) -> bool:
 	if not can_author() or not editable() or not Configuration.valid_level(mission.index, overrides): return false
 	var next := Configuration.resolve(mission.index, overrides)
+	if phase == "wave" and next.waves[wave].size() < mission.waves[wave].size(): return false
 	# Already spawned enemies keep their health/effects. Only outstanding group members change.
 	if phase == "wave":
 		var pending: Array[Dictionary] = []

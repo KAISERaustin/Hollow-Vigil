@@ -515,6 +515,7 @@ func draw_enemy(e: Dictionary) -> void:
 		z *= preload("res://scripts/rendering/actors/boss_art.gd").SIZE_SCALE
 	else:
 		VigilTerrainArt.enemy(self, e.kind, p, z)
+	preload("res://scripts/rendering/effects/affliction_art.gd").draw(self, e, p, z, state.combat.simulation_time)
 	if e.get("slow_until", 0.0) > state.combat.simulation_time:
 		draw_arc(p, 15*z, 0, TAU, 24, Color("96d6e6"), 2*z, true)
 		for index in range(6):

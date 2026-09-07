@@ -45,12 +45,12 @@ func check_editor(controls: Control, context: String) -> void:
 	check(scroll.get_global_rect().grow(1).encloses(controls.selector.get_global_rect()), context + ": selector is not initially visible")
 	if controls.tier_selector.visible:
 		check(scroll.get_global_rect().grow(1).encloses(controls.tier_selector.get_global_rect()), context + ": tier selector is not initially visible")
-	for selector: OptionButton in [controls.selector, controls.tier_selector]:
+	for selector: Button in [controls.selector, controls.tier_selector]:
 		if not selector.visible:
 			continue
 		var text_width := selector.get_theme_font("font").get_string_size(selector.text, HORIZONTAL_ALIGNMENT_LEFT, -1, selector.get_theme_font_size("font_size")).x
-		var reserved := selector.get_theme_stylebox("normal").get_minimum_size().x + selector.get_theme_icon("arrow").get_width() + selector.get_theme_constant("h_separation")
-		check(text_width + reserved <= selector.size.x + 1, context + ": selector text is clipped: " + selector.text)
+		var reserved := selector.get_theme_stylebox("normal").get_minimum_size().x
+		check(selector.autowrap_mode != TextServer.AUTOWRAP_OFF or text_width + reserved <= selector.size.x + 1, context + ": selector text is clipped: " + selector.text)
 	for child in controls.find_children("*", "Control", true, false):
 		if child.is_visible_in_tree():
 			check(child.get_global_rect().position.x >= scroll.global_position.x - 1 and child.get_global_rect().end.x <= scroll.get_global_rect().end.x + 1, context + ": horizontal overflow in " + str(child.name))
@@ -112,9 +112,10 @@ func run() -> void:
 					await settle()
 			controls.selector.show_popup()
 			await settle()
-			var popup: PopupMenu = controls.selector.get_popup()
-			check(popup.visible and popup.size.y <= 288, "Dropdown height is bounded: " + category)
-			check(Rect2i(Vector2i.ZERO, dimensions).encloses(Rect2i(popup.position, popup.size)), "Dropdown stays on screen: " + category)
+			var popup: PopupPanel = controls.selector.get_popup()
+			check(popup.visible and popup.size.y <= 560, "Selection menu height is bounded: " + category)
+			check(Rect2i(Vector2i.ZERO, dimensions).encloses(Rect2i(popup.position, popup.size)), "Selection menu stays on screen: " + category)
+			await capture(category + "-picker-" + str(dimensions.x))
 			popup.hide()
 			for reset_name in ["ResetSelectedBalance", "ResetAllBalance"]:
 				var reset := controls.find_child(reset_name, true, false) as Button
@@ -134,3 +135,4 @@ func run() -> void:
 	await process_frame
 	print("DEVELOPER_LAYOUT: %d checks, %d failures; all registered categories, every type and tower tier at three viewport sizes" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
+

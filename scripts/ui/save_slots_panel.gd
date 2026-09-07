@@ -203,27 +203,15 @@ func show_creation(slot: int, reset: bool = true) -> void:
 		else: app.activate_slot(game, slot)
 	)
 	create.name = "CreateSave"
-	var group := ButtonGroup.new()
-	var modes := HBoxContainer.new()
-	modes.add_theme_constant_override("separation", 8)
+	var modes := preload("res://scripts/ui/shared/mode_picker.gd").new()
 	content.add_child(modes)
-	var mode_help := UI.paragraph("", 14)
 	var descriptions := {"creative": "Edit the rules, experiment with towers, and make builds to share.", "survival": "Play with the selected rules locked. Developer Controls are unavailable."}
-	mode_help.text = descriptions[creation_mode]
-	for game_mode in ["creative", "survival"]:
-		var button := UI.button(game_mode.capitalize(), func():
-			creation_mode = game_mode
-			gold_row.visible = game_mode == "creative"
-			create.text = "Start %s game" % game_mode.capitalize()
-			mode_help.text = descriptions[game_mode]
-		)
-		button.name = "Mode" + game_mode.capitalize()
-		button.toggle_mode = true
-		button.button_group = group
-		button.button_pressed = game_mode == creation_mode
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		modes.add_child(button)
-	content.add_child(mode_help)
+	modes.configure(creation_mode, descriptions)
+	modes.selected.connect(func(game_mode: String):
+		creation_mode = game_mode
+		gold_row.visible = game_mode == "creative"
+		create.text = "Start %s game" % game_mode.capitalize()
+	)
 	content.move_child(gold_row, content.get_child_count() - 1)
 	footer.add_child(create)
 
@@ -271,12 +259,12 @@ func show_export(source: VigilState = null, campaign: Dictionary = {}, return_to
 	export_stats_only = false
 	clear("Save or share configuration")
 	add_back(UI.button("Back to game", export_return))
-	content.add_child(UI.paragraph("Choose what to include. Towers + stats keeps the layout, equipment, resources and rules. Stats only shares the rules and stat changes for a fresh start.", 14))
+	content.add_child(UI.paragraph("Share all 20 levels: enemy groups, spawn timing, wave rewards and every edited stat. Include saved tower loadouts or share only campaign rules." if campaign.has("levels") else "Choose what to include. Towers + stats keeps the layout, equipment, resources and rules. Stats only shares the rules and stat changes for a fresh start.", 14))
 	var includes := OptionButton.new()
 	includes.name = "ShareConfigurationContents"
 	includes.custom_minimum_size.y = UI.TARGET
-	includes.add_item("Towers + stats")
-	includes.add_item("Stats only")
+	includes.add_item("Campaign + loadouts" if campaign.has("levels") else "Towers + stats")
+	includes.add_item("Campaign rules only" if campaign.has("levels") else "Stats only")
 	includes.item_selected.connect(func(index: int): export_stats_only = index == 1)
 	content.add_child(includes)
 	content.add_child(UI.heading("Title", 18))
@@ -316,7 +304,9 @@ func save_build(title: LineEdit, description: TextEdit, publish: bool) -> void:
 		scroll.scroll_vertical = 0
 		return
 	var code: String
-	if not export_campaign.is_empty():
+	if export_campaign.has("levels"):
+		code = VigilSaveSlots.CampaignPlaythrough.encode(export_campaign.levels, build_name, details, export_stats_only)
+	elif not export_campaign.is_empty():
 		code = VigilSaveSlots.CampaignBuild.encode(export_campaign.level, export_campaign.overrides, export_game, build_name, details, export_stats_only)
 	elif export_stats_only:
 		code = VigilSaveSlots.Stats.encode(export_game.tuning, build_name, details)
@@ -335,7 +325,10 @@ func save_build(title: LineEdit, description: TextEdit, publish: bool) -> void:
 	message.text = app.public_builds.status if publish else "Saved on this device. This copy is private."
 	upload_revision = view_revision if publish else -1
 	content.add_child(UI.heading(build_name, 18))
-	content.add_child(UI.paragraph("Choose this configuration from Stats or My builds when starting a game. Campaign configurations are available from their level's setup.", 14))
+	content.add_child(UI.paragraph("Choose this build in Campaign setup → My builds or Community, then select Creative or Survival." if export_campaign.has("levels") else "Choose this configuration from Stats or My builds when starting a game. Campaign level configurations are available from their level's setup.", 14))
+	if publish and not export_campaign.is_empty():
+		add_action(UI.button("Account & backups", app.show_backups))
+		add_action(UI.button("Retry public uploads", app.public_builds.flush))
 	if publish and export_campaign.is_empty():
 		if export_stats_only:
 			add_action(UI.button("View community stats", func():

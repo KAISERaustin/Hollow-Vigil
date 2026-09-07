@@ -5,6 +5,7 @@ var path := "user://vigil-campaign.save"
 var data := {"version": 2, "sequence": 0, "completed_levels": 0}
 var blocked := false
 var legacy_candidates := {}
+var allow_all := false
 
 func valid_data(value: Dictionary) -> bool:
 	return value.size() == 3 and value.get("version") == 2 and number(value.get("sequence"), 0, 1e15, true) and number(value.get("completed_levels"), 0, Catalog.COUNT, true)
@@ -60,13 +61,14 @@ func load_progress() -> void:
 				blocked = true
 
 func unlocked(index: int) -> bool:
-	return not blocked and index >= 0 and index < Catalog.COUNT and index <= int(data.completed_levels)
+	return not blocked and index >= 0 and index < Catalog.COUNT and (allow_all or index <= int(data.completed_levels))
 
 func save_run(run: RefCounted) -> bool:
 	if blocked:
 		return false
 	if run.phase != "victory":
 		return true
+	if allow_all: return true
 	var completed := int(run.mission.index) + 1
 	if completed > int(data.completed_levels) + 1:
 		last_error = "Complete the preceding level first."
