@@ -43,7 +43,7 @@ static func _ignore_mouse(control: Control) -> void:
 ## Shared base-tower catalog; hosts retain placement and transaction ownership.
 static func build_list(tuning: Dictionary, action: Callable, selected_kind: String = "", balance: float = INF, prefix: String = "Build_") -> VBoxContainer:
 	var choices := VBoxContainer.new()
-	choices.add_theme_constant_override("separation", 12)
+	choices.add_theme_constant_override("separation", 6)
 	for kind in Balance.TOWERS:
 		var definition := Balance.definition("towers", kind, tuning)
 		var button := create(kind, definition.name, definition.cost, action.bind(kind))

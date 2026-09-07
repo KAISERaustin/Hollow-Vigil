@@ -322,6 +322,7 @@ func show_library() -> void:
 	if not library_community:
 		for entry in slots.shared_configurations("all"):
 			var converted := slots.reusable_entry(entry)
+			converted.source_code = entry.code
 			if not converted.is_empty() and Build.compatible(converted.build, game_type): library_entries.append(converted)
 		show_library_entries()
 		return
@@ -357,6 +358,20 @@ func show_library_entries() -> void:
 		elif entry.has("contents_summary"): body.add_child(UI.paragraph(entry.contents_summary))
 		if entry.has("author_name"): body.add_child(UI.paragraph("By " + str(entry.author_name)))
 		body.add_child(action("Details", read_detail.bind(entry), "BuildDetails"))
+		if not library_community or (app.cloud.signed_in() and entry.get("author_id", "") == app.cloud.player_id):
+			var owner: String = app.cloud.player_id if app.cloud.signed_in() else ""
+			var community := library_community
+			body.add_child(action("Delete", func():
+				confirm("Delete build?", "Permanently delete “%s” %s? This cannot be undone." % [entry.get("name", entry.get("title", "Untitled build")), "from Community" if community else ("from My builds and your private cloud backups" if owner != "" else "from this device")], "Delete", func():
+					var revision := view_revision
+					var ok: bool
+					if community: ok = await app.private_backups.delete_cloud_record("delete_public_build", {"build_id": entry.id}, owner)
+					else: ok = await app.private_backups.delete_build(entry.get("source_code", entry.code), owner)
+					if revision != view_revision: return
+					if ok: await show_library(); notice("Build deleted.")
+					else: notice("Couldn't delete this build. Check your connection and retry.")
+				)
+			, "DeleteBuild"))
 
 func read_detail(entry: Dictionary) -> void:
 	var value := entry
@@ -777,6 +792,16 @@ func show_backups(return_to: Callable = Callable()) -> void:
 		var body := add_card(str(remote.get("name", "Saved game")))
 		body.add_child(UI.paragraph("%s · %s · Slot %d\n%s" % [str(remote.game_type).capitalize(), str(remote.get("mode", "creative")).capitalize(), int(remote.slot_number) + 1, remote.get("progress", "Saved progress")]))
 		body.add_child(action("Restore backup", begin_restore.bind(remote), "RestoreBackup"))
+		var owner: String = app.cloud.player_id
+		body.add_child(action("Delete", func():
+			confirm("Delete cloud backup?", "Permanently delete “%s” from your account? Your local game stays saved; further progress can create a new backup." % remote.get("name", "Saved game"), "Delete", func():
+				var revision := view_revision
+				var ok: bool = await backups.delete_game(remote, owner)
+				if revision != view_revision: return
+				show_backups()
+				notice("Cloud backup deleted." if ok else "Couldn't delete the backup. Refresh and retry; it may have changed.")
+			)
+		, "DeleteCloudBackup"))
 	content.add_child(UI.heading("My builds", 18))
 	content.add_child(UI.paragraph(backups.library_status() + " Private builds from your account are recovered automatically when connected."))
 	content.add_child(action("Recover My builds", func():
@@ -795,6 +820,13 @@ func show_backups(return_to: Callable = Callable()) -> void:
 			restore_choice = {"game_type": recovery.game_type, "snapshot": recovery.snapshot.duplicate(true), "source": "recovery", "destination": -1, "revision": 0, "slot_number": -1}
 			show_restore_destination()
 		, "RestoreRecoveryCopy"))
+		body.add_child(action("Delete", func():
+			confirm("Delete recovery copy?", "Permanently delete “%s” from this device? This cannot be undone." % game_name(recovery.snapshot), "Delete", func():
+				var ok: bool = backups.delete_recovery(recovery.path)
+				show_backups()
+				notice("Recovery copy deleted." if ok else "Couldn't delete this recovery copy. Please retry.")
+			)
+		, "DeleteRecoveryCopy"))
 
 func begin_restore(remote: Dictionary) -> void:
 	var revision := view_revision

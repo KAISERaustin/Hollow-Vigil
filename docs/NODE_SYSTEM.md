@@ -113,7 +113,7 @@ The shared page shell, contents checklist, gameplay toolbar, confirmation popup 
 
 ## Shared mobile navigation components
 
-Screen owners attach `ui/shared/mobile_layout.gd` to refit when safe areas or the overlay keyboard change. `VigilInterface.safe_rect` converts physical insets and keyboard height to the screen's local UI coordinates. The observer follows focused form controls after layout; its state belongs to that screen and is removed with it.
+Screen owners attach `ui/shared/mobile_layout.gd` to refit when display safe areas or orientation change. `VigilInterface.safe_rect` converts physical display insets to the screen's local UI coordinates. The native keyboard overlays the existing UI without shrinking or clipping menu layout. The observer follows focused form controls after display layout changes; its state belongs to that screen and is removed with it.
 
 Every menu scroll area uses `VigilInterface.keyboard_scroll`, which attaches `touch_scroll.gd`. This component lets swipes pass through cards and buttons, opens dropdowns on release, bounds dropdown lists, and restores input settings when content leaves its owner. Nested scrolling and editable fields retain their own input boundaries. Confirmation descriptions and errors share a bounded scroll area with persistent confirm/cancel actions. Android Back dismisses the top popup before navigating the active game menu. Both battlefield types inherit touch cancellation on lost focus and releases intercepted by overlays.
 

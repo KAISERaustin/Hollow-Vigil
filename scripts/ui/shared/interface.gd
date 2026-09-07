@@ -95,19 +95,17 @@ static func safe_rect(control: Control) -> Rect2:
 	if OS.has_feature("mobile"):
 		var safe := Rect2(DisplayServer.get_display_safe_area())
 		var window_size := Vector2(DisplayServer.window_get_size())
-		var keyboard := DisplayServer.virtual_keyboard_get_height()
-		var viewport_safe := usable_viewport(control.get_viewport_rect().size, window_size, safe, keyboard)
+		var viewport_safe := usable_viewport(control.get_viewport_rect().size, window_size, safe)
 		available = Rect2(viewport_safe.position - control.global_position, viewport_safe.size).intersection(available)
 	return available
 
-static func usable_viewport(canvas: Vector2, pixels: Vector2, safe: Rect2, keyboard_height: float) -> Rect2:
+static func usable_viewport(canvas: Vector2, pixels: Vector2, safe: Rect2) -> Rect2:
 	var available := Rect2(Vector2.ZERO, canvas)
 	if pixels.x <= 0 or pixels.y <= 0: return available
 	var factor := canvas / pixels
 	if safe.has_area(): available = available.intersection(Rect2(safe.position * factor, safe.size * factor))
-	# Mobile keyboards can overlay the window without triggering a viewport resize.
-	if keyboard_height > 0:
-		available = available.intersection(Rect2(Vector2.ZERO, Vector2(canvas.x, maxf(0, pixels.y - keyboard_height) * factor.y)))
+	# The native keyboard overlays the UI; it must not resize or clip the menu.
+	# Only display safe areas (notches/home indicators) constrain screen layout.
 	return available
 
 static func trap_focus(root: Control) -> void:

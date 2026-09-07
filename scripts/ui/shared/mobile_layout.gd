@@ -1,5 +1,5 @@
 extends Node
-## Attachable layout observer for notches, rotation and overlay keyboards.
+## Attachable layout observer for notches and rotation, independent of keyboards.
 ## Each screen owns its observer; removing the screen removes all polling state.
 const UI = preload("res://scripts/ui/shared/interface.gd")
 var host: Control
@@ -27,8 +27,7 @@ func _process(_delta: float) -> void:
 	reveal_after_layout(layout_revision)
 
 func reveal_after_layout(revision: int) -> void:
-	# Container sizes and scroll ranges update asynchronously. Revealing during
-	# keyboard animation with the previous range makes the form jump back and forth.
+	# Container sizes and scroll ranges update asynchronously after display changes.
 	await get_tree().process_frame
 	await get_tree().process_frame
 	if revision == layout_revision and is_instance_valid(host) and host.is_visible_in_tree():
