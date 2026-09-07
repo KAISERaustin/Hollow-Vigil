@@ -44,7 +44,7 @@ static func draw(c: CanvasItem, fx: Dictionary, at: Vector2, zoom: float) -> voi
 	for side in [-1, 1]:
 		for i in range(3):
 			var radius := (7.0 + i * 1.5) * sin(clampf(age / 0.86, 0.0, 1.0) * PI)
-			if radius > 0.2:
+			if release > 0.0 and radius > 0.2:
 				var p := Vector2(side * (25.0 + release * (12 + i * 4)), -5.0 - i * 19.0 - release * 8)
 				Art.disk(c, p, radius, Art.PAPER, 1.5 * minf(1.0, radius / 3.0))
 		var worker_scale := 1.0 - smoothstep(0.68, DURATION, age)
@@ -54,15 +54,21 @@ static func draw(c: CanvasItem, fx: Dictionary, at: Vector2, zoom: float) -> voi
 	c.draw_set_transform(Vector2.ZERO)
 
 static func cloud(c: CanvasItem, at: Vector2, radius: Vector2) -> void:
-	var edge := PackedVector2Array()
-	for i in range(108):
-		var angle := TAU * i / 108.0
-		var scallop := 1.0 + 0.075 * cos(angle * 9.0)
-		edge.append(at + Vector2.from_angle(angle) * radius * scallop)
-	Art.polygon(c, edge, Art.PAPER, minf(2.0, radius.x * 0.15))
+	var size := radius.x / 35.0
+	var lobes: Array[Vector2] = []
+	for i in range(9):
+		var angle := TAU * i / 9.0
+		lobes.append(at + Vector2.from_angle(angle) * radius * Vector2(0.68,0.71))
+	# Outline the union first, then fill the entire cloud with solid parchment.
+	Art.ellipse(c, at, radius * 0.8, Art.INK, 0)
+	for i in range(lobes.size()):
+		c.draw_circle(lobes[i], (12.5 + (i % 3) * 1.2) * size, Art.INK)
+	Art.ellipse(c, at, radius * 0.8, Art.PAPER, 0)
+	for i in range(lobes.size()):
+		c.draw_circle(lobes[i], (10.7 + (i % 3) * 1.2) * size, Art.PAPER)
 	if radius.x > 12.0:
-		for side in [-1, 1]:
-			c.draw_arc(at + Vector2(side * radius.x * 0.43, radius.y * 0.18), radius.x * 0.22, PI * 1.1, TAU * 0.94, 12, Art.ROAD, 2.0, true)
+		c.draw_arc(at + Vector2(-15,-12) * size, 8 * size, -2.4, 0.5, 12, Art.ROAD, 1.8 * size, true)
+		c.draw_arc(at + Vector2(16,13) * size, 7 * size, 0.4, 3.2, 12, Art.ROAD, 1.8 * size, true)
 
 static func worker(c: CanvasItem, at: Vector2, side: int, scale: float, phase: float, accent: Color) -> void:
 	# The same tiny villager is mirrored to face the work on either side.

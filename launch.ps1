@@ -96,6 +96,7 @@ try {
             Invoke-Godot -Name 'branch-visual' -EngineArguments @('--script', 'res://tests/rendered/branch_visual_runner.gd')
             Invoke-Godot -Name 'artwork' -EngineArguments @('--script', 'res://tests/rendered/artwork_smoke.gd')
             Invoke-Godot -Name 'tower-upgrade-art' -EngineArguments @('--script', 'res://tests/rendered/tower_upgrade_art_checks.gd')
+            Invoke-Godot -Name 'construction-effect' -EngineArguments @('--script', 'res://tests/rendered/construction_effect_runner.gd')
             Invoke-Godot -Name 'enemy-art' -EngineArguments @('--script', 'res://tests/rendered/enemy_art_checks.gd')
             Invoke-Godot -Name 'boss-art' -EngineArguments @('--script', 'res://tests/rendered/boss_art_checks.gd')
         }
