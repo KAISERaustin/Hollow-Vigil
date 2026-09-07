@@ -104,6 +104,6 @@ func fit() -> void:
 	notice_card.position = Vector2(safe.position.x, safe.end.y - notice_card.size.y)
 
 func overview_padding() -> Vector4:
-	var bottom := size.y - notice_card.position.y if notice_card.visible else UI.SCREEN_PADDING
+	var bottom := size.y - notice_card.position.y if notice_card.visible else float(UI.SCREEN_PADDING)
 	return Vector4(UI.SCREEN_PADDING, header.position.y + header.size.y + UI.SCREEN_PADDING,
 		UI.SCREEN_PADDING, bottom + UI.SCREEN_PADDING)

@@ -49,6 +49,7 @@ func _ready() -> void:
 	body.add_theme_constant_override("separation", 12)
 	add_child(body)
 	message = UI.paragraph("", 14)
+	message.hide()
 	add_child(message)
 	var save := UI.gold_button("Save level configuration", save_changes)
 	save.name = "SaveCampaignConfiguration"
@@ -63,7 +64,7 @@ func _ready() -> void:
 		scope = -1
 		scope_picker.select(0)
 		build_scope()
-		message.text = "Original rules ready. Choose Apply changes to use them." if shared_page else "Default configuration ready. Save to apply it."
+		show_message("Original rules ready. Choose Apply changes to use them." if shared_page else "Default configuration ready. Save to apply it.")
 	)
 	reset.name = "ResetCampaignConfiguration"
 	add_child(reset)
@@ -161,11 +162,15 @@ func commit_scope() -> void:
 		draft.waves[str(scope)].tuning = tuning
 		draft.waves[str(scope)].groups = groups.duplicate(true)
 
+func show_message(text: String) -> void:
+	message.text = text
+	message.visible = not text.is_empty()
+
 func save_changes() -> void:
 	commit_scope()
 	var ok: bool = apply_changes.call(index, draft) if apply_changes.is_valid() else store.save_level(index, draft)
 	if ok:
-		message.text = "Level configuration saved. Active rules updated." if live_run != null else "Level configuration saved."
+		show_message("Level configuration saved. Active rules updated." if live_run != null else "Level configuration saved.")
 		saved.emit()
 	else:
-		message.text = store.last_error
+		show_message(store.last_error)

@@ -154,7 +154,7 @@ func commit_fields() -> void:
 func show_categories() -> void:
 	commit_fields()
 	editor.hide()
-	general.show()
+	general.visible = not configuration_only or field != null
 	category_list.show()
 	refresh_focus()
 
