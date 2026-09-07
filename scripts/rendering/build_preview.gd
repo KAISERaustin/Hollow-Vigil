@@ -42,7 +42,9 @@ static func menu_height(field: Control) -> float:
 	return clampf(field.size.y * 0.5, 260.0, 380.0)
 
 func camera_padding() -> float:
-	return Balance.TILE if is_instance_valid(menu) and menu.is_visible_in_tree() else 0.0
+	# Tall cards leave a smaller preview area on short phones. A temporary margin
+	# lets the shared camera fit long-range towers while keeping its bounds valid.
+	return 2.0 * Balance.TILE if is_instance_valid(menu) and menu.is_visible_in_tree() else 0.0
 
 func refresh(field: Control) -> void:
 	if not is_instance_valid(menu):

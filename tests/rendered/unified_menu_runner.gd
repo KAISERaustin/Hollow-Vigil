@@ -247,7 +247,7 @@ func check_rules(type: String) -> void:
 	check(menu.screen == "game_menu", "Rules return to held game menu")
 
 func remember_toolbar() -> void:
-	for key in ["PauseButton", "SpeedButton", "GameMenuButton"]:
+	for key in ["PauseButton", "SpeedButton"]:
 		var control := button(key)
 		check(control != null, "Shared Campaign toolbar control " + key)
 		if control != null: toolbar_rects[key] = control.get_global_rect()

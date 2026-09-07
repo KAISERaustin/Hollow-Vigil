@@ -229,10 +229,8 @@ func clear_page(next: String) -> void:
 	dialog.hide()
 	accumulator = 0.0
 
-func header(title: String, back: Callable, button_size: float = 48, stacked: bool = false) -> BoxContainer:
-	var row: BoxContainer
-	if stacked: row = VBoxContainer.new()
-	else: row = HBoxContainer.new()
+func header(title: String, back: Callable, button_size: float = 48) -> BoxContainer:
+	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	layout.add_child(row)
 	var button := UI.button("←", back, button_size)
@@ -374,11 +372,9 @@ func show_map() -> void:
 	clear_page("map")
 	if active_campaign_slot >= 0:
 		persist_slot()
-		var heading := header(campaign_save.name, app.slot_menu.open_saved_games, 48, true)
+		var heading := header(campaign_save.name, app.slot_menu.open_saved_games)
 		var back: Button = heading.get_child(0)
-		back.text = "Saved Games"
-		back.autowrap_mode = TextServer.AUTOWRAP_OFF
-		back.accessibility_name = "Saved Games"
+		back.accessibility_name = "Back to saved games"
 		back.name = "CampaignSavedGames"
 	else: header("The Last Procession", show_setup)
 	var cleared := int(progress.data.completed_levels)
@@ -496,10 +492,9 @@ func show_battle(start_paused: bool = false) -> void:
 	, func():
 		speed = game_toolbar.next_speed(speed)
 		update_time_controls()
-	, show_map)
+	, show_map, "%02d · %s" % [run.mission.index + 1, run.mission.name], "Back to campaign map")
 	pause_button = game_toolbar.pause_button
 	speed_button = game_toolbar.speed_button
-	layout.add_child(UI.fitted_heading("%02d · %s" % [run.mission.index + 1, run.mission.name], 24, 16))
 	update_time_controls()
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)

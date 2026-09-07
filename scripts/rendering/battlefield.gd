@@ -159,7 +159,7 @@ func camera_bounds() -> Rect2:
 	var bounds := Rect2(Vector2.ONE * -Balance.TILE * 0.5, Vector2.ONE * Balance.TILE)
 	for id in state.data.regions:
 		bounds = bounds.merge(Rect2(VigilWorld.center(id) - Vector2.ONE * Balance.TILE * 0.5, Vector2.ONE * Balance.TILE))
-	return bounds.grow(2.0 * Balance.TILE)
+	return bounds.grow(2.0 * Balance.TILE + build_preview.camera_padding())
 
 func minimum_zoom() -> float:
 	var bounds := camera_bounds()

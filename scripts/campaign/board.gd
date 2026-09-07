@@ -33,7 +33,8 @@ func _ready() -> void:
 	landscape = Node2D.new()
 	landscape.show_behind_parent = true
 	add_child(landscape)
-	var bounds := camera_bounds().grow(Balance.TILE)
+	# Paint the temporary build-preview camera margin before opening any menu.
+	var bounds := camera_bounds().grow(2.0 * Balance.TILE)
 	for y in range(floori(bounds.position.y / Balance.TILE), ceili(bounds.end.y / Balance.TILE) + 1):
 		for x in range(floori(bounds.position.x / Balance.TILE), ceili(bounds.end.x / Balance.TILE) + 1):
 			var id := VigilWorld.key(Vector2i(x, y))
