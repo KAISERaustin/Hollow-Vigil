@@ -428,5 +428,221 @@
     "category": "music",
     "cooldown": 0,
     "description": "The Lantern Watch \u2014 original 64-second circular ambient score"
+  },
+  "shot_ironspike": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "bow; 260 Hz; 0.16s; pitch sweep -0.18",
+    "source": "shot_rapid"
+  },
+  "impact_ironspike": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "arrow_impact; 170 Hz; 0.1s; pitch sweep -0.12",
+    "source": "impact_rapid"
+  },
+  "upgrade_ironspike": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "wood_lock; 145 Hz; 0.36s; pitch sweep 0",
+    "source": "upgrade_rapid"
+  },
+  "shot_moonwheel": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "wood; 920 Hz; 0.19s; pitch sweep -0.6",
+    "source": "shot_thorn_volley"
+  },
+  "impact_moonwheel": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "wood; 579.6 Hz; 0.24700000000000003s; pitch sweep 0.6",
+    "source": "impact_thorn_volley"
+  },
+  "upgrade_moonwheel": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "wood; 1104.0 Hz; 0.55s; pitch sweep 0.8",
+    "source": "upgrade_thorn_volley"
+  },
+  "shot_hex_lantern": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "orb; 85 Hz; 0.48s; pitch sweep -0.3",
+    "source": "shot_doomstone"
+  },
+  "impact_hex_lantern": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "orb; 53.55 Hz; 0.35s; pitch sweep 0.3",
+    "source": "impact_doomstone"
+  },
+  "upgrade_hex_lantern": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "orb; 102.0 Hz; 0.55s; pitch sweep 0.8",
+    "source": "upgrade_doomstone"
+  },
+  "shot_caltrop_keep": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "orb; 180 Hz; 0.38s; pitch sweep -0.35",
+    "source": "shot_heavy"
+  },
+  "impact_caltrop_keep": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "orb; 113.4 Hz; 0.35s; pitch sweep 0.35",
+    "source": "impact_heavy"
+  },
+  "upgrade_caltrop_keep": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "wood_lock; 145 Hz; 0.36s; pitch sweep 0",
+    "source": "upgrade_rapid"
+  },
+  "shot_siegebreaker": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "orb; 180 Hz; 0.38s; pitch sweep -0.35",
+    "source": "shot_heavy"
+  },
+  "impact_siegebreaker": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "orb; 113.4 Hz; 0.35s; pitch sweep 0.35",
+    "source": "impact_heavy"
+  },
+  "upgrade_siegebreaker": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "wood_lock; 145 Hz; 0.36s; pitch sweep 0",
+    "source": "upgrade_rapid"
+  },
+  "shot_needle_battery": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "bow; 260 Hz; 0.16s; pitch sweep -0.18",
+    "source": "shot_rapid"
+  },
+  "impact_needle_battery": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "arrow_impact; 170 Hz; 0.1s; pitch sweep -0.12",
+    "source": "impact_rapid"
+  },
+  "upgrade_needle_battery": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "wood_lock; 145 Hz; 0.36s; pitch sweep 0",
+    "source": "upgrade_rapid"
+  },
+  "shot_reaper_wheel": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "wood; 920 Hz; 0.19s; pitch sweep -0.6",
+    "source": "shot_thorn_volley"
+  },
+  "impact_reaper_wheel": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "wood; 579.6 Hz; 0.24700000000000003s; pitch sweep 0.6",
+    "source": "impact_thorn_volley"
+  },
+  "upgrade_reaper_wheel": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "wood; 1104.0 Hz; 0.55s; pitch sweep 0.8",
+    "source": "upgrade_thorn_volley"
+  },
+  "shot_orbit_crown": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "bow; 380 Hz; 0.15s; pitch sweep -0.2",
+    "source": "shot_frostneedle"
+  },
+  "impact_orbit_crown": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "bow; 239.4 Hz; 0.195s; pitch sweep 0.2",
+    "source": "impact_frostneedle"
+  },
+  "upgrade_orbit_crown": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "chime; 2160.0 Hz; 0.55s; pitch sweep 0.8",
+    "source": "upgrade_frostneedle"
+  },
+  "shot_oathbrand": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "orb; 85 Hz; 0.48s; pitch sweep -0.3",
+    "source": "shot_doomstone"
+  },
+  "impact_oathbrand": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "orb; 53.55 Hz; 0.35s; pitch sweep 0.3",
+    "source": "impact_doomstone"
+  },
+  "upgrade_oathbrand": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "orb; 102.0 Hz; 0.55s; pitch sweep 0.8",
+    "source": "upgrade_doomstone"
+  },
+  "shot_witchlight": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "orb; 290 Hz; 0.44s; pitch sweep 0.4",
+    "source": "shot_grave_echo"
+  },
+  "impact_witchlight": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "orb; 182.7 Hz; 0.35s; pitch sweep -0.4",
+    "source": "impact_grave_echo"
+  },
+  "upgrade_witchlight": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "orb; 348.0 Hz; 0.55s; pitch sweep 0.8",
+    "source": "upgrade_grave_echo"
+  },
+  "shot_dreadjaw": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "fire; 78 Hz; 0.42s; pitch sweep -0.7",
+    "source": "shot_rupture_pyre"
+  },
+  "impact_dreadjaw": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "fire; 49.14 Hz; 0.35s; pitch sweep 0.7",
+    "source": "impact_rupture_pyre"
+  },
+  "upgrade_dreadjaw": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "fire; 93.6 Hz; 0.55s; pitch sweep 0.8",
+    "source": "upgrade_rupture_pyre"
+  },
+  "shot_scatterworks": {
+    "category": "towers",
+    "cooldown": 0.11,
+    "description": "fire; 140 Hz; 0.32s; pitch sweep -0.5",
+    "source": "shot_splash"
+  },
+  "impact_scatterworks": {
+    "category": "towers",
+    "cooldown": 0.16,
+    "description": "fire; 88.2 Hz; 0.35s; pitch sweep 0.5",
+    "source": "impact_splash"
+  },
+  "upgrade_scatterworks": {
+    "category": "menu",
+    "cooldown": 0.12,
+    "description": "wood_lock; 145 Hz; 0.36s; pitch sweep 0",
+    "source": "upgrade_rapid"
   }
 }

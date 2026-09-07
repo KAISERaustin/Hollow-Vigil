@@ -80,7 +80,7 @@ These are initial playtest candidates, not a claim of parity. The current catalo
 | --- | ---: | ---: | ---: | ---: | --- |
 | Ironspike | 140 | 22 | 1.40 s | 200 | 3 aligned hits at 100%, 70%, 50% damage. |
 | Moonwheel | 130 | 10 per pass | 1.50 s minimum between launches | 135 | Up to 3 victims per leg; wait for the active blade to return. |
-| Hex Lantern | 100 | 4 | 1.40 s | 135 | One +12% mark lasting 2 seconds, applied after the bolt's damage. |
+| Hex Lantern | 100 | 4 | 1.40 s | 270 | One +12% mark lasting 2 seconds, applied after the bolt's damage. |
 | Caltrop Keep | 120 | 24 per trap | 2.00 s | 125 | Maximum 3 traps; arm in 0.5 s; expire after 8 s. |
 
 Damage, range and cycle upgrades beyond level one should be tuned using the existing deterministic traffic scenarios. Important comparisons are damage actually delivered, clear rate, investment, and lost damage at bends or between waves; theoretical maximum DPS alone would overstate these towers' value. Hex Lantern needs paired-tower comparisons, and Caltrop Keep needs both prepared and unprepared openings.

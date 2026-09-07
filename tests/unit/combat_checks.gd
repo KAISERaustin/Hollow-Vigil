@@ -10,7 +10,8 @@ static func run(suite: SceneTree) -> void:
 	test_equal_hp_focus(suite)
 
 static func test_equal_hp_focus(suite: SceneTree) -> void:
-	for kind in Balance.TOWERS:
+	# Traps select a road position; their targeting is checked in tower_expansion_runner.
+	for kind in Balance.TOWERS.keys().filter(func(k): return k != "caltrop_keep"):
 		var g: VigilState = suite.legacy_core_fixture(855)
 		g.data.balance = 10000.0
 		var id := g.economy.build(kind, "0,0", 0)
@@ -30,11 +31,12 @@ static func test_equal_hp_focus(suite: SceneTree) -> void:
 		for index in range(enemies.size()):
 			var expected: Dictionary = enemies[index]
 			for attack in range(4):
+				finish_flights(g)
 				tower.cooldown = 0.0
 				g.combat.effects.clear()
 				g.combat.tick(Balance.STEP)
-				var shots: Array = g.combat.effects.filter(func(fx): return fx.kind == "shot")
-				suite.check(not shots.is_empty() and shots[0].get("target_id", -1) == expected.id,
+				var shot := primary_shot(g)
+				suite.check(not shot.is_empty() and shot.get("target_id", -1) == expected.id,
 					"%s keeps equal-HP enemy %d as primary target on attack %d" % [kind, index, attack])
 				# Resolve actual projectile impacts before the next attack. Extra
 				# damage makes the locked enemy less healthy even for area attacks.
@@ -44,7 +46,8 @@ static func test_equal_hp_focus(suite: SceneTree) -> void:
 			suite.check(expected.dead, "%s finishes the focused enemy before selecting the next" % kind)
 
 static func test_targeting(suite: SceneTree) -> void:
-	for kind in Balance.TOWERS:
+	# Traps select a road position; their targeting is checked in tower_expansion_runner.
+	for kind in Balance.TOWERS.keys().filter(func(k): return k != "caltrop_keep"):
 		for mode in Balance.TARGET_MODES:
 			var g: VigilState = suite.legacy_core_fixture(852)
 			g.data.balance = 10000.0
@@ -62,7 +65,7 @@ static func test_targeting(suite: SceneTree) -> void:
 				region.timer = 1000.0
 			var expected: int = g.combat.enemies[{"first": 2, "last": 0, "most_hp": 1}[mode]].id
 			g.combat.tick(Balance.STEP)
-			suite.check(g.combat.effects.filter(func(fx): return fx.kind == "shot")[0].target_id == expected, "%s obeys %s targeting during combat" % [kind, mode])
+			suite.check(primary_shot(g).get("target_id", -1) == expected, "%s obeys %s targeting during combat" % [kind, mode])
 	var g: VigilState = suite.legacy_core_fixture(853)
 	var a := {"id": 1, "pos": Vector2(10, 0), "hp": 50.0, "dead": false, "distance_remaining": 100.0}
 	var b := {"id": 2, "pos": Vector2(20, 0), "hp": 50.0, "dead": false, "distance_remaining": 50.0}
@@ -205,7 +208,8 @@ static func test_road_junctions(suite: SceneTree) -> void:
 	print("PASS GROUP: immediate road turns for all enemy types")
 
 static func test_target_lock(suite: SceneTree) -> void:
-	for kind in Balance.TOWERS:
+	# Traps select a road position; their targeting is checked in tower_expansion_runner.
+	for kind in Balance.TOWERS.keys().filter(func(k): return k != "caltrop_keep"):
 		for mode in Balance.TARGET_MODES:
 			var g: VigilState = suite.legacy_core_fixture(854)
 			g.data.balance = 10000.0
@@ -224,19 +228,21 @@ static func test_target_lock(suite: SceneTree) -> void:
 				region.timer = 1000.0
 			g.combat.tick(Balance.STEP)
 			var label := "%s / %s" % [kind, mode]
-			suite.check(g.combat.effects.filter(func(fx): return fx.kind == "shot")[0].target_id == a.id, label + " initially chooses the selected enemy")
+			suite.check(primary_shot(g).get("target_id", -1) == a.id, label + " initially chooses the selected enemy")
 			# Make the other enemy preferable under each targeting mode.
 			b.pos = Vector2(-90 if mode == "last" else -20, 0)
 			b.hp = 200000.0
+			finish_flights(g)
 			tower.cooldown = 0.0
 			g.combat.effects.clear()
 			g.combat.tick(Balance.STEP)
 			var expected: int = a.id if mode == "most_hp" else b.id
-			suite.check(g.combat.effects.filter(func(fx): return fx.kind == "shot")[0].target_id == expected, label + " locks only Most HP; First and Last switch with priority")
+			suite.check(primary_shot(g).get("target_id", -1) == expected, label + " locks only Most HP; First and Last switch with priority")
 			if mode != "most_hp":
 				suite.check(not g.combat.target_locks.has(id), label + " never retains a target lock")
 				continue
 			a.dead = true
+			finish_flights(g)
 			tower.cooldown = 0.0
 			g.combat.tick(Balance.STEP)
 			suite.check(g.combat.target_locks.get(id) == b.id, label + " acquires a replacement after defeat")
@@ -246,6 +252,7 @@ static func test_target_lock(suite: SceneTree) -> void:
 			g.combat.tick(Balance.STEP)
 			suite.check(not g.combat.target_locks.has(id), label + " releases an out-of-range target during cooldown")
 			b.pos = Vector2(-50, 0)
+			finish_flights(g)
 			tower.cooldown = 0.0
 			g.combat.tick(Balance.STEP)
 			suite.check(g.combat.target_locks.get(id) == b.id, label + " reacquires an available enemy")
@@ -257,10 +264,11 @@ static func test_target_lock(suite: SceneTree) -> void:
 			c.hp = 100000.0
 			c.stun_until = 1000.0
 			tower.target_mode = "first"
+			finish_flights(g)
 			tower.cooldown = 0.0
 			g.combat.effects.clear()
 			g.combat.tick(Balance.STEP)
-			suite.check(not g.combat.target_locks.has(id) and g.combat.effects.filter(func(fx): return fx.kind == "shot")[0].target_id == c.id, label + " releases lock when changing to First")
+			suite.check(not g.combat.target_locks.has(id) and primary_shot(g).get("target_id", -1) == c.id, label + " releases lock when changing to First")
 
 static func test_target_changes(suite: SceneTree) -> void:
 	var game: VigilState = suite.legacy_core_fixture(41)
@@ -271,3 +279,13 @@ static func test_target_changes(suite: SceneTree) -> void:
 	suite.check(not game.set_tower_target(id, "invalid") and game.combat.target_locks[id] == 123, "Invalid mode preserves targeting state")
 	suite.check(game.set_tower_target(id, "first") and not game.combat.target_locks.has(id), "Changing mode immediately releases the old lock")
 	suite.check(not game.set_tower_target("missing", "last"), "Missing towers reject targeting changes")
+
+static func primary_shot(game: VigilState) -> Dictionary:
+	for projectile in game.combat.line_projectiles: return projectile.shot.fx
+	for effect in game.combat.effects:
+		if effect.kind == "shot": return effect
+	return {}
+
+static func finish_flights(game: VigilState) -> void:
+	game.combat.advance_shots(2.0)
+	preload("res://scripts/gameplay/combat/line_projectiles.gd").advance(game.combat, 2.0)

@@ -34,16 +34,22 @@ static func crescent(c: CanvasItem, at: Vector2, radius: float, accent: Color) -
 		points.append(Vector2(-radius * 0.3, 0) + Vector2(cos(angle), sin(angle)) * radius * 0.82)
 	A.shape(c, points, at, Vector2.ONE, accent, 2.2)
 
-static func draw(c: CanvasItem, kind: String, at: Vector2, zoom: float, level: int = 1, branch: String = "") -> void:
+static func draw(c: CanvasItem, kind: String, at: Vector2, zoom: float, level: int = 1, branch: String = "", aim_angle: float = -PI / 2.0) -> void:
 	c.draw_set_transform(at, 0, Vector2.ONE * zoom)
 	match kind:
-		"ironspike": ironspike(c, level, branch)
+		"ironspike":
+			ironspike_base(c, level, branch)
+			# Rotate only the mounted bow; the pedestal stays on its socket.
+			var pivot: Vector2 = Balance.PROJECTILES.ironspike.muzzle
+			var rotation := aim_angle + PI / 2.0
+			c.draw_set_transform(at + (pivot - pivot.rotated(rotation)) * zoom, rotation, Vector2.ONE * zoom)
+			ironspike_bow(c, level, branch)
 		"moonwheel": moonwheel(c, level, branch)
 		"hex_lantern": hex_lantern(c, level, branch)
 		"caltrop_keep": caltrop_keep(c, level, branch)
 	c.draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
 
-static func ironspike(c: CanvasItem, level: int, branch: String) -> void:
+static func ironspike_base(c: CanvasItem, level: int, branch: String) -> void:
 	base(c, WOOD)
 	var siege := branch == "siegebreaker"
 	var battery := branch == "needle_battery"
@@ -51,6 +57,19 @@ static func ironspike(c: CanvasItem, level: int, branch: String) -> void:
 		for side in [-1, 1]:
 			poly(c, [Vector2(side * 12, 5), Vector2(side * 24, 5), Vector2(side * 17, -18), Vector2(side * 11, -18)], IRON)
 	poly(c, [Vector2(-7, -6), Vector2(-7, -32), Vector2(7, -32), Vector2(7, -6)], WOOD)
+	if level >= 2:
+		poly(c, [Vector2(-11, -8), Vector2(11, -8), Vector2(11, -2), Vector2(-11, -2)], IRON)
+		A.disk(c, Vector2(0, -5), 2.5, A.GOLD, 1)
+	if siege:
+		poly(c, [Vector2(-13, 3), Vector2(-13, -15), Vector2(0, -20), Vector2(13, -15), Vector2(13, 3)], BONE)
+		line(c, Vector2(0, -14), Vector2(0, 0), 3)
+	if battery:
+		poly(c, [Vector2(-17, 4), Vector2(-17, -6), Vector2(17, -6), Vector2(17, 4)], A.GOLD)
+		for x in [-10, 0, 10]: line(c, Vector2(x, -4), Vector2(x, 2))
+
+static func ironspike_bow(c: CanvasItem, level: int, branch: String) -> void:
+	var siege := branch == "siegebreaker"
+	var battery := branch == "needle_battery"
 	# The horizontal bow makes this legible beside Ashneedle's pointed roof.
 	poly(c, [Vector2(-28, -30), Vector2(-22, -21), Vector2(-11, -25), Vector2(0, -29), Vector2(11, -25), Vector2(22, -21), Vector2(28, -30), Vector2(18, -26), Vector2(0, -35), Vector2(-18, -26)], BONE)
 	line(c, Vector2(-23, -22), Vector2(0, -10))
@@ -59,18 +78,9 @@ static func ironspike(c: CanvasItem, level: int, branch: String) -> void:
 	for x in barrels:
 		line(c, Vector2(x, -8), Vector2(x, -42), 3 if not siege else 5)
 		diamond(c, Vector2(x, -44), 8 if siege else 5, BONE)
-	if level >= 2:
-		poly(c, [Vector2(-11, -8), Vector2(11, -8), Vector2(11, -2), Vector2(-11, -2)], IRON)
-		A.disk(c, Vector2(0, -5), 2.5, A.GOLD, 1)
 	if level >= 3:
 		for side in [-1, 1]:
 			poly(c, [Vector2(side * 16, -17), Vector2(side * 25, -36), Vector2(side * 26, -20)], IRON)
-	if siege:
-		poly(c, [Vector2(-13, 3), Vector2(-13, -15), Vector2(0, -20), Vector2(13, -15), Vector2(13, 3)], BONE)
-		line(c, Vector2(0, -14), Vector2(0, 0), 3)
-	if battery:
-		poly(c, [Vector2(-17, 4), Vector2(-17, -6), Vector2(17, -6), Vector2(17, 4)], A.GOLD)
-		for x in [-10, 0, 10]: line(c, Vector2(x, -4), Vector2(x, 2))
 
 static func moonwheel(c: CanvasItem, level: int, branch: String) -> void:
 	base(c, IRON, 13)

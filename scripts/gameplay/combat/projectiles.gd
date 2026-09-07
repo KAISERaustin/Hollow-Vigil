@@ -83,7 +83,7 @@ static func advance_shots(combat: VigilCombat, delta: float) -> void:
 	combat.pending_shots.append_array(flying)
 
 static func resolve_shot(combat: VigilCombat, shot: Dictionary, target: Dictionary) -> void:
-	combat.Relics.arrive(combat, shot)
+	if not shot.get("skip_gear_arrival", false): combat.Relics.arrive(combat, shot)
 	if combat.data.towers.has(shot.tower_id) and not shot.fx.get("fragment", false):
 		var kind: String = shot.fx.get("tower_kind", combat.data.towers[shot.tower_id].kind)
 		var voice: String = shot.get("branch", "")

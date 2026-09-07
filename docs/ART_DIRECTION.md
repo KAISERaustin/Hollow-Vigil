@@ -45,6 +45,14 @@ The artwork implementation lives in scripts/rendering/terrain/terrain_art.gd, sc
 
 ## Extension contract
 
+Ironspike's mounted bow and loaded bolts rotate around the shared projectile
+muzzle to match the fired bolt's direction; its socket and pedestal stay fixed.
+The existing per-tower firing angle is supplied through the shared sentinel
+renderer, and the line-attack component records the actual muzzle-based bearing.
+All tiers and both branches reuse the same rotating bow assembly. Portraits and
+build previews retain the upright default. `tests/rendered/ironspike_aim_runner.gd`
+checks eight directions across every stage at three phone sizes.
+
 The opening page composes `scripts/ui/shared/welcome_art.gd` illustrations in
 `scripts/ui/welcome_menu.gd`: a mint seal, a moonlit valley with a solitary
 watchtower, winding road and core sanctuary, and a compact footer rule.

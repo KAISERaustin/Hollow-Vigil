@@ -40,6 +40,10 @@ Campaign map top-right Menu / Infinite Menu → shared game menu
     ├── Edit rules [Creative] → isolated draft → Apply changes / Cancel
     │   ├── Infinite → registered rule categories and types
     │   └── Campaign → level → Level defaults / Wave overrides
+    ├── Creative tools [Infinite Creative only]
+    │   ├── Unrestricted zoom and pan
+    │   ├── Show enemy and boss health
+    │   └── Add 1,000,000 gold
     ├── Save build → shared form
     ├── Backups
     ├── Settings
@@ -71,11 +75,7 @@ Backups
 
 Settings [same page regardless of entry point]
 ├── Account → email code/link sign-in, player name, sign out → requesting page
-├── Sound → mute, matching category volume controls, original defaults
-└── Creative tools [held Creative game]
-    ├── Unrestricted zoom and pan
-    ├── Show enemy and boss health
-    └── Add 1,000,000 gold
+└── Sound → mute, matching category volume controls, original defaults
 
 Campaign content
 ├── World map → level marker → preview → Begin level

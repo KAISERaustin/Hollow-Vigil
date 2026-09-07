@@ -32,7 +32,7 @@ static func draw(field) -> void:
 		var node = combat.TowerComponents.definition(combat, tower)
 		var orbit := false
 		for entry in node.rule("components", []):
-			if entry.component.id == "attribute/orbit_attack": orbit = true
+			if entry.component.rule("presentation", "") == "orbit": orbit = true
 		if not orbit: continue
 		var origin: Vector2 = VigilWorld.pad_position(tower.region, tower.pad)
 		var stats: Dictionary = Balance.tower_stats(tower, combat.tuning, combat.data.relics)

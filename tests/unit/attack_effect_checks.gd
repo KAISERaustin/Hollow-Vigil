@@ -3,7 +3,8 @@ extends RefCounted
 static func run(suite: SceneTree) -> void:
 	test_impact_timing(suite)
 	test_shared_projectiles(suite)
-	for kind in Balance.TOWERS:
+	# Homing effects have a different lifetime from blades and stored traps.
+	for kind in ["rapid", "splash", "heavy", "electric", "hex_lantern"]:
 		var game := VigilState.new(716)
 		game.data.balance = 10000.0
 		game.expand("1,0")

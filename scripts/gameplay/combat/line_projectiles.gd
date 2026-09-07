@@ -1,13 +1,33 @@
 extends RefCounted
 
 ## Swept geometry supplies both gameplay positions and the rendered projectile.
+static func aim_point(combat, target: Dictionary, muzzle: Vector2, speed: float) -> Vector2:
+	# Lead along the known road once at launch; the projectile never homes.
+	var aim: Vector2 = target.pos
+	var path: Array = target.get("path", [])
+	var move_speed: float = combat.enemy_speed(target)
+	for iteration in range(6):
+		var travel := muzzle.distance_to(aim) / maxf(1.0, speed) * move_speed
+		aim = target.pos
+		for index in range(int(target.get("segment", 1)), path.size()):
+			var distance := aim.distance_to(path[index])
+			if travel <= distance:
+				aim = aim.move_toward(path[index], travel)
+				break
+			travel -= distance
+			aim = path[index]
+	return aim
+
 static func launch(combat, tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary, returning: bool) -> void:
 	var profile: Dictionary = Balance.PROJECTILES[tower.kind]
 	var muzzle: Vector2 = origin + profile.muzzle
-	var direction: Vector2 = (target.pos - muzzle).normalized()
+	var direction: Vector2 = (aim_point(combat, target, muzzle, profile.speed) - muzzle).normalized()
 	if direction.is_zero_approx(): direction = Vector2.UP
+	# The weapon and swept bolt share the muzzle-based bearing, including volleys.
+	tower.angle = direction.angle()
 	var normal := direction.orthogonal()
 	var volley := {}
+	var arrival := {"resolved": false}
 	var count := 1 if returning else int(stats.get("volley_count", 1))
 	for index in range(count):
 		var start: Vector2 = muzzle + normal * (index - (count - 1) / 2.0) * stats.get("volley_spacing", 20.0)
@@ -19,7 +39,7 @@ static func launch(combat, tower: Dictionary, origin: Vector2, target: Dictionar
 			"shot": shot, "start": start, "end": start + direction * length, "pos": start, "direction": direction,
 			"speed": profile.speed, "return_speed": stats.get("return_speed", 1.0), "returning": returning, "leg": 0,
 			"hits": {}, "volley": volley, "limit": int(stats.get("pierce_count", 3)), "width": stats.get("projectile_width", 9.0),
-			"loss": stats.get("pierce_loss", 0.0), "floor": stats.get("pierce_floor", 1.0), "age": 0.0})
+			"loss": stats.get("pierce_loss", 0.0), "floor": stats.get("pierce_floor", 1.0), "age": 0.0, "arrival": arrival})
 	combat.Projectiles.launch_extras(combat, tower, origin, target, stats)
 
 static func advance(combat, delta: float) -> void:
@@ -59,6 +79,7 @@ static func collide(combat, projectile: Dictionary, start: Vector2, end: Vector2
 	for candidate in candidates:
 		if projectile.hits.size() >= projectile.limit: break
 		var enemy: Dictionary = candidate.enemy
+		if enemy.dead: continue
 		var shot: Dictionary = projectile.shot.duplicate()
 		shot.fx = shot.fx.duplicate()
 		shot.fx.pos = enemy.pos
@@ -67,4 +88,8 @@ static func collide(combat, projectile: Dictionary, start: Vector2, end: Vector2
 		shot.damage *= maxf(projectile.floor, 1.0 - projectile.hits.size() * projectile.loss)
 		projectile.hits[enemy.id] = true
 		projectile.volley[enemy.id] = true
+		# Area gear procs occur once per volley/throw, while on-hit gear still
+		# applies at each actual contact, including the return leg.
+		shot.skip_gear_arrival = projectile.arrival.resolved
+		if shot.has("gear_effects"): projectile.arrival.resolved = true
 		combat.resolve_shot(shot, enemy)

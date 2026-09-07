@@ -93,12 +93,16 @@ static func test_towers(suite: SceneTree) -> void:
 		var first: Dictionary = suite.fixture_enemy(game)
 		var second: Dictionary = suite.fixture_enemy(game)
 		first.pos = Vector2(-200, 0)
-		second.pos = Vector2(-195, 0)
+		second.pos = Vector2(-195, 25)
+		first.stun_until = 10.0
+		second.stun_until = 10.0
+		game.combat.scripted_spawns = true
+		game.combat.authored_roads = [[first.pos, first.pos + Vector2(500, 0)]]
 		game.data.regions["-1,0"].timer = 9.0
 		tower.cooldown = 0.0
 		game.combat.tick(Balance.STEP)
 		suite.check(tower.cooldown == 2.0, "Adjusted interval drives actual " + kind + " attacks")
-		suite.advance(game, 0.40)
+		suite.advance(game, 1.0)
 		var expected_damage := 20.0 if kind == "electric" else 10.0
 		suite.check(first.hp == Balance.ENEMIES.basic.hp - expected_damage and second.hp == Balance.ENEMIES.basic.hp - expected_damage, "Adjusted damage, range and blast apply at " + kind + " impact")
 		var custom := Balance.stats(kind, 2, game.tuning)

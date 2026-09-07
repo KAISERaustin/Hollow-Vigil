@@ -67,7 +67,8 @@ func _ready() -> void:
 		observe_control(node)
 
 func load_stream(cue: String) -> AudioStream:
-	var path := "res://assets/audio/" + cue + ".wav"
+	var source: String = CATALOG.get(cue, {}).get("source", cue)
+	var path := "res://assets/audio/" + source + ".wav"
 	return load(path) as AudioStream if ResourceLoader.exists(path) else null
 
 func bind_game() -> void:

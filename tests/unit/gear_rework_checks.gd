@@ -37,7 +37,7 @@ static func ground(t) -> void:
 		f.game.combat.simulation_time = 1.0
 		f.game.combat.EffectFields.advance(f.game.combat, 1.0)
 		t.check(is_equal_approx(before - near.hp, stats.damage * 0.2), "Ground deals twenty percent per second inside radius: " + tower_kind)
-		t.check(far.hp == outside and not f.enemy.has("gear_status"), "Ground stays at impact instead of attaching a wound")
+		t.check(far.hp == outside and f.enemy.get("gear_status", {}).values().all(func(status): return status.type != "dot"), "Ground stays at impact instead of attaching a wound")
 		near.pos += Vector2(200, 0)
 		before = near.hp
 		f.game.combat.simulation_time = 2.0
@@ -145,6 +145,7 @@ static func range_and_blast(t) -> void:
 			t.check(is_equal_approx(stats.range, base.range * 1.2) and stats.period == base.period, "Lantern adds twenty percent reach on every tower and branch: " + tower_kind + "/" + branch)
 			f.game.combat.scripted_spawns = true
 			f.enemy.pos = VigilWorld.pad_position("0,0", 0) + Vector2(base.range * 1.1, 0)
+			f.game.combat.authored_roads = [[f.enemy.pos, f.enemy.pos + Vector2(100, 0)]]
 			f.game.combat.tick(0.05)
 			t.check(f.game.combat.relic_progress.has(f.tower.id), "Combat acquires targets beyond base range with Lantern")
 			f.game.economy.equip_relic(f.tower.id, "", "90,90")

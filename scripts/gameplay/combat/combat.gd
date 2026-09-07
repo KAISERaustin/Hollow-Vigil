@@ -176,6 +176,15 @@ func advance_effects(delta: float) -> void:
 		fx.life -= delta
 	effects = effects.filter(func(fx): return fx.life > 0.0)
 
+func enemy_speed(enemy: Dictionary) -> float:
+	if enemy.get("stun_until", 0.0) > simulation_time or enemy.get("root_until", 0.0) > simulation_time or Relics.strength(enemy, "stun", simulation_time) > 0.0:
+		return 0.0
+	var speed: float = Bosses.speed(enemy, simulation_time, tuning) if enemy.get("boss", false) else Balance.tuned_value("enemies", enemy.kind, "speed", tuning)
+	if enemy.get("rift_style", "forest") == "drowned_crypt": speed *= Balance.rift_speed_multiplier("drowned_crypt", tuning)
+	var slow := Relics.strength(enemy, "slow", simulation_time)
+	if enemy.get("slow_until", 0.0) > simulation_time: slow = maxf(slow, enemy.get("slow_percent", 25.0))
+	return speed * (1.0 - slow / 100.0)
+
 func tick(delta: float) -> void:
 	if not is_finite(delta) or delta <= 0.0:
 		return
@@ -205,18 +214,9 @@ func tick(delta: float) -> void:
 	for e in enemies:
 		if e.dead:
 			continue
-		var move: float = (Bosses.speed(e, simulation_time, tuning) if e.get("boss", false) else Balance.tuned_value("enemies", e.kind, "speed", tuning)) * delta
-		match e.get("rift_style", "forest"):
-			"drowned_crypt":
-				move *= Balance.rift_speed_multiplier("drowned_crypt", tuning)
-			"bloodmoon_sanctuary":
-				e.hp = minf(e.max_hp, e.hp + e.max_hp * Balance.rift_strength("bloodmoon_sanctuary", tuning) / 100.0 * delta)
-		var slow := Relics.strength(e, "slow", simulation_time)
-		if e.get("slow_until", 0.0) > simulation_time:
-			slow = maxf(slow, e.get("slow_percent", 25.0))
-		move *= 1.0 - slow / 100.0
-		if e.get("stun_until", 0.0) > simulation_time or e.get("root_until", 0.0) > simulation_time or Relics.strength(e, "stun", simulation_time) > 0.0:
-			move = 0.0
+		var move := enemy_speed(e) * delta
+		if e.get("rift_style", "forest") == "bloodmoon_sanctuary":
+			e.hp = minf(e.max_hp, e.hp + e.max_hp * Balance.rift_strength("bloodmoon_sanctuary", tuning) / 100.0 * delta)
 		var p: Array = e.path
 		while move > 0.0 and not e.dead:
 			var dist: float = e.pos.distance_to(p[e.segment])

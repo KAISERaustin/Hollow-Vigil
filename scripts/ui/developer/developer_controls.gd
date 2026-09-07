@@ -2,6 +2,7 @@ extends VBoxContainer
 
 signal changed
 signal layout_changed
+signal rules_edited(category: String, kind: String, stats: Array)
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Picker = preload("res://scripts/ui/shared/illustrated_picker.gd")
@@ -131,6 +132,7 @@ func _ready() -> void:
 	var reset_selected := UI.button("Reset selected type / tier", func():
 		commit_fields()
 		game.reset_developer_balance(category, editing_kind())
+		rules_edited.emit(category, editing_kind(), Balance.editable_fields_for(category, editing_kind()))
 		show_fields()
 		changed.emit()
 	)
@@ -139,6 +141,9 @@ func _ready() -> void:
 	var reset_all := UI.button("Reset all balance values", func():
 		commit_fields()
 		game.reset_developer_balance()
+		for section in categories:
+			for kind in Balance.definitions(section):
+				rules_edited.emit(section, kind, Balance.editable_fields_for(section, kind))
 		show_fields()
 		changed.emit()
 	)
@@ -285,6 +290,7 @@ func add_number(stat: String) -> void:
 			return
 		var accepted := game.set_tower_tier_stat(kind, stat, value) if section == "towers" else game.set_balance_stat(section, kind, stat, value)
 		if accepted:
+			rules_edited.emit(section, kind, [stat])
 			refresh_identity()
 			if section == "rifts":
 				detail.text = Balance.rift_description(kind, game.tuning) + " Set to 0 to disable. Health adjustments preserve remaining health percentage."

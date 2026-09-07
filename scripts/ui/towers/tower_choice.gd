@@ -90,7 +90,7 @@ static func details(kind: String, tuning: Dictionary, tier: int = 1, branch: Str
 	add_numeric_stat(grid, "period", "Seconds / attack", values, before, " s")
 	if show_range:
 		add_numeric_stat(grid, "range", "Range", values, before, " units")
-	add_numeric_stat(grid, "dps", "DPS / target", values, before)
+	add_numeric_stat(grid, "dps", "Base DPS", values, before)
 	add_numeric_stat(grid, "targets", "Targets / hit", values, before)
 	add_numeric_stat(grid, "splash", "Blast radius", values, before, " units")
 	# Cost lives in the pinned Build action; build details omit range.

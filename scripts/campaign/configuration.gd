@@ -89,6 +89,37 @@ func save_level(index: int, configuration: Dictionary) -> bool:
 	data = next
 	return true
 
+func save_levels(levels: Dictionary) -> bool:
+	var next := data.duplicate(true)
+	next.levels = levels.duplicate(true)
+	next.sequence += 1
+	if blocked or not valid_data(next):
+		if not blocked: last_error = "Invalid campaign configuration."
+		return false
+	if not write(path, next): return false
+	data = next
+	return true
+
+static func with_campaign_tuning(levels: Dictionary, changes: Dictionary) -> Dictionary:
+	# Keep the existing portable Level/Wave format, with one transaction for all levels.
+	var result := levels.duplicate(true)
+	for index in Catalog.COUNT:
+		var key := str(index)
+		if not result.has(key): result[key] = {"overrides": {}}
+		var rules: Dictionary = result[key].overrides
+		rules.tuning = Balance.merge_tuning(rules.get("tuning", {}), changes)
+		for wave in rules.get("waves", {}).values():
+			var tuning: Dictionary = wave.get("tuning", {})
+			for category in changes:
+				for kind in changes[category]:
+					for stat in changes[category][kind]:
+						if tuning.get(category, {}).has(kind):
+							tuning[category][kind].erase(stat)
+					if tuning.get(category, {}).has(kind) and tuning[category][kind].is_empty(): tuning[category].erase(kind)
+				if tuning.has(category) and tuning[category].is_empty(): tuning.erase(category)
+			if tuning.is_empty(): wave.erase("tuning")
+	return result
+
 static func resolve(index: int, level_overrides: Dictionary = {}) -> Dictionary:
 	var defaults := Catalog.level(index)
 	if defaults.is_empty(): return {}

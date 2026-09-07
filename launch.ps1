@@ -125,6 +125,7 @@ try {
             Invoke-Godot -Name 'castle-art' -EngineArguments @('--script', 'res://tests/rendered/castle_art_checks.gd')
         }
         if ($ArtSmoke -or $Check) {
+            Invoke-Godot -Name 'ironspike-aim' -EngineArguments @('--script', 'res://tests/rendered/ironspike_aim_runner.gd')
             Invoke-Godot -Name 'gear-art' -EngineArguments @('--script', 'res://tests/rendered/gear_art_runner.gd')
             Invoke-Godot -Name 'portal-upgrades' -EngineArguments @('--script', 'res://tests/rendered/portal_upgrade_checks.gd')
             Invoke-Godot -Name 'branch-visual' -EngineArguments @('--script', 'res://tests/rendered/branch_visual_runner.gd')

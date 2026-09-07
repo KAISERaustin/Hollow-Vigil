@@ -29,10 +29,12 @@ func mark(g: VigilState, target: Dictionary, id: String = "1") -> void:
 func run() -> void:
 	transactions()
 	piercing()
+	line_aiming()
 	returning_blades()
 	vulnerability()
 	road_traps()
 	composition()
+	preload("res://tests/unit/tower_expansion_integration_checks.gd").run(self)
 	print("TOWER EXPANSION: %d checks, %d failures" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
 
@@ -92,6 +94,24 @@ func piercing() -> void:
 	var boss := {"boss": true}
 	g.combat.TowerComponents.before_hit(g.combat, shot, boss)
 	check(is_equal_approx(shot.damage, 90.0), "Siegebreaker boss modifier applies before shared defenses")
+
+func line_aiming() -> void:
+	for kind in ["ironspike", "moonwheel"]:
+		var g := setup(kind)
+		var tower: Dictionary = g.data.towers["1"]
+		var other := g.economy.build(kind, "0,0", 1)
+		var separate := setup(kind)
+		var origin := VigilWorld.pad_position(tower.region, tower.pad)
+		for index in range(8):
+			var direction := Vector2.from_angle(index * PI / 4.0)
+			var target := enemy(g, origin + Balance.PROJECTILES[kind].muzzle + direction * 80.0)
+			target.stun_until = 100.0
+			var stats := Balance.tower_stats(tower)
+			Lines.launch(g.combat, tower, origin, target, stats, kind == "moonwheel")
+			check(Vector2.from_angle(tower.angle).is_equal_approx(direction), kind + " aims from its muzzle in direction " + str(index))
+			check(g.combat.line_projectiles.back().direction.is_equal_approx(direction), "Weapon bearing matches swept projectile")
+			check(g.data.towers[other].angle == 0.0 and separate.data.towers["1"].angle == 0.0, "Aim state stays on its firing instance and session")
+		check(g.storage.valid_data(g.data), "Firing bearings remain compatible with saved towers")
 
 func returning_blades() -> void:
 	var g := setup("moonwheel")

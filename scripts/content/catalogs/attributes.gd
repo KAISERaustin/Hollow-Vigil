@@ -30,4 +30,4 @@ const TYPES := {
 	"opening": preload("res://scripts/content/nodes/attributes/opening.gd")
 }
 
-const RULES := {"returning_attack": {"returning": true}, "momentum_speed": {"stat": "speed"}, "momentum_damage": {"stat": "damage"}, "damage_over_time": {"effect": "dot"}, "slow": {"effect": "slow"}, "expose": {"effect": "expose"}, "boss_damage": {"condition": "boss"}, "healthy_damage": {"condition": "healthy"}, "wounded_damage": {"condition": "wounded"}, "hindered_damage": {"condition": "hindered"}}
+const RULES := {"orbit_attack": {"presentation": "orbit"}, "returning_attack": {"returning": true}, "momentum_speed": {"stat": "speed"}, "momentum_damage": {"stat": "damage"}, "damage_over_time": {"effect": "dot"}, "slow": {"effect": "slow"}, "expose": {"effect": "expose"}, "boss_damage": {"condition": "boss"}, "healthy_damage": {"condition": "healthy"}, "wounded_damage": {"condition": "wounded"}, "hindered_damage": {"condition": "hindered"}}

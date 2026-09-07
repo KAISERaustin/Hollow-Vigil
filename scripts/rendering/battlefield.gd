@@ -507,7 +507,7 @@ func draw_tower(t: Dictionary) -> void:
 		return
 	var p := screen(VigilWorld.pad_position(t.region, t.pad))
 	var z := zoom
-	VigilTerrainArt.sentinel(self, t.kind, p, z, int(t.level), t.get("branch", ""))
+	VigilTerrainArt.sentinel(self, t.kind, p, z, int(t.level), t.get("branch", ""), float(t.angle))
 	var relic_kind := preload("res://scripts/gameplay/progression/relics.gd").kind(state.data, t)
 	if relic_kind != "":
 		preload("res://scripts/rendering/actors/relic_art.gd").draw(self, relic_kind, p + Vector2(20, -17) * z, z * 0.8)

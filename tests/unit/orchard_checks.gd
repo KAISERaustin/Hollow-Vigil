@@ -114,6 +114,10 @@ static func run(suite: SceneTree) -> void:
 				var enemy := battle.combat.spawn(source,enemy_kind)
 				enemy.pos = VigilWorld.pad_position(source,0) + Vector2(10,0)
 				enemy.path = [enemy.pos,enemy.pos + Vector2(10000,0)]
+				# Compatibility and kill credit, independent of solo balance or socket geometry.
+				enemy.hp = minf(enemy.hp, Balance.tower_stats(battle.data.towers[tower]).damage * 5.0)
+				battle.combat.scripted_spawns = true
+				battle.combat.authored_roads = [enemy.path]
 				for region in battle.data.regions.values(): region.timer = 10000.0
 				for tick in range(2400):
 					battle.combat.tick(Balance.STEP)

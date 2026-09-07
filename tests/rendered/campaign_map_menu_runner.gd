@@ -60,6 +60,23 @@ func capture(key: String) -> void:
 		check(Rect2(Vector2.ZERO, Vector2(root.size)).encloses(menu.card.get_global_rect()), "Menu page fits " + key)
 		check(menu.scroll.get_global_rect().end.y <= menu.footer.global_position.y + 1, "Footer remains outside scroll area: " + key)
 
+func check_campaign_settings(key: String) -> void:
+	check(button("CreativeTools") == null, "Campaign menu omits Creative tools: " + key)
+	await press("GameSettings")
+	var run_before: RefCounted = app.campaign.run
+	var gold_before: float = run_before.game.data.balance if run_before != null else 0.0
+	menu.show_creative_tools()
+	await frames()
+	check(menu.screen == "settings", "Campaign rejects direct Creative tools navigation: " + key)
+	check(button("CreativeTools") == null and button("AddMillionGold") == null, "Campaign settings have no gold grant: " + key)
+	check(app.campaign.run == run_before, "Settings preserve the Campaign run: " + key)
+	if run_before != null:
+		check(run_before.game.data.balance == gold_before, "Settings preserve Campaign gold: " + key)
+	check(button("SettingsAccount") != null and button("SettingsSound") != null, "Campaign retains Account and Sound: " + key)
+	await capture(key + "-settings")
+	await press("BackButton")
+	check(menu.screen == "game_menu", "Settings return to Campaign menu: " + key)
+
 func run() -> void:
 	app = VigilApp.new()
 	app.load_saved_progress = false
@@ -121,6 +138,7 @@ func run() -> void:
 			check(menu.screen == "game_menu" and menu.game_type == "campaign", "Map opens the selected Campaign menu")
 			check((button("EditRules") != null) == (mode == "creative"), "Rule editing follows the slot mode")
 			await capture(mode + "-menu")
+			await check_campaign_settings(mode + "-map")
 			if mode == "creative":
 				await press("EditRules")
 				await press("EditLevel1")
@@ -165,6 +183,10 @@ func run() -> void:
 			check(campaign.run.build(campaign.run.mission.sockets[1].index, "rapid"), "Place a second tower in the resumed run")
 			check(campaign.run.start_wave(), "Start a checkpointed wave")
 			check(campaign.run.build(campaign.run.mission.sockets[2].index, "rapid"), "Place a tower after the wave checkpoint")
+			app.show_game_menu()
+			await frames()
+			await check_campaign_settings(mode + "-battle")
+			menu.resume_game()
 			campaign.show_map()
 			await press("CampaignMapMenu")
 			await press("SaveBuild")

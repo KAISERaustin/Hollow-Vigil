@@ -100,9 +100,9 @@ static func sentinel_portrait(canvas: CanvasItem, kind: String, at: Vector2, zoo
 		at = frame.get_center() - bounds.get_center() * zoom
 	sentinel(canvas, kind, at, zoom, level, branch)
 
-static func sentinel(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, level: int = 1, branch: String = "") -> void:
+static func sentinel(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, level: int = 1, branch: String = "", aim_angle: float = -PI / 2.0) -> void:
 	if kind in ["ironspike", "moonwheel", "hex_lantern", "caltrop_keep"]:
-		preload("res://scripts/rendering/actors/expansion_tower_art.gd").draw(canvas, kind, at, zoom, level, branch)
+		preload("res://scripts/rendering/actors/expansion_tower_art.gd").draw(canvas, kind, at, zoom, level, branch, aim_angle)
 		return
 	if level == 4 and Balance.valid_branch(kind, branch):
 		preload("res://scripts/rendering/actors/tower_branches.gd").draw(canvas, branch, at, zoom)

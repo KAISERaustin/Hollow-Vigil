@@ -28,6 +28,8 @@ var backup_return: Callable
 var rules_return: Callable
 var editor_game: VigilState
 var rules_editor: Control
+var campaign_rule_changes := {}
+var wave_rules := false
 var root_layout: VBoxContainer
 var restore_choice := {}
 
@@ -506,7 +508,7 @@ func mark_backup_pending() -> void:
 	if app.has_method("queue_private_backup"): app.queue_private_backup()
 
 func live_campaign() -> bool:
-	return is_instance_valid(app.campaign) and app.campaign.active_campaign_slot >= 0
+	return is_instance_valid(app.campaign) and not app.campaign.is_queued_for_deletion()
 
 func open_saved_games() -> void:
 	open_game_menu()
@@ -711,8 +713,6 @@ func show_settings(return_to: Callable = Callable()) -> void:
 	page_view("settings", "Settings", settings_return)
 	content.add_child(action("Account", func(): show_account(show_settings), "SettingsAccount"))
 	content.add_child(action("Sound", show_sound, "SettingsSound"))
-	if held and live_campaign() and app.campaign.can_author():
-		content.add_child(action("Creative tools", show_creative_tools, "CreativeTools"))
 
 func show_sound() -> void:
 	page_view("sound", "Sound", show_settings)
@@ -722,9 +722,11 @@ func show_sound() -> void:
 	content.add_child(controls)
 
 func show_creative_tools() -> void:
-	page_view("creative_tools", "Creative tools", show_settings if live_campaign() else open_game_menu)
-	var field: Battlefield = app.campaign.field if live_campaign() else app.field
-	var game: VigilState = app.campaign.game if live_campaign() else app.game
+	if not held or game_type != "infinite" or is_instance_valid(app.campaign) or not app.game.is_creative():
+		return
+	page_view("creative_tools", "Creative tools", open_game_menu)
+	var field: Battlefield = app.field
+	var game: VigilState = app.game
 	if field != null:
 		var camera := CheckList.check_box("Unrestricted zoom and pan", field.unrestricted_camera, field.set_unrestricted_camera)
 		camera.name = "UnrestrictedCamera"
@@ -735,8 +737,7 @@ func show_creative_tools() -> void:
 	if game != null:
 		content.add_child(action("Add 1,000,000 gold", func():
 			game.add_developer_gold()
-			if live_campaign(): app.campaign.persist()
-			else: app.persist()
+			app.persist()
 			notice("Gold added to this Creative game.")
 		, "AddMillionGold"))
 
@@ -788,15 +789,38 @@ func show_account(return_to: Callable = Callable()) -> void:
 	footer.add_child(action("Done", func(): account_return.call(), "AccountDone", true))
 
 func open_rules() -> void:
-	if live_campaign(): show_rule_levels()
+	if live_campaign(): show_campaign_content_rules()
 	else: show_infinite_rules()
 
-func show_rule_levels() -> void:
-	page_view("rule_levels", "Edit rules", open_game_menu)
-	for index in Build.Configuration.Catalog.COUNT:
-		content.add_child(action("%02d · %s" % [index + 1, Build.Configuration.Catalog.level(index).name], show_campaign_rules.bind(index), "EditLevel" + str(index + 1)))
+func show_campaign_content_rules() -> void:
+	if not live_campaign() or not app.campaign.can_author(): return
+	wave_rules = false
+	rules_return = open_game_menu
+	campaign_rule_changes = {}
+	page_view("rules", "Edit rules", rules_back)
+	editor_game = VigilState.new(42, "creative", Build.Configuration.resolve(0, app.campaign.level_setup(0).overrides).tuning)
+	content.add_child(UI.paragraph("Edits apply to every level and wave in this campaign. Edit wave rewards and spawns in Waves. Choose Apply changes to save this draft."))
+	rules_editor = preload("res://scripts/ui/developer/developer_controls.gd").new()
+	rules_editor.game = editor_game
+	rules_editor.configuration_only = true
+	rules_editor.categories.assign(Build.STAT_GROUPS)
+	rules_editor.rules_edited.connect(func(category: String, kind: String, stats: Array):
+		if not campaign_rule_changes.has(category): campaign_rule_changes[category] = {}
+		if not campaign_rule_changes[category].has(kind): campaign_rule_changes[category][kind] = {}
+		for stat in stats:
+			campaign_rule_changes[category][kind][stat] = Balance.configuration_value(category, kind, stat, editor_game.tuning)
+	)
+	content.add_child(rules_editor)
+	footer.add_child(action("Apply changes", func():
+		rules_editor.commit_fields()
+		if app.campaign.save_campaign_tuning(campaign_rule_changes): open_game_menu()
+		else: notice("These campaign changes could not be saved. Your draft is still open.")
+	, "ApplyRules", true))
+	footer.add_child(action("Cancel", cancel_rules, "CancelRules"))
 
 func show_infinite_rules() -> void:
+	wave_rules = false
+	rules_return = open_game_menu
 	page_view("rules", "Edit rules", rules_back)
 	editor_game = VigilState.new(42, "creative", app.game.tuning)
 	content.add_child(UI.paragraph("Changes stay in this draft until you choose Apply changes."))
@@ -812,9 +836,11 @@ func show_infinite_rules() -> void:
 	, "ApplyRules", true))
 	footer.add_child(action("Cancel", cancel_rules, "CancelRules"))
 
-func show_campaign_rules(index: int, wave: int = -1, return_to: Callable = Callable()) -> void:
-	rules_return = return_to if return_to.is_valid() else show_rule_levels
-	page_view("rules", "Edit rules", rules_back)
+func show_campaign_rules(index: int, wave: int, return_to: Callable) -> void:
+	if not live_campaign() or not app.campaign.can_author() or wave < 0: return
+	wave_rules = true
+	rules_return = return_to
+	page_view("rules", "Edit wave %d" % (wave + 1), rules_back)
 	var store := Build.Configuration.new()
 	store.data.levels[str(index)] = app.campaign.level_setup(index).overrides.duplicate(true)
 	rules_editor = preload("res://scripts/campaign/balance_panel.gd").new()
@@ -830,14 +856,13 @@ func show_campaign_rules(index: int, wave: int = -1, return_to: Callable = Calla
 	footer.add_child(action("Cancel", cancel_rules, "CancelRules"))
 
 func rules_back() -> void:
-	var controls: Control = rules_editor.controls if live_campaign() else rules_editor
-	if controls.editor.visible:
-		controls.show_categories()
+	if not wave_rules and rules_editor.editor.visible:
+		rules_editor.show_categories()
 		scroll.scroll_vertical = 0
 	else: cancel_rules()
 
 func cancel_rules() -> void:
-	confirm("Discard rule changes?", "Leave this draft and keep the game's existing rules?", "Discard changes", rules_return if live_campaign() else open_game_menu)
+	confirm("Discard rule changes?", "Leave this draft and keep the game's existing rules?", "Discard changes", rules_return)
 
 func show_backups(return_to: Callable = Callable()) -> void:
 	if return_to.is_valid(): backup_return = return_to

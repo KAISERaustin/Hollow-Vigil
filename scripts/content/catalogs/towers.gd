@@ -10,7 +10,7 @@ const TOWERS := {
 	"electric": {"name": "Stormspire", "role": "MULTI-TARGET", "cost": 140.0, "damage": 3.0, "period": 0.4, "range": 160.0, "splash": 0.0, "targets": 5, "color": "91bbff", "description": "Forked lightning zaps up to {targets} enemies at a time within reach, of any troop type."},
 	"ironspike": {"name": "Ironspike", "role": "PIERCING", "cost": 140.0, "damage": 22.0, "period": 1.4, "range": 200.0, "splash": 0.0, "color": "ede4c9", "pierce_count": 3, "pierce_loss": 0.3, "pierce_floor": 0.5, "projectile_width": 9.0, "volley_count": 1, "volley_spacing": 20.0, "description": "A straight bolt pierces up to {pierce_count} aligned enemies, losing damage after each hit. Best beside long straight roads."},
 	"moonwheel": {"name": "Moonwheel", "role": "RETURNING", "cost": 130.0, "damage": 10.0, "period": 1.5, "range": 135.0, "splash": 0.0, "color": "93c9bc", "pierce_count": 3, "projectile_width": 12.0, "return_speed": 1.0, "description": "A crescent cuts out and back through up to {pierce_count} enemies per pass. Each enemy can take one hit on each leg; only one blade flies at a time."},
-	"hex_lantern": {"name": "Hex Lantern", "role": "SUPPORT", "cost": 100.0, "damage": 4.0, "period": 1.4, "range": 135.0, "splash": 0.0, "color": "c28cab", "vulnerability_percent": 12.0, "mark_duration": 2.0, "description": "Curse bolts mark enemies for {mark_duration} seconds, increasing all tower damage received by {vulnerability_percent}%. Only the strongest vulnerability applies."},
+	"hex_lantern": {"name": "Hex Lantern", "role": "SUPPORT", "cost": 100.0, "damage": 4.0, "period": 1.4, "range": 270.0, "splash": 0.0, "color": "c28cab", "vulnerability_percent": 12.0, "mark_duration": 2.0, "description": "Curse bolts mark enemies for {mark_duration} seconds, increasing all tower damage received by {vulnerability_percent}%. Only the strongest vulnerability applies."},
 	"caltrop_keep": {"name": "Caltrop Keep", "role": "ROAD TRAPS", "cost": 120.0, "damage": 24.0, "period": 2.0, "range": 125.0, "splash": 0.0, "color": "db8d73", "trap_capacity": 3, "trap_duration": 8.0, "trap_arm_time": 0.5, "trap_count": 1, "trap_radius": 12.0, "description": "Deploys single-use caltrops on nearby roads. Stores up to {trap_capacity}; each arms in {trap_arm_time} seconds and expires after {trap_duration} seconds. Traps never block movement."}
 }
 
@@ -47,8 +47,8 @@ const TOWER_UPGRADES := {
 		{"cost": 200.0, "damage": 21.0, "period": 1.2, "range": 155.0, "splash": 0.0, "pierce_count": 5, "return_speed": 1.4, "projectile_width": 16.0}
 	],
 	"hex_lantern": [
-		{"cost": 100.0, "damage": 7.0, "period": 1.2, "range": 150.0, "splash": 0.0, "vulnerability_percent": 16.0, "mark_duration": 2.5},
-		{"cost": 180.0, "damage": 10.0, "period": 1.0, "range": 165.0, "splash": 0.0, "vulnerability_percent": 20.0, "mark_duration": 3.0, "targets": 2}
+		{"cost": 100.0, "damage": 7.0, "period": 1.2, "range": 300.0, "splash": 0.0, "vulnerability_percent": 16.0, "mark_duration": 2.5},
+		{"cost": 180.0, "damage": 10.0, "period": 1.0, "range": 330.0, "splash": 0.0, "vulnerability_percent": 20.0, "mark_duration": 3.0, "targets": 2}
 	],
 	"caltrop_keep": [
 		{"cost": 120.0, "damage": 36.0, "period": 1.8, "range": 140.0, "splash": 0.0, "trap_capacity": 4, "trap_duration": 10.0},
