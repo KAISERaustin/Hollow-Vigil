@@ -226,7 +226,11 @@ func valid_boss(b: Variant, id: String, d: Dictionary) -> bool:
 	var legacy := Bosses.legacy_kind_at(id, int(d.seed), castle)
 	# Authored/developer terrain edits do not replace an already awakened boss.
 	var generated := Bosses.kind_at(id, int(d.seed))
-	if not b is Dictionary or not b.get("kind") is String or b.kind == "" or b.kind not in [kind, legacy, generated]:
+	# Older releases spawned biome bosses on starter tiles. Spawn eligibility
+	# must not invalidate those saved encounters after the starter area expands.
+	var saved_biome := Balance.Content.region(d.regions.get(id, {}).get("style", "forest"))
+	var starter_kind: String = saved_biome.boss_kind() if not castle and VigilWorld.is_starter(id) and saved_biome != null else ""
+	if not b is Dictionary or not b.get("kind") is String or b.kind == "" or b.kind not in [kind, legacy, generated, starter_kind]:
 		return false
 	if b.get("status") in ["defeated", "escaped"]:
 		return true

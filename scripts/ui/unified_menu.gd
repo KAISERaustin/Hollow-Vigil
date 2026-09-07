@@ -131,9 +131,10 @@ func show_slots() -> void:
 		body.name = "GameSlot" + str(slot + 1)
 		if value.is_empty():
 			body.add_child(UI.paragraph("Recovery needed. Your game is preserved." if exists else "Empty slot"))
-			var button := action("New game", begin_new.bind(slot), "NewGameSlot" + str(slot + 1))
-			button.disabled = exists
-			body.add_child(button)
+			if exists:
+				body.add_child(action("Backups & recovery", func(): show_backups(show_slots), "RecoverGameSlot" + str(slot + 1)))
+			else:
+				body.add_child(action("New game", begin_new.bind(slot), "NewGameSlot" + str(slot + 1)))
 		else:
 			body.add_child(UI.heading(game_name(value, slot), 18))
 			body.add_child(UI.paragraph(str(value.get("mode", "creative")).capitalize() + "\n" + progress_text(value)))

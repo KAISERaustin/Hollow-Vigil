@@ -39,6 +39,31 @@ func shot(g: VigilState, e: Dictionary) -> Dictionary:
 	var stats := Balance.tower_stats(t)
 	return {"tower_id":"1","target_id":e.id,"branch":t.branch,"damage":stats.damage,"radius":stats.splash,"fx":{"pos":e.pos,"flight":0.2}}
 func run() -> void:
+	var ranges := {"splash": [115.0, 129.0, 143.0], "rapid": [140.0, 154.0, 168.0], "electric": [160.0, 174.0, 188.0], "heavy": [185.0, 201.0, 217.0]}
+	for kind in ranges:
+		var g := fixture(kind, "")
+		var field := Battlefield.new()
+		field.state = g
+		field.selected_pad = 0
+		check(field.selected_range() == 0.0, "Empty socket has no assumed tower range")
+		field.preview_kind = kind
+		check(field.selected_range() == ranges[kind][0], kind + " preview uses its content range")
+		field.selected_tower = "1"
+		for level in range(1, 4):
+			g.data.towers["1"].level = level
+			var radius: float = ranges[kind][level - 1]
+			check(field.selected_range() == radius, kind + " placed ring follows its tier")
+			var inside := enemy(g, Vector2(radius - 0.01, 0))
+			var outside := enemy(g, Vector2(radius + 0.01, 0))
+			check(not g.combat.select_target([inside], Vector2.ZERO, field.selected_range(), "first").is_empty(), kind + " can hit inside its ring")
+			check(g.combat.select_target([outside], Vector2.ZERO, field.selected_range(), "first").is_empty(), kind + " cannot hit outside its ring")
+		g.data.settings.developer_balance = {"towers": {kind: {"range": 200.0}}}
+		g.data.towers["1"].level = 1
+		check(field.selected_range() == 200.0, "Placed ring respects session tuning")
+		field.selected_tower = ""
+		check(field.selected_range() == 200.0, "Build preview respects session tuning")
+		check(Balance.Content.tower(kind).stats().range == ranges[kind][0], "Tuning leaves shared content unchanged")
+		field.free()
 	for kind in Balance.BRANCHES:
 		for branch in Balance.BRANCHES[kind]:
 			var g := fixture(kind,"")
