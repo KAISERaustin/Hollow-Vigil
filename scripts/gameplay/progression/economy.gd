@@ -8,6 +8,7 @@ signal relic_changed(tower_id: String)
 signal tower_upgraded(region: String, pad: int, kind: String)
 
 var data: Dictionary
+var sale_rules: VigilContentNode
 var tower_cells: Dictionary = {}
 var indexed_tower_count := -1
 
@@ -118,13 +119,25 @@ func relocate(id: String, region: String, pad: int, expected_level: int = -1) ->
 func traffic_cost(id: String) -> float:
 	return ceil(Balance.TRAFFIC_BASE_COST * pow(Balance.TRAFFIC_COST_GROWTH, data.regions[id].traffic))
 
+func set_sale_rules(definition: VigilContentNode) -> void:
+	# Run-local attachment/replacement/removal; shared content stays immutable.
+	sale_rules = definition
+
+func sell_refund(tower: Dictionary) -> float:
+	var refund := Balance.sell_refund(tower, tuning)
+	if sale_rules != null:
+		for entry in sale_rules.rule("components", []):
+			if entry.component.has_method("sale_refund"):
+				refund = entry.component.sale_refund(tower, tuning, refund, entry.config)
+	return refund
+
 func sell(id: String, expected_level: int = -1) -> Dictionary:
 	if not data.towers.has(id):
 		return {}
 	var tower: Dictionary = data.towers[id]
 	if expected_level != -1 and tower.level != expected_level:
 		return {}
-	var refund := Balance.sell_refund(tower, tuning)
+	var refund := sell_refund(tower)
 	var earnings: float = tower.earnings
 	# Remove ownership and historical production before issuing the one-time payout.
 	data.towers.erase(id)

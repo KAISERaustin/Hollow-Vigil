@@ -467,7 +467,6 @@ func show_settings() -> void:
 	sheet_content.add_child(UI.action_row("Sound", sound_button, "Open"))
 	var upload := UI.button("Upload build", app.show_save_slots.bind(true))
 	upload.name = "UploadBuild"
-	upload.disabled = not game.is_creative()
 	sheet_content.add_child(UI.action_row("Upload build", upload, "Open"))
 	sheet_content.add_child(UI.action_row("Reset progress", UI.accent_button("Reset progress", show_reset_confirmation, UI.DANGER), "Reset"))
 	sheet_content.add_child(UI.action_row("Saved Games", UI.button("Saved Games", app.show_save_slots), "Exit"))

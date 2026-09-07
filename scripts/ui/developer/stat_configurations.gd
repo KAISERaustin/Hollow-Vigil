@@ -6,37 +6,28 @@ const Controls = preload("res://scripts/ui/developer/developer_controls.gd")
 var menu: Control
 var slot := -1
 var draft: VigilState
+var picker: RefCounted
 
 func show_page(target_slot: int = -1) -> void:
 	slot = target_slot
-	menu.clear("Stat configurations")
-	menu.add_back(UI.button("Back", menu.show_creation.bind(slot, false) if slot >= 0 else menu.show_slots))
-	menu.content.add_child(UI.paragraph("Gameplay statistics only. Each configuration starts a fresh world with no buildings or progress.", 14))
-	var create := UI.button("Create configuration", show_editor.bind({}))
-	create.name = "CreateStatConfiguration"
-	menu.content.add_child(create)
+	picker = preload("res://scripts/ui/configuration_picker.gd").new()
+	picker.menu = menu
+	picker.back = menu.show_creation.bind(slot, false) if slot >= 0 else menu.show_slots
+	picker.create = show_editor.bind({})
+	picker.selected = func(configuration: Dictionary):
+		if slot >= 0:
+			menu.selected_configuration = configuration
+			menu.starting_rules = {}
+			menu.show_creation(slot, false)
+		else:
+			show_editor(Stats.decode(configuration.code))
+	picker.show_page()
 	if menu.app.slot_active:
 		var current := UI.button("Copy current game's stats", func():
 			show_editor({"tuning": menu.app.game.tuning, "setup": menu.app.game.data.get("setup", {})})
 		)
 		current.name = "CopyCurrentStats"
 		menu.content.add_child(current)
-	var import_button := UI.button("Import configuration code", show_import)
-	import_button.name = "ImportStatConfiguration"
-	menu.content.add_child(import_button)
-	for configuration in menu.slots.stat_configurations():
-		var card: VBoxContainer = menu.add_card(configuration.name)
-		card.add_child(UI.paragraph(configuration.description, 14))
-		if slot >= 0:
-			var use := UI.button("Use these stats", func():
-				menu.selected_configuration = configuration
-				menu.starting_rules = {}
-				menu.show_creation(slot, false)
-			)
-			use.name = "UseStatConfiguration"
-			card.add_child(use)
-		card.add_child(UI.button("Edit a copy", show_editor.bind(Stats.decode(configuration.code))))
-		card.add_child(UI.button("Export code", show_code.bind(configuration.code)))
 
 func show_editor(configuration: Dictionary) -> void:
 	menu.clear("Edit stat configuration")
@@ -74,6 +65,19 @@ func show_editor(configuration: Dictionary) -> void:
 	)
 	save.name = "SaveStatConfiguration"
 	menu.footer.add_child(save)
+	var upload := UI.button("Upload stats to Community", func():
+		controls.commit_fields()
+		var code := Stats.encode(draft.tuning, title.text, description.text)
+		if not menu.slots.save_shared(code):
+			menu.message.text = menu.slots.error
+			return
+		if menu.app.public_builds.queue_export(code): menu.app.public_builds.flush()
+		menu.message.text = menu.app.public_builds.status
+		menu.upload_revision = menu.view_revision
+		menu.scroll.scroll_vertical = 0
+	)
+	upload.name = "UploadStatConfiguration"
+	menu.footer.add_child(upload)
 
 func show_import() -> void:
 	menu.clear("Import stat configuration")

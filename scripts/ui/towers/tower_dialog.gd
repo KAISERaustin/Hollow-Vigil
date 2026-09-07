@@ -122,7 +122,7 @@ func open_action(action: String) -> void:
 	portrait.queue_redraw()
 	tower_level = int(tower.level)
 	cost = Balance.upgrade_cost(tower, app.game.tuning) if action == "upgrade" else 0.0
-	refund = Balance.sell_refund(tower, app.game.tuning) if action == "sell" else 0.0
+	refund = app.game.economy.sell_refund(tower) if action == "sell" else 0.0
 	if action == "move":
 		cost = Balance.move_cost(tower, app.game.tuning)
 	rebuild_seconds = Balance.rebuild_seconds(tower, app.game.tuning)
@@ -326,6 +326,7 @@ func refresh() -> void:
 	if mode == "upgrade" and tower_level >= Balance.MAX_TOWER_LEVEL:
 		confirm.text = "Max level"
 	elif mode == "sell":
+		refund = app.game.economy.sell_refund(tower)
 		confirm.text = "Sell · +" + UI.exact_money(refund + app.game.data.towers[tower_id].earnings) + " gold"
 
 func equipment_fingerprint() -> String:

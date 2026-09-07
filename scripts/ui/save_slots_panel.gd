@@ -17,6 +17,10 @@ var stat_browser: RefCounted
 var creation_mode := "creative"
 var starting_rules: Dictionary = {}
 var selected_configuration: Dictionary = {}
+var export_game: VigilState
+var export_campaign: Dictionary = {}
+var export_return: Callable
+var export_stats_only := false
 
 func _ready() -> void:
 	public_browser = preload("res://scripts/ui/public_builds_panel.gd").new()
@@ -260,16 +264,27 @@ func show_configurations(slot: int) -> void:
 			build.add_child(description_box)
 			description_box.add_child(UI.paragraph(configuration.description, 14))
 
-func show_export() -> void:
-	clear("Save or share a build")
-	add_back(UI.button("Back to game", close))
-	content.add_child(UI.paragraph("A build is a reusable copy of this world's layout, towers, gold and rules. Your current game continues separately.", 14))
+func show_export(source: VigilState = null, campaign: Dictionary = {}, return_to: Callable = Callable()) -> void:
+	export_game = source if source != null else app.game
+	export_campaign = campaign
+	export_return = return_to if return_to.is_valid() else close
+	export_stats_only = false
+	clear("Save or share configuration")
+	add_back(UI.button("Back to game", export_return))
+	content.add_child(UI.paragraph("Choose what to include. Towers + stats keeps the layout, equipment, resources and rules. Stats only shares the rules and stat changes for a fresh start.", 14))
+	var includes := OptionButton.new()
+	includes.name = "ShareConfigurationContents"
+	includes.custom_minimum_size.y = UI.TARGET
+	includes.add_item("Towers + stats")
+	includes.add_item("Stats only")
+	includes.item_selected.connect(func(index: int): export_stats_only = index == 1)
+	content.add_child(includes)
 	content.add_child(UI.heading("Build name", 18))
 	var title := LineEdit.new()
 	title.name = "SetupName"
 	title.placeholder_text = "For example, Stronger enemies"
 	title.max_length = 80
-	title.text = app.game.data.get("setup", {}).get("name", "")
+	title.text = export_game.data.get("setup", {}).get("name", "")
 	title.custom_minimum_size.y = UI.TARGET
 	style_entry(title)
 	content.add_child(title)
@@ -277,19 +292,19 @@ func show_export() -> void:
 	var description := TextEdit.new()
 	description.name = "SetupDescription"
 	description.placeholder_text = "What makes this build different?"
-	description.text = app.game.data.get("setup", {}).get("description", "")
+	description.text = export_game.data.get("setup", {}).get("description", "")
 	description.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
 	description.custom_minimum_size.y = 120
 	style_entry(description)
 	content.add_child(description)
 	content.add_child(UI.rule())
-	content.add_child(UI.paragraph("Save to My builds keeps a private copy on this device. Upload public build shares it with everyone, including your player name and description. Account details and sound settings are excluded.", 13))
+	content.add_child(UI.paragraph("Save on this device keeps a private copy. Upload to Community shares the selected content, title, description and player name.", 13))
 	if not app.cloud.signed_in() or app.cloud.display_name.is_empty():
 		content.add_child(UI.paragraph("Public uploads require sign-in and a player name. Failed attempts need an explicit retry. Local builds need no account.", 13))
-	var local := UI.button("Save to My builds", save_build.bind(title, description, false))
+	var local := UI.button("Save on this device", save_build.bind(title, description, false))
 	local.name = "SaveLocalBuild"
 	footer.add_child(local)
-	var upload := UI.accent_button("Upload public build", save_build.bind(title, description, true), UI.GOLD)
+	var upload := UI.accent_button("Upload to Community", save_build.bind(title, description, true), UI.GOLD)
 	upload.name = "SaveConfiguration"
 	footer.add_child(upload)
 
@@ -300,28 +315,42 @@ func save_build(title: LineEdit, description: TextEdit, publish: bool) -> void:
 		message.text = "Enter a build name and keep the description to 4,000 characters or fewer."
 		scroll.scroll_vertical = 0
 		return
-	if not slots.save_configuration(app.game, build_name, details):
+	var code: String
+	if not export_campaign.is_empty():
+		code = VigilSaveSlots.CampaignBuild.encode(export_campaign.level, export_campaign.overrides, export_game, build_name, details, export_stats_only)
+	elif export_stats_only:
+		code = VigilSaveSlots.Stats.encode(export_game.tuning, build_name, details)
+	else:
+		code = slots.export_build(export_game, build_name, details)
+	if not slots.save_shared(code):
 		message.text = slots.error
 		return
 	if publish:
-		if app.public_builds.queue_export(slots.export_build(app.game, build_name, details)):
+		if app.public_builds.queue_export(code):
 			app.public_builds.flush()
-	app.game.data.setup = {"name": build_name, "description": details}
-	app.persist()
-	clear("Build upload" if publish else "Build saved")
-	message.text = app.public_builds.status if publish else "Saved to My builds on this device. This copy is private."
+	if export_campaign.is_empty():
+		export_game.data.setup = {"name": build_name, "description": details}
+		app.persist()
+	clear("Configuration upload" if publish else "Configuration saved")
+	message.text = app.public_builds.status if publish else "Saved on this device. This copy is private."
 	upload_revision = view_revision if publish else -1
 	content.add_child(UI.heading(build_name, 18))
-	content.add_child(UI.paragraph("To play this build, open an empty game slot and choose My builds. You can start it in Creative or Survival.", 14))
-	if publish:
-		add_action(UI.button("View community builds", show_public_builds))
+	content.add_child(UI.paragraph("Choose this configuration from Stats or My builds when starting a game. Campaign configurations are available from their level's setup.", 14))
+	if publish and export_campaign.is_empty():
+		if export_stats_only:
+			add_action(UI.button("View community stats", func():
+				stat_browser.show_page()
+				stat_browser.picker.show_page(true)
+			))
+		else:
+			add_action(UI.button("View community builds", show_public_builds))
 		if not app.cloud.signed_in() or app.cloud.display_name.is_empty():
 			add_action(UI.button("Sign in / choose player name", func():
 				close()
 				app.panels.show_cloud_saves()
 			))
-	add_action(UI.button("Saved games", show_slots))
-	add_back(UI.button("Back to game", close))
+	if export_campaign.is_empty(): add_action(UI.button("Saved games", show_slots))
+	add_back(UI.button("Back to game", export_return))
 
 func show_public_builds(slot: int = -1) -> void:
 	public_browser.show_page(slot)

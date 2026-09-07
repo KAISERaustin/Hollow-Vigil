@@ -207,7 +207,7 @@ func _populate_levels(root: ContentNode) -> void:
 	_add(LevelNode.new("level/session", open_world, Levels.SESSION, {"kind": "start", "tuning_category": "session"}), "session", "start")
 	_add(LevelNode.new("level/creative", open_world, {}, {"developer_controls": true}))
 	_add(LevelNode.new("level/survival", open_world, {}, {"developer_controls": false}))
-	var campaign := _add(LevelNode.new("level/campaign", level_root, {}, {"finite_waves": true, "expansion": false, "max_health": Levels.MAX_HEALTH}))
+	var campaign := _add(LevelNode.new("level/campaign", level_root, {}, {"finite_waves": true, "expansion": false, "max_health": Levels.MAX_HEALTH, "components": [{"slot": "setup_refund", "component": get_node("attribute/investment_refund"), "config": {"ratio": 1.0}}]}))
 	var wave_root := _add(WaveNode.new("wave", root))
 	for chapter in range(Levels.CHAPTERS.size()):
 		_add(LevelNode.new("level/chapter/" + str(chapter), campaign, {}, {"chapter": Levels.CHAPTERS[chapter]}))

@@ -5,6 +5,7 @@ const Run = preload("res://scripts/campaign/run.gd")
 const Progress = preload("res://scripts/campaign/progress.gd")
 
 func run() -> void:
+	check_setup_refunds()
 	check_effect_cleanup()
 	check(Catalog.MISSIONS.size() == 20, "Campaign contains exactly 20 authored missions")
 	var layouts := {}
@@ -113,6 +114,61 @@ func run() -> void:
 	check(not sandbox.combat.scripted_spawns and sandbox.combat.spawn_on_path("basic",route).is_empty(), "Sandbox does not accept campaign spawns")
 	print("Campaign: %d checks, %d failures" % [checks,failures.size()])
 	quit(0 if failures.is_empty() else 1)
+
+func check_setup_refunds() -> void:
+	for index in [0, 2, 19]:
+		var setup := Run.new(index)
+		var socket: int = setup.mission.sockets[0].index
+		for kind in Balance.TOWERS:
+			for level in range(1, Balance.MAX_TOWER_LEVEL + 1):
+				setup.game.data.balance = 100000.0
+				check(setup.build(socket, kind), "Setup builds every tower family")
+				for tier in range(1, level):
+					check(setup.upgrade(socket, Balance.BRANCHES[kind].keys()[0] if tier == 3 else ""), "Setup upgrades use shared transactions")
+				var id := setup.tower_at(socket)
+				var tower: Dictionary = setup.game.data.towers[id]
+				var spent: float = 100000.0 - setup.game.data.balance
+				check(setup.game.economy.sell_refund(tower) == spent, "Initial campaign quote refunds build and upgrade investment")
+				check(setup.game.economy.sell(id, level + 1).is_empty(), "Setup refund still rejects a stale tower level")
+				check(setup.sell(socket) and setup.game.data.balance == 100000.0, "Initial campaign sale returns every gold spent")
+				check(setup.game.economy.sell(id).is_empty(), "Setup sale cannot pay twice")
+	var battle := Run.new(0)
+	var other := Run.new(0)
+	check(battle.build(6, "rapid") and other.build(6, "rapid"), "Concurrent campaign runs build independently")
+	var tower: Dictionary = battle.game.data.towers[battle.tower_at(6)]
+	var other_tower: Dictionary = other.game.data.towers[other.tower_at(6)]
+	check(battle.start_wave(), "First wave starts for refund boundary test")
+	check(battle.wave == 0 and battle.wave_time == 0.0 and battle.game.economy.sell_refund(tower) == Balance.sell_refund(tower), "Normal refund starts immediately before any first-wave tick")
+	check(other.game.economy.sell_refund(other_tower) == Balance.invested_cost(other_tower), "Starting one run leaves another run's setup refund intact")
+	tower.earnings = 7.0
+	var sale := battle.game.economy.sell(tower.id)
+	check(sale.refund == Balance.sell_refund(tower) and sale.earnings == 7.0, "During-wave sale keeps normal refund and pays earnings separately")
+	battle.next_spawn = battle.schedule.size()
+	battle.tick(Balance.STEP)
+	check(battle.wave == 1 and battle.phase == "planning", "Run reaches the next planning phase")
+	check(battle.build(6, "rapid"), "Tower can be built between waves")
+	tower = battle.game.data.towers[battle.tower_at(6)]
+	check(battle.game.economy.sell_refund(tower) == Balance.sell_refund(tower), "Later planning never reopens full refunds")
+	sale = battle.game.economy.sell(tower.id)
+	check(sale.refund == Balance.sell_refund(tower), "Between-wave sale uses normal refund")
+	for mode in ["creative", "survival"]:
+		var world := VigilState.new(42, mode)
+		world.data.first_property_required = false
+		world.data.balance = 1000.0
+		var id := world.economy.build("rapid", "0,0", 0)
+		check(not id.is_empty(), "Open-world refund fixture builds")
+		var world_tower: Dictionary = world.data.towers[id]
+		check(world.economy.sell(id).refund == Balance.sell_refund(world_tower), "Open-world modes keep normal refunds")
+	var definition := Balance.Content.level(0)
+	other.game.economy.set_sale_rules(definition.without_component("test/no_refund", "setup_refund"))
+	check(other.game.economy.sell_refund(other_tower) == Balance.sell_refund(other_tower), "Removing the attached component restores normal refunds")
+	var component: VigilContentNode = Balance.Content.catalog().get_node("attribute/investment_refund")
+	other.game.economy.set_sale_rules(definition.with_component("test/half_refund", "setup_refund", component, {"ratio": 0.5}))
+	check(other.game.economy.sell_refund(other_tower) == Balance.invested_cost(other_tower) * 0.5, "Replacing a component uses its own refund configuration")
+	var fresh := Run.new(0)
+	check(fresh.build(6, "rapid"), "Restarted campaign starts a fresh setup")
+	var fresh_tower: Dictionary = fresh.game.data.towers[fresh.tower_at(6)]
+	check(fresh.game.economy.sell_refund(fresh_tower) == Balance.invested_cost(fresh_tower), "Component replacement never mutates shared campaign definitions")
 
 func check_effect_cleanup() -> void:
 	for outcome in ["planning", "victory", "defeat"]:

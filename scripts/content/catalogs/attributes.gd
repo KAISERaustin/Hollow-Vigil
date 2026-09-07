@@ -1,6 +1,7 @@
 extends RefCounted
 
 const TYPES := {
+	"investment_refund": preload("res://scripts/content/nodes/attributes/investment_refund.gd"),
 	"root": preload("res://scripts/content/nodes/attributes/root.gd"),
 	"momentum_speed": preload("res://scripts/content/nodes/attributes/momentum.gd"),
 	"momentum_damage": preload("res://scripts/content/nodes/attributes/momentum.gd"),

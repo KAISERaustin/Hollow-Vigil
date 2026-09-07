@@ -554,7 +554,7 @@ func show_save_slots(exporting: bool = false) -> bool:
 		add_child(slot_menu)
 	slot_menu.show()
 	slot_menu.move_to_front()
-	if exporting and game.is_creative():
+	if exporting:
 		slot_menu.show_export()
 	else:
 		slot_menu.show_slots()

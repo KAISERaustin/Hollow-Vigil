@@ -33,6 +33,9 @@ var dialog_title: Label
 var save_notice: Label
 var socket_dialog := false
 var waves_dialog := false
+var shared_setups: Dictionary = {}
+var configuration_picker: RefCounted
+var active_overrides: Dictionary = {}
 
 # Host the same tower components against the mission state.
 var game: VigilState:
@@ -232,7 +235,7 @@ func show_briefing(index: int) -> void:
 	if not progress.unlocked(index):
 		return
 	clear_page("briefing")
-	run = Run.new(index, configuration.overrides(index))
+	run = configured_run(index)
 	header("%02d · %s" % [index+1, run.mission.name], show_map)
 	layout.add_child(UI.paragraph(Catalog.CHAPTERS[int(index / 5.0)].story, 14))
 	add_board(false)
@@ -240,6 +243,19 @@ func show_briefing(index: int) -> void:
 	layout.add_child(UI.paragraph("%d waves  ·  %s starting gold  ·  %d flame" % [run.mission.waves.size(), UI.exact_money(run.mission.gold), run.mission.flame], 13))
 	var details := UI.button("Preview waves", show_waves, 48)
 	layout.add_child(details)
+	var sources := HBoxContainer.new()
+	layout.add_child(sources)
+	for kind in ["campaign_build", "campaign_stats"]:
+		var choose := UI.button("My builds" if kind == "campaign_build" else "Stats", show_configuration_picker.bind(index, kind))
+		choose.name = "CampaignChooseBuild" if kind == "campaign_build" else "CampaignChooseStats"
+		choose.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		sources.add_child(choose)
+	if shared_setups.has(index):
+		layout.add_child(UI.paragraph(shared_setups[index].setup.name + "\n" + shared_setups[index].setup.description, 14))
+		layout.add_child(UI.button("Use my level defaults", func():
+			shared_setups.erase(index)
+			show_briefing(index)
+		))
 	var start := UI.gold_button("Begin mission", start_mission.bind(index), 50)
 	start.name = "BeginCampaignMission"
 	layout.add_child(start)
@@ -247,7 +263,7 @@ func show_briefing(index: int) -> void:
 func start_mission(index: int) -> void:
 	if not progress.unlocked(index):
 		return
-	run = Run.new(index, configuration.overrides(index))
+	run = configured_run(index)
 	connect_run()
 	show_battle()
 	save_progress()
@@ -315,6 +331,9 @@ func show_battle() -> void:
 	waves.custom_minimum_size.x = 80
 	waves.size_flags_horizontal = Control.SIZE_FILL
 	controls.add_child(waves)
+	var share := UI.button("Share", show_campaign_share.bind(index_for_run()))
+	share.name = "ShareCampaignConfiguration"
+	controls.add_child(share)
 	wave_button = UI.gold_button("", begin_wave, 48)
 	wave_button.name = "StartCampaignWave"
 	controls.add_child(wave_button)
@@ -594,7 +613,61 @@ func show_level_balance(index: int) -> void:
 	editor.store = configuration
 	editor.index = index
 	editor.export_requested.connect(show_level_export.bind(index))
+	editor.saved.connect(func(): shared_setups.erase(index))
 	dialog_body.add_child(editor)
+	var share := UI.button("Save or share configuration", show_campaign_share.bind(index, true))
+	share.name = "ShareSavedCampaignConfiguration"
+	dialog_body.add_child(share)
+	dialog_body.add_child(UI.button("Choose saved or community stats", show_configuration_picker.bind(index, "campaign_stats")))
+
+func index_for_run() -> int:
+	return int(run.mission.index)
+
+func configured_run(index: int) -> RefCounted:
+	active_overrides = shared_setups.get(index, {}).get("overrides", configuration.overrides(index)).duplicate(true)
+	var next := Run.new(index, active_overrides)
+	if shared_setups.has(index): VigilSaveSlots.CampaignBuild.apply_loadout(next, shared_setups[index])
+	return next
+
+func configuration_menu() -> Control:
+	if not is_instance_valid(app.slot_menu):
+		app.slot_menu = preload("res://scripts/ui/save_slots_panel.gd").new()
+		app.slot_menu.app = app
+		app.add_child(app.slot_menu)
+	app.slot_menu.show()
+	app.slot_menu.move_to_front()
+	return app.slot_menu
+
+func show_configuration_picker(index: int, kind: String) -> void:
+	var menu := configuration_menu()
+	configuration_picker = preload("res://scripts/ui/configuration_picker.gd").new()
+	configuration_picker.menu = menu
+	configuration_picker.kind = kind
+	configuration_picker.level = index
+	configuration_picker.back = func():
+		menu.view_revision += 1
+		menu.hide()
+	configuration_picker.create = func():
+		menu.hide()
+		show_level_balance(index)
+	configuration_picker.selected = func(entry: Dictionary):
+		shared_setups[index] = VigilSaveSlots.CampaignBuild.decode(entry.code)
+		menu.view_revision += 1
+		menu.hide()
+		show_briefing(index)
+	configuration_picker.show_page()
+
+func show_campaign_share(index: int, saved: bool = false) -> void:
+	var was_paused := paused
+	paused = true
+	var source: RefCounted = Run.new(index, configuration.overrides(index)) if saved else run
+	var rules: Dictionary = configuration.overrides(index) if saved else active_overrides
+	var menu := configuration_menu()
+	menu.show_export(source.game, {"level": index, "overrides": rules}, func():
+		menu.view_revision += 1
+		menu.hide()
+		paused = was_paused
+	)
 
 func show_level_export(index: int) -> void:
 	var code := Configuration.export_level(index, configuration.overrides(index))

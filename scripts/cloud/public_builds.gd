@@ -25,7 +25,7 @@ func _save() -> bool:
 	return config.save(outbox_path + ".tmp") == OK and DirAccess.rename_absolute(outbox_path + ".tmp", outbox_path) == OK
 
 func queue_export(code: String) -> bool:
-	var snapshot := VigilSaveSlots.new().decode_build(code)
+	var snapshot := VigilSaveSlots.new().shared_entry(code)
 	if snapshot.is_empty():
 		status = "This configuration could not be published."
 		return false
@@ -70,7 +70,7 @@ func flush() -> void:
 			outbox.append(item)
 			status = "Published; choose Retry public uploads to confirm safely."
 			break
-		status = "Build published to Community builds."
+		status = "Configuration published to Community."
 	busy = false
 	if cloud.generation == epoch:
 		cloud.busy = false
@@ -86,6 +86,7 @@ func read_build(id: String) -> Dictionary:
 	if not result.ok or not result.data is Dictionary:
 		return {}
 	var code := JSON.stringify(result.data.get("configuration"))
-	if VigilSaveSlots.new().decode_build(code).is_empty():
-		return {}
-	return {"name": result.data.title, "description": result.data.description, "code": code}
+	return VigilSaveSlots.new().shared_entry(code)
+
+func list_configurations(page: int, kind: String, level: int = -1) -> Dictionary:
+	return await cloud._request("/rest/v1/rpc/list_shared_configurations", {"page_number": maxi(0, page), "content_kind": kind, "level_index": level}, false)

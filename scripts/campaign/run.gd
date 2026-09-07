@@ -19,6 +19,7 @@ func _init(index: int = 0, overrides: Dictionary = {}) -> void:
 	mission = Configuration.resolve(index, overrides)
 	health = int(mission.flame)
 	game = VigilState.new(81000 + index, "survival")
+	game.economy.set_sale_rules(Balance.Content.level(index))
 	game.data.balance = float(mission.gold)
 	game.data.settings.developer_balance = mission.tuning.duplicate(true)
 	game.data.first_property_required = false
@@ -38,6 +39,8 @@ func _init(index: int = 0, overrides: Dictionary = {}) -> void:
 func start_wave() -> bool:
 	if phase != "planning" or wave >= mission.waves.size():
 		return false
+	# This setup exception ends permanently for this run at the first wave start.
+	game.economy.set_sale_rules(null)
 	game.data.settings.developer_balance = mission.wave_rules[wave].tuning.duplicate(true)
 	schedule = Configuration.schedule(mission, wave)
 	next_spawn = 0

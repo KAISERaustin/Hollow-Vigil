@@ -93,6 +93,8 @@ Nodes never retain the owning game, visual objects, live enemy dictionaries or m
 
 Campaign and Infinite Worlds instantiate the same `VigilTowerActions`, `VigilTowerDialog`, relic picker and tower move components. The campaign screen supplies the active mission's `game` and `field` plus the host callbacks for persistence, selection and feedback. The shared dialogs accept a `Control` host rather than requiring the Infinite Worlds application. Add tower menu features to these shared components, never to a separate campaign management dialog. Campaign only owns its authored socket validation and construction entry point; upgrades, specialization confirmation, equipment, targeting, sales and relocation remain shared transactions. Mission inventory stays isolated from Infinite Worlds, and campaign completion persistence retains its existing semantics.
 
+Campaign Level nodes attach the reusable `investment_refund` attribute in the `setup_refund` slot. Each fresh campaign run gives its economy that definition only during initial setup; starting the first wave removes it permanently for that run. The economy owns attachment/replacement/removal and resolves both sell previews and payouts, including tower upgrades. Later planning phases and open-world sessions use the normal refund. The component is stateless, and unfinished campaign runs are not saved, so no save migration is needed.
+
 ## Adding a tower such as Pike
 
 This creates a prototype inheriting Ashneedle's behavior in an isolated catalog:

@@ -2,6 +2,7 @@ class_name VigilSaveSlots
 extends RefCounted
 
 const Stats = preload("res://scripts/persistence/stat_configuration.gd")
+const CampaignBuild = preload("res://scripts/persistence/campaign_build.gd")
 const COUNT := 3
 const BUILD_FORMAT := "hollow-vigil-creative-build-v1"
 var base_path := "user://vigil"
@@ -66,8 +67,6 @@ func create(slot: int, mode: String, build_code: String = "", starting_rules: Di
 	return game
 
 func export_build(game: VigilState, setup_name: String = "Untitled setup", description: String = "") -> String:
-	if not game.is_creative():
-		return ""
 	var snapshot := game.snapshot()
 	snapshot.mode = "creative"
 	snapshot.setup = {"name": setup_name.strip_edges().left(80), "description": description.left(4000)}
@@ -185,4 +184,35 @@ func stat_configurations() -> Array[Dictionary]:
 		var configuration := Stats.decode(code)
 		if not configuration.is_empty():
 			result.append({"name": configuration.setup.name, "description": configuration.setup.description, "code": code})
+	return result
+
+func shared_entry(code: String) -> Dictionary:
+	var value := Stats.decode(code)
+	var kind := "stats"
+	if value.is_empty():
+		value = CampaignBuild.decode(code)
+		kind = "campaign_build" if value.has("loadout") else "campaign_stats"
+	if value.is_empty():
+		value = decode_build(code)
+		kind = "world"
+	if value.is_empty(): return {}
+	return {"name": value.setup.name, "description": value.setup.description, "code": code, "kind": kind}
+
+func save_shared(code: String) -> bool:
+	var entry := shared_entry(code)
+	if entry.is_empty():
+		error = "Invalid or incompatible configuration."
+		return false
+	return _save_configuration_code(code, {"world": "hvbuild", "stats": "hvstats", "campaign_build": "hvcampaign", "campaign_stats": "hvcampaign"}[entry.kind])
+
+func shared_configurations(kind: String) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var directory := DirAccess.open(configurations_path())
+	if directory == null: return result
+	var files := directory.get_files()
+	files.reverse()
+	for filename in files:
+		if filename.get_extension() not in ["hvbuild", "hvstats", "hvcampaign"]: continue
+		var entry := shared_entry(FileAccess.get_file_as_string(configurations_path().path_join(filename)))
+		if entry.get("kind") == kind: result.append(entry)
 	return result
