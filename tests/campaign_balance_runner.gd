@@ -3,7 +3,7 @@ extends SceneTree
 const Catalog = preload("res://scripts/campaign/catalog.gd")
 const Run = preload("res://scripts/campaign/run.gd")
 const Progress = preload("res://scripts/campaign/progress.gd")
-const STRATEGIES := [0,0,0,0,1,0,0,0,0,8,0,1,0,2,0,1,4,1,1,4,0,0,0,0,0,0,0,0,0,0]
+const STRATEGIES := [0,0,0,0,1,0,0,0,0,8,0,1,0,2,0,1,4,1,1,4,0,2,0,4,0,0,0,0,0,0]
 var failures := 0
 
 func _initialize() -> void:

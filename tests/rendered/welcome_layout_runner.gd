@@ -23,7 +23,7 @@ func run() -> void:
 		for element in [welcome.crest, welcome.title, welcome.subtitle, welcome.modes, welcome.battlefield, welcome.footer_rule, welcome.caption]:
 			check(bounds.encloses(element.get_rect()), "Composition contains %s at %s" % [element.name, dimensions])
 		check(welcome.battlefield.position.y >= welcome.subtitle.get_rect().end.y + 8, "Landscape clears the subtitle")
-		check(welcome.modes.position.y >= welcome.battlefield.get_rect().end.y + 16, "Landscape clears the actions")
+		check(not welcome.modes.get_rect().intersects(welcome.battlefield.get_rect()), "Landscape clears the actions")
 		check(welcome.battlefield.size.y >= 100, "Landscape remains readable")
 		for art in [welcome.crest, welcome.battlefield, welcome.footer_rule]:
 			check(art.mouse_filter == Control.MOUSE_FILTER_IGNORE, "Decorative art never owns input")
@@ -33,6 +33,8 @@ func run() -> void:
 		for button in buttons:
 			check(button.size == Vector2(minf(320, welcome.size.x - 16), 56), "Original button dimensions remain exact")
 		check(welcome.modes.get_theme_constant("separation") == 14, "Original button gaps remain exact")
+		if dimensions.x >= 680:
+			check(app.slot_menu.scroll.get_global_rect().encloses(welcome.modes.get_global_rect()), "Landscape exposes every action without scrolling")
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://artifacts/welcome-layout-%d.png" % dimensions.x)
 		app.slot_menu.scroll.ensure_control_visible(buttons[-1])

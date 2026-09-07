@@ -16,6 +16,8 @@ signal upgraded
 var field: Battlefield
 var buttons: Dictionary = {}
 var blocked := false
+## Hosts can use the shared stat preview instead of inline upgrade confirmation.
+var upgrade_in_dialog := false
 var upgrade_maxed := false
 var equipment_kind := ""
 var pending_tower := ""
@@ -44,6 +46,9 @@ func cancel_upgrade() -> void:
 func request_upgrade() -> void:
 	refresh()
 	if not visible or buttons.upgrade.disabled:
+		return
+	if upgrade_in_dialog:
+		action_requested.emit("preview")
 		return
 	var id := field.selected_tower
 	var tower: Dictionary = field.state.data.towers[id]
@@ -118,20 +123,20 @@ func refresh() -> void:
 	if pending_tower != "" and (pending_tower != field.selected_tower or pending_level != int(tower.level) or pending_cost != cost):
 		cancel_upgrade()
 	var upgrade: Button = buttons.upgrade
-	var maxed: bool = tower.level >= 3
+	var maxed: bool = tower.level >= (Balance.MAX_TOWER_LEVEL if upgrade_in_dialog else 3)
 	if upgrade_maxed != maxed:
 		upgrade_maxed = maxed
 		upgrade.queue_redraw()
-	upgrade.disabled = tower.level >= 3 or tower.get("rebuild_remaining", 0.0) > 0.0 or (field.state.data.balance < cost and tower.level != 3)
+	upgrade.disabled = maxed or (not upgrade_in_dialog and (tower.get("rebuild_remaining", 0.0) > 0.0 or field.state.data.balance < cost))
 	upgrade.accessibility_description = ("Confirm upgrade" if pending_tower != "" else "Upgrade") + " · " + UI.exact_money(cost) + " gold"
 	if tower.level >= Balance.MAX_TOWER_LEVEL:
 		upgrade.accessibility_description = "Max level"
 	elif tower.level == 3:
-		upgrade.accessibility_description = "Choose the left or right specialization · See info for details"
+		upgrade.accessibility_description = "Preview level 4 specializations" if upgrade_in_dialog else "Choose the left or right specialization · See info for details"
 	elif tower.get("rebuild_remaining", 0.0) > 0.0:
 		upgrade.accessibility_description = "Rebuilding"
 	upgrade.accessibility_name = upgrade.accessibility_description
-	upgrade_quote.visible = tower.level < Balance.MAX_TOWER_LEVEL
+	upgrade_quote.visible = not upgrade_in_dialog and tower.level < Balance.MAX_TOWER_LEVEL
 	refresh_branches(tower)
 	if upgrade_quote.visible:
 		if pending_tower != "":
@@ -268,7 +273,7 @@ func choose_branch(index: int) -> void:
 	refresh()
 
 func refresh_branches(tower: Dictionary) -> void:
-	branch_bar.visible = int(tower.level) == 3
+	branch_bar.visible = not upgrade_in_dialog and int(tower.level) == 3
 	if not branch_bar.visible:
 		return
 	var center := field.screen(VigilWorld.pad_position(tower.region, tower.pad))

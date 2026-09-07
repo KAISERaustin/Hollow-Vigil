@@ -147,7 +147,12 @@ serif wordmark, a small mint seal, a moonlit sanctuary landscape above the actio
 and compact footer lettering. Its artwork uses the native drawing library and
 never owns input or starts a simulation. Campaign, Infinite and Settings keep
 their existing gold-paper treatment, 56-unit height, up-to-320-unit width and
-14-unit vertical gaps. Keep the complete composition scrollable on short screens.
+14-unit vertical gaps. At landscape widths, put the identity and illustration
+beside the actions; keep the complete composition scrollable on small screens.
+
+### Campaign world map
+
+The September 7 campaign-map revision is an explicit exception to parchment page backgrounds. Fill the scrolling map edge to edge with the six native Infinite biome colors and scenery. Adjoining chapters share one 3-unit black divider, drawn over trail crossings; omit card frames, rounded chapter corners, parchment gutters and mode availability subtitles. Keep the title and 48-unit Back control in a fixed, safe-area-aware header. Use winding trails that avoid readable level labels and preserve completed, current and locked states. `biome_map_art.gd` owns reusable trail and scenery drawing; `world_map.gd` supplies the authored Level catalog and progression. Validate return navigation, scrolling and label clearance at phone and landscape sizes with `tests/rendered/campaign_map_runner.gd`.
 
 ### Persistent HUD
 
@@ -160,6 +165,8 @@ Aim to leave at least 60% of screen height to the battlefield during ordinary pl
 ### Tower selection and details
 
 Selection attaches the existing Info, Upgrade, and Sell actions to the tower context. Keep those actions in a stable order and avoid moving the camera solely to select an object. Clamp the control group inside the visible battlefield; preserve the connection to the tower through placement or a simple pointer. Hide competing tower gold badges while selection or its dialog is active, matching existing behavior.
+
+In Campaign, tapping a tower shows its surrounding controls. Only the yellow Upgrade control opens the shared next-level stat comparison and exact-cost action, including specialization choices at level 3. Hide the surrounding controls while this panel is open; omit the bottom upgrade quote and inline checkmark confirmation. Closing the panel restores the controls. A successful purchase closes the panel and clears tower selection, including its controls and range circle.
 
 An information panel shows portrait, tower name, class and level, description, then labeled statistics. Upgrade compares current and next values using explicit Current and Next labels; an arrow may reinforce the relationship. At wider sizes use two columns of statistic groups; at compact widths stack them.
 

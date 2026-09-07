@@ -5,6 +5,7 @@ const UI = preload("res://scripts/ui/shared/interface.gd")
 const TowerChoice = preload("res://scripts/ui/towers/tower_choice.gd")
 ## Active mode host: game, field, controls, persistence and feedback.
 var app: Control
+var clear_selection_on_upgrade := false
 var card: PanelContainer
 var layout: VBoxContainer
 var body: VBoxContainer
@@ -208,7 +209,8 @@ func open_action(action: String, branch: String = "") -> void:
 		body.add_child(UI.paragraph("Empty slot · Defeat bosses to collect relics." if relic_kind == "" else preload("res://scripts/gameplay/progression/relics.gd").DEFINITIONS[relic_kind].name + "\n" + preload("res://scripts/gameplay/progression/relics.gd").description(relic_kind, app.game.tuning), 14))
 		if tower_level == 3:
 			body.add_child(UI.heading("Level 4 specializations", 18))
-			body.add_child(UI.paragraph("At level 3, the upgrade button locks and two choices appear beside it. Tap a side once, then tap its checkmark to purchase that permanent specialization.", 14))
+			var instructions := "Open Upgrade, choose a specialization to compare its stats and cost, then press Upgrade to purchase that permanent specialization." if app.tower_actions.upgrade_in_dialog else "At level 3, the upgrade button locks and two choices appear beside it. Tap a side once, then tap its checkmark to purchase that permanent specialization."
+			body.add_child(UI.paragraph(instructions, 14))
 			var branch_options: Array = Balance.BRANCHES[tower.kind].keys()
 			for side in range(branch_options.size()):
 				var option := Balance.stats(tower.kind, 4, app.game.tuning, branch_options[side])
@@ -406,7 +408,9 @@ func commit(opened_revision: int) -> void:
 			return
 		var branch := tower_branch if tower_level == 3 else ""
 		if app.game.economy.upgrade(tower_id, tower_level, branch):
-			dismiss()
+			dismiss(not clear_selection_on_upgrade)
+			if clear_selection_on_upgrade:
+				app.panels.close_sheet()
 			app.persist()
 	elif mode in ["equipment", "equipment_detail", "equipment_remove"]:
 		var removing := mode == "equipment_remove"

@@ -59,4 +59,6 @@ Call `refresh_paths()` after changing a region appearance in editor tools or fix
 
 ## Cleared campaign landmarks
 
+The campaign world map uses six edge-to-edge biome sections with native scenery, winding ink-bordered trails and one shared 3-unit divider between sections. This user-requested map exception removes the parchment page background and chapter cards. Keep title/Back navigation fixed above the scroll viewport. See the Campaign world map recipe in `UI_STYLE_GUIDE.md`; ordinary dialogs still use the shared parchment system.
+
 Completed levels use `scripts/campaign/cleared_level_art.gd`, a stateless shared drawing component composed by `level_marker.gd`. Broken parchment stone, scattered masonry and an ochre beacon replace the intact marker; chapter bosses use collapsed gate jambs with the same beacon. Numbers remain readable and completion comes only from campaign progress. Flames are flat and static, with no glow or particles. Unfinished destinations retain their existing artwork. Regenerate mobile reference captures with `--script res://tests/previews/cleared_map_preview.gd`.

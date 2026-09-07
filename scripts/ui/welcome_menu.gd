@@ -70,6 +70,9 @@ func configure(campaign: Callable, infinite: Callable, settings: Callable = Call
 
 func arrange() -> void:
 	var width := size.x
+	if width >= 680 and get_viewport_rect().size.y < 540:
+		arrange_landscape()
+		return
 	var height := size.y
 	title.add_theme_font_size_override("font_size", clampi(int(width / 6.5), 44, 64))
 	var title_height := title.get_minimum_size().y
@@ -94,3 +97,26 @@ func arrange() -> void:
 	footer_rule.size = Vector2(width, 12)
 	caption.position = Vector2(0, footer_rule.get_rect().end.y + 8)
 	caption.size = Vector2(width, 20)
+
+func arrange_landscape() -> void:
+	custom_minimum_size.y = 320
+	var identity_width := size.x - 344
+	title.add_theme_font_size_override("font_size", 40)
+	var title_height := title.get_minimum_size().y
+	var art_height := clampf(size.y - title_height - 96, 100, 144)
+	var top := maxf(0, (size.y - title_height - art_height - 64) * 0.5)
+	crest.position = Vector2(0, top)
+	crest.size = Vector2(identity_width, 20)
+	title.position = Vector2(0, top + 28)
+	title.size = Vector2(identity_width, title_height)
+	subtitle.position = Vector2(0, title.get_rect().end.y + 4)
+	subtitle.size = Vector2(identity_width, 20)
+	battlefield.position = Vector2(0, subtitle.get_rect().end.y + 12)
+	battlefield.size = Vector2(identity_width, art_height)
+	var buttons_height := modes.get_combined_minimum_size().y
+	modes.position = Vector2(size.x - 320, roundf((size.y - buttons_height - 56) * 0.5))
+	modes.size = Vector2(320, buttons_height)
+	footer_rule.position = Vector2(modes.position.x, modes.get_rect().end.y + 16)
+	footer_rule.size = Vector2(320, 12)
+	caption.position = Vector2(modes.position.x, footer_rule.get_rect().end.y + 8)
+	caption.size = Vector2(320, 20)

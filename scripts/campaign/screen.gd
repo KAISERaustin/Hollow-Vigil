@@ -125,10 +125,12 @@ func clear_tower_ui() -> void:
 func build_tower_ui() -> void:
 	tower_actions = VigilTowerActions.new()
 	tower_actions.field = board
+	tower_actions.upgrade_in_dialog = true
 	board.add_child(tower_actions)
 	tower_actions.upgraded.connect(persist)
 	tower_dialog = VigilTowerDialog.new()
 	tower_dialog.app = self
+	tower_dialog.clear_selection_on_upgrade = true
 	tower_dialog.z_index = 102
 	add_child(tower_dialog)
 	tower_actions.action_requested.connect(tower_dialog.open_action)
@@ -731,7 +733,6 @@ func show_socket(socket: int) -> void:
 		dialog.hide()
 		tower_actions.blocked = false
 		tower_actions.refresh()
-		tower_dialog.open_action("preview")
 		return
 	open_dialog("Build a tower", true)
 	build_selection.bind_game(game)
