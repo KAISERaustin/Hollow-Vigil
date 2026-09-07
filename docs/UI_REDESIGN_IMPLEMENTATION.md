@@ -31,7 +31,9 @@ Authority: `UI_REDESIGN_DRAFT.md`, requested for implementation September 7, 202
 - [x] Native rendered workflow checks at 360×640, 390×844 and 540×960.
 - [x] Persistence, service, gameplay and regression checks.
 - [x] Updated menu tree and verification evidence.
-- [ ] Commit and verified push to origin/main.
+- [x] Commit and verified push to origin/main.
+
+Implementation and final workflow verification were delivered in `8bc281e` and its preceding commits. The push to `origin/main` was verified against the remote branch; the working tree was clean before this delivery-record update.
 
 ## Verification evidence, September 7, 2026
 
