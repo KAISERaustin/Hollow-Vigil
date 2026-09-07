@@ -72,6 +72,7 @@ try {
             Invoke-Godot -Name 'branches' -EngineArguments @('--headless', '--script', 'res://tests/branch_runner.gd')
             Invoke-Godot -Name 'first-property' -EngineArguments @('--headless', '--script', 'res://tests/first_property_runner.gd')
             Invoke-Godot -Name 'audio' -EngineArguments @('--headless', '--script', 'res://tests/audio_runner.gd')
+            Invoke-Godot -Name 'audio-pitch' -EngineArguments @('--headless', '--script', 'res://tests/audio_pitch_runner.gd')
             Invoke-Godot -Name 'unit' -EngineArguments @('--headless', '--script', 'res://tests/test_runner.gd')
         }
         if ($Smoke -or $Check) {

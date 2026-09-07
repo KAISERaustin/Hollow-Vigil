@@ -22,6 +22,7 @@ var selected_branch := ""
 var fields: VBoxContainer
 var inputs: Dictionary = {}
 var hint: Label
+var description_rule: HSeparator
 var detail: Label
 var portrait: Control
 var identity_title: Label
@@ -134,6 +135,8 @@ func _ready() -> void:
 	tier_selector.get_popup().shrink_width = false
 	hint = UI.paragraph("", 12)
 	editor.add_child(hint)
+	description_rule = UI.rule()
+	editor.add_child(description_rule)
 	fields = VBoxContainer.new()
 	fields.add_theme_constant_override("separation", 16)
 	editor.add_child(fields)
@@ -224,8 +227,9 @@ func populate_tiers() -> void:
 
 func show_fields() -> void:
 	refresh_identity()
+	hint.visible = category != "session"
+	description_rule.visible = category == "session"
 	if category == "session":
-		hint.text = "New sessions · Auto-saved"
 		detail.text = "Starting gold is used when creating a game with these rules. Current gold is unchanged."
 	if category == "towers":
 		hint.text = "Tier %d · Live changes · Auto-saved" % selected_level
@@ -249,6 +253,7 @@ func show_fields() -> void:
 
 func refresh_identity() -> void:
 	var definition: Dictionary = Balance.definitions(category)[editing_kind()]
+	portrait.visible = category != "session"
 	identity_title.text = definition.name
 	match category:
 		"session": description.text = "Choose the starting resources for new games made with these rules."

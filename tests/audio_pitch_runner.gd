@@ -17,7 +17,6 @@ func run() -> void:
 	var gameplay_state: int = app.game.combat.rng.state
 	var specs := Director.CATALOG.duplicate(true)
 	for cue in Director.CATALOG:
-		var varied: bool = cue.begins_with("shot_") or cue.begins_with("impact_") or cue.begins_with("death_") or (cue.begins_with("boss_") and cue.ends_with("_step"))
 		var observed := {}
 		var rate: int = a.streams[cue].mix_rate
 		if cue == "lantern_watch":
@@ -32,9 +31,10 @@ func run() -> void:
 			check(a.accepted_events == accepted + 1 and active.size() == 1, "Playback accepted for " + cue)
 			if active.is_empty(): continue
 			var pitch: float = active[0].pitch_scale
-			check((pitch >= 0.9 and pitch <= 1.1) if varied else pitch == 1.0, "Playback pitch bounds and exclusions: " + cue)
+			check(pitch >= 0.9 and pitch <= 1.1, "Playback pitch bounds: " + cue)
 			observed[pitch] = true
-		check(observed.size() > 1 if varied else observed.size() == 1, "Independent playback variation: " + cue)
+		check(observed.size() > 1, "Independent playback variation: " + cue)
+		check(observed.keys().min() < 1.0 and observed.keys().max() > 1.0, "Pitch varies above and below normal: " + cue)
 		check(a.streams[cue].mix_rate == rate, "Playback does not modify source stream: " + cue)
 	check(app.game.combat.rng.state == gameplay_state, "Audio variation never consumes gameplay RNG")
 	check(Director.CATALOG == specs, "Playback never changes shared audio configuration")
