@@ -106,6 +106,7 @@ try {
             Invoke-Godot -Name 'mobile-picker' -EngineArguments @('--script', 'res://tests/rendered/illustrated_picker_touch_runner.gd')
             Invoke-Godot -Name 'mobile-campaign-upgrades' -EngineArguments @('--script', 'res://tests/rendered/campaign_upgrade_runner.gd')
             Invoke-Godot -Name 'mobile-campaign-controls' -EngineArguments @('--script', 'res://tests/rendered/mobile_campaign_controls_runner.gd')
+            Invoke-Godot -Name 'campaign-navigation' -EngineArguments @('--script', 'res://tests/rendered/campaign_navigation_runner.gd')
             Invoke-Godot -Name 'mobile-context-actions' -EngineArguments @('--script', 'res://tests/rendered/mobile_context_actions_runner.gd')
             Invoke-Godot -Name 'mobile-equipment' -EngineArguments @('--script', 'res://tests/rendered/relic_runner.gd')
         }
