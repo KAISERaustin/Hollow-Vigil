@@ -47,5 +47,9 @@ if __name__ == '__main__':
     if args.bake:
         godot('tools/bake_actor_images.gd', rendered=True)
         godot('import', import_assets=True)
+        for settings in (audit.ROOT / 'assets/artwork').rglob('*.png.import'):
+            source = settings.read_text(encoding='utf-8')
+            settings.write_text(source.replace('mipmaps/generate=false', 'mipmaps/generate=true'), encoding='utf-8')
+        godot('import', import_assets=True)
     for script in args.scripts:
         godot(script, rendered=script.startswith('tests/rendered/'))
