@@ -1,4 +1,5 @@
 {
+  "tests\\performance\\batch_candidate_runner.gd": "502d4af89f9de29ed1124603554340becf1ca89d2950a5f1e74272150c8fcda6",
   "tests\\performance\\behavior_runner.gd": "1855bc0e69376439a3cd35ed84a34c7dc5300b4dc7674e3e33cf514495cba98a",
   "tests\\performance\\camera_runner.gd": "183bd15c63a4efb43ee4d690e23bc67dc9361b39ca5c885d2f70e434b9c103a6",
   "tests\\performance\\campaign_runner.gd": "6ef1b02efd870dc41b88d82fc3e96439c08a34f58ef566245a2ac264d456f2bc",

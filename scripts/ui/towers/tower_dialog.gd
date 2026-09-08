@@ -13,6 +13,8 @@ var body: VBoxContainer
 var scroll: ScrollContainer
 var footer: BoxContainer
 var heading: Label
+var identity_card: PanelContainer
+var identity_row: HBoxContainer
 var identity_text: VBoxContainer
 var level_display: Control
 var identity: HBoxContainer
@@ -67,14 +69,23 @@ func _ready() -> void:
 			var shown_level := mini(tower_level + 1, Balance.MAX_TOWER_LEVEL) if mode == "preview" else tower_level
 			VigilTerrainArt.sentinel_portrait(portrait, tower_kind, Vector2(20, 41) if mode == "preview" else Vector2(24, 51), 0.65 if mode == "preview" else 0.85, Rect2(Vector2.ZERO, portrait.size).grow(-2), shown_level, tower_branch)
 	)
-	identity.add_child(portrait)
+	identity_card = PanelContainer.new()
+	identity_card.name = "TowerIdentityCard"
+	identity_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	identity.add_child(identity_card)
+	identity_row = HBoxContainer.new()
+	identity_row.add_theme_constant_override("separation", 8)
+	identity_card.add_child(identity_row)
+	portrait.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	identity_row.add_child(portrait)
 	heading = UI.heading("", 24)
 	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	identity_text = VBoxContainer.new()
 	identity_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	identity_text.add_theme_constant_override("separation", 4)
-	identity.add_child(identity_text)
+	identity_text.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	identity_row.add_child(identity_text)
 	identity_text.add_child(heading)
 	header_close = UI.close_button(func():
 		if mode == "equipment_detail": open_action("equipment")
@@ -111,6 +122,15 @@ func _ready() -> void:
 	app.resized.connect(fit_dialog)
 	hide()
 
+func _has_point(point: Vector2) -> bool:
+	# The compact management card leaves the persistent build strip interactive.
+	# Purchase and equipment dialogs retain their full modal input boundary.
+	if mode == "info" and is_instance_valid(app.ground_build):
+		var palette: Control = app.ground_build.palette
+		if palette.is_visible_in_tree() and palette.get_global_rect().has_point(global_position + point):
+			return false
+	return Rect2(Vector2.ZERO, size).has_point(point)
+
 func open_action(action: String, branch: String = "") -> void:
 	if action == "upgrade":
 		action = "preview"
@@ -121,6 +141,10 @@ func open_action(action: String, branch: String = "") -> void:
 	opener = get_viewport().gui_get_focus_owner()
 	revision += 1
 	mode = action
+	identity_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 8) if action == "info" else UI.surface(UI.PANEL, 0, 0))
+	footer.alignment = BoxContainer.ALIGNMENT_CENTER if action == "info" else BoxContainer.ALIGNMENT_BEGIN
+	footer.add_theme_constant_override("separation", 8 if action == "info" else 12)
+	scroll.visible = action != "info"
 	color = Color(UI.BORDER, 0.0 if action == "info" else 0.65)
 	layout.add_theme_constant_override("separation", 8 if action in ["info", "preview"] else 16)
 	body.add_theme_constant_override("separation", 8 if action == "preview" else 12)
@@ -216,18 +240,6 @@ func open_action(action: String, branch: String = "") -> void:
 	if action == "upgrade":
 		var progression := "Maximum level reached · %d / %d" % [tower_level, Balance.MAX_TOWER_LEVEL] if tower_level >= Balance.MAX_TOWER_LEVEL else "Level %d → %d / %d" % [tower_level, tower_level + 1, Balance.MAX_TOWER_LEVEL]
 		body.add_child(UI.label(progression, 14))
-	if action == "info":
-		var actions := GridContainer.new()
-		actions.name = "TowerManagementActions"
-		actions.columns = 3
-		actions.add_theme_constant_override("h_separation", 8)
-		actions.add_theme_constant_override("v_separation", 8)
-		body.add_child(actions)
-		for entry in [["equipment", "Equipment"], ["target", "Targeting"], ["move", "Move"]]:
-			var button := UI.button(entry[1], open_action.bind(entry[0]), 48)
-			button.name = "Manage_" + entry[0]
-			button.add_theme_font_size_override("font_size", UI.type_size(14))
-			actions.add_child(button)
 	if action == "sell":
 		body.add_child(UI.paragraph("Remove this tower and refund " + UI.exact_money(refund) + " gold. Its stored " + UI.exact_money(tower.earnings) + " gold will also be collected. Equipment returns to your inventory.", 16))
 	var opened_revision := revision
@@ -238,13 +250,16 @@ func open_action(action: String, branch: String = "") -> void:
 	cancel.size_flags_horizontal = Control.SIZE_FILL
 	footer.add_child(cancel)
 	if action == "info":
-		var sell := UI.button("Sell tower", open_action.bind("sell"), 48)
-		sell.name = "Manage_sell"
-		footer.add_child(sell)
+		for item in [["equipment", "Equipment"], ["target", "Targeting"], ["move", "Move tower"], ["sell", "Sell tower"]]:
+			var action_button := management_button(item[0], item[1], open_action.bind(item[0]))
+			footer.add_child(action_button)
 	var text: String = {"info": "Upgrade", "preview": "Upgrade · " + UI.exact_money(cost) + " gold", "upgrade": "Upgrade · " + UI.exact_money(cost) + " gold", "sell": "Sell · +" + UI.exact_money(refund) + " gold", "move": "Choose destination", "target": "Apply targeting", "equipment": "Apply equipment"}[action]
 	confirm = UI.accent_button(text, func(): commit(opened_revision), UI.DANGER if action == "sell" else UI.GOLD, 48)
 	confirm.name = "ConfirmTowerAction"
 	confirm.add_theme_font_size_override("font_size", UI.type_size(16))
+	if action == "info":
+		confirm.text = ""
+		configure_management_button(confirm, "upgrade", "Upgrade tower")
 	footer.add_child(confirm)
 	if action == "equipment":
 		confirm.hide()
@@ -258,6 +273,27 @@ func open_action(action: String, branch: String = "") -> void:
 	cancel.visible = action not in ["info", "preview"]
 	(header_close if action in ["equipment", "preview"] else (confirm if action == "info" else cancel)).grab_focus()
 	UI.trap_focus(card)
+
+func management_button(action: String, label: String, callback: Callable) -> Button:
+	var button := UI.button("", callback, 48)
+	button.name = "Manage_" + action
+	configure_management_button(button, action, label)
+	return button
+
+func configure_management_button(button: Button, action: String, label: String) -> void:
+	button.custom_minimum_size = Vector2(48, 48)
+	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	button.accessibility_name = label
+	button.accessibility_description = label
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		var style := UI.box(UI.GOLD if action == "upgrade" else UI.SURFACE)
+		style.set_content_margin_all(0)
+		button.add_theme_stylebox_override(state, style)
+	button.draw.connect(func():
+		var equipped := preload("res://scripts/gameplay/progression/relics.gd").kind(app.game.data, app.game.data.towers[tower_id]) if app.game.data.towers.has(tower_id) else ""
+		preload("res://scripts/ui/towers/tower_action_icon.gd").draw(button, action, equipped, tower_level >= Balance.MAX_TOWER_LEVEL)
+	)
 
 func show_equipment_details(relic_id: String) -> void:
 	const Relics = preload("res://scripts/gameplay/progression/relics.gd")
@@ -334,7 +370,7 @@ func fit_dialog() -> void:
 		var safe := UI.safe_rect(app).grow(-12)
 		card.size.x = minf(520.0, safe.size.x)
 		footer.vertical = false
-		scroll.custom_minimum_size.y = body.get_combined_minimum_size().y
+		scroll.custom_minimum_size.y = 0
 		card.size.y = 0
 		var bottom := minf(safe.end.y, app.field.get_global_rect().end.y - 8)
 		card.position = Vector2(safe.position.x + (safe.size.x - card.size.x) * 0.5, maxf(safe.position.y, bottom - card.size.y))

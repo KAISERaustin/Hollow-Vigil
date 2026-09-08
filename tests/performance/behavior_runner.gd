@@ -64,7 +64,9 @@ func run() -> void:
 			field.zoom = 0.35
 			var checkpoints := []
 			for tick in range(600):
-				field.camera = Vector2.ZERO if camera_mode == "watching" else Vector2(90000,90000)
+				# Fully outside these fixtures, without projecting tiny native portal
+				# polygons at artificial 90,000-unit floating-point coordinates.
+				field.camera = Vector2.ZERO if camera_mode == "watching" else Vector2(0, 12 * Balance.TILE)
 				if camera_mode == "moving": field.camera = Vector2(sin(tick*0.03)*1300, cos(tick*0.03)*800)
 				if battle == null: field.state.combat.tick(Balance.STEP)
 				else:
@@ -75,6 +77,9 @@ func run() -> void:
 				if OS.get_environment("PERF_RENDER_CAMERA") == "1" and tick % 10 == 9:
 					await process_frame
 					await RenderingServer.frame_post_draw
+			if camera_mode == "hidden":
+				var view := Rect2(field.world(Vector2.ZERO), field.size / field.zoom)
+				if not field.state.combat.visible_enemies(view).is_empty(): failures += 1
 			if reference.is_empty(): reference = checkpoints
 			if reference != checkpoints: failures += 1
 			rows.append({"mode": mode, "camera": camera_mode, "checkpoints": checkpoints, "matches": reference == checkpoints,

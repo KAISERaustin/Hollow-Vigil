@@ -16,6 +16,13 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 		check(dialog.confirm.is_visible_in_tree(), "Upgrade stays visible")
 		check(dialog.card.size.y <= 240, "Management remains a compact card")
 		check(dialog.body.find_child("TowerDetails", true, false) == null, "Compact card omits stats and description")
+		var action_y := dialog.confirm.get_global_rect().position.y
+		for button: Button in dialog.footer.get_children():
+			if not button.visible: continue
+			check(button.size == Vector2(48, 48) and is_equal_approx(button.global_position.y, action_y), "Five square actions share one row")
+			check(button.text.is_empty() and not button.accessibility_name.is_empty(), "Icon actions retain accessible names")
+		check(absf(dialog.portrait.get_global_rect().get_center().y - dialog.identity_text.get_global_rect().get_center().y) < 1, "Portrait and title vertically centered in identity card")
+		check(dialog.identity_card.get_theme_stylebox("panel").border_width_left == 3, "Identity card uses shared black outline")
 		await Harness.capture(host, "tower-management-" + prefix + "-" + str(viewport.x))
 		for action in ["equipment", "target", "move", "sell"]:
 			dialog.find_child("Manage_" + action, true, false).pressed.emit()
