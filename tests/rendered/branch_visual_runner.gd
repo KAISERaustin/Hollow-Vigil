@@ -16,11 +16,11 @@ func _initialize() -> void:
 	preload("res://tests/support/timeout.gd").arm(self)
 	call_deferred("run")
 func frame() -> void:
-	await process_frame
-	await process_frame
+	for step in range(5): await process_frame
 	await RenderingServer.frame_post_draw
 func run() -> void:
-	root.size = Vector2i(920,800)
+	# Artwork contact sheet, sized for every current tower family.
+	root.size = Vector2i(920, Balance.BRANCHES.size() * 185 + 40)
 	root.content_scale_size = root.size
 	var bg := ColorRect.new()
 	bg.color = VigilTerrainArt.BACKDROP
@@ -39,7 +39,7 @@ func run() -> void:
 	root.add_child(app)
 	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	app.set_process(false)
-	app.game.data.balance = 100000
+	app.game.data.balance = 1000000000
 	app.game.expand("-1,0")
 	var id := app.game.economy.build("rapid","0,0",0)
 	app.game.economy.upgrade(id)
@@ -50,47 +50,43 @@ func run() -> void:
 	app.field.selected_tower = id
 	app.tower_actions.blocked = false
 	app.update_hud()
-	for dimensions in [Vector2i(360,640),Vector2i(360,900),Vector2i(540,900)]:
+	for dimensions in [Vector2i(360,640),Vector2i(390,844),Vector2i(540,960)]:
 		var width: int = dimensions.x
 		root.size = dimensions
 		root.content_scale_size = root.size
 		await frame()
-		app.tower_actions.request_upgrade()
-		await frame()
-		if not app.tower_actions.branch_bar.visible: failures.append("Choices not visible")
-		var index := 0
+		# The shared management card now owns branch previews and confirmation.
 		for kind in Balance.BRANCHES:
 			var tower: Dictionary = app.game.data.towers[id]
 			tower.kind = kind
-			app.tower_actions.cancel_upgrade()
-			app.tower_actions.request_upgrade()
 			for side in range(2):
-				await preload("res://tests/rendered/visual_smoke.gd").tap(app,app.tower_actions.branch_bar.get_child(side).get_global_rect().get_center(),side == 1)
+				tower.level = 3
+				tower.branch = ""
+				var branch: String = Balance.BRANCHES[kind].keys()[side]
+				app.field.selected_tower = id
+				app.tower_dialog.open_action("info")
+				app.tower_dialog.arm_upgrade(branch)
 				await frame()
-				var button: Button = app.tower_actions.branch_bar.get_child(side)
-				if not button.get_meta("armed", false): failures.append("Choice not armed " + kind)
+				var dialog: VigilTowerDialog = app.tower_dialog
+				if not dialog.upgrade_armed or dialog.tower_branch != branch: failures.append("Choice not armed " + kind)
 				if tower.level != 3: failures.append("First click purchased " + kind)
-				if not app.tower_actions.buttons.upgrade.disabled: failures.append("Original upgrade not locked")
-				var original: Rect2 = app.tower_actions.buttons.upgrade.get_global_rect()
-				if side == 0 and button.get_global_rect().end.x >= original.position.x: failures.append("Left choice overlaps original")
-				if side == 1 and button.get_global_rect().position.x <= original.end.x: failures.append("Right choice overlaps original")
+				if not Rect2(Vector2.ZERO, Vector2(dimensions)).encloses(dialog.card.get_global_rect()): failures.append("Branch card outside portrait " + kind)
+				if not dialog.card.get_global_rect().encloses(dialog.confirm.get_global_rect()): failures.append("Branch confirmation outside card " + kind)
 				root.get_texture().get_image().save_png("res://artifacts/branch-%s-%d-%d.png" % [kind,side,width])
-			index += 1
-		app.tower_actions.cancel_upgrade()
-	# Purchasing through the real control fires normal persistence hooks.
-	app.game.data.towers[id].kind = "rapid"
-	app.tower_actions.request_upgrade()
-	app.tower_actions.choose_branch(0)
-	await frame()
-	await preload("res://tests/rendered/visual_smoke.gd").tap(app,app.tower_actions.branch_bar.get_child(0).get_global_rect().get_center())
-	if app.game.data.towers[id].get("branch","") != "frostneedle": failures.append("Confirm button did not purchase")
-	if app.tower_actions.branch_bar.visible: failures.append("Choices did not dismiss")
+				var before: float = app.game.data.balance
+				var cost: float = dialog.cost
+				await preload("res://tests/rendered/visual_smoke.gd").tap(app, dialog.confirm.get_global_rect().get_center(), true)
+				await frame()
+				if tower.level != 4 or tower.branch != branch: failures.append("Confirm did not purchase " + branch)
+				if not is_equal_approx(app.game.data.balance, before - cost): failures.append("Branch charged incorrect gold " + branch)
+				dialog.dismiss()
 	# Exercise branch artwork and live effect drawing, not only the preview portraits.
 	app.field.selected_tower = ""
 	for kind in Balance.BRANCHES:
 		for branch in Balance.BRANCHES[kind]:
 			var t: Dictionary = app.game.data.towers[id]
 			t.kind = kind
+			t.level = 4
 			t.branch = branch
 			t.cooldown = 0.0
 			var combat := app.game.combat
@@ -98,6 +94,10 @@ func run() -> void:
 			combat.pending_shots.clear()
 			combat.effects.clear()
 			combat.burning_ground.clear()
+			combat.line_projectiles.clear()
+			combat.traps.clear()
+			combat.effect_fields.clear()
+			combat.clear_tower_components(id)
 			var origin := VigilWorld.pad_position("0,0",0)
 			for index in range(15):
 				var e := combat.spawn("-1,0", "heavy" if index % 3 == 0 else "basic")

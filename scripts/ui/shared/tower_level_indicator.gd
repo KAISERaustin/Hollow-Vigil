@@ -28,7 +28,9 @@ static func create(level: int, show_caption: bool = true, vertical: bool = false
 	row.add_theme_constant_override("separation", 8)
 	row.accessibility_name = "Tower level %d of 4" % current
 	column.add_child(row)
-	for index in IMAGES.size():
+	for position in IMAGES.size():
+		# Vertical progression grows upward; horizontal progression grows rightward.
+		var index: int = IMAGES.size() - 1 - position if vertical else position
 		var image := TextureRect.new()
 		image.name = "Level%d" % (index + 1)
 		image.custom_minimum_size = Vector2(32, 32)
