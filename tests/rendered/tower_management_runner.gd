@@ -37,6 +37,9 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 		dialog.confirm.pressed.emit()
 		await settle()
 		check(dialog.mode == "info" and dialog.upgrade_armed, "Upgrade arms inline confirmation")
+		var future: Dictionary = host.game.data.towers[host.field.selected_tower].duplicate(true)
+		future.level += 1
+		check(is_equal_approx(host.field.selected_range(), Balance.tower_stats(future, host.game.tuning, host.game.data.relics).range), "First tap previews effective next-level range")
 		check(not dialog.footer.visible, "No extra upgrade quote below management")
 		check(dialog.card.get_global_rect() == original_card_rect, "Confirmation keeps management size and position")
 		await Harness.capture(host, "tower-upgrade-confirm-" + prefix + "-" + str(viewport.x))
@@ -52,6 +55,7 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 		dialog.confirm.pressed.emit()
 		dialog.go_back()
 		await settle()
+		check(is_equal_approx(host.field.selected_range(), Balance.tower_stats(host.game.data.towers[host.field.selected_tower], host.game.tuning, host.game.data.relics).range), "Cancel restores owned range")
 		dialog.go_back()
 		check(not dialog.visible, "Back closes management")
 		if viewport.x > 0:
@@ -78,6 +82,10 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 					await tap(dialog.branch_cards.get_child(1).get_global_rect().get_center())
 					await settle()
 					check(tower.level == 3 and dialog.tower_branch == branch, "Switching cards selects without purchasing")
+					var specialized := tower.duplicate(true)
+					specialized.level = 4
+					specialized.branch = branch
+					check(is_equal_approx(host.field.selected_range(), Balance.tower_stats(specialized, host.game.tuning, host.game.data.relics).range), "Switching branches previews chosen specialization range")
 					check(Rect2(Vector2.ZERO, Vector2(viewport)).encloses(dialog.card.get_global_rect()), "Branch confirmation fits portrait")
 					await Harness.capture(host, "tower-upgrade-branch-" + prefix)
 					var before: float = host.game.data.balance

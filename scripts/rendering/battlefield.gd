@@ -23,6 +23,7 @@ var camera_framing := CameraFraming.new()
 var zoom := 1.0
 var unrestricted_camera := false
 var show_health_numbers := false
+var upgrade_range_preview: Dictionary = {}
 var selected_tower := "":
 	set(value):
 		var changed := selected_tower != value
@@ -381,7 +382,12 @@ func selected_range() -> float:
 	if state == null:
 		return 0.0
 	if state.data.towers.has(selected_tower):
-		return Balance.tower_stats(state.data.towers[selected_tower], state.tuning, state.data.relics).range
+		var tower: Dictionary = state.data.towers[selected_tower]
+		if upgrade_range_preview.get("id", "") == selected_tower and upgrade_range_preview.get("level", -1) == tower.level:
+			tower = tower.duplicate(true)
+			tower.level = mini(int(tower.level) + 1, Balance.MAX_TOWER_LEVEL)
+			tower.branch = upgrade_range_preview.branch
+		return Balance.tower_stats(tower, state.tuning, state.data.relics).range
 	if selected_pad >= 0 and Balance.TOWERS.has(preview_kind):
 		return Balance.Content.tower(preview_kind).stats(1, state.tuning).range
 	return 0.0

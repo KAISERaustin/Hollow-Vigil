@@ -157,6 +157,8 @@ func open_action(action: String, branch: String = "") -> void:
 		arm_upgrade()
 		return
 	upgrade_armed = false
+	app.field.upgrade_range_preview.clear()
+	app.field.queue_redraw()
 	card.scale = Vector2.ONE
 	app.tower_actions.cancel_upgrade()
 	if is_instance_valid(branch_cards):
@@ -336,6 +338,8 @@ func arm_upgrade(branch: String = "") -> void:
 	if tower_level == 3:
 		tower_branch = branch if Balance.valid_branch(tower_kind, branch) else str(Balance.BRANCHES[tower_kind].keys()[0])
 	cost = Balance.upgrade_cost(app.game.data.towers[tower_id], app.game.tuning, tower_branch)
+	app.field.upgrade_range_preview = {"id": tower_id, "level": tower_level, "branch": tower_branch}
+	app.field.queue_redraw()
 	for child in footer.get_children():
 		footer.remove_child(child)
 		child.queue_free()
@@ -671,6 +675,8 @@ func _gui_input(event: InputEvent) -> void:
 		)
 
 func dismiss(restore_actions: bool = true) -> void:
+	app.field.upgrade_range_preview.clear()
+	app.field.queue_redraw()
 	if dismissal: dismissal.kill()
 	dismissing = false
 	revision += 1
