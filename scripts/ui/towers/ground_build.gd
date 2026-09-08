@@ -9,6 +9,8 @@ var palette: PanelContainer
 var prompt: Label
 var banner: PanelContainer
 var preview_body: VBoxContainer
+var slide: Tween
+var reveal := 1.0
 var kind := ""
 var candidate := ""
 var pointer := -2
@@ -30,6 +32,7 @@ func _ready() -> void:
 	banner = PanelContainer.new()
 	banner.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, UI.CARD_PADDING))
 	add_child(banner)
+	move_child(banner, 0)
 	preview_body = VBoxContainer.new()
 	preview_body.add_theme_constant_override("separation", UI.CARD_GAP)
 	banner.add_child(preview_body)
@@ -71,7 +74,7 @@ func fit() -> void:
 	palette.position = Vector2(0, size.y - palette.size.y)
 	if is_instance_valid(layout_owner):
 		layout_owner.offset_bottom = -palette.size.y
-	banner.position = safe.position + Vector2(12, 12)
+	banner.position = Vector2(safe.position.x + 12, palette.position.y - banner.size.y * reveal)
 
 func open() -> void:
 	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
@@ -90,10 +93,6 @@ func open() -> void:
 		var tower_kind: String = button.get_meta("tower_kind")
 		button.accessibility_description = "Drag upward to place on clear ground"
 		button.gui_input.connect(func(event: InputEvent): card_input(event, tower_kind, button))
-		var price := UI.label(UI.exact_money(Balance.definition("towers", tower_kind, field.state.tuning).cost) + " gold", 14)
-		price.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		price.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		button.get_child(0).get_child(0).add_child(price)
 	palette.show()
 	palette.reset_size()
 	fit.call_deferred()
@@ -109,9 +108,17 @@ func arm(value: String) -> void:
 			preview_body.remove_child(child)
 			child.queue_free()
 	preview_body.add_child(Choice.build_preview(kind, field.state.tuning))
+	preview_body.move_child(preview_body.get_child(-1), 0)
 	banner.reset_size()
 	candidate = ""
 	banner.show()
+	if slide != null: slide.kill()
+	reveal = 0.0
+	slide = create_tween()
+	slide.tween_method(func(value: float):
+		reveal = value
+		fit()
+	, 0.0, 1.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	point = field.world(field.size * 0.5)
 	refresh()
 	fit()
@@ -216,6 +223,7 @@ func cancel() -> void:
 		field.mouse_down = false
 		field.gesture_consumed = true
 	if is_instance_valid(palette): palette.show()
+	if slide != null: slide.kill()
 	if is_instance_valid(banner): banner.hide()
 	show()
 	queue_redraw()

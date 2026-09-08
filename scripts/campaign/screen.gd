@@ -655,7 +655,7 @@ func update_time_controls() -> void:
 func refresh() -> void:
 	if page != "battle":
 		return
-	gold.text = "%s gold" % Balance.money(run.game.data.balance)
+	preload("res://scripts/ui/shared/value_refresh.gd").money(gold, run.game.data.balance, " gold")
 	var shown_wave := mini(run.wave+1, run.mission.waves.size())
 	var can_start: bool = run.phase == "planning"
 	status.text = "Wave %d / %d" % [shown_wave, run.mission.waves.size()]
@@ -666,15 +666,13 @@ func refresh() -> void:
 		for group in run.mission.waves[run.wave]:
 			enemies_remaining += int(group[1])
 	var remaining := "%d enemies remaining" % enemies_remaining
-	wave_button.text = "Start wave" if can_start else "In progress"
+	wave_button.text = "Start wave"
 	wave_button.accessibility_name = "Start wave %d" % (run.wave + 1) if can_start else remaining
 	floating_hud.fit()
 	if run.phase in ["victory", "defeat"]:
-		wave_button.text = "Restored" if run.phase == "victory" else "Defeated"
 		wave_button.accessibility_name = "Sanctuary restored" if run.phase == "victory" else "Core integrity depleted"
 	if reward_transition.active:
 		status.text = "Wave %d / %d" % [run.wave, run.mission.waves.size()]
-		wave_button.text = "Cleared"
 		wave_button.accessibility_name = "Wave cleared"
 	if observed_phase != run.phase:
 		observed_phase = run.phase

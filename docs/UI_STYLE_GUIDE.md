@@ -174,7 +174,7 @@ Aim to leave at least 60% of screen height to the battlefield during ordinary pl
 
 ### Tower selection and details
 
-Building uses permanently visible, bottom-aligned, horizontally scrollable tower cards with exact prices in Campaign and Infinite. The cards form the bottom menu with no outer panel, padding, caret, or slide animation. Preserve 8-unit gaps between cards and bottom safe-area clearance. Outside taps reach the battlefield; Back cancels placement without hiding the cards. Dragging or selecting a card retains the compact placement preview with native tower artwork and a four-square horizontal level indicator. The four vector image states fill one through four squares for the owned tower level; all four indicate maximum level. Construction shows level 1. Specialization choices appear only when an existing tower reaches level 3. Full inspection and upgrade comparisons retain their statistics.
+Building uses permanently visible, bottom-aligned, horizontally scrollable 48-by-48 icon-only tower squares in Campaign and Infinite. The cards form the bottom menu with no outer panel, padding, caret, or slide animation. Preserve 8-unit gaps between cards and bottom safe-area clearance. Outside taps reach the battlefield; Back cancels placement without hiding the cards. Native artwork fills each square without a circular frame. Selecting or dragging a square slides a panel upward from the strip in 180 ms, showing the tower icon, name, exact cost, and four-square horizontal level indicator. The strip stays visible beneath it. The four vector image states fill one through four squares for the owned tower level; all four indicate maximum level. Construction shows level 1. Specialization choices appear only when an existing tower reaches level 3. Full inspection and upgrade comparisons retain their statistics.
 
 Selection attaches the existing Info, Upgrade, and Sell actions to the tower context. Keep those actions in a stable order and avoid moving the camera solely to select an object. Clamp the control group inside the visible battlefield; preserve the connection to the tower through placement or a simple pointer. Hide competing tower gold badges while selection or its dialog is active, matching existing behavior.
 
@@ -248,3 +248,4 @@ Default to **Parchment cards**, based on the user-approved Waves layout. Use the
 ### Currency icon
 
 Currency text uses the shared colored coin glyph in place of every visible whole word gold (any capitalization). Keep source and accessible wording readable; the shared presentation translation replaces it when drawing. Coin fonts match the surrounding Noto Sans/Serif line center, scale with the text, and retain ochre fill and black detail. Measure translated text for responsive fitting.
+

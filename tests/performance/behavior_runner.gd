@@ -92,7 +92,7 @@ func run() -> void:
 	restored.combat.rng.seed = 570
 	for tick in range(140): restored.combat.tick(Balance.STEP)
 	rows.append({"mode": "infinite_restored", "checksum": digest(state(restored)), "state": state(restored)})
-	var campaign := F.campaign()
+	var campaign = F.campaign()
 	campaign.game.combat.rng.seed = 570
 	campaign.start_wave()
 	for tick in range(140): campaign.tick(Balance.STEP)

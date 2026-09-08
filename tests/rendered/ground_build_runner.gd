@@ -71,6 +71,7 @@ func exercise(host: Control, label: String) -> void:
 	check(host.game.data.towers.size() == before and host.game.data.balance == funds, label + " invalid release spends nothing")
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://artifacts/ground-blocked-%s-%d.png" % [label, root.size.x])
+	await settle()
 	var target := Vector2.INF
 	for y in range(110, int(field.size.y) - 75, 10):
 		for x in range(25, int(field.size.x) - 25, 10):
@@ -102,7 +103,7 @@ func exercise(host: Control, label: String) -> void:
 		Input.parse_input_event(swipe)
 		await process_frame
 	await touch(swipe_start - Vector2(144, 0), false)
-	check(build.kind.is_empty() and scroll.scroll_horizontal > 0, label + " horizontal swipe browses without arming")
+	check(build.kind.is_empty() and (scroll.scroll_horizontal > 0 or scroll.get_h_scroll_bar().max_value <= scroll.get_h_scroll_bar().page), label + " horizontal swipe browses without arming")
 	check(scroll.find_child("Build_rapid", true, false).global_position.x < 8, label + " edge padding travels with scrolling cards")
 	build.arm("rapid")
 	await settle()

@@ -153,7 +153,7 @@ def run(name, suite, tag, instrumented=None):
                     for p in (dest/'tests/performance').glob('*.gd')}
     (RESULTS/f'{name}_{suite}{tag}_harness.json').write_text(json.dumps(run_manifest, indent=2), encoding='utf-8')
     command = [str(GODOT), '--path', str(dest)]
-    if suite not in ['render', 'ui', 'visibility', 'live']: command += ['--headless']
+    if suite not in ['render', 'ui', 'visibility', 'live', 'terrain_candidate'] and not (suite == 'behavior' and env.get('PERF_RENDER_CAMERA') == '1'): command += ['--headless']
     else: command += ['--resolution', '390x844', '--disable-vsync']
     if suite == 'import': command += ['--editor', '--import']
     else: command += ['--script', f'res://tests/performance/{suite}_runner.gd']

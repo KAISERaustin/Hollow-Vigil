@@ -2,7 +2,7 @@ extends RefCounted
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Portrait = preload("res://scripts/ui/shared/content_portrait.gd")
-const CARD_SIZE := Vector2(104, 94)
+const CARD_SIZE := Vector2(48, 48)
 
 static func create(kind: String, title: String, cost: float, action: Callable, level: int = 1, branch: String = "", reach: float = -1.0) -> Button:
 	var button := UI.button("", action, CARD_SIZE.y, true)
@@ -18,20 +18,16 @@ static func create(kind: String, title: String, cost: float, action: Callable, l
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 6)
+		margin.add_theme_constant_override("margin_" + side, 3)
 	button.add_child(margin)
 	var layout := VBoxContainer.new()
 	layout.add_theme_constant_override("separation", 4)
 	margin.add_child(layout)
-	var portrait := Portrait.profile("towers", kind, tint, level, branch)
+	var portrait := Portrait.preview("towers", kind, level, branch)
 	portrait.name = "TowerPortrait"
-	portrait.custom_minimum_size = Vector2(48, 48)
+	portrait.custom_minimum_size = Vector2(42, 42)
 	portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	layout.add_child(portrait)
-	var heading := UI.fitted_heading(title, 14, 12)
-	heading.name = "TowerName"
-	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	layout.add_child(heading)
 	if reach >= 0.0:
 		button.accessibility_name += " · Range %s" % UI.exact_money(reach)
 	# Custom button contents must contribute their minimum for enlarged UI text.
@@ -149,10 +145,17 @@ static func build_preview(kind: String, _tuning: Dictionary) -> VBoxContainer:
 	portrait.name = "BuildPortrait"
 	portrait.custom_minimum_size = Vector2(64, 64)
 	row.add_child(portrait)
+	var identity := VBoxContainer.new()
+	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	identity.add_theme_constant_override("separation", 4)
+	row.add_child(identity)
+	var definition := Balance.definition("towers", kind, _tuning)
+	identity.add_child(UI.heading(definition.name, 18))
+	identity.add_child(UI.label(UI.exact_money(definition.cost) + " gold", 14))
 	var level := preload("res://scripts/ui/shared/tower_level_indicator.gd").create(1)
 	level.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	level.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(level)
+	identity.add_child(level)
 	_ignore_mouse(body)
 	return body
 
@@ -202,3 +205,4 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 static func select(scroll: ScrollContainer, kind: String) -> void:
 	for button in scroll.get_node("Cards").get_children():
 		button.set_pressed_no_signal(button.get_meta("tower_kind") == kind)
+
