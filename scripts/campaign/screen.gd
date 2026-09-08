@@ -566,7 +566,7 @@ func show_battle(start_paused: bool = false) -> void:
 	add_board(true)
 	floating_hud = preload("res://scripts/ui/shared/floating_game_hud.gd").new()
 	board.add_child(floating_hud)
-	floating_hud.title.text = run.mission.name
+	floating_hud.title.text = "%d. %s" % [run.mission.index + 1, run.mission.name]
 	floating_hud.title.name = "CampaignTitle"
 	gold = floating_hud.left_value
 	gold.name = "CampaignGold"
@@ -635,7 +635,6 @@ func refresh() -> void:
 	var remaining := "%d enemies remaining" % enemies_remaining
 	wave_button.text = "Start wave" if can_start else "In progress"
 	wave_button.accessibility_name = "Start wave %d" % (run.wave + 1) if can_start else remaining
-	floating_hud.detail.text = remaining
 	floating_hud.fit()
 	if run.phase in ["victory", "defeat"]:
 		wave_button.text = "Restored" if run.phase == "victory" else "Defeated"

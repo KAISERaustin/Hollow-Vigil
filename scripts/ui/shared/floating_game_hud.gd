@@ -5,12 +5,10 @@ var header := HBoxContainer.new()
 var identity: PanelContainer
 var left_card: PanelContainer
 var right_card: PanelContainer
-var detail_card: PanelContainer
 var notice_card: PanelContainer
 var title: Label
 var left_value: Label
 var right_value: Label
-var detail: Label
 var notice: Label
 
 func _init() -> void:
@@ -30,10 +28,7 @@ func _init() -> void:
 	right_value = UI.value("", UI.CAPTION)
 	right_card = _card(right_value)
 	header.add_child(right_card)
-	detail = UI.value("", UI.CAPTION)
-	detail_card = _card(detail)
-	header.add_child(detail_card)
-	for caption: Label in [title, left_value, right_value, detail]:
+	for caption: Label in [title, left_value, right_value]:
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -63,11 +58,11 @@ func _text_width(caption: Label, text: String) -> float:
 func fit() -> void:
 	if not is_inside_tree(): return
 	var safe := UI.safe_rect(self).grow(-UI.SCREEN_PADDING)
-	var captions: Array[Label] = [title, left_value, right_value, detail]
-	var cards: Array[PanelContainer] = [identity, left_card, right_card, detail_card]
+	var captions: Array[Label] = [title, left_value, right_value]
+	var cards: Array[PanelContainer] = [identity, left_card, right_card]
 	var minimums: Array[float] = []
 	var preferred: Array[float] = []
-	# Keep four cards in one row. Give words room before distributing the rest;
+	# Keep three cards in one row. Give words room before distributing the rest;
 	# longer content wraps vertically without reducing the font sizes.
 	for index in cards.size():
 		var caption := captions[index]
@@ -79,10 +74,10 @@ func fit() -> void:
 		preferred.append(_text_width(caption, caption.text) + padding)
 	var available := maxf(1.0, safe.size.x - UI.CARD_GAP * (cards.size() - 1))
 	# A long name or unusually large number must not break short words such as
-	# "gold", "Wave" and "remaining" in all the neighboring cards.
+	# "gold" and "Wave" in all the neighboring cards.
 	minimums[1] = minf(minimums[1], _text_width(left_value, "9999") + UI.INSET_PADDING * 2)
 	minimums[0] = minf(minimums[0], maxf(UI.CARD_PADDING * 2 + UI.META,
-		available - minimums[1] - minimums[2] - minimums[3]))
+		available - minimums[1] - minimums[2]))
 	var minimum_total := 0.0
 	var preferred_total := 0.0
 	for index in cards.size():
