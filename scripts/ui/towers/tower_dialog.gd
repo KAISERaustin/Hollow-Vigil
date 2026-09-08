@@ -52,6 +52,7 @@ func _ready() -> void:
 	card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 0))
 	add_child(card)
 	layout = UI.margin(card, UI.SCREEN_PADDING)
+	layout.minimum_size_changed.connect(func(): call_deferred("fit_dialog"))
 	layout.add_theme_constant_override("separation", 16)
 	identity = HBoxContainer.new()
 	identity.add_theme_constant_override("separation", 12)
