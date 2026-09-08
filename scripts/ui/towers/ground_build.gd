@@ -97,6 +97,10 @@ func arm(value: String) -> void:
 			child.queue_free()
 	preview_body.add_child(Choice.build_preview(kind, field.state.tuning, cancel))
 	preview_body.move_child(preview_body.get_child(-1), 0)
+	var portrait: Control = preview_body.find_child("BuildPortrait", true, false)
+	portrait.mouse_filter = Control.MOUSE_FILTER_STOP
+	portrait.accessibility_description = "Drag onto clear ground to build"
+	portrait.gui_input.connect(func(event: InputEvent): card_input(event, value, portrait))
 	banner.reset_size()
 	candidate = ""
 	banner.show()
@@ -107,13 +111,14 @@ func arm(value: String) -> void:
 		reveal = value
 		fit()
 	, 0.0, 1.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	point = field.world(field.size * 0.5)
-	refresh()
+	dragging = false
+	valid = false
+	queue_redraw()
 	fit()
 	fit.call_deferred()
 
-func card_input(event: InputEvent, value: String, button: Button) -> void:
-	if button.disabled: return
+func card_input(event: InputEvent, value: String, button: Control) -> void:
+	if button is Button and button.disabled: return
 	if event is InputEventScreenTouch and event.pressed and candidate.is_empty():
 		candidate = value
 		pointer = event.index
@@ -169,9 +174,7 @@ func _input(event: InputEvent) -> void:
 	if not dragging and palette.get_global_rect().has_point(pos): return
 	# Cancel remains a real button. All other input belongs to placement.
 	if not dragging and banner.get_global_rect().has_point(pos): return
-	if down and not dragging:
-		pointer = id
-		dragging = true
+	if not dragging: return
 	if id == pointer and (motion or down or up):
 		point = field.world(pos - field.global_position)
 		refresh()
@@ -217,7 +220,7 @@ func _notification(what: int) -> void:
 	if what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED]: cancel()
 
 func _draw() -> void:
-	if kind.is_empty(): return
+	if kind.is_empty() or not dragging: return
 	var at := field.global_position - global_position + field.screen(point)
 	var tint := Color("368149") if valid else Color("cc3030")
 	draw_set_transform(at, 0, Vector2.ONE * field.zoom)
