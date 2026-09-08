@@ -48,7 +48,7 @@ var relic_owner := ""
 var equipment_state := ""
 var preview_state := ""
 var upgrade_armed := false
-var upgrade_quote: Label
+var branch_cards: HBoxContainer
 
 func _ready() -> void:
 	name = "TowerDialog"
@@ -154,6 +154,11 @@ func open_action(action: String, branch: String = "") -> void:
 		return
 	upgrade_armed = false
 	app.tower_actions.cancel_upgrade()
+	if is_instance_valid(branch_cards):
+		branch_cards.get_parent().remove_child(branch_cards)
+		branch_cards.queue_free()
+		branch_cards = null
+	identity_card.show()
 	var id: String = app.field.selected_tower
 	if not action in ["info", "preview", "upgrade", "sell", "move", "target", "equipment"] or not app.game.data.towers.has(id):
 		return
@@ -308,6 +313,8 @@ func open_action(action: String, branch: String = "") -> void:
 		confirm.hide()
 		cancel.text = "Close"
 		footer.hide()
+	if action == "info" and tower_level >= 3:
+		build_branch_cards()
 	app.tower_actions.blocked = true
 	app.tower_actions.refresh()
 	show()
@@ -332,19 +339,38 @@ func arm_upgrade(branch: String = "") -> void:
 	stack.add_theme_constant_override("separation", 8)
 	footer.add_child(stack)
 	if tower_level == 3:
-		for option in Balance.BRANCHES[tower_kind]:
-			var choice := UI.button(Balance.stats(tower_kind, 4, app.game.tuning, option).name, arm_upgrade.bind(option), 48)
-			choice.toggle_mode = true
-			choice.set_pressed_no_signal(option == tower_branch)
-			stack.add_child(choice)
-	upgrade_quote = UI.paragraph("", 14)
-	upgrade_quote.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stack.add_child(upgrade_quote)
-	footer.show()
+		build_branch_cards()
+	footer.hide()
 	confirm.accessibility_name = "Confirm upgrade"
 	confirm.queue_redraw()
 	refresh()
 	call_deferred("fit_dialog")
+
+func build_branch_cards() -> void:
+	if is_instance_valid(branch_cards):
+		branch_cards.get_parent().remove_child(branch_cards)
+		branch_cards.queue_free()
+	identity_card.hide()
+	branch_cards = HBoxContainer.new()
+	branch_cards.name = "BranchCards"
+	branch_cards.add_theme_constant_override("separation", 8)
+	layout.add_child(branch_cards)
+	layout.move_child(branch_cards, 0)
+	for option in Balance.BRANCHES[tower_kind]:
+		var price := Balance.upgrade_cost({"kind": tower_kind, "level": 3}, app.game.tuning, option)
+		var selected: bool = option == tower_branch
+		var state := ("Selected" if selected else "Locked") if tower_level >= 4 else ("Tap again to confirm" if selected and upgrade_armed else "Select path")
+		var choice := TowerChoice.branch_card(tower_kind, Balance.stats(tower_kind, 4, app.game.tuning, option).name, price, option, state, selected, func():
+			if tower_level != 3: return
+			if upgrade_armed and tower_branch == option:
+				commit(revision)
+			else:
+				arm_upgrade(option)
+		)
+		choice.name = "Branch_" + option
+		choice.disabled = tower_level >= 4
+		branch_cards.add_child(choice)
+	confirm.visible = tower_level < 3
 
 func management_button(action: String, label: String, callback: Callable) -> Button:
 	var button := UI.button("", callback, 48)
@@ -505,7 +531,6 @@ func refresh() -> void:
 		if Balance.upgrade_cost(tower, app.game.tuning, tower_branch) != cost:
 			open_action("info")
 			return
-		upgrade_quote.text = "Upgrade · −%s gold\nGold: %s → %s" % [UI.exact_money(cost), UI.exact_money(app.game.data.balance), UI.exact_money(maxf(0, app.game.data.balance - cost))]
 	rebuild_status.visible = remaining > 0.0
 	rebuild_status.text = "Rebuilding · " + Balance.rebuild_time_text(remaining)
 	var disabled: bool = (mode in ["preview", "upgrade", "move"] and (app.game.data.balance < cost or remaining > 0.0)) or (mode in ["preview", "upgrade"] and tower_level >= Balance.MAX_TOWER_LEVEL)

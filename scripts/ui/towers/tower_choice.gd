@@ -41,6 +41,33 @@ static func create(kind: String, title: String, cost: float, action: Callable, l
 	)
 	return button
 
+## Permanent path cards use native portraits and explicit purchase states.
+static func branch_card(kind: String, title: String, price: float, branch: String, state: String, selected: bool, action: Callable) -> Button:
+	var button := UI.button("", action, 148)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.accessibility_name = "%s · %s gold · %s" % [title, UI.exact_money(price), state]
+	for style in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
+		button.add_theme_stylebox_override(style, UI.surface(UI.GOLD if selected else UI.PANEL, UI.OUTLINE, 8))
+	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	for side in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 8)
+	button.add_child(margin)
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 4)
+	margin.add_child(column)
+	var art := Portrait.preview("towers", kind, 4, branch)
+	art.custom_minimum_size = Vector2(48, 56)
+	art.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.add_child(art)
+	for caption in [title, UI.exact_money(price) + " gold", state]:
+		var label := UI.paragraph(caption, 14)
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		column.add_child(label)
+	margin.minimum_size_changed.connect(func(): button.custom_minimum_size.y = maxf(148, margin.get_combined_minimum_size().y))
+	_ignore_mouse(margin)
+	return button
+
 ## One detail renderer for both modes, driven by resolved content and stat metadata.
 static func details(kind: String, tuning: Dictionary, tier: int = 1, branch: String = "", previous: Dictionary = {}, show_range: bool = false, effective: Dictionary = {}) -> VBoxContainer:
 	var body := VBoxContainer.new()

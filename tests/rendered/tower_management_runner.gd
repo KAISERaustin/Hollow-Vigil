@@ -33,10 +33,12 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 			await settle()
 			check(dialog.mode == "info", "Back returns to management")
 		var level: int = host.game.data.towers[host.field.selected_tower].level
+		var original_card_rect := dialog.card.get_global_rect()
 		dialog.confirm.pressed.emit()
 		await settle()
 		check(dialog.mode == "info" and dialog.upgrade_armed, "Upgrade arms inline confirmation")
-		check(dialog.upgrade_quote.is_visible_in_tree(), "Gold consequence visible")
+		check(not dialog.footer.visible, "No extra upgrade quote below management")
+		check(dialog.card.get_global_rect() == original_card_rect, "Confirmation keeps management size and position")
 		await Harness.capture(host, "tower-upgrade-confirm-" + prefix + "-" + str(viewport.x))
 		check(host.game.data.towers[host.field.selected_tower].level == level, "Preview does not purchase")
 		var balance: float = host.game.data.balance
