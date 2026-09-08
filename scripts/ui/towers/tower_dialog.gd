@@ -176,7 +176,7 @@ func open_action(action: String, branch: String = "") -> void:
 	color = Color(UI.BORDER, 0.0 if action == "info" else 0.65)
 	layout.add_theme_constant_override("separation", 8 if action in ["info", "preview"] else 16)
 	body.add_theme_constant_override("separation", 8 if action == "preview" else 12)
-	portrait.custom_minimum_size = Vector2(40, 48) if action == "preview" else Vector2(48, 64)
+	portrait.custom_minimum_size = Vector2(40, 48) if action == "preview" else Vector2(48, 56 if action == "info" else 64)
 	header_back.visible = action != "info"
 	header_close.show()
 	header_divider.visible = action == "equipment"
@@ -198,7 +198,8 @@ func open_action(action: String, branch: String = "") -> void:
 		level_display = null
 	heading.add_theme_font_size_override("font_size", UI.type_size(18 if action == "info" else 24))
 	if action == "info":
-		level_display = preload("res://scripts/ui/shared/tower_level_indicator.gd").create(tower_level, false, true)
+		# Four 20-unit squares and three 8-unit gaps match the 104-unit action grid.
+		level_display = preload("res://scripts/ui/shared/tower_level_indicator.gd").create(tower_level, false, true, 20.0)
 		level_holder.add_child(level_display)
 	cost = Balance.upgrade_cost(tower, app.game.tuning) if action == "upgrade" else 0.0
 	if action == "preview":

@@ -60,10 +60,8 @@ def build(name, smoke=False):
         # coroutine, close the report before the caller reads the next result.
         body = re.sub(r'^(\t*)(file|output)\.store_string\([^\n]*\)$',
                       lambda match: match[0] + '\n' + match[1] + match[2] + '.close()', body, flags=re.M)
-        # The tablet's physical render surface stays native upright portrait.
-        # A 390x844 logical canvas makes the crowded fixture comparable.
-        body = re.sub(r'^\s*root.size = .*$', '', body, flags=re.M)
-        body = body.replace('root.content_scale_size = root.size', 'root.content_scale_size = Vector2i(390,844)')
+        # Keep the native portrait surface and the same DPI scaling as VigilApp.
+        body = re.sub(r'^\s*root\.(?:size|content_scale_size) = .*$', '', body, flags=re.M)
         for count in [180, 600, 140]:
             body = body.replace(f'range({count})', f'range(3 if MOBILE_SMOKE else {count})')
         body = body.replace('F.infinite(4,', 'F.infinite(0 if MOBILE_SMOKE else 4,')
@@ -90,13 +88,17 @@ func emit_report(suite: String) -> void:
 
 func mobile_run() -> void:
     Engine.max_fps = 0
+    root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+    root.content_scale_size = Vector2i.ZERO
+    root.content_scale_factor = clampf(DisplayServer.screen_get_dpi() / 160.0, 1.0, 4.0)
     OS.set_environment("PERF_OUTPUT", "user://mobile-report.json")
     OS.set_environment("PERF_CAPTURE", "user://")
     OS.set_environment("PERF_INSTRUMENTED", "0")
     OS.set_environment("PERF_OVERVIEW_ONLY", "1")
     print("HV_PERF_ENV ", JSON.stringify({"engine": Engine.get_version_info(),
         "adapter": RenderingServer.get_video_adapter_name(), "renderer": RenderingServer.get_current_rendering_method(),
-        "physical_viewport": [root.size.x, root.size.y], "template_debug": OS.is_debug_build()}))
+        "physical_viewport": [root.size.x, root.size.y], "dpi_scale": root.content_scale_factor,
+        "template_debug": OS.is_debug_build()}))
     await run_render()
     emit_report("render")
     OS.set_environment("PERF_DURATION", "0.1" if MOBILE_SMOKE else "10")

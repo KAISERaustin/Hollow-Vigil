@@ -11,7 +11,7 @@ const IMAGES = [
 const BUBBLE_SHADER = preload("res://scripts/ui/shared/level_bubble.gdshader")
 const REGIONS = [[[58, 121, 470, 465], [586, 120, 471, 466], [1115, 119, 472, 467], [1645, 119, 473, 467]], [[88, 134, 432, 426], [612, 134, 430, 426], [1134, 134, 430, 426], [1653, 134, 431, 426]], [[61, 119, 482, 479], [581, 119, 486, 480], [1104, 119, 487, 479], [1629, 119, 483, 479]], [[62, 114, 467, 465], [587, 114, 470, 465], [1116, 114, 468, 465], [1642, 114, 467, 465]]]
 
-static func create(level: int, show_caption: bool = true, vertical: bool = false) -> VBoxContainer:
+static func create(level: int, show_caption: bool = true, vertical: bool = false, square_size: float = 32.0) -> VBoxContainer:
 	var current := clampi(level, 1, IMAGES.size())
 	var column := VBoxContainer.new()
 	column.name = "TowerLevelIndicator"
@@ -33,7 +33,7 @@ static func create(level: int, show_caption: bool = true, vertical: bool = false
 		var index: int = IMAGES.size() - 1 - position if vertical else position
 		var image := TextureRect.new()
 		image.name = "Level%d" % (index + 1)
-		image.custom_minimum_size = Vector2(32, 32)
+		image.custom_minimum_size = Vector2.ONE * square_size
 		image.texture = IMAGES[current - 1]
 		image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		image.stretch_mode = TextureRect.STRETCH_SCALE

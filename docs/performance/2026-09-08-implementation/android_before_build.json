@@ -1,9 +1,9 @@
 {
   "source": "before",
   "package": "com.kaiser.hollowvigil.performance",
-  "apk_sha256": "21c3823aaf967ff78791b1daddeba17d373af557c2cf96484dc1cd09b5bd7fd3",
+  "apk_sha256": "e5f1f42b73d459013d0a3a1e1c9d1860fc8acf7915528345d50f8c8234fea1e7",
   "release_template_sha256": "6d1bb2cfa126a1b1c87e064a35b3cbd181bef0ec784dec1efd1d64dffa8be6cb",
-  "harness_sha256": "a9de51d7ec8c1106a43f521e899aab7c69619e0f0d0c4a3e9ae12d83a2f978f4",
+  "harness_sha256": "a6846c3467b19eba3a0acac6eb683920aa749820b060539e6b293a65b1a8d9fc",
   "production_sha256": {
     "scripts\\app\\main.gd": "cae5fc06eb9c9294d40e085dc3e4550f9fd937468cf3cadca0324db806ef433d",
     "scripts\\audio\\audio_director.gd": "9f6f031d4a05f2df829dec123ad24e5b49a547cf8b90ffc563f9be0232868333",
