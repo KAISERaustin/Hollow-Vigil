@@ -65,11 +65,12 @@ func fit() -> void:
 	# Scroll clipping belongs to the screen edge, not an inset card gutter.
 	style.content_margin_left = 0
 	style.content_margin_right = 0
-	style.content_margin_bottom = UI.CARD_PADDING + size.y - safe.end.y
+	style.content_margin_top = 20
+	style.content_margin_bottom = 20 + size.y - safe.end.y
 	if is_instance_valid(build_button):
 		var field_safe := UI.safe_rect(field)
-		build_button.position = Vector2(0, field_safe.end.y - 48)
-		build_button.size = Vector2(field.size.x, 48)
+		build_button.position = Vector2(0, field_safe.end.y - 72)
+		build_button.size = Vector2(field.size.x, 72)
 	palette.size = Vector2(size.x, 0)
 	banner.size = Vector2(maxf(1, safe.size.x - 24), 0)
 	palette.position = Vector2(0, size.y - palette.size.y * drawer_open)
@@ -113,6 +114,15 @@ func open() -> void:
 		price.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		price.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		button.get_child(0).get_child(0).add_child(price)
+	# Padding travels with the cards; the scroll viewport still reaches the edges.
+	var row := cards.get_node("Cards")
+	cards.remove_child(row)
+	var insets := MarginContainer.new()
+	insets.name = "CardInsets"
+	insets.add_theme_constant_override("margin_left", 8)
+	insets.add_theme_constant_override("margin_right", 8)
+	cards.add_child(insets)
+	insets.add_child(row)
 	palette.show()
 	palette.reset_size()
 	fit.call_deferred()

@@ -7,6 +7,7 @@ func _initialize() -> void:
 
 func run() -> void:
 	var rows := []
+	var playback := float(OS.get_environment("PERF_PLAYBACK")) if OS.has_environment("PERF_PLAYBACK") else 1.0
 	root.size = Vector2i(390,844)
 	root.content_scale_size = root.size
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
@@ -41,6 +42,9 @@ func run() -> void:
 			for frame in range(10): await process_frame
 			var before := F.counts(game)
 			var sim_start: float = game.combat.simulation_time
+			app.simulation_speed = playback
+			field.simulation_rate = playback
+			if mode == "campaign": app.campaign.speed = playback
 			if mode == "infinite": app.set_process(true)
 			else: app.campaign.set_process(true)
 			var samples := []
@@ -54,7 +58,7 @@ func run() -> void:
 			app.set_process(false)
 			if mode == "campaign": app.campaign.set_process(false)
 			var elapsed := (Time.get_ticks_usec() - start) / 1000000.0
-			var row := {"mode": mode, "repeat": repeat, "elapsed_seconds": elapsed, "actual_fps": samples.size()/elapsed,
+			var row := {"mode": mode, "repeat": repeat, "playback": playback, "elapsed_seconds": elapsed, "actual_fps": samples.size()/elapsed,
 				"frame_ms": F.stats(samples), "simulation_seconds": game.combat.simulation_time-sim_start,
 				"before": before, "after": F.counts(game), "audio_events": app.audio.accepted_events,
 				"phase": app.campaign.run.phase if mode == "campaign" else "infinite"}

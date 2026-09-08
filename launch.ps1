@@ -96,6 +96,7 @@ try {
             Invoke-Godot -Name 'recovery-menu' -EngineArguments @('--script', 'res://tests/rendered/recovery_menu_runner.gd')
         }
         if ($Smoke -or $Check) {
+            Invoke-Godot -Name 'tower-depth' -EngineArguments @('--script', 'res://tests/rendered/tower_depth_runner.gd')
             Invoke-Godot -Name 'visual' -EngineArguments @('--script', 'res://tests/rendered/visual_runner.gd')
         }
         if ($MobileTests -or $Check) {

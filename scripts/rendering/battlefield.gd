@@ -386,6 +386,16 @@ func selected_range() -> float:
 		return Balance.Content.tower(preview_kind).stats(1, state.tuning).range
 	return 0.0
 
+static func tower_draws_before(a: Dictionary, b: Dictionary) -> bool:
+	var a_pos := VigilWorld.pad_position(a.region, a.pad)
+	var b_pos := VigilWorld.pad_position(b.region, b.pad)
+	# Paint north first, then east first within a row: southwest stays in front.
+	if a_pos.y != b_pos.y:
+		return a_pos.y < b_pos.y
+	if a_pos.x != b_pos.x:
+		return a_pos.x > b_pos.x
+	return int(a.id) < int(b.id)
+
 func _draw() -> void:
 	if state == null:
 		return
@@ -415,7 +425,9 @@ func _draw() -> void:
 	for e in state.combat.visible_enemies(world_view):
 		if visible_rect.has_point(screen(e.pos)):
 			draw_enemy(e)
-	for t in state.economy.towers_in_regions(visible_regions):
+	var visible_towers := state.economy.towers_in_regions(visible_regions)
+	visible_towers.sort_custom(tower_draws_before)
+	for t in visible_towers:
 		if visible_rect.has_point(screen(VigilWorld.pad_position(t.region, t.pad))):
 			draw_tower(t)
 	build_preview.draw(self)
