@@ -54,6 +54,12 @@ def run(name, suites):
     os.environ['PERF_INSTRUMENTED'] = '0'
     for suite in suites:
         tag = ''
+        os.environ.pop('PERF_RENDER_CAMERA', None)
+        if suite == 'behavior_rendered':
+            os.environ['PERF_RENDER_CAMERA'] = '1'
+            suite, tag = 'behavior', '_rendered'
+        if suite == 'costs_memory':
+            suite, tag = 'costs', '_memory'
         if suite == 'campaign_all_waves':
             suite, tag = 'campaign', '_all_waves'
         if suite.startswith('live_'):

@@ -113,6 +113,7 @@ func apply_balance(candidate: Dictionary) -> bool:
 		return true
 	var previous := tuning
 	data.settings.developer_balance = candidate.duplicate(true)
+	combat.configuration.synchronize(tuning, data.relics)
 	var previous_gameplay := previous.duplicate(true)
 	var next_gameplay := candidate.duplicate(true)
 	previous_gameplay.erase("session")

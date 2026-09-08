@@ -26,7 +26,8 @@ static func create(kind: String, title: String, cost: float, action: Callable, l
 	var portrait := Portrait.preview("towers", kind, level, branch)
 	portrait.name = "TowerPortrait"
 	portrait.custom_minimum_size = Vector2(42, 42)
-	portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	portrait.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	portrait.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	layout.add_child(portrait)
 	if reach >= 0.0:
 		button.accessibility_name += " · Range %s" % UI.exact_money(reach)
@@ -186,6 +187,11 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 	choices.name = "Cards"
 	choices.add_theme_constant_override("separation", 8)
 	scroll.add_child(choices)
+	scroll.resized.connect(func():
+		var edge := maxf(CARD_SIZE.x, (scroll.size.x - 8.0 * (choices.get_child_count() - 1)) / maxf(1, choices.get_child_count()))
+		for card in choices.get_children():
+			card.custom_minimum_size = Vector2(edge, edge)
+	)
 	choices.minimum_size_changed.connect(func():
 		scroll.custom_minimum_size.y = choices.get_combined_minimum_size().y
 	)
@@ -205,4 +211,3 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 static func select(scroll: ScrollContainer, kind: String) -> void:
 	for button in scroll.get_node("Cards").get_children():
 		button.set_pressed_no_signal(button.get_meta("tower_kind") == kind)
-

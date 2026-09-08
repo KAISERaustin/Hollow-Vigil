@@ -83,7 +83,7 @@ func exercise(host: Control, label: String) -> void:
 		if target.is_finite(): break
 	check(target.is_finite(), label + " clear ground visible")
 	if target.is_finite():
-		await touch(blocked, true)
+		await touch(target, true)
 		await drag(target)
 		check(build.valid, label + " retry preview valid")
 		await touch(target, false)
@@ -107,6 +107,7 @@ func exercise(host: Control, label: String) -> void:
 	check(scroll.find_child("Build_rapid", true, false).global_position.x < 8, label + " edge padding travels with scrolling cards")
 	build.arm("rapid")
 	await settle()
+	blocked = field.global_position + Vector2(field.size.x * 0.5, 160)
 	var count: int = host.game.data.towers.size()
 	await touch(blocked, true)
 	await touch(blocked + Vector2(30, 0), true, 1)

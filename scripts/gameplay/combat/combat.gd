@@ -442,6 +442,8 @@ func advance_arrow(shot: Dictionary, delta: float, flying: Array[Dictionary]) ->
 	Projectiles.advance_arrow(self, shot, delta, flying)
 
 func clear_relic_progress(id: String) -> void:
+	configuration.synchronize(tuning, data.relics)
+	configuration.towers.erase(id)
 	Relics.clear(self, id)
 	TowerComponents.clear(self, id)
 
@@ -449,6 +451,7 @@ func set_tower_definition(id: String, definition) -> bool:
 	return TowerComponents.set_definition(self, id, definition)
 
 func clear_tower_components(id: String) -> void:
+	configuration.towers.erase(id)
 	TowerComponents.clear(self, id)
 
 ## Planning advances only preparable tower components, never enemies or income.
