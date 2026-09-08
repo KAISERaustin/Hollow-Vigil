@@ -71,7 +71,8 @@ func reveal(target: Control) -> void:
 				if visible_area.encloses(target.get_global_rect().grow(-2)): break
 				var before: int = ancestor.scroll_vertical
 				var delta: float = target.get_global_rect().get_center().y - visible_area.get_center().y
-				await swipe_control(ancestor, delta > 0, clampf(absf(delta) * 0.4, 32, 120))
+				# Use a full finger sweep for distant rows, then shorten near the target.
+				await swipe_control(ancestor, delta > 0, clampf(absf(delta) * 0.8, 32, 400))
 				if not is_instance_valid(target): return
 				if "--trace-mobile-scroll" in OS.get_cmdline_user_args(): print("MOBILE_SCROLL: %s step=%d before=%d after=%d target=%s viewport=%s" % [target.name, attempt, before, ancestor.scroll_vertical, target.get_global_rect(), ancestor.get_global_rect()])
 				if ancestor.scroll_vertical == before: break
