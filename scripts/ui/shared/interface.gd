@@ -296,7 +296,7 @@ static func fit_heading(l: Label) -> void:
 	var pixels := type_size(int(l.get_meta("fitted_heading_max", OBJECT_TITLE)))
 	var minimum := type_size(int(l.get_meta("fitted_heading_min", BODY)))
 	var face := l.get_theme_font("font")
-	while pixels > minimum and face.get_string_size(l.text, HORIZONTAL_ALIGNMENT_LEFT, -1, pixels).x > l.size.x:
+	while pixels > minimum and face.get_string_size(TranslationServer.translate(l.text), HORIZONTAL_ALIGNMENT_LEFT, -1, pixels).x > l.size.x:
 		pixels -= 1
 	if l.get_theme_font_size("font_size") != pixels:
 		l.add_theme_font_size_override("font_size", pixels)

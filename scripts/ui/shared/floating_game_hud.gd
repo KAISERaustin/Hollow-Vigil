@@ -52,7 +52,7 @@ func _card(content: Control, padding: int = UI.INSET_PADDING) -> PanelContainer:
 	return card
 
 func _text_width(caption: Label, text: String) -> float:
-	return ceilf(caption.get_theme_font("font").get_string_size(text,
+	return ceilf(caption.get_theme_font("font").get_string_size(TranslationServer.translate(text),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, caption.get_theme_font_size("font_size")).x)
 
 func fit() -> void:
