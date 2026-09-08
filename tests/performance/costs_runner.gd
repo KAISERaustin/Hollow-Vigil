@@ -9,11 +9,15 @@ func _initialize() -> void:
 func measure(label: String, callback: Callable, count: int, units: int = 1) -> void:
 	for warm in range(5): callback.call()
 	var samples := []
+	var memory_before := Performance.get_monitor(Performance.MEMORY_STATIC)
+	var objects_before := Performance.get_monitor(Performance.OBJECT_COUNT)
 	for i in range(count):
 		var start := Time.get_ticks_usec()
 		callback.call()
 		samples.append((Time.get_ticks_usec() - start) / 1000.0)
-	var row := {"label": label, "units_per_call": units, "ms": F.stats(samples)}
+	var row := {"label": label, "units_per_call": units, "ms": F.stats(samples),
+		"retained_bytes": Performance.get_monitor(Performance.MEMORY_STATIC) - memory_before,
+		"retained_objects": Performance.get_monitor(Performance.OBJECT_COUNT) - objects_before}
 	rows.append(row)
 	print("COST ", row)
 
@@ -52,7 +56,9 @@ func run() -> void:
 		measure(prefix + ".wide_visibility_query", func(): game.combat.visible_enemies(Rect2(-12500,-500,25000,1000)), 100)
 		if defended:
 			measure("defended.all_tower_stats", func():
-				for tower in game.data.towers.values(): Balance.tower_stats(tower, game.tuning, game.data.relics)
+				for tower in game.data.towers.values():
+					if game.combat.has_method("tower_stats"): game.combat.tower_stats(tower)
+					else: Balance.tower_stats(tower, game.tuning, game.data.relics)
 			, 100, game.data.towers.size())
 			measure("defended.all_tower_component_sync", func(): game.combat.TowerComponents.sync(game.combat), 100, game.data.towers.size())
 		measure(prefix + ".save_snapshot_validation_write", func():
