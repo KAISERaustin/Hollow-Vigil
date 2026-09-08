@@ -167,6 +167,20 @@ def run(name, suite, tag):
     if status or errors: raise SystemExit(f'Benchmark failed: exit={status}, errors={errors[:8]} (see {log})')
 
 
+def wait_for_process(pid):
+    if not pid: return
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.OpenProcess.restype = ctypes.c_void_p
+    kernel.WaitForSingleObject.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+    kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+    handle = kernel.OpenProcess(0x00100000, False, pid)
+    if handle:
+        print(f'Waiting for audit process {pid} before serial benchmarks.', flush=True)
+        while kernel.WaitForSingleObject(handle, 60000) == 258:
+            print('Rendered benchmark still running; remaining suites stay queued.', flush=True)
+        kernel.CloseHandle(handle)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('action', choices=['prepare', 'run', 'batch', 'completion'])
@@ -179,22 +193,13 @@ if __name__ == '__main__':
     if args.action == 'prepare': prepare(args.revision)
     elif args.action == 'run': run(args.name, args.suite, args.tag)
     elif args.action == 'completion':
+        wait_for_process(args.wait_pid)
         for name, suite, tag in [('baseline','campaign','_all_waves'), ('baseline','visibility',''), ('baseline','live',''),
                                   ('baseline','fingerprint',''), ('instrumented','fingerprint',''), ('detailed','fingerprint','')]:
             print(f'START {name} {suite} {tag}', flush=True)
             run(name, suite, tag)
     else:
-        if args.wait_pid:
-            kernel = ctypes.WinDLL('kernel32', use_last_error=True)
-            kernel.OpenProcess.restype = ctypes.c_void_p
-            kernel.WaitForSingleObject.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
-            kernel.CloseHandle.argtypes = [ctypes.c_void_p]
-            handle = kernel.OpenProcess(0x00100000, False, args.wait_pid)
-            if handle:
-                print(f'Waiting for audit process {args.wait_pid} before serial benchmarks.', flush=True)
-                while kernel.WaitForSingleObject(handle, 60000) == 258:
-                    print('Rendered benchmark still running; remaining suites stay queued.', flush=True)
-                kernel.CloseHandle(handle)
+        wait_for_process(args.wait_pid)
         for name, suite in [('baseline', 'campaign'), ('detailed', 'import'), ('detailed', 'deep'),
                             ('baseline', 'costs'), ('baseline', 'camera'), ('baseline', 'ui'), ('instrumented', 'render'), ('baseline', 'visibility')]:
             print(f'START {name} {suite}', flush=True)
