@@ -76,6 +76,16 @@ func sample(field, name: String, camera_mode: String, variant: String, repeat: i
 		"profile": Probe.report(), "static_memory_bytes": Performance.get_monitor(Performance.MEMORY_STATIC)}
 	rows.append(row)
 	var checkpoint := FileAccess.open(OS.get_environment("PERF_OUTPUT"), FileAccess.WRITE)
+	# A concurrent Windows file reader can briefly hold the report. Retrying is
+	# outside the measured interval and does not alter the captured samples.
+	for attempt in range(20):
+		if checkpoint != null: break
+		await create_timer(0.05).timeout
+		checkpoint = FileAccess.open(OS.get_environment("PERF_OUTPUT"), FileAccess.WRITE)
+	if checkpoint == null:
+		push_error("Cannot write performance checkpoint: " + str(FileAccess.get_open_error()))
+		quit(1)
+		return
 	checkpoint.store_string(JSON.stringify({"partial": true, "rows": rows}, "\t"))
 	checkpoint.close()
 	print("RENDER ", name, " ", root.size, " ", camera_mode, " ", variant, " ", repeat, " ", row.frame_ms)
