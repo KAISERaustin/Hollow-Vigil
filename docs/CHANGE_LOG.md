@@ -1,6 +1,6 @@
 # Player change log
 
-Main menu → Settings → Change log (immediately below Bug report) reads the live Supabase `public.change_log` table. It needs no sign-in. Each dated card contains one short change, newest dates first. Refresh reads the latest rows; Load older changes retrieves the next page without losing existing rows after a connection error. Back returns to Settings.
+Main menu → Settings → Change log (immediately below Bug report) reads the live Supabase `public.change_log` table. It needs no sign-in. Each card contains one short change in 18-unit text, without a visible date. Dates remain in the backend for newest-first ordering and publication. Refresh reads the latest rows; Load older changes retrieves the next page without losing existing rows after a connection error. Back returns to Settings.
 
 ## Adding changes
 

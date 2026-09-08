@@ -33,6 +33,5 @@ func refresh() -> void:
 	for entry in service.entries:
 		var column := VBoxContainer.new()
 		column.add_theme_constant_override("separation", UI.CARD_GAP)
-		column.add_child(UI.paragraph(entry.change_date, UI.META))
-		column.add_child(UI.paragraph(entry.summary))
+		column.add_child(UI.paragraph(entry.summary, 18))
 		rows.add_child(UI.info_card(column, UI.PANEL, UI.CARD_PADDING))
