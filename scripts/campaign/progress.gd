@@ -22,7 +22,11 @@ static func valid_map_progress(value: Dictionary) -> bool:
 	return (current is int or current is float) and current == int(current) and current >= -1 and current < Catalog.COUNT
 
 func level_completed(index: int) -> bool:
-	return index < int(data.completed_levels) or (allow_all and index in data.get("beaten_levels", []))
+	if index < int(data.completed_levels): return true
+	if allow_all:
+		for beaten in data.get("beaten_levels", []):
+			if int(beaten) == index: return true
+	return false
 
 func current_level() -> int:
 	if allow_all and int(data.get("current_level", -1)) >= 0:
@@ -89,7 +93,8 @@ func save_run(run: RefCounted) -> bool:
 		var index := int(run.mission.index)
 		data.current_level = index
 		if run.phase == "victory":
-			var beaten: Array = data.get("beaten_levels", []).duplicate()
+			var beaten: Array = []
+			for saved_index in data.get("beaten_levels", []): beaten.append(int(saved_index))
 			if index not in beaten: beaten.append(index)
 			data.beaten_levels = beaten
 			while int(data.completed_levels) < Catalog.COUNT and level_completed(int(data.completed_levels)):

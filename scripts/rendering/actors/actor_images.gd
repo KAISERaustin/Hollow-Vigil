@@ -11,6 +11,11 @@ const TOWER_BOUNDS := Rect2(-48, -76, 96, 96)
 var textures: Dictionary = {}
 var entries: Dictionary = {}
 
+static func for_canvas(canvas: CanvasItem):
+	if not canvas.has_meta("actor_images"):
+		canvas.set_meta("actor_images", load("res://scripts/rendering/actors/actor_images.gd").new())
+	return canvas.get_meta("actor_images")
+
 static func recipes() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	var index := 0
@@ -55,11 +60,11 @@ func draw(canvas: CanvasItem, key: String, at: Vector2, zoom: float) -> bool:
 
 func enemy(canvas: CanvasItem, kind: String, at: Vector2, zoom: float) -> void:
 	if not draw(canvas, "enemy/" + kind, at, zoom):
-		VigilTerrainArt.enemy(canvas, kind, at, zoom)
+		VigilTerrainArt.enemy_vector(canvas, kind, at, zoom)
 
 func tower(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, level: int, branch: String, angle: float) -> void:
 	if not draw(canvas, "tower/%s/%d/%s" % [kind, level, branch], at, zoom):
-		VigilTerrainArt.sentinel(canvas, kind, at, zoom, level, branch, angle)
+		VigilTerrainArt.sentinel_vector(canvas, kind, at, zoom, level, branch, angle)
 		return
 	if kind == "ironspike":
 		var pivot: Vector2 = Balance.PROJECTILES.ironspike.muzzle

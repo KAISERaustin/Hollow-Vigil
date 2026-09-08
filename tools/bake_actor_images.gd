@@ -10,14 +10,14 @@ class Sheet extends Node2D:
 		for entry in Atlas.recipes():
 			var at: Vector2 = entry.region.position - entry.bounds.position * Atlas.SCALE
 			if entry.family == "enemy":
-				VigilTerrainArt.enemy(self, entry.kind, at, Atlas.SCALE)
+				VigilTerrainArt.enemy_vector(self, entry.kind, at, Atlas.SCALE)
 			elif entry.kind == "ironspike":
 				draw_set_transform(at, 0, Vector2.ONE * Atlas.SCALE)
 				if entry.family == "bow": Expansion.ironspike_bow(self, entry.level, entry.branch)
 				else: Expansion.ironspike_base(self, entry.level, entry.branch)
 				draw_set_transform(Vector2.ZERO)
 			else:
-				VigilTerrainArt.sentinel(self, entry.kind, at, Atlas.SCALE, entry.level, entry.branch)
+				VigilTerrainArt.sentinel_vector(self, entry.kind, at, Atlas.SCALE, entry.level, entry.branch)
 
 func _initialize() -> void:
 	call_deferred("bake")

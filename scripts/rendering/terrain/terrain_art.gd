@@ -101,6 +101,9 @@ static func sentinel_portrait(canvas: CanvasItem, kind: String, at: Vector2, zoo
 	sentinel(canvas, kind, at, zoom, level, branch)
 
 static func sentinel(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, level: int = 1, branch: String = "", aim_angle: float = -PI / 2.0) -> void:
+	preload("res://scripts/rendering/actors/actor_images.gd").for_canvas(canvas).tower(canvas, kind, at, zoom, level, branch, aim_angle)
+
+static func sentinel_vector(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, level: int = 1, branch: String = "", aim_angle: float = -PI / 2.0) -> void:
 	if kind in ["ironspike", "moonwheel", "hex_lantern", "caltrop_keep"]:
 		preload("res://scripts/rendering/actors/expansion_tower_art.gd").draw(canvas, kind, at, zoom, level, branch, aim_angle)
 		return
@@ -235,4 +238,7 @@ static func road_detail(canvas: CanvasItem, road: PackedVector2Array) -> void:
 			canvas.draw_line(at, at + normal * 4.0 + direction * 1.5, Color("a4977d"), 1.0, true)
 
 static func enemy(canvas: CanvasItem, kind: String, at: Vector2, zoom: float) -> void:
+	preload("res://scripts/rendering/actors/actor_images.gd").for_canvas(canvas).enemy(canvas, kind, at, zoom)
+
+static func enemy_vector(canvas: CanvasItem, kind: String, at: Vector2, zoom: float) -> void:
 	preload("res://scripts/rendering/actors/enemy_art.gd").draw(canvas, kind, at, zoom)

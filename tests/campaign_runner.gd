@@ -82,6 +82,24 @@ func run() -> void:
 	var skipped := Run.new(2)
 	skipped.phase = "victory"
 	check(not progress.save_run(skipped), "Progress cannot skip an unbeaten level")
+	var creative := Progress.new()
+	creative.allow_all = true
+	creative.path = progress.path + ".creative"
+	check(creative.save_run(skipped) and creative.level_completed(2) and creative.data.completed_levels == 0, "Creative records a skipped victory without lighting the preceding roads")
+	check(creative.save_run(resumed) and creative.data.completed_levels == 1, "Creative lights only the continuous cleared prefix")
+	var gap := Run.new(1)
+	check(creative.save_run(gap) and creative.current_level() == 1, "Creative remembers the level being played")
+	var creative_reload := Progress.new()
+	creative_reload.path = creative.path
+	creative_reload.allow_all = true
+	creative_reload.load_progress()
+	check(not creative_reload.blocked and creative_reload.level_completed(2) and not creative_reload.level_completed(1) and creative_reload.current_level() == 1, "Creative victories and current marker survive reload independently")
+	gap.phase = "victory"
+	check(creative.save_run(gap) and creative.data.completed_levels == 3, "Filling a Creative gap connects the road through previously beaten levels")
+	check(creative.save_run(gap) and creative.data.completed_levels == 3, "Creative replays do not duplicate progress")
+	check(not Progress.valid_map_progress({"beaten_levels": [2, 2]}) and not Progress.valid_map_progress({"current_level": Catalog.COUNT}), "Invalid map progress is rejected")
+	check(creative.reset_progress() and not creative.level_completed(2) and creative.current_level() == 0, "Reset clears Creative map state")
+	clean_test_save(creative.path)
 	var partial := Run.new(1)
 	partial.start_wave()
 	check(progress.save_run(partial) and progress.data.completed_levels == 1, "Partial next level cannot advance saved progress")

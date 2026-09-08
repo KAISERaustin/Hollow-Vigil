@@ -33,6 +33,9 @@ func run() -> void:
 	campaign.set_process(false)
 	campaign.progress.allow_all = true
 	campaign.mode = "creative"
+	campaign.progress.data.completed_levels = 1
+	campaign.progress.data.beaten_levels = [0, 4, 7]
+	campaign.progress.data.current_level = 2
 	for viewport in [Vector2i(360,640), Vector2i(390,844), Vector2i(540,960)]:
 		root.size = viewport
 		root.content_scale_size = viewport
@@ -48,6 +51,8 @@ func run() -> void:
 		check(map.size.x == viewport.x and campaign.page_scroll.position.x == 0, "Biomes fill the available width")
 		check(campaign.page_scroll.get_global_rect().end.y == viewport.y, "Biomes fill to the bottom edge")
 		check(map.nodes.size() == Catalog.COUNT, "Every authored level remains on the map")
+		check(map.nodes[0].completed and map.nodes[4].completed and map.nodes[7].completed and not map.nodes[1].completed, "Creative defeated art follows individual victories, including skipped bosses")
+		check(map.nodes[2].current and not map.nodes[1].current, "Creative highlights the active level")
 		for chapter in Catalog.CHAPTERS.size():
 			campaign.page_scroll.scroll_vertical = roundi(chapter * Map.CHAPTER_HEIGHT)
 			await frame()
@@ -105,6 +110,10 @@ func run() -> void:
 	app.slot_menu.game_type = "campaign"
 	app.slot_menu.campaign_slots.base_path = "user://biome-map-slot-" + str(Time.get_ticks_usec())
 	var saved: Dictionary = app.slot_menu.campaign_slots.create(0, "creative", "Test")
+	saved.beaten_levels = [4, 7]
+	saved.current_level = 2
+	check(app.slot_menu.campaign_slots.save_slot(0, saved), "Save Creative map state in its campaign slot")
+	saved = app.slot_menu.campaign_slots.summary(0)
 	app.open_campaign_slot(0, saved)
 	campaign = app.campaign
 	campaign.set_process(false)
@@ -120,6 +129,7 @@ func run() -> void:
 		campaign.page_scroll.scroll_vertical = roundi(campaign.page_scroll.get_v_scroll_bar().max_value)
 		await frame()
 		var saved_map: Control = campaign.find_child("CampaignWorldMap", true, false)
+		check(saved_map.nodes[4].completed and saved_map.nodes[7].completed and saved_map.nodes[2].current and not saved_map.nodes[0].completed, "Saved Creative slot restores skipped victories and active marker")
 		check(saved_map.nodes[-1].get_global_rect().end.y <= viewport.y, "Final level remains reachable at the bottom of a saved map")
 		check(is_equal_approx(saved_map.get_global_rect().end.y, viewport.y), "Last biome fills the bottom with no parchment footer")
 	app.queue_free()
