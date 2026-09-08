@@ -33,6 +33,21 @@ func run() -> void:
 		measure(prefix + ".all_remaining_distances", func():
 			for enemy in game.combat.enemies: game.combat.distance_remaining(enemy)
 		, 30, game.combat.enemies.size())
+		var suffix_by_enemy := {}
+		var max_error := 0.0
+		for enemy in game.combat.enemies:
+			var route: Array = enemy.path
+			var suffix := PackedFloat64Array()
+			suffix.resize(route.size())
+			for segment in range(route.size() - 2, -1, -1): suffix[segment] = suffix[segment + 1] + route[segment].distance_to(route[segment + 1])
+			suffix_by_enemy[enemy.id] = suffix
+			var fast: float = enemy.pos.distance_to(route[enemy.segment]) + suffix[enemy.segment]
+			max_error = maxf(max_error, absf(fast - game.combat.distance_remaining(enemy)))
+		measure(prefix + ".experimental_remaining_distance_suffix_lookup", func():
+			for enemy in game.combat.enemies:
+				var _distance: float = enemy.pos.distance_to(enemy.path[enemy.segment]) + suffix_by_enemy[enemy.id][enemy.segment]
+		, 100, game.combat.enemies.size())
+		rows.append({"label": prefix + ".suffix_equivalence", "max_absolute_error": max_error, "note": "Isolated calculation experiment; not integrated into combat."})
 		measure(prefix + ".close_visibility_query", func(): game.combat.visible_enemies(Rect2(-300,-500,600,1000)), 100)
 		measure(prefix + ".wide_visibility_query", func(): game.combat.visible_enemies(Rect2(-12500,-500,25000,1000)), 100)
 		if defended:
