@@ -461,30 +461,36 @@ func _notification(what: int) -> void:
 		application_unfocused = false
 		audio.set_suspended(application_paused)
 	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		for popup in get_viewport().get_embedded_subwindows():
-			if popup is Popup and popup.visible:
-				popup.hide()
-				return
-		# Android Back follows the same topmost navigation owner as on-screen Back.
-		if is_instance_valid(slot_menu) and slot_menu.visible:
-			slot_menu.go_back()
+		navigate_back()
+
+func navigate_back() -> void:
+	preload("res://scripts/ui/shared/back_navigation.gd").invoke(self, route_back)
+
+func route_back() -> void:
+	for popup in get_viewport().get_embedded_subwindows():
+		if popup is Popup and popup.visible:
+			popup.hide()
 			return
-		if is_instance_valid(campaign):
-			campaign.go_back()
-			return
-		if return_overlay.visible:
-			close_return_popup()
-		elif tower_dialog.visible:
-			tower_dialog.go_back()
-		elif tower_move.visible:
-			tower_move.cancel()
-		elif panels.visible:
-			if panels.mode in ["reset", "developer"]:
-				panels.show_settings()
-			else:
-				panels.close_sheet()
+	# Android Back follows the same topmost navigation owner as on-screen Back.
+	if is_instance_valid(slot_menu) and slot_menu.visible:
+		slot_menu.go_back()
+		return
+	if is_instance_valid(campaign):
+		campaign.go_back()
+		return
+	if return_overlay.visible:
+		close_return_popup()
+	elif tower_dialog.visible:
+		tower_dialog.go_back()
+	elif tower_move.visible:
+		tower_move.cancel()
+	elif panels.visible:
+		if panels.mode in ["reset", "developer"]:
+			panels.show_settings()
 		else:
-			show_game_menu()
+			panels.close_sheet()
+	else:
+		show_game_menu()
 
 func _input(event: InputEvent) -> void:
 	if is_instance_valid(campaign):
@@ -492,19 +498,8 @@ func _input(event: InputEvent) -> void:
 	if is_instance_valid(slot_menu) and slot_menu.visible:
 		return
 	if event.is_action_pressed("ui_cancel"):
-		if return_overlay.visible:
-			close_return_popup()
-		elif tower_dialog.visible:
-			tower_dialog.go_back()
-		elif tower_move.visible:
-			tower_move.cancel()
-		elif panels.visible:
-			if panels.mode in ["reset", "developer"]:
-				panels.show_settings()
-			else:
-				panels.close_sheet()
-		else:
-			return
+		if not (return_overlay.visible or tower_dialog.visible or tower_move.visible or panels.visible): return
+		navigate_back()
 		get_viewport().set_input_as_handled()
 
 func restore_cloud_progress(snapshot: Dictionary, _world_id: String, _revision: int) -> void:

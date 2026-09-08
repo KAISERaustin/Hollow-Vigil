@@ -400,6 +400,7 @@ static func back_button(back_label: String, action: Callable) -> Button:
 	return back
 
 static func configure_back_button(back: Button, back_label: String) -> void:
+	preload("res://scripts/ui/shared/back_navigation.gd").protect(back)
 	# All navigation hosts share the map's arrow, target and internal padding.
 	# Align to the top even when a title or adjacent playback control is taller.
 	back.name = "BackButton"

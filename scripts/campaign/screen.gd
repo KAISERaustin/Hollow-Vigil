@@ -917,9 +917,8 @@ func _notification(what: int) -> void:
 		save_progress()
 
 func go_back() -> void:
-	if is_instance_valid(app.slot_menu) and app.slot_menu.visible and app.slot_menu.get_index() > get_index():
-		var back: Button = app.slot_menu.header.find_child("BackButton", true, false)
-		if back != null: back.pressed.emit()
+	if is_instance_valid(app.slot_menu) and app.slot_menu.visible:
+		app.slot_menu.go_back()
 		return
 	if is_instance_valid(tower_dialog) and tower_dialog.visible:
 		tower_dialog.go_back()
@@ -942,8 +941,8 @@ func go_back() -> void:
 		close()
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
-		go_back()
+	if visible and event.is_action_pressed("ui_cancel"):
+		app.navigate_back()
 		get_viewport().set_input_as_handled()
 
 func close(save_before_close: bool = true) -> void:

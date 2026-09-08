@@ -8,7 +8,6 @@ const SavedGameCard = preload("res://scripts/ui/shared/saved_game_card.gd")
 var campaign_slots := CampaignSlots.new()
 var game_type := "infinite"
 var screen := "main"
-var navigation_back: Callable
 var new_game := {}
 var library_return: Callable
 var library_from_creation := false
@@ -62,17 +61,21 @@ func page_view(key: String, title: String, back: Callable) -> void:
 	screen = key
 	clear(title)
 	message.hide()
-	navigation_back = back
-	if back.is_valid(): add_back(UI.button("Back", go_back))
+	# Bind the route to this page; old buttons must not read a newer page's route.
+	if back.is_valid(): add_back(UI.button("Back", back))
 	show()
 	move_to_front()
 
 func go_back() -> void:
-	if navigation_back.is_valid(): navigation_back.call()
+	if not visible: return
+	# Legacy pickers also build pages through clear/add_back. Use the actual
+	# current header so keyboard/system Back cannot retain a previous route.
+	var back := header.get_node_or_null("BackButton") as Button
+	if back != null and back.visible: back.pressed.emit()
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if visible and event.is_action_pressed("ui_cancel"):
-		go_back()
+		app.navigate_back()
 		get_viewport().set_input_as_handled()
 
 func action(text: String, callback: Callable, key: String, primary: bool = false) -> Button:
