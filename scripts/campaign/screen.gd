@@ -811,7 +811,7 @@ func show_result() -> void:
 	var won: bool = run.phase == "victory"
 	open_dialog("Sanctuary restored" if won else "Core integrity depleted")
 	if won:
-		dialog_body.add_child(UI.paragraph("Core integrity remaining: %d. Level completed. Your progress is saved on this device." % run.health,15))
+		dialog_body.add_child(UI.paragraph("Core integrity remaining: %d. Level completed." % run.health,15))
 		if run.mission.index == Catalog.COUNT - 1:
 			dialog_body.add_child(UI.paragraph("The Matriarch rests. From the forest to the funeral boughs, every sanctuary burns again. The last procession has reached the dawn.",18))
 		else:
