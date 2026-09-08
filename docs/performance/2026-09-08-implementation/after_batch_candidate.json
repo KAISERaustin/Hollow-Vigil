@@ -1,0 +1,282 @@
+{
+	"diagnostic_only": true,
+	"overlapping_indicators_supported": false,
+	"rows": [
+		{
+			"actors": 980,
+			"draw_calls": {
+				"max": 980.0,
+				"mean": 980.0,
+				"n": 180,
+				"p50": 980.0,
+				"p95": 980.0,
+				"p99": 980.0
+			},
+			"frame_ms": {
+				"max": 1.605,
+				"mean": 0.900050279329609,
+				"n": 179,
+				"p50": 0.848,
+				"p95": 1.289,
+				"p99": 1.481
+			},
+			"grouped": false,
+			"groups": 162,
+			"mode": "infinite",
+			"repeat": 0
+		},
+		{
+			"actors": 980,
+			"draw_calls": {
+				"max": 980.0,
+				"mean": 980.0,
+				"n": 180,
+				"p50": 980.0,
+				"p95": 980.0,
+				"p99": 980.0
+			},
+			"frame_ms": {
+				"max": 1.407,
+				"mean": 0.908737430167597,
+				"n": 179,
+				"p50": 0.874,
+				"p95": 1.263,
+				"p99": 1.346
+			},
+			"grouped": false,
+			"groups": 162,
+			"mode": "infinite",
+			"repeat": 1
+		},
+		{
+			"actors": 980,
+			"draw_calls": {
+				"max": 980.0,
+				"mean": 980.0,
+				"n": 180,
+				"p50": 980.0,
+				"p95": 980.0,
+				"p99": 980.0
+			},
+			"frame_ms": {
+				"max": 1.442,
+				"mean": 0.907234636871509,
+				"n": 179,
+				"p50": 0.856,
+				"p95": 1.273,
+				"p99": 1.389
+			},
+			"grouped": false,
+			"groups": 162,
+			"mode": "infinite",
+			"repeat": 2
+		},
+		{
+			"actors": 980,
+			"draw_calls": {
+				"max": 162.0,
+				"mean": 162.0,
+				"n": 180,
+				"p50": 162.0,
+				"p95": 162.0,
+				"p99": 162.0
+			},
+			"frame_ms": {
+				"max": 2.264,
+				"mean": 0.367513966480447,
+				"n": 179,
+				"p50": 0.314,
+				"p95": 0.694,
+				"p99": 0.958
+			},
+			"grouped": true,
+			"groups": 162,
+			"mode": "infinite",
+			"repeat": 0
+		},
+		{
+			"actors": 980,
+			"draw_calls": {
+				"max": 162.0,
+				"mean": 162.0,
+				"n": 180,
+				"p50": 162.0,
+				"p95": 162.0,
+				"p99": 162.0
+			},
+			"frame_ms": {
+				"max": 0.923,
+				"mean": 0.338960893854749,
+				"n": 179,
+				"p50": 0.297,
+				"p95": 0.642,
+				"p99": 0.792
+			},
+			"grouped": true,
+			"groups": 162,
+			"mode": "infinite",
+			"repeat": 1
+		},
+		{
+			"actors": 980,
+			"draw_calls": {
+				"max": 162.0,
+				"mean": 162.0,
+				"n": 180,
+				"p50": 162.0,
+				"p95": 162.0,
+				"p99": 162.0
+			},
+			"frame_ms": {
+				"max": 0.884,
+				"mean": 0.326882681564246,
+				"n": 179,
+				"p50": 0.288,
+				"p95": 0.587,
+				"p99": 0.842
+			},
+			"grouped": true,
+			"groups": 162,
+			"mode": "infinite",
+			"repeat": 2
+		},
+		{
+			"actors": 500,
+			"draw_calls": {
+				"max": 1.0,
+				"mean": 1.0,
+				"n": 180,
+				"p50": 1.0,
+				"p95": 1.0,
+				"p99": 1.0
+			},
+			"frame_ms": {
+				"max": 0.404,
+				"mean": 0.208094972067039,
+				"n": 179,
+				"p50": 0.196,
+				"p95": 0.342,
+				"p99": 0.399
+			},
+			"grouped": false,
+			"groups": 6,
+			"mode": "campaign",
+			"repeat": 0
+		},
+		{
+			"actors": 500,
+			"draw_calls": {
+				"max": 1.0,
+				"mean": 1.0,
+				"n": 180,
+				"p50": 1.0,
+				"p95": 1.0,
+				"p99": 1.0
+			},
+			"frame_ms": {
+				"max": 0.727,
+				"mean": 0.201597765363128,
+				"n": 179,
+				"p50": 0.175,
+				"p95": 0.327,
+				"p99": 0.466
+			},
+			"grouped": false,
+			"groups": 6,
+			"mode": "campaign",
+			"repeat": 1
+		},
+		{
+			"actors": 500,
+			"draw_calls": {
+				"max": 1.0,
+				"mean": 1.0,
+				"n": 180,
+				"p50": 1.0,
+				"p95": 1.0,
+				"p99": 1.0
+			},
+			"frame_ms": {
+				"max": 0.735,
+				"mean": 0.168251396648045,
+				"n": 179,
+				"p50": 0.147,
+				"p95": 0.3,
+				"p99": 0.555
+			},
+			"grouped": false,
+			"groups": 6,
+			"mode": "campaign",
+			"repeat": 2
+		},
+		{
+			"actors": 500,
+			"draw_calls": {
+				"max": 6.0,
+				"mean": 6.0,
+				"n": 180,
+				"p50": 6.0,
+				"p95": 6.0,
+				"p99": 6.0
+			},
+			"frame_ms": {
+				"max": 0.69,
+				"mean": 0.128648044692737,
+				"n": 179,
+				"p50": 0.106,
+				"p95": 0.277,
+				"p99": 0.647
+			},
+			"grouped": true,
+			"groups": 6,
+			"mode": "campaign",
+			"repeat": 0
+		},
+		{
+			"actors": 500,
+			"draw_calls": {
+				"max": 6.0,
+				"mean": 6.0,
+				"n": 180,
+				"p50": 6.0,
+				"p95": 6.0,
+				"p99": 6.0
+			},
+			"frame_ms": {
+				"max": 0.42,
+				"mean": 0.103,
+				"n": 179,
+				"p50": 0.089,
+				"p95": 0.205,
+				"p99": 0.377
+			},
+			"grouped": true,
+			"groups": 6,
+			"mode": "campaign",
+			"repeat": 1
+		},
+		{
+			"actors": 500,
+			"draw_calls": {
+				"max": 6.0,
+				"mean": 6.0,
+				"n": 180,
+				"p50": 6.0,
+				"p95": 6.0,
+				"p99": 6.0
+			},
+			"frame_ms": {
+				"max": 0.691,
+				"mean": 0.112206703910615,
+				"n": 179,
+				"p50": 0.092,
+				"p95": 0.228,
+				"p99": 0.429
+			},
+			"grouped": true,
+			"groups": 6,
+			"mode": "campaign",
+			"repeat": 2
+		}
+	]
+}

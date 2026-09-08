@@ -25,6 +25,7 @@ if __name__ == '__main__':
     equivalent('before', 'after', '_rendered')
     for script in ['tests/performance_optimization_runner.gd', 'tests/test_runner.gd',
                    'tests/rendered/actor_images_runner.gd', 'tests/rendered/tower_depth_runner.gd',
-                   'tests/rendered/campaign_hud_runner.gd', 'tests/rendered/branch_visual_runner.gd']:
+                   'tests/rendered/campaign_hud_runner.gd', 'tests/rendered/branch_visual_runner.gd',
+                   'tests/rendered/ground_build_runner.gd', 'tests/rendered/tower_management_runner.gd']:
         godot(script, rendered=script.startswith('tests/rendered/'))
-    (compare.RESULTS / 'validation_complete.json').write_text(json.dumps({'complete': True, 'suites': 6}, indent=2))
+    import verify_performance_validation
