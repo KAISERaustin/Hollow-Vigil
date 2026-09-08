@@ -86,3 +86,30 @@ All 18 deterministic simulation outcomes match the baseline: `{'before': True, '
 | campaign | True | after | 0.0078 | 0.0080 | 0.0490 | 0.1830 |
 
 Campaign coverage: 30 levels, 144 waves. Counts, health, phase and tick counts match: **True**. Both runs use the documented survival guard; this is coverage, not a balance win-rate claim.
+
+## Campaign simulation across all 144 waves
+
+| Revision | Steps | Weighted mean step ms | Worst step ms | Outcomes match |
+|---|---:|---:|---:|---|
+| before | 123506 | 0.1910 | 6.763 | True |
+| route | 123506 | 0.1908 | 36.740 | True |
+| configuration | 123506 | 0.1338 | 7.719 | True |
+| after | 123506 | 0.1356 | 7.609 | True |
+
+## Physical Android, native 1440 x 2304 surface
+
+| Revision | Workload | FPS | Mean | p95 | p99 | Worst | Sim / real seconds |
+|---|---|---:|---:|---:|---:|---:|---:|
+| before | infinite frozen | 7.21 | 138.63 | 148.81 | 160.88 | 169.81 | frozen |
+| before | campaign frozen | 4.93 | 202.99 | 205.27 | 208.95 | 270.87 | frozen |
+| before | infinite live_1 | 4.78 | 209.00 | 240.34 | 242.39 | 244.47 | 6.30 / 10.03 |
+| before | campaign live_1 | 24.20 | 41.32 | 43.90 | 45.56 | 52.30 | 10.00 / 10.04 |
+| before | infinite live_2 | 3.42 | 292.37 | 325.09 | 330.49 | 333.67 | 9.10 / 10.23 |
+| before | campaign live_2 | 22.41 | 44.62 | 48.97 | 49.71 | 60.77 | 19.95 / 10.04 |
+| before | infinite live_4 | 2.22 | 451.21 | 510.70 | 512.18 | 523.97 | 11.85 / 10.38 |
+| before | campaign live_4 | 21.24 | 47.09 | 50.92 | 52.58 | 63.51 | 40.00 / 10.03 |
+| before | infinite sustained_4x | 1.60 | 626.82 | 717.95 | 739.98 | 780.28 | 153.15 / 180.52 |
+| after | infinite frozen | 18.82 | 53.13 | 58.88 | 60.45 | 65.78 | frozen |
+| after | campaign frozen | 28.48 | 35.11 | 37.74 | 38.19 | 44.53 | frozen |
+
+Testing was stopped at the user's request after all six optimized frozen-render samples completed. The Android after run is explicitly incomplete: optimized live/sustained measurements and the paired device behavior comparison are unavailable. Baseline-only live results do not establish an improvement. Desktop paired behavior and sustained results are reported above.

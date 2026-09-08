@@ -43,7 +43,7 @@ static func create(kind: String, title: String, cost: float, action: Callable, l
 
 ## Permanent path cards use native portraits and explicit purchase states.
 static func branch_card(kind: String, title: String, price: float, branch: String, state: String, selected: bool, action: Callable) -> Button:
-	var button := UI.button("", action, 148)
+	var button := UI.button("", action, 48)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.accessibility_name = "%s · %s gold · %s" % [title, UI.exact_money(price), state]
 	for style in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
@@ -53,18 +53,26 @@ static func branch_card(kind: String, title: String, price: float, branch: Strin
 	for side in ["left", "right", "top", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, 8)
 	button.add_child(margin)
-	var column := VBoxContainer.new()
+	var column := HBoxContainer.new()
 	column.add_theme_constant_override("separation", 4)
 	margin.add_child(column)
 	var art := Portrait.preview("towers", kind, 4, branch)
-	art.custom_minimum_size = Vector2(48, 56)
+	art.custom_minimum_size = Vector2(32, 32)
+	art.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	art.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(art)
-	for caption in [title, UI.exact_money(price) + " gold", state]:
-		var label := UI.paragraph(caption, 14)
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		column.add_child(label)
-	margin.minimum_size_changed.connect(func(): button.custom_minimum_size.y = maxf(148, margin.get_combined_minimum_size().y))
+	var label := UI.label(title + " · " + UI.exact_money(price) + " gold", 14)
+	label.name = "BranchCaption"
+	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	column.add_child(label)
+	var marker := Control.new()
+	marker.custom_minimum_size.x = 24
+	column.add_child(marker)
+	button.draw.connect(func():
+		if selected or state == "Locked":
+			preload("res://scripts/ui/towers/tower_action_icon.gd").draw(button, "upgrade", "", state == "Locked", "selected" if selected else "", Vector2(button.size.x - 20, button.size.y * 0.5))
+	)
+	margin.minimum_size_changed.connect(func(): button.custom_minimum_size = Vector2(48, 48).max(margin.get_combined_minimum_size()))
 	_ignore_mouse(margin)
 	return button
 

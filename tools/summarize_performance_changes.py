@@ -76,7 +76,7 @@ def main():
         weighted = sum(r['tick_ms']['mean'] * r['ticks'] for r in rows) / steps
         out.append(f'| {name} | {steps} | {weighted:.4f} | {max(r["tick_ms"]["max"] for r in rows):.3f} | {same} |')
         matches['campaign_' + name] = same
-    if (RESULTS/'android_after.json').exists() and read('android_after').get('complete'):
+    if (RESULTS/'android_after.json').exists() and 'render' in read('android_after').get('reports', {}):
         out += ['', '## Physical Android, native 1440 x 2304 surface', '', '| Revision | Workload | FPS | Mean | p95 | p99 | Worst | Sim / real seconds |', '|---|---|---:|---:|---:|---:|---:|---:|']
         for name in ['before','after']:
             device = read('android_' + name)
@@ -84,11 +84,17 @@ def main():
                 rows = [r for r in device['reports']['render']['rows'] if r['case']==mode]
                 out.append(f'| {name} | {mode} frozen | {1000/median(r["frame_ms"]["mean"] for r in rows):.2f} | {numbers(summary(rows,"frame_ms"))} | frozen |')
             for suite in ['live_1','live_2','live_4','sustained_4x']:
+                if suite not in device['reports']: continue
                 for r in device['reports'][suite]['rows']:
                     out.append(f'| {name} | {r["mode"]} {suite} | {numbers([r["actual_fps"]]+summary([r],"frame_ms"))} | {r["simulation_seconds"]:.2f} / {r["elapsed_seconds"]:.2f} |')
-        a, b = read('android_before')['reports']['behavior'], read('android_after')['reports']['behavior']
-        matches['android'] = all(x.get('checkpoints',x.get('checksum')) == y.get('checkpoints',y.get('checksum')) for x,y in zip(a['rows'],b['rows'],strict=True)) and not a['failures'] and not b['failures']
-        out += ['', f'Android camera and save-restoration digests match across both release exports: **{matches["android"]}**.']
+        if 'behavior' in read('android_after')['reports']:
+            a, b = read('android_before')['reports']['behavior'], read('android_after')['reports']['behavior']
+            matches['android'] = all(x['checkpoints'] == y['checkpoints'] and x['mode'] == y['mode'] and x['camera'] == y['camera'] for x,y in zip(a['rows'],b['rows'],strict=True)) and not a['failures'] and not b['failures']
+            out += ['', f'Android camera and save-restoration digests match across both release exports: **{matches["android"]}**.']
+        else:
+            out += ['', 'Testing was stopped at the user\'s request after all six optimized frozen-render samples completed. '
+                    'The Android after run is explicitly incomplete: optimized live/sustained measurements and the paired device behavior comparison are unavailable. '
+                    'Baseline-only live results do not establish an improvement. Desktop paired behavior and sustained results are reported above.']
     (RESULTS/'comparison_tables.md').write_text('\n'.join(out)+'\n', encoding='utf-8')
     (RESULTS/'outcome_comparison.json').write_text(json.dumps({'simulation': matches, 'campaign': campaign_match}, indent=2))
     if not all(matches.values()) or not campaign_match: raise SystemExit('Outcome mismatch')

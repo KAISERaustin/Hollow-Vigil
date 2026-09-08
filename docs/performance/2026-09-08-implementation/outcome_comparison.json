@@ -3,7 +3,11 @@
     "before": true,
     "route": true,
     "configuration": true,
-    "after": true
+    "after": true,
+    "campaign_before": true,
+    "campaign_route": true,
+    "campaign_configuration": true,
+    "campaign_after": true
   },
   "campaign": true
 }

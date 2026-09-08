@@ -64,7 +64,12 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 				check(Rect2(Vector2.ZERO, Vector2(viewport)).encloses(dialog.card.get_global_rect()), "Every tier fits portrait")
 				if tier >= 3:
 					check(dialog.branch_cards.get_child_count() == 2, "Two illustrated branch choices")
-					check(not dialog.identity_card.visible and not dialog.confirm.visible, "Branch cards replace single portrait and purchase button")
+					check(not dialog.identity_card.visible and dialog.confirm.visible and dialog.confirm.disabled, "Branch cards replace portrait and retain locked upgrade button")
+					check(dialog.level_holder.get_global_rect().end.x <= dialog.branch_cards.get_global_rect().position.x and dialog.branch_cards.get_global_rect().end.x <= dialog.management_grid.get_global_rect().position.x, "Branch cards fit between level boxes and actions")
+					check(dialog.card.get_global_rect().size.y <= 160, "Branch management remains compact")
+					for choice in dialog.branch_cards.get_children():
+						var caption: Label = choice.find_child("BranchCaption", true, false)
+						check(" · " in caption.text and "gold" in caption.text and not "\n" in caption.text, "Tower and price share one line with a dot")
 				await Harness.capture(host, "tower-management-" + prefix + "-level-" + str(tier))
 				if tier == 3:
 					var branch: String = Balance.BRANCHES[tower.kind].keys()[1]
@@ -90,6 +95,9 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 		for touch in [false, true]:
 			var buttons: Array = [host.speed_button, host.wave_button] if prefix == "campaign" else [host.hud.speed_button, host.hud.pause_button]
 			for button in buttons:
+				if prefix == "campaign":
+					host.run.phase = "planning"
+					host.refresh()
 				select.call()
 				await settle()
 				dialog.confirm.pressed.emit()
@@ -106,7 +114,7 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 						Input.parse_input_event(event)
 						await process_frame
 				else:
-					await tap(button_point)
+					await Harness.tap(host, button_point)
 				button.pressed.disconnect(record)
 				check(activations[0] == 1, prefix + " external button activates exactly once on first tap")
 				check(not dialog.visible, "External button dismisses armed upgrade menu")

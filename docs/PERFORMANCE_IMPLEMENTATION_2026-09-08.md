@@ -12,6 +12,14 @@ The source and raw measurements are in
 are generated directly from those JSON files. The original September 8 audit and
 its evidence remain separate.
 
+At 390x844 on the desktop, frozen overview mean frame time fell from **64.18
+to 20.13 ms in Infinite** and **65.33 to 9.35 ms in the overloaded Campaign
+fixture**. The largest expanded Infinite simulation fixture fell from **31.61
+to 12.67 ms per step**. These are medians of repeated means; the comparison
+tables retain p95, p99 and worst samples. Each optimization was also measured
+independently, and all 30 Campaign levels match the baseline outcomes in both
+the route-only and configuration-only variants.
+
 ## What shipped
 
 - **Artwork:** 63 separate transparent PNGs: 18 ordinary enemies, 40 tower
@@ -140,6 +148,62 @@ with 60 FPS / 16.7 ms preferred where practical. The weakest supported phone
 models have not been specified, so this work makes no weakest-device acceptance
 claim. Expanded 4x Infinite remains a demanding workload even after these gains.
 
+## Physical Android results and stopping point
+
+The connected **Samsung SM-X510**, Android 16, Mali-G68 was measured with
+separate release-template exports of both snapshots. Both reported Godot 4.7.2,
+Compatibility rendering, a native **1440x2304** portrait surface, and the normal
+application's **1.75 DPI scale**. The exports are not debuggable and have no
+Internet permission. The normal game package and its saves were not touched.
+
+All three frozen overview repetitions finished for each mode in both releases:
+
+| Mode | Before mean frame ms | After mean frame ms | Before / after draw calls |
+|---|---:|---:|---:|
+| Infinite | 138.63 | 53.13 | 8417 / 3455 |
+| Campaign overload | 202.99 | 35.11 | 12609 / 2755 |
+
+These correspond to roughly **7.2 to 18.8 FPS** and **4.9 to 28.5 FPS**. The
+optimized workloads still miss the provisional 30 FPS target on this tablet.
+The captured optimized tablet artwork was visually inspected. GPU timing
+returned zero throughout and is unavailable, not evidence of zero GPU cost.
+CPU renderer means fell from 39.96 to 19.04 ms and 56.32 to 13.40 ms respectively.
+
+The baseline also completed live 1x/2x/4x, a three-minute 4x run and its camera/save
+checks. The user then requested that testing wrap up. The optimized package was
+stopped after its complete frozen-render pass, before completion of its live,
+sustained and behavior suites. `android_after.json` deliberately records
+`complete: false` and only its finished rendering report. No paired Android
+live/sustained or authoritative-state success is claimed. The desktop paired
+camera/save and sustained tests completed before this stop request.
+
+The tablet was USB-powered with a low battery: 8-10% during the baseline and
+10% during the optimized pass. Android thermal status ranged from 0 to 1 during
+the baseline and remained 1 during the optimized pass. Battery temperature was
+32.2 to 32.1 C across the baseline and 32.1 to 32.6 C across the shorter optimized
+run. These sequential runs were not a cooled, randomized thermal comparison.
+Release engine memory counters were unavailable. Android process PSS telemetry
+was collected (baseline range 262-802 MiB, shorter optimized range 260-569 MiB),
+but the unequal completed workloads make those ranges unsuitable as a memory
+improvement claim. Raw readings and source/APK hashes are preserved.
+
+No iPhone release environment was available. Physical touch/rotation acceptance
+and a matched optimized Android sustained run remain unverified. The test
+package is stopped; the user's regular installation remains available.
+
+## Remaining bottlenecks
+
+Actor drawing and repeated route walks are substantially cheaper, but terrain
+commands, dynamic indicators/effects and the remaining combat work still cost
+time. Ordered images intentionally retain correct overlapping artwork and
+indicator layering. The terrain candidate's memory and initial bake cost ruled
+out shipping that eager cache. The one-minute desktop 4x workload improved from
+4.73 to 16.00 FPS and advanced 239.75 simulated seconds in 60.01 real seconds,
+but still misses the frame budget. The largest fixture retains a 71.59 ms worst
+combat step. Further work should profile these remaining costs on the actual
+minimum supported devices; these changes are improvements, not a claim that
+every stress fixture meets a mobile frame-rate target.
+
 ## Regression validation
 
 The full gameplay runner passed **56,466 checks**, and dedicated optimization
@@ -148,6 +212,11 @@ routes. Error scans accompany the exit codes. Rendered checks passed for all
 63 actor images, tower depth ordering, 1,443 Campaign HUD checks, 294 ground-build
 touch checks and 236 shared tower-management checks. Branch visuals exercise
 all 16 specializations and 48 portrait purchase confirmations.
+
+These are completed validation runs, with their logs and hashes preserved in
+`validation_complete.json`. Concurrent tower-management layout/input edits that
+arrived afterward are included under the repository's preservation policy.
+Testing was not restarted for those later edits after the user's wrap-up request.
 
 Older rendered tests assumed a screen-height battlefield, instant Campaign exit
 and the retired inline branch controls. They were updated to the current build

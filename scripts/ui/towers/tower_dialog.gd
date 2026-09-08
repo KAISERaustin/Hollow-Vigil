@@ -48,7 +48,7 @@ var relic_owner := ""
 var equipment_state := ""
 var preview_state := ""
 var upgrade_armed := false
-var branch_cards: HBoxContainer
+var branch_cards: VBoxContainer
 
 func _ready() -> void:
 	name = "TowerDialog"
@@ -137,6 +137,10 @@ func _ready() -> void:
 	hide()
 
 func _has_point(point: Vector2) -> bool:
+	var screen_point := global_position + point
+	if mode == "info" and is_instance_valid(card) and not card.get_global_rect().has_point(screen_point):
+		if _external_button_at(app, screen_point):
+			return false
 	# The compact management card leaves the persistent build strip interactive.
 	# Purchase and equipment dialogs retain their full modal input boundary.
 	if mode == "info" and is_instance_valid(app.ground_build):
@@ -153,6 +157,7 @@ func open_action(action: String, branch: String = "") -> void:
 		arm_upgrade()
 		return
 	upgrade_armed = false
+	card.scale = Vector2.ONE
 	app.tower_actions.cancel_upgrade()
 	if is_instance_valid(branch_cards):
 		branch_cards.get_parent().remove_child(branch_cards)
@@ -351,11 +356,13 @@ func build_branch_cards() -> void:
 		branch_cards.get_parent().remove_child(branch_cards)
 		branch_cards.queue_free()
 	identity_card.hide()
-	branch_cards = HBoxContainer.new()
+	branch_cards = VBoxContainer.new()
 	branch_cards.name = "BranchCards"
+	branch_cards.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	branch_cards.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	branch_cards.add_theme_constant_override("separation", 8)
-	layout.add_child(branch_cards)
-	layout.move_child(branch_cards, 0)
+	identity.add_child(branch_cards)
+	identity.move_child(branch_cards, identity_card.get_index())
 	for option in Balance.BRANCHES[tower_kind]:
 		var price := Balance.upgrade_cost({"kind": tower_kind, "level": 3}, app.game.tuning, option)
 		var selected: bool = option == tower_branch
@@ -370,7 +377,9 @@ func build_branch_cards() -> void:
 		choice.name = "Branch_" + option
 		choice.disabled = tower_level >= 4
 		branch_cards.add_child(choice)
-	confirm.visible = tower_level < 3
+	confirm.show()
+	confirm.disabled = true
+	confirm.accessibility_name = "Upgrade locked; choose a tower card" if tower_level == 3 else "Upgrade locked; maximum level"
 
 func management_button(action: String, label: String, callback: Callable) -> Button:
 	var button := UI.button("", callback, 48)
@@ -391,6 +400,9 @@ func configure_management_button(button: Button, action: String, label: String) 
 	button.draw.connect(func():
 		var equipped := preload("res://scripts/gameplay/progression/relics.gd").kind(app.game.data, app.game.data.towers[tower_id]) if app.game.data.towers.has(tower_id) else ""
 		var center := button.size * 0.5
+		if action == "upgrade" and tower_level >= 3:
+			preload("res://scripts/ui/towers/tower_action_icon.gd").draw(button, action, equipped, true, "", center)
+			return
 		if action == "upgrade":
 			var caption := "Max" if tower_level >= Balance.MAX_TOWER_LEVEL else UI.exact_money(cost if upgrade_armed else Balance.upgrade_cost(app.game.data.towers[tower_id], app.game.tuning))
 			var font := button.get_theme_font("font")
@@ -483,8 +495,11 @@ func fit_dialog() -> void:
 		footer.vertical = false
 		scroll.custom_minimum_size.y = 0
 		card.size.y = 0
+		# Preserve the compact level/cards/actions row inside narrow portrait safe areas.
+		var fitted_scale := minf(1.0, safe.size.x / card.size.x)
+		card.scale = Vector2.ONE * fitted_scale
 		var bottom := minf(safe.end.y, app.field.get_global_rect().end.y - 8)
-		card.position = Vector2(safe.position.x + (safe.size.x - card.size.x) * 0.5, maxf(safe.position.y, bottom - card.size.y))
+		card.position = Vector2(safe.position.x + (safe.size.x - card.size.x * fitted_scale) * 0.5, maxf(safe.position.y, bottom - card.size.y * fitted_scale))
 		return
 	if mode == "preview":
 		# Stat cards use the modal's safe area, with navigation and purchase pinned.
@@ -536,7 +551,7 @@ func refresh() -> void:
 	var disabled: bool = (mode in ["preview", "upgrade", "move"] and (app.game.data.balance < cost or remaining > 0.0)) or (mode in ["preview", "upgrade"] and tower_level >= Balance.MAX_TOWER_LEVEL)
 	if mode == "info":
 		confirm.queue_redraw()
-		disabled = tower_level >= Balance.MAX_TOWER_LEVEL or remaining > 0.0 or (upgrade_armed and app.game.data.balance < cost)
+		disabled = tower_level >= 3 or remaining > 0.0 or (upgrade_armed and app.game.data.balance < cost)
 	if mode in ["equipment", "equipment_detail"]:
 		disabled = relic_choice == relic_original
 	if disabled != confirm.disabled:
@@ -563,7 +578,9 @@ func commit(opened_revision: int) -> void:
 		return
 	if mode == "info":
 		refresh()
-		if not visible or confirm.disabled or opened_revision != revision:
+		if not visible or opened_revision != revision:
+			return
+		if tower_level >= Balance.MAX_TOWER_LEVEL or app.game.data.towers[tower_id].get("rebuild_remaining", 0.0) > 0.0 or (upgrade_armed and app.game.data.balance < cost):
 			return
 		if not upgrade_armed:
 			arm_upgrade()
