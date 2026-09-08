@@ -113,6 +113,7 @@ try {
             Invoke-Godot -Name 'campaign-portals' -EngineArguments @('--script', 'res://tests/rendered/campaign_portal_runner.gd')
             Invoke-Godot -Name 'campaign-landscape' -EngineArguments @('--script', 'res://tests/rendered/campaign_landscape_runner.gd')
             Invoke-Godot -Name 'campaign-map' -EngineArguments @('--script', 'res://tests/rendered/campaign_map_runner.gd')
+            Invoke-Godot -Name 'baked-map' -EngineArguments @('--script', 'res://tests/rendered/baked_map_runner.gd')
             Invoke-Godot -Name 'campaign-map-menu' -EngineArguments @('--script', 'res://tests/rendered/campaign_map_menu_runner.gd')
             Invoke-Godot -Name 'campaign-hud' -EngineArguments @('--script', 'res://tests/rendered/campaign_hud_runner.gd')
             Invoke-Godot -Name 'parchment-corners' -EngineArguments @('--script', 'res://tests/rendered/parchment_corner_runner.gd')

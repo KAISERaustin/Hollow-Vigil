@@ -843,10 +843,10 @@ func open_rules() -> void:
 	if live_campaign(): show_campaign_content_rules()
 	else: show_infinite_rules()
 
-func show_campaign_content_rules() -> void:
+func show_campaign_content_rules(return_to: Callable = Callable()) -> void:
 	if not live_campaign() or not app.campaign.can_author(): return
 	wave_rules = false
-	rules_return = open_game_menu
+	rules_return = return_to if return_to.is_valid() else open_game_menu
 	campaign_rule_changes = {}
 	page_view("rules", "Edit rules", rules_back)
 	editor_game = VigilState.new(42, "creative", Build.Configuration.resolve(0, app.campaign.level_setup(0).overrides).tuning)
@@ -865,7 +865,7 @@ func show_campaign_content_rules() -> void:
 	content.add_child(rules_editor)
 	footer.add_child(action("Apply changes", func():
 		rules_editor.commit_fields()
-		if app.campaign.save_campaign_tuning(campaign_rule_changes): open_game_menu()
+		if app.campaign.save_campaign_tuning(campaign_rule_changes): rules_return.call()
 		else: notice("These campaign changes could not be saved. Your draft is still open.")
 	, "ApplyRules", true))
 	footer.add_child(action("Cancel", cancel_rules, "CancelRules"))

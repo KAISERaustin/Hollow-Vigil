@@ -78,9 +78,9 @@ func run() -> void:
 		viewport.add_child(map)
 		map.size.x=width
 		await frame()
-		var first_sites: Array=map.landscapes[0].sites.duplicate(true)
+		var first_texture: Texture2D = map.backgrounds[0]
 		map.arrange()
-		check(map.landscapes[0].sites==first_sites,"Repeated layout preserves every landmark position")
+		check(map.backgrounds[0] == first_texture,"Repeated layout reuses the baked image")
 		for index in Map.Catalog.CHAPTERS.size():
 			map.position.y=-index*Map.CHAPTER_HEIGHT
 			await frame()

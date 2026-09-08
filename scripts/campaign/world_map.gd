@@ -7,6 +7,7 @@ const MapArt = preload("res://scripts/ui/shared/biome_map_art.gd")
 const Marker = preload("res://scripts/campaign/level_marker.gd")
 const Content = preload("res://scripts/content/registry.gd")
 const CHAPTER_HEIGHT := 960.0
+const BAKE_WIDTH := 540.0
 const FIRST_LEVEL_Y := 176.0
 const LEVEL_SPACING := 164.0
 const CHAPTER_NUMERALS := ["I", "II", "III", "IV", "V", "VI"]
@@ -15,7 +16,7 @@ var progress: RefCounted
 var nodes: Array[Button] = []
 var labels: Array[VBoxContainer] = []
 var headings: Array[VBoxContainer] = []
-var landscapes: Array[Dictionary] = []
+var backgrounds: Array[Texture2D] = []
 
 func _ready() -> void:
 	name = "CampaignWorldMap"
@@ -23,6 +24,7 @@ func _ready() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mouse_filter = Control.MOUSE_FILTER_PASS
 	for chapter in Catalog.CHAPTERS.size():
+		backgrounds.append(chapter_presentation(chapter).get("background"))
 		var heading := VBoxContainer.new()
 		heading.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		heading.add_theme_constant_override("separation", 4)
@@ -39,7 +41,8 @@ func _ready() -> void:
 		button.completed = index < progress.data.completed_levels
 		button.current = not progress.allow_all and progress.unlocked(index) and index == int(progress.data.completed_levels)
 		button.landscape_profile = chapter_presentation(int(index/5.0))
-		if index%5<4: button.landmark_kind = button.landscape_profile.get("landmarks",[])[index%5]
+		var landmarks: Array = button.landscape_profile.get("landmarks",[])
+		if index%5<4 and index%5<landmarks.size(): button.landmark_kind = landmarks[index%5]
 		if index % 5 == 4:
 			button.gate = Catalog.CHAPTERS[int(index / 5.0)].get("gate_art")
 			button.gate_style = Catalog.CHAPTERS[int(index / 5.0)].style
@@ -91,16 +94,6 @@ func arrange() -> void:
 		labels[index].size = Vector2(width, 58)
 		for label: Label in labels[index].get_children():
 			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if right else HORIZONTAL_ALIGNMENT_RIGHT
-	for chapter in headings.size():
-		var profile := chapter_presentation(chapter)
-		var reserved := chapter_reserved(chapter)
-		var layout_key := hash([size.x,reserved,profile])
-		if chapter<landscapes.size() and landscapes[chapter].key==layout_key: continue
-		var obstacles := chapter_roads(chapter)
-		obstacles.append(MapArt.waterway(chapter_rect(chapter)))
-		var landscape := {"profile":profile,"key":layout_key,"sites":MapArt.layout(profile,chapter_rect(chapter),reserved,obstacles,chapter+71)}
-		if chapter<landscapes.size(): landscapes[chapter]=landscape
-		else: landscapes.append(landscape)
 	queue_redraw()
 
 func chapter_presentation(chapter: int) -> Dictionary:
@@ -109,6 +102,7 @@ func chapter_presentation(chapter: int) -> Dictionary:
 	return {}
 
 func chapter_reserved(chapter: int) -> Array[Rect2]:
+	# Offline baking and rendered clearance checks only; not used by arrange().
 	var reserved: Array[Rect2] = [headings[chapter].get_rect()]
 	for index in range(chapter*5,chapter*5+5):
 		reserved.append(nodes[index].get_rect().grow(4))
@@ -120,36 +114,35 @@ func chapter_reserved(chapter: int) -> Array[Rect2]:
 	return reserved
 
 func chapter_roads(chapter: int) -> Array[PackedVector2Array]:
+	# Offline source geometry, scaled exactly like the image for validation.
 	var roads: Array[PackedVector2Array] = []
 	var first := chapter * 5
 	var top := chapter * CHAPTER_HEIGHT
+	var scale_x := size.x / BAKE_WIDTH
 	if chapter > 0:
-		var entrance := PackedVector2Array([Vector2(size.x - 16, top), Vector2(size.x - 16, top + 128)])
-		var approach := Vector2(point(first).x + 48, top + 142)
-		entrance.append_array(MapArt.curve(entrance[-1], approach, Vector2(size.x - 16, top + 142), approach + Vector2(24, 0)))
-		entrance.append_array(MapArt.curve(approach, point(first), approach - Vector2(48, 0), point(first) - Vector2(0, 28)))
+		var entrance := PackedVector2Array([Vector2(size.x - 16 * scale_x, top), Vector2(size.x - 16 * scale_x, top + 128)])
+		var approach := Vector2(point(first).x + 48 * scale_x, top + 142)
+		entrance.append_array(MapArt.curve(entrance[-1], approach, Vector2(size.x - 16 * scale_x, top + 142), approach + Vector2(24 * scale_x, 0)))
+		entrance.append_array(MapArt.curve(approach, point(first), approach - Vector2(48 * scale_x, 0), point(first) - Vector2(0, 28)))
 		roads.append(entrance)
 	for index in range(first + 1, first + 5):
 		roads.append(MapArt.between_markers(point(index - 1), point(index)))
 	if chapter < Catalog.CHAPTERS.size() - 1:
-		roads.append(MapArt.curve(point(first + 4), Vector2(size.x - 16, top + CHAPTER_HEIGHT)))
+		roads.append(MapArt.curve(point(first + 4), Vector2(size.x - 16 * scale_x, top + CHAPTER_HEIGHT)))
 	return roads
 
 func _draw() -> void:
-	for chapter in Catalog.CHAPTERS.size():
+	for chapter in backgrounds.size():
+		var texture := backgrounds[chapter]
+		if texture == null: continue
 		var bounds := chapter_rect(chapter)
-		var style: String = Catalog.CHAPTERS[chapter].style
-		draw_rect(bounds, Art.ground_color(style))
-		MapArt.Nature.ground(self,bounds,style)
-		var roads := chapter_roads(chapter)
-		var river := MapArt.waterway(bounds)
-		if chapter<landscapes.size():
-			MapArt.water(self,river,landscapes[chapter].profile)
-			MapArt.landscape(self,landscapes[chapter].profile,landscapes[chapter].sites)
-		for road in roads:
-			var destination := clampi(roundi((road[-1].y - bounds.position.y - FIRST_LEVEL_Y) / LEVEL_SPACING), 0, 5) + chapter * 5
-			MapArt.trail(self, road, destination <= progress.data.completed_levels and not progress.allow_all)
-		MapArt.bridges(self,roads,river)
-		# Abutting biomes share exactly one border, including road crossings.
-		if chapter > 0:
-			draw_rect(Rect2(0, bounds.position.y, size.x, UI.OUTLINE), UI.BORDER)
+		var within := int(progress.data.completed_levels) - chapter * 5
+		if not progress.allow_all and within >= 5:
+			draw_texture_rect_region(texture, bounds, Rect2(0, CHAPTER_HEIGHT, BAKE_WIDTH, CHAPTER_HEIGHT))
+			continue
+		draw_texture_rect_region(texture, bounds, Rect2(0, 0, BAKE_WIDTH, CHAPTER_HEIGHT))
+		if progress.allow_all or progress.data.completed_levels < chapter * 5: continue
+		# The lower half contains the same artwork with completed roads. Reveal
+		# it through the current marker; scenery and bridge pixels are identical.
+		var height := FIRST_LEVEL_Y + within * LEVEL_SPACING
+		draw_texture_rect_region(texture, Rect2(bounds.position, Vector2(size.x, height)), Rect2(0, CHAPTER_HEIGHT, BAKE_WIDTH, height))

@@ -204,7 +204,9 @@ func battle_menus() -> void:
 	check(campaign.run.wave_time > before and not campaign.paused, "Waves keeps combat running")
 	await back()
 	await back()
-	check(campaign.page == "map" and not app.slot_menu.visible, "Battle system Back follows visible Back to map")
+	check(campaign.page == "briefing" and not app.slot_menu.visible, "Battle system Back returns to information")
+	await back()
+	check(campaign.page == "map", "Information Back returns to map")
 
 func wave_menus() -> void:
 	var scroll := campaign.dialog_body.get_parent() as ScrollContainer

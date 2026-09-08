@@ -54,15 +54,14 @@ func run() -> void:
 			check(back.get_global_rect() == back_bounds, "Back remains fixed while scrolling")
 			var bounds: Rect2 = map.chapter_rect(chapter)
 			check(bounds.encloses(map.headings[chapter].get_rect()), "Chapter title fits its biome")
-			var scenery: Array = map.landscapes[chapter].sites
+			check(map.backgrounds[chapter] != null and map.backgrounds[chapter].get_size() == Vector2(540,1920), "Chapter has a baked background and completed-road variant")
+			var scenery: Array = preload("res://tests/support/baked_map_fixture.gd").sites(chapter, map.size.x)
 			var architecture_count := scenery.filter(func(site):return site.major).size()
 			var scenery_count := scenery.filter(func(site):return site.kind!="ground_marks").size()
 			check(architecture_count==4,"Four scenery landmarks at %d / chapter %d (found %d)"%[viewport.x,chapter+1,architecture_count])
 			check(scenery_count>=9,"Populated landscape at %d / chapter %d (found %d)"%[viewport.x,chapter+1,scenery_count])
-			var obstacles: Array[PackedVector2Array] = map.chapter_roads(chapter)
-			obstacles.append(Map.MapArt.waterway(bounds))
 			for site in scenery:
-				check(Map.MapArt.clear_site(site.rect,bounds,map.chapter_reserved(chapter),obstacles),"Scenery clears labels, destinations, trails and water at %d / chapter %d"%[viewport.x,chapter+1])
+				check(preload("res://tests/support/baked_map_fixture.gd").clear_site(site.rect,map,chapter),"Scenery clears labels, destinations, trails and water at %d / chapter %d"%[viewport.x,chapter+1])
 			for index in range(chapter * 5, chapter * 5 + 5):
 				check(bounds.encloses(map.nodes[index].get_rect()), "Level marker fits its biome")
 				check(bounds.encloses(map.labels[index].get_rect()), "Level label fits its biome")

@@ -453,15 +453,6 @@ func show_map() -> void:
 func show_briefing(index: int) -> void:
 	if not progress.unlocked(index):
 		return
-	# Continue opens the map first; choosing the saved level resumes its run.
-	if active_campaign_slot >= 0 and campaign_save.checkpoint.get("level", -1) == index:
-		run = Run.from_checkpoint(campaign_save.checkpoint)
-		if run != null:
-			active_overrides = run.rules.duplicate(true)
-			connect_run()
-			show_battle(true)
-			if run.phase == "victory": show_result()
-			return
 	clear_page("briefing")
 	run = configured_run(index)
 	header("%02d · %s" % [index+1, run.mission.name], show_map)
@@ -486,13 +477,22 @@ func show_briefing(index: int) -> void:
 	var details := UI.button("Preview waves", show_waves, 52)
 	details.name = "PreviewCampaignWaves"
 	actions.add_child(details)
-	var start := UI.gold_button("Begin level", start_mission.bind(index), 52)
+	var start := UI.gold_button("Resume level" if active_campaign_slot >= 0 and campaign_save.checkpoint.get("level", -1) == index else "Begin level", start_mission.bind(index), 52)
 	start.name = "BeginCampaignMission"
 	actions.add_child(start)
 
 func start_mission(index: int) -> void:
 	if not progress.unlocked(index):
 		return
+	# Resume only after confirmation on the level information screen.
+	if active_campaign_slot >= 0 and campaign_save.checkpoint.get("level", -1) == index:
+		run = Run.from_checkpoint(campaign_save.checkpoint)
+		if run != null:
+			active_overrides = run.rules.duplicate(true)
+			connect_run()
+			show_battle(true)
+			if run.phase == "victory": show_result()
+			return
 	run = configured_run(index)
 	connect_run()
 	show_battle()
@@ -550,7 +550,7 @@ func show_battle(start_paused: bool = false) -> void:
 	, func():
 		speed = game_toolbar.next_speed(speed)
 		update_time_controls()
-	, show_map, "", "Back to campaign map")
+	, go_back, "", "Back to level information")
 	pause_button = game_toolbar.pause_button
 	speed_button = game_toolbar.speed_button
 	update_time_controls()
@@ -695,6 +695,10 @@ func show_waves() -> void:
 	waves_dialog = true
 	dialog.z_index = 101
 	fit()
+	if can_author():
+		var rules := UI.button("Edit rules", show_campaign_rules)
+		rules.name = "WavesEditRules"
+		dialog_body.add_child(rules)
 	var preview := VBoxContainer.new()
 	preview.name = "WaveSummaries"
 	preview.add_theme_constant_override("separation", 8)
@@ -713,6 +717,13 @@ func show_waves() -> void:
 		var share := UI.button("Share campaign", show_playthrough_share)
 		share.name = "ShareCampaignConfiguration"
 		dialog_actions.add_child(share)
+
+func show_campaign_rules() -> void:
+	if not can_author(): return
+	close_dialog()
+	var menu := configuration_menu()
+	menu.open_game_menu()
+	menu.show_campaign_content_rules(menu.resume_game)
 
 func show_socket(socket: int) -> void:
 	if not run.editable() or not Balance.Content.level(run.mission.index).allows_socket(socket):
@@ -930,7 +941,9 @@ func go_back() -> void:
 		if back != null and back.visible: back.pressed.emit()
 		else: close_dialog()
 	elif page == "battle":
-		show_map()
+		var index := index_for_run()
+		save_progress()
+		show_briefing(index)
 	elif active_campaign_slot >= 0 and page == "map":
 		app.slot_menu.open_saved_games()
 	elif page == "map":

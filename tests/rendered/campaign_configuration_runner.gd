@@ -85,8 +85,12 @@ func run() -> void:
 		await press("ConfirmAction")
 		check(menu.campaign_slots.summary(0) == persisted, "Discard leaves every level and checkpoint unchanged")
 		menu.resume_game()
+		campaign.show_briefing(0)
+		await verify_waves_rules_route(campaign, dimensions)
 		campaign.show_briefing(7)
-		check(campaign.page == "battle", "Choosing the checkpoint level resumes its battle")
+		campaign.start_mission(7)
+		check(campaign.page == "battle", "Confirming the checkpoint level resumes its battle")
+		await verify_waves_rules_route(campaign, dimensions)
 		campaign.run.tick(2.1)
 		var held_run: RefCounted = campaign.run
 		var enemies: Array = held_run.game.combat.enemies.duplicate(true)
@@ -130,6 +134,27 @@ func run() -> void:
 	await frames()
 	print("CAMPAIGN GLOBAL RULES: %d checks, %d failures" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
+
+func verify_waves_rules_route(campaign: Control, dimensions: Vector2i) -> void:
+	var origin: String = campaign.page
+	var held_run: RefCounted = campaign.run
+	var prior_paused: bool = campaign.paused
+	campaign.show_waves()
+	await frames()
+	check(button("WavesEditRules").get_index() == 0, "Global rules are first in Waves")
+	await capture("campaign-waves-rules-%s-%d" % [origin, dimensions.x])
+	await press("WavesEditRules")
+	check(menu.screen == "rules", "Waves opens global rules")
+	await press("BackButton")
+	await press("ConfirmAction")
+	check(not menu.visible and campaign.page == origin and campaign.run == held_run and not campaign.dialog.visible, "Rules Back restores the originating campaign screen")
+	campaign.show_waves()
+	await press("WavesEditRules")
+	await press("EnemiesCategory")
+	menu.rules_editor.inputs.hp.get_line_edit().text = "234"
+	await press("ApplyRules")
+	check(not menu.visible and campaign.page == origin and (origin != "battle" or campaign.run == held_run) and campaign.paused == prior_paused, "Apply restores origin, live run and pause state")
+	verify_all_levels(campaign, {"enemies": {"basic": {"hp": 234.0}}})
 
 func verify_all_levels(campaign: Control, edited: Dictionary) -> void:
 	for index in Configuration.Catalog.COUNT:
