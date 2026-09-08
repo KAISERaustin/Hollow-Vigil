@@ -55,7 +55,7 @@ func run() -> void:
 				var refresh_samples := []
 				var maintenance_samples := []
 				var last := Time.get_ticks_usec()
-				for frame in range(360):
+				for frame in range(120):
 					await process_frame
 					var now := Time.get_ticks_usec()
 					if frame > 0: samples.append((now - last) / 1000.0)

@@ -1,0 +1,259 @@
+{
+	"rows": [
+		{
+			"label": "undefended.all_enemy_speed_resolution",
+			"ms": {
+				"max": 9.876,
+				"mean": 9.03794,
+				"n": 100,
+				"p50": 8.995,
+				"p95": 9.652,
+				"p99": 9.793
+			},
+			"units_per_call": 3202
+		},
+		{
+			"label": "undefended.rebuild_enemy_index",
+			"ms": {
+				"max": 2.505,
+				"mean": 2.12694,
+				"n": 100,
+				"p50": 2.103,
+				"p95": 2.335,
+				"p99": 2.497
+			},
+			"units_per_call": 3202
+		},
+		{
+			"label": "undefended.rebuild_id_map",
+			"ms": {
+				"max": 0.766,
+				"mean": 0.39871,
+				"n": 100,
+				"p50": 0.385,
+				"p95": 0.493,
+				"p99": 0.561
+			},
+			"units_per_call": 3202
+		},
+		{
+			"label": "undefended.all_remaining_distances",
+			"ms": {
+				"max": 144.506,
+				"mean": 139.467233333333,
+				"n": 30,
+				"p50": 138.613,
+				"p95": 143.564,
+				"p99": 144.173
+			},
+			"units_per_call": 3202
+		},
+		{
+			"label": "undefended.experimental_remaining_distance_suffix_lookup",
+			"ms": {
+				"max": 1.166,
+				"mean": 0.91544,
+				"n": 100,
+				"p50": 0.885,
+				"p95": 1.082,
+				"p99": 1.153
+			},
+			"units_per_call": 3202
+		},
+		{
+			"label": "undefended.suffix_equivalence",
+			"max_absolute_error": 0.0,
+			"note": "Isolated calculation experiment; not integrated into combat."
+		},
+		{
+			"label": "undefended.close_visibility_query",
+			"ms": {
+				"max": 0.259,
+				"mean": 0.14453,
+				"n": 100,
+				"p50": 0.136,
+				"p95": 0.197,
+				"p99": 0.248
+			},
+			"units_per_call": 1
+		},
+		{
+			"label": "undefended.wide_visibility_query",
+			"ms": {
+				"max": 11.297,
+				"mean": 10.26884,
+				"n": 100,
+				"p50": 10.346,
+				"p95": 10.829,
+				"p99": 11.091
+			},
+			"units_per_call": 1
+		},
+		{
+			"label": "undefended.save_snapshot_validation_write",
+			"ms": {
+				"max": 10.629,
+				"mean": 10.0436,
+				"n": 20,
+				"p50": 10.045,
+				"p95": 10.384,
+				"p99": 10.384
+			},
+			"units_per_call": 1
+		},
+		{
+			"label": "defended.all_enemy_speed_resolution",
+			"ms": {
+				"max": 3.238,
+				"mean": 2.83311,
+				"n": 100,
+				"p50": 2.85,
+				"p95": 3.055,
+				"p99": 3.227
+			},
+			"units_per_call": 980
+		},
+		{
+			"label": "defended.rebuild_enemy_index",
+			"ms": {
+				"max": 1.133,
+				"mean": 0.70298,
+				"n": 100,
+				"p50": 0.652,
+				"p95": 0.908,
+				"p99": 0.964
+			},
+			"units_per_call": 980
+		},
+		{
+			"label": "defended.rebuild_id_map",
+			"ms": {
+				"max": 0.232,
+				"mean": 0.1161,
+				"n": 100,
+				"p50": 0.108,
+				"p95": 0.168,
+				"p99": 0.221
+			},
+			"units_per_call": 980
+		},
+		{
+			"label": "defended.all_remaining_distances",
+			"ms": {
+				"max": 49.74,
+				"mean": 48.1774666666667,
+				"n": 30,
+				"p50": 48.286,
+				"p95": 49.237,
+				"p99": 49.307
+			},
+			"units_per_call": 980
+		},
+		{
+			"label": "defended.experimental_remaining_distance_suffix_lookup",
+			"ms": {
+				"max": 0.526,
+				"mean": 0.27923,
+				"n": 100,
+				"p50": 0.255,
+				"p95": 0.401,
+				"p99": 0.472
+			},
+			"units_per_call": 980
+		},
+		{
+			"label": "defended.suffix_equivalence",
+			"max_absolute_error": 0.0,
+			"note": "Isolated calculation experiment; not integrated into combat."
+		},
+		{
+			"label": "defended.close_visibility_query",
+			"ms": {
+				"max": 0.068,
+				"mean": 0.02941,
+				"n": 100,
+				"p50": 0.028,
+				"p95": 0.029,
+				"p99": 0.061
+			},
+			"units_per_call": 1
+		},
+		{
+			"label": "defended.wide_visibility_query",
+			"ms": {
+				"max": 3.125,
+				"mean": 2.67763,
+				"n": 100,
+				"p50": 2.683,
+				"p95": 2.888,
+				"p99": 2.973
+			},
+			"units_per_call": 1
+		},
+		{
+			"label": "defended.all_tower_stats",
+			"ms": {
+				"max": 1.045,
+				"mean": 0.78231,
+				"n": 100,
+				"p50": 0.744,
+				"p95": 0.912,
+				"p99": 1.001
+			},
+			"units_per_call": 80
+		},
+		{
+			"label": "defended.all_tower_component_sync",
+			"ms": {
+				"max": 0.523,
+				"mean": 0.2434,
+				"n": 100,
+				"p50": 0.233,
+				"p95": 0.322,
+				"p99": 0.366
+			},
+			"units_per_call": 80
+		},
+		{
+			"label": "defended.save_snapshot_validation_write",
+			"ms": {
+				"max": 14.748,
+				"mean": 13.8891,
+				"n": 20,
+				"p50": 13.945,
+				"p95": 14.566,
+				"p99": 14.566
+			},
+			"units_per_call": 1
+		},
+		{
+			"label": "copied_local_save.tick",
+			"ms": {
+				"max": 0.201,
+				"mean": 0.06502,
+				"n": 300,
+				"p50": 0.051,
+				"p95": 0.149,
+				"p99": 0.176
+			},
+			"units_per_call": 1
+		},
+		{
+			"local_save_counts": {
+				"earnings": 12918.1561569717,
+				"effects": 2,
+				"enemies": 6,
+				"escapes": 1.0,
+				"fields": 0,
+				"kills": 122.0,
+				"line_projectiles": 0,
+				"regions": 3,
+				"shots": 0,
+				"spawned": 22,
+				"towers": 2,
+				"traps": 0
+			},
+			"note": "Private save contents are not included in this report."
+		}
+	]
+}

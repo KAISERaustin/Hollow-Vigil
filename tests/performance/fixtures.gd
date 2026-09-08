@@ -65,9 +65,24 @@ static func checksum(game: VigilState) -> String:
 		actors.append([e.id, e.kind, e.pos, e.hp, e.segment, e.dead, e.get("gear_status", {})])
 	var towers := []
 	for t in game.data.towers.values(): towers.append([t.id, t.earnings, t.cooldown])
-	return var_to_bytes([game.data.balance, game.data.kills, game.data.escapes,
+	return var_to_bytes(canonical([game.data.balance, game.data.kills, game.data.escapes,
 		game.data.lifetime_earnings, game.economy.unclaimed(), actors, towers,
-		game.combat.rng.state, game.combat.pending_shots]).hex_encode().sha256_text()
+		game.combat.rng.state, game.combat.pending_shots])).hex_encode().sha256_text()
+
+static func canonical(value: Variant) -> Variant:
+	# Content objects have process-local instance IDs. Compare their stable content
+	# identity instead when checking separate baseline and profiling processes.
+	if value is VigilContentNode: return {"content_node": value.id}
+	if value is Object: return {"script": value.get_script().resource_path if value.get_script() != null else value.get_class()}
+	if value is Dictionary:
+		var result := {}
+		for key in value: result[key] = canonical(value[key])
+		return result
+	if value is Array:
+		var result := []
+		for child in value: result.append(canonical(child))
+		return result
+	return value
 
 static func stats(samples: Array) -> Dictionary:
 	if samples.is_empty(): return {}

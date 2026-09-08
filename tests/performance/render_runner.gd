@@ -21,10 +21,12 @@ func sample(field, name: String, camera_mode: String, variant: String, repeat: i
 	if field is Board: field.landscape.visible = not field.omit_map
 	else: field.terrain_layer.visible = not field.omit_map
 	var original_effects: Array[Dictionary] = field.state.combat.effects
-	if variant == "no_cosmetics": field.state.combat.effects = []
+	var empty_effects: Array[Dictionary] = []
+	if variant == "no_cosmetics": field.state.combat.effects = empty_effects
 	field.zoom = field.minimum_zoom() if camera_mode == "overview" else 1.0
 	field.camera = field.trail_bounds.get_center() if field is Board else Vector2.ZERO
 	if camera_mode == "offscreen": field.camera += Vector2(0, 4 * Balance.TILE)
+	if camera_mode == "hidden": field.camera += Vector2(0, 12 * Balance.TILE)
 	var base_camera: Vector2 = field.camera
 	field.queue_redraw()
 	await settle(20)

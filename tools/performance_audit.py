@@ -114,6 +114,10 @@ def prepare(revision):
     RESULTS.mkdir(parents=True, exist_ok=True)
     resolved = subprocess.check_output(['git', 'rev-parse', revision], cwd=ROOT, text=True).strip()
     archive = WORK / 'source.zip'
+    if archive.exists():
+        with zipfile.ZipFile(archive) as z:
+            if z.comment.decode('ascii').strip() != resolved:
+                raise SystemExit('Existing audit snapshot uses another commit. Choose a separate audit directory to preserve it.')
     if not (WORK / 'baseline').exists():
         subprocess.run(['git', 'archive', resolved, '--format=zip', '-o', str(archive)], cwd=ROOT, check=True)
         with zipfile.ZipFile(archive) as z: z.extractall(WORK / 'baseline')
@@ -142,8 +146,12 @@ def run(name, suite, tag):
     env['PERF_CAPTURE'] = str(RESULTS)
     env['PERF_INSTRUMENTED'] = '0' if name == 'baseline' else '1'
     env['PERF_SAVE_INPUT'] = str(WORK / 'vigil.save')
+    env['PERF_SURVIVAL_GUARD'] = '1' if tag == '_all_waves' else '0'
+    run_manifest = {str(p.relative_to(dest)): hashlib.sha256(p.read_bytes()).hexdigest()
+                    for p in (dest/'tests/performance').glob('*.gd')}
+    (RESULTS/f'{name}_{suite}{tag}_harness.json').write_text(json.dumps(run_manifest, indent=2), encoding='utf-8')
     command = [str(GODOT), '--path', str(dest)]
-    if suite not in ['render', 'ui']: command += ['--headless']
+    if suite not in ['render', 'ui', 'visibility', 'live']: command += ['--headless']
     else: command += ['--resolution', '390x844', '--disable-vsync']
     if suite == 'import': command += ['--editor', '--import']
     else: command += ['--script', f'res://tests/performance/{suite}_runner.gd']
@@ -161,7 +169,7 @@ def run(name, suite, tag):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('action', choices=['prepare', 'run', 'batch'])
+    parser.add_argument('action', choices=['prepare', 'run', 'batch', 'completion'])
     parser.add_argument('name', nargs='?', default='baseline')
     parser.add_argument('suite', nargs='?', default='simulation')
     parser.add_argument('--revision', default='c5a0b28')
@@ -170,6 +178,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.action == 'prepare': prepare(args.revision)
     elif args.action == 'run': run(args.name, args.suite, args.tag)
+    elif args.action == 'completion':
+        for name, suite, tag in [('baseline','campaign','_all_waves'), ('baseline','visibility',''), ('baseline','live',''),
+                                  ('baseline','fingerprint',''), ('instrumented','fingerprint',''), ('detailed','fingerprint','')]:
+            print(f'START {name} {suite} {tag}', flush=True)
+            run(name, suite, tag)
     else:
         if args.wait_pid:
             kernel = ctypes.WinDLL('kernel32', use_last_error=True)
@@ -183,6 +196,6 @@ if __name__ == '__main__':
                     print('Rendered benchmark still running; remaining suites stay queued.', flush=True)
                 kernel.CloseHandle(handle)
         for name, suite in [('baseline', 'campaign'), ('detailed', 'import'), ('detailed', 'deep'),
-                            ('baseline', 'costs'), ('baseline', 'camera'), ('baseline', 'ui'), ('instrumented', 'render')]:
+                            ('baseline', 'costs'), ('baseline', 'camera'), ('baseline', 'ui'), ('instrumented', 'render'), ('baseline', 'visibility')]:
             print(f'START {name} {suite}', flush=True)
             run(name, suite, '')

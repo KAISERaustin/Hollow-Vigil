@@ -17,6 +17,8 @@ var point := Vector2.ZERO
 var dragging := false
 var valid := false
 var allowed_to_build: Callable
+var drawer_tween: Tween
+var drawer_open := 0.0
 
 func _ready() -> void:
 	name = "GroundBuild"
@@ -24,7 +26,9 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	z_index = 110
 	palette = PanelContainer.new()
-	palette.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, UI.CARD_PADDING))
+	var drawer_style := UI.surface(UI.PANEL, UI.OUTLINE, UI.CARD_PADDING)
+	drawer_style.set_corner_radius_all(0)
+	palette.add_theme_stylebox_override("panel", drawer_style)
 	add_child(palette)
 	banner = PanelContainer.new()
 	banner.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, UI.CARD_PADDING))
@@ -48,7 +52,7 @@ func _ready() -> void:
 	palette.minimum_size_changed.connect(func(): fit.call_deferred())
 	banner.minimum_size_changed.connect(func(): fit.call_deferred())
 	cancel()
-	build_button = UI.button("Build", open)
+	build_button = preload("res://scripts/ui/shared/drawer_caret.gd").create(open)
 	build_button.name = "OpenGroundBuild"
 	field.add_child(build_button)
 	field.resized.connect(fit)
@@ -56,14 +60,22 @@ func _ready() -> void:
 
 func fit() -> void:
 	var safe := UI.safe_rect(self)
+	var style := palette.get_theme_stylebox("panel")
+	style.content_margin_left = UI.CARD_PADDING + safe.position.x
+	style.content_margin_right = UI.CARD_PADDING + size.x - safe.end.x
+	style.content_margin_bottom = UI.CARD_PADDING + size.y - safe.end.y
 	if is_instance_valid(build_button):
 		var field_safe := UI.safe_rect(field)
-		build_button.position = Vector2(field_safe.position.x + 12, field_safe.end.y - 60)
-		build_button.size = Vector2(88, 48)
-	for panel in [palette, banner]:
-		panel.size = Vector2(maxf(1, safe.size.x - 24), 0)
-	palette.position = Vector2(safe.position.x + 12, safe.end.y - palette.size.y - 12)
+		build_button.position = Vector2(0, field_safe.end.y - 48)
+		build_button.size = Vector2(field.size.x, 48)
+	palette.size = Vector2(size.x, 0)
+	banner.size = Vector2(maxf(1, safe.size.x - 24), 0)
+	palette.position = Vector2(0, size.y - palette.size.y * drawer_open)
 	banner.position = safe.position + Vector2(12, 12)
+
+func slide(value: float) -> void:
+	drawer_open = value
+	fit()
 
 func open() -> void:
 	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
@@ -77,13 +89,6 @@ func open() -> void:
 	var body := VBoxContainer.new()
 	body.add_theme_constant_override("separation", UI.GAP)
 	palette.add_child(body)
-	var heading := HBoxContainer.new()
-	body.add_child(heading)
-	var title := UI.heading("Build a tower", 20)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	heading.add_child(title)
-	heading.add_child(UI.button("Close", cancel))
-	body.add_child(UI.paragraph("Drag a tower upward onto clear ground. Swipe sideways to browse.", 14))
 	var cards := Choice.build_list(field.state.tuning, arm, "", field.state.data.balance)
 	body.add_child(cards)
 	for button in cards.get_node("Cards").get_children():
@@ -97,6 +102,8 @@ func open() -> void:
 	palette.show()
 	palette.reset_size()
 	fit.call_deferred()
+	drawer_tween = create_tween()
+	drawer_tween.tween_method(slide, 0.0, 1.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 func arm(value: String) -> void:
 	kind = value
@@ -204,6 +211,8 @@ func refresh() -> void:
 	queue_redraw()
 
 func cancel() -> void:
+	if drawer_tween != null and drawer_tween.is_valid(): drawer_tween.kill()
+	drawer_open = 0.0
 	kind = ""
 	candidate = ""
 	dragging = false

@@ -37,6 +37,7 @@ func run() -> void:
 				# Exercise the exact visibility query without a GPU in headless mode.
 				field.state.combat.visible_enemies(Rect2(field.world(Vector2(-100, -100)), (field.size + Vector2(200, 200)) / field.zoom))
 			var digest := F.checksum(field.state)
+			if mode == "campaign": digest = (digest + str([battle.health, battle.phase, battle.wave, battle.wave_time])).sha256_text()
 			if reference.is_empty(): reference = digest
 			if reference != digest: failures += 1
 			var row := {"mode": mode, "camera": camera_mode, "matches": reference == digest, "checksum": digest, "counts": F.counts(field.state)}

@@ -56,7 +56,7 @@ func run() -> void:
 			, 100, game.data.towers.size())
 			measure("defended.all_tower_component_sync", func(): game.combat.TowerComponents.sync(game.combat), 100, game.data.towers.size())
 		measure(prefix + ".save_snapshot_validation_write", func():
-			game.storage.write("user://performance-cost.save", game.snapshot(1000.0))
+			assert(game.storage.write("user://performance-cost.save", game.snapshot()), game.storage.last_error)
 		, 20)
 	var source := OS.get_environment("PERF_SAVE_INPUT")
 	if not source.is_empty() and FileAccess.file_exists(source):

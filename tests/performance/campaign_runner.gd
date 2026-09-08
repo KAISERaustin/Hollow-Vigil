@@ -7,6 +7,8 @@ func run() -> void:
 	var rows := []
 	for index in range(Catalog.COUNT):
 		var battle := Run.new(index)
+		var survival_guard := OS.get_environment("PERF_SURVIVAL_GUARD") == "1"
+		if survival_guard: battle.health = 1000000
 		var samples := []
 		var peak := 0
 		var steps := 0
@@ -21,7 +23,8 @@ func run() -> void:
 			steps += 1
 		Probe.enabled = false
 		var row := {"level": index + 1, "name": battle.mission.name, "phase": battle.phase, "health": battle.health,
-			"peak_enemies": peak, "ticks": steps, "tick_ms": F.stats(samples), "counts": F.counts(battle.game), "profile": Probe.report()}
+			"peak_enemies": peak, "ticks": steps, "tick_ms": F.stats(samples), "counts": F.counts(battle.game), "profile": Probe.report(),
+			"survival_guard": survival_guard, "waves_completed": battle.wave, "waves_total": battle.mission.waves.size()}
 		rows.append(row)
 		print("CAMPAIGN ", row.level, " ", row.phase, " ", row.tick_ms)
 		await process_frame

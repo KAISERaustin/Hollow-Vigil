@@ -15,6 +15,7 @@ func check(ok: bool, label: String) -> void:
 
 func settle() -> void:
 	for i in 10: await process_frame
+	await create_timer(0.2).timeout
 
 func touch(at: Vector2, down: bool, index: int = 0) -> void:
 	var event := InputEventScreenTouch.new()
@@ -37,8 +38,18 @@ func exercise(host: Control, label: String) -> void:
 	var field: Battlefield = host.field
 	host.game.data.balance = 100000
 	host.game.data.first_property_required = false
-	build.open()
+	check(build.build_button.text.is_empty(), label + " uses an unlabeled caret")
+	check(build.build_button.size.y >= 48, label + " caret retains touch target")
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png("res://artifacts/ground-caret-%s-%d.png" % [label, root.size.x])
+	var caret: Vector2 = build.build_button.get_global_rect().get_center()
+	await touch(caret, true)
+	await touch(caret, false)
 	await settle()
+	check(is_equal_approx(build.palette.size.x, host.size.x), label + " drawer spans full width")
+	check(is_equal_approx(build.palette.position.y + build.palette.size.y, host.size.y), label + " drawer touches bottom edge")
+	check(build.palette.get_child(0).get_child_count() == 1, label + " drawer contains only tower row")
+	check(is_equal_approx(build.drawer_open, 1.0), label + " slide completes")
 	check(build.palette.get_global_rect().grow(1).encloses(build.palette.find_child("TowerCards", true, false).get_global_rect()), label + " cards fit")
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://artifacts/ground-palette-%s-%d.png" % [label, root.size.x])
