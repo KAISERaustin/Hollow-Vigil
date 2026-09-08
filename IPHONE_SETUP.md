@@ -1,5 +1,17 @@
 # Hollow Vigil on iPhone
 
+## TestFlight build 1.1.1 — September 8, 2026
+
+Version **0.1.0 (1.1.1)** adds the main-menu Settings → Bug report form and private uploads to the new Supabase `bug_reports` table. Xcode Organizer confirmed **App upload complete** through **Distribute App → App Store Connect → Distribute**. App Store Connect processed the build and confirmed **Testing** in **Just for Testing**, with 10 testers and 11 builds. The tester list already showed an installation of 1.1.1. Testing notes were saved.
+
+Source implementation: `38e9bd5`. Validation passed: 56,466 gameplay checks, 3,140 rendered mobile navigation checks, 14 bug-report service checks and 207 final bug-report UI checks. An earlier 222-check rendered run submitted a real report through the native Godot form; database readback confirmed its content. REST validation and both player-role privacy contracts passed, and Supabase security advisors returned no findings. Screenshots were inspected at portrait phone sizes. All 670 runtime source files checked against Git or current edits matched the release snapshot.
+
+The Release archive and deep, strict signature verification passed. Both iPhone/iPad orientation arrays contain only `UIInterfaceOrientationPortrait`; `UIRequiresFullScreen=true`. The existing generated-header, empty privacy usage description and skipped App Intents extraction warnings remain. No physical iPhone rotation, keyboard or installation test was performed for this build.
+
+Archive: `~/Library/Developer/Xcode/Archives/2026-09-08/HollowVigil-1.1.1.xcarchive`. Source: `/private/tmp/hollow-vigil-1.1.1-verified`. Logs and screenshots: ignored `artifacts/bug-report-1.1.1/`. Archived PCK SHA-256: `566eb3b711497179213d4802ea55e4b97655966261c72bc99558f95d96bd7f25`.
+
+[Build 1.1.1 in App Store Connect](https://appstoreconnect.apple.com/teams/9e8e8295-c906-4d21-8e40-988d2e1a8075/apps/6809097281/testflight/ios/47a66dbf-9481-42bb-b612-90c7962d7c9d).
+
 ## Portrait-only orientation
 
 The app is locked to upright portrait through `display/window/handheld/orientation.ios=1` in `project.godot`. Godot generates both `UISupportedInterfaceOrientations` and `UISupportedInterfaceOrientations~ipad` with only `UIInterfaceOrientationPortrait`; its native template retains `UIRequiresFullScreen=true`. Verify those values in the newly exported Xcode project's Info.plist, and confirm turning an iPhone leaves gameplay and menus upright before releasing. Use a fresh export/archive to apply the settings; existing TestFlight installations are unchanged until a new build is installed. Historical build reports below retain their original test coverage.
