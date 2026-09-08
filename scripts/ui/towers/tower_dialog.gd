@@ -13,6 +13,8 @@ var body: VBoxContainer
 var scroll: ScrollContainer
 var footer: BoxContainer
 var heading: Label
+var identity_text: VBoxContainer
+var level_display: Control
 var identity: HBoxContainer
 var equipment_summary: VBoxContainer
 var portrait: Control
@@ -69,7 +71,11 @@ func _ready() -> void:
 	heading = UI.heading("", 24)
 	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	identity.add_child(heading)
+	identity_text = VBoxContainer.new()
+	identity_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	identity_text.add_theme_constant_override("separation", 4)
+	identity.add_child(identity_text)
+	identity_text.add_child(heading)
 	header_close = UI.close_button(func():
 		if mode == "equipment_detail": open_action("equipment")
 		else: dismiss()
@@ -115,7 +121,8 @@ func open_action(action: String, branch: String = "") -> void:
 	opener = get_viewport().gui_get_focus_owner()
 	revision += 1
 	mode = action
-	layout.add_theme_constant_override("separation", 8 if action == "preview" else 16)
+	color = Color(UI.BORDER, 0.0 if action == "info" else 0.65)
+	layout.add_theme_constant_override("separation", 8 if action in ["info", "preview"] else 16)
 	body.add_theme_constant_override("separation", 8 if action == "preview" else 12)
 	portrait.custom_minimum_size = Vector2(40, 48) if action == "preview" else Vector2(48, 64)
 	header_back.visible = action != "info"
@@ -133,6 +140,14 @@ func open_action(action: String, branch: String = "") -> void:
 	equipment_state = equipment_fingerprint()
 	portrait.queue_redraw()
 	tower_level = int(tower.level)
+	if is_instance_valid(level_display):
+		identity_text.remove_child(level_display)
+		level_display.queue_free()
+		level_display = null
+	heading.add_theme_font_size_override("font_size", UI.type_size(18 if action == "info" else 24))
+	if action == "info":
+		level_display = preload("res://scripts/ui/shared/tower_level_indicator.gd").create(tower_level, false)
+		identity_text.add_child(level_display)
 	cost = Balance.upgrade_cost(tower, app.game.tuning) if action == "upgrade" else 0.0
 	if action == "preview":
 		if tower_level == 3:
@@ -151,7 +166,7 @@ func open_action(action: String, branch: String = "") -> void:
 	var stats := Balance.tower_stats(tower, app.game.tuning, app.game.data.relics)
 	heading.text = stats.name
 	var label := {"info": "Tower information · Level %d", "upgrade": "Upgrade · Level %d", "sell": "Sell tower · Level %d", "move": "Move tower · Level %d", "target": "Targeting · Level %d", "equipment": "Equipment · Level %d"}
-	if action not in ["equipment", "preview"]:
+	if action not in ["info", "equipment", "preview"]:
 		body.add_child(UI.label(label[action] % tower_level, 14))
 	rebuild_status = UI.label("", 14, UI.TEXT)
 	body.add_child(rebuild_status)
@@ -204,17 +219,15 @@ func open_action(action: String, branch: String = "") -> void:
 	if action == "info":
 		var actions := GridContainer.new()
 		actions.name = "TowerManagementActions"
-		actions.columns = 2
+		actions.columns = 3
 		actions.add_theme_constant_override("h_separation", 8)
 		actions.add_theme_constant_override("v_separation", 8)
 		body.add_child(actions)
-		for entry in [["equipment", "Equipment"], ["target", "Targeting"], ["move", "Move tower"], ["sell", "Sell tower"]]:
+		for entry in [["equipment", "Equipment"], ["target", "Targeting"], ["move", "Move"]]:
 			var button := UI.button(entry[1], open_action.bind(entry[0]), 48)
 			button.name = "Manage_" + entry[0]
 			button.add_theme_font_size_override("font_size", UI.type_size(14))
 			actions.add_child(button)
-		body.add_child(UI.label("Targeting · " + Balance.TARGET_MODES[target_choice], 14))
-		body.add_child(TowerChoice.details(tower_kind, app.game.tuning, tower_level, tower_branch, {}, true, stats))
 	if action == "sell":
 		body.add_child(UI.paragraph("Remove this tower and refund " + UI.exact_money(refund) + " gold. Its stored " + UI.exact_money(tower.earnings) + " gold will also be collected. Equipment returns to your inventory.", 16))
 	var opened_revision := revision
@@ -224,6 +237,10 @@ func open_action(action: String, branch: String = "") -> void:
 	cancel.custom_minimum_size.x = 92
 	cancel.size_flags_horizontal = Control.SIZE_FILL
 	footer.add_child(cancel)
+	if action == "info":
+		var sell := UI.button("Sell tower", open_action.bind("sell"), 48)
+		sell.name = "Manage_sell"
+		footer.add_child(sell)
 	var text: String = {"info": "Upgrade", "preview": "Upgrade · " + UI.exact_money(cost) + " gold", "upgrade": "Upgrade · " + UI.exact_money(cost) + " gold", "sell": "Sell · +" + UI.exact_money(refund) + " gold", "move": "Choose destination", "target": "Apply targeting", "equipment": "Apply equipment"}[action]
 	confirm = UI.accent_button(text, func(): commit(opened_revision), UI.DANGER if action == "sell" else UI.GOLD, 48)
 	confirm.name = "ConfirmTowerAction"
@@ -312,6 +329,15 @@ func stat(grid: GridContainer, title: String, value: float, next: float, decimal
 
 func fit_dialog() -> void:
 	if not visible:
+		return
+	if mode == "info":
+		var safe := UI.safe_rect(app).grow(-12)
+		card.size.x = minf(520.0, safe.size.x)
+		footer.vertical = false
+		scroll.custom_minimum_size.y = body.get_combined_minimum_size().y
+		card.size.y = 0
+		var bottom := minf(safe.end.y, app.field.get_global_rect().end.y - 8)
+		card.position = Vector2(safe.position.x + (safe.size.x - card.size.x) * 0.5, maxf(safe.position.y, bottom - card.size.y))
 		return
 	if mode == "preview":
 		# Stat cards use the modal's safe area, with navigation and purchase pinned.

@@ -14,9 +14,11 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 		check(not host.tower_actions.visible, "No surrounding controls")
 		check(Rect2(Vector2.ZERO, Vector2(viewport)).encloses(dialog.card.get_global_rect()), "Management fits portrait")
 		check(dialog.confirm.is_visible_in_tree(), "Upgrade stays visible")
+		check(dialog.card.size.y <= 240, "Management remains a compact card")
+		check(dialog.body.find_child("TowerDetails", true, false) == null, "Compact card omits stats and description")
 		await Harness.capture(host, "tower-management-" + prefix + "-" + str(viewport.x))
 		for action in ["equipment", "target", "move", "sell"]:
-			dialog.body.find_child("Manage_" + action, true, false).pressed.emit()
+			dialog.find_child("Manage_" + action, true, false).pressed.emit()
 			await settle()
 			check(dialog.mode == action, "Management opens " + action)
 			dialog.go_back()

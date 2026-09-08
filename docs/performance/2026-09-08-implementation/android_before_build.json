@@ -1,7 +1,7 @@
 {
   "source": "before",
   "package": "com.kaiser.hollowvigil.performance",
-  "apk_sha256": "83825f1c8b2affecc9baa2da91f07592a563cea7c7b559c82449828cc9aac1ec",
+  "apk_sha256": "171fc1d02a255667f0b419c46e5db2189b8d04a134284c83db273a844e0a359f",
   "release_template_sha256": "6d1bb2cfa126a1b1c87e064a35b3cbd181bef0ec784dec1efd1d64dffa8be6cb",
   "harness_sha256": "0dfa67b814add33423348c1edcefea3031e1bef355242de67cd3470b9b9319c2",
   "production_sha256": {

@@ -103,7 +103,9 @@ func mobile_run() -> void:
     runner = '\n'.join(top) + '\n\n' + '\n'.join(bodies) + bootstrap
     (dest / 'tests/performance/mobile_runner.gd').write_text(runner, encoding='utf-8')
     settings = (dest / 'project.godot').read_text(encoding='utf-8')
-    settings = settings.replace('run/main_scene="res://scenes/main.tscn"', 'run/main_loop_type="VigilMobileBenchmark"')
+    settings = re.sub(r'run/main_(?:scene|loop_type)="[^"]*"\n?', '', settings)
+    settings = settings.replace('[application]', '[application]\nrun/main_loop_type="VigilMobileBenchmark"\nrun/main_scene="res://tests/performance/mobile.tscn"')
+    (dest / 'tests/performance/mobile.tscn').write_text('[gd_scene format=3]\n[node name="Benchmark" type="Node"]\n')
     (dest / 'project.godot').write_text(settings, encoding='utf-8')
     profile = BASE / 'android-export-profile'
     (profile / 'Godot').mkdir(parents=True, exist_ok=True)
