@@ -315,12 +315,12 @@ func audit_page_swipes(context: String) -> void:
 	var screen_before: String = menu.screen
 	scroll.scroll_vertical = 0
 	await frames()
-	await swipe_control(scroll, true, 80, true)
+	await swipe_control(scroll, true, minf(80, limit), true)
 	check(scroll.scroll_vertical > 0, context + ": finger swipe moves down page")
 	check(menu.screen == screen_before, context + ": scrolling does not activate a menu action")
 	scroll.scroll_vertical = limit
 	await frames()
-	await swipe_control(scroll, false, 80, true)
+	await swipe_control(scroll, false, minf(80, limit), true)
 	check(scroll.scroll_vertical < limit, context + ": finger swipe moves back up from bottom (limit=%d, after=%d, current_limit=%d)" % [limit, scroll.scroll_vertical, int(bar.max_value - bar.page)])
 	check(menu.screen == screen_before, context + ": reverse scrolling preserves the page")
 	scroll.scroll_vertical = 0

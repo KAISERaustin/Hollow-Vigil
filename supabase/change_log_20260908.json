@@ -1,0 +1,485 @@
+[
+  {
+    "source_commit": "42963670da850f5cefe875641b84ee4fbb0db543",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:38:40-05:00",
+    "summary": "Tower range circles disappear as soon as you close the tower menu.",
+    "published": true
+  },
+  {
+    "source_commit": "606e1622777f3f0b3ac19e7ca33761d3f92f27c6",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:38:29-05:00",
+    "summary": "Tap anywhere to dismiss wave rewards.",
+    "published": true
+  },
+  {
+    "source_commit": "734919fa628b0ccd404d4bf44c056eda060e71fe",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:35:57-05:00",
+    "summary": "Tower upgrade choices now have neatly centered pictures and prices.",
+    "published": true
+  },
+  {
+    "source_commit": "b9e4a01812d3987689c436108c25cbe79ebfce43",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:34:46-05:00",
+    "summary": "Preview a tower's new attack range before upgrading.",
+    "published": true
+  },
+  {
+    "source_commit": "d326de32617c3f30ffd1972111d2c750f91622cc",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:34:04-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "45c131308808df5a6a9625306a5d21ebcb628ccf",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:33:44-05:00",
+    "summary": "Tower upgrade choices take up less screen space.",
+    "published": true
+  },
+  {
+    "source_commit": "3e3ffe2ea043244b28109086e271928bfc8e62c5",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:29:59-05:00",
+    "summary": "Other menu buttons respond on the first tap while a tower is selected.",
+    "published": true
+  },
+  {
+    "source_commit": "a085a818cfc279a4703dcd2c8addf0952f1ca3d5",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:28:36-05:00",
+    "summary": "Tower upgrade choices show clear pictures and prices without repeated cost text.",
+    "published": true
+  },
+  {
+    "source_commit": "42798aa79c9626324008f0e77f4e770b313c1f74",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:26:52-05:00",
+    "summary": "Tap the battlefield to close the tower menu.",
+    "published": true
+  },
+  {
+    "source_commit": "0c37a4ffe511b62a28a5f143560206e430496610",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:22:11-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "29f03a63171050e658a4ef5e5e099df8ba873437",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:21:56-05:00",
+    "summary": "Tower portraits, levels, and action buttons line up more neatly.",
+    "published": true
+  },
+  {
+    "source_commit": "bca858d48f9afaa56fdb8013e278c5918587be1c",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:18:50-05:00",
+    "summary": "Tower level bubbles fill from the bottom upward.",
+    "published": true
+  },
+  {
+    "source_commit": "ca6ba30b38487948a33aad9e315a9574b5e1f5e5",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:17:35-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "7482a83c46df82f30dfb50a5b2e43d2dc050195d",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:17:09-05:00",
+    "summary": "Tower build cards stay visible after a campaign victory.",
+    "published": true
+  },
+  {
+    "source_commit": "250cc2e31ff9adc2ac4416797dee4f6433558379",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:14:24-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "75907290d74c45d71f232cbd477b2b3ec6d53881",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:14:09-05:00",
+    "summary": "Tower controls use a smaller layout with illustrated level bubbles.",
+    "published": true
+  },
+  {
+    "source_commit": "4dc245151dad48dfff3ca8cb71baa16ca9e9052b",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:07:37-05:00",
+    "summary": "The tower menu adjusts to fit its contents.",
+    "published": true
+  },
+  {
+    "source_commit": "5866d4a097155a9f1b345d1e80a8499801568f63",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:07:23-05:00",
+    "summary": "Drag a new tower from the toolbar while another tower is selected.",
+    "published": true
+  },
+  {
+    "source_commit": "0853a8899aba165a52e03c3a675c6854628686fe",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:02:44-05:00",
+    "summary": "Place towers closer to roads without blocking them.",
+    "published": true
+  },
+  {
+    "source_commit": "6baca380b2998fef184bdd44f4c43091c5a650f1",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:02:06-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "2490dde470220c7755f683eb1828591612e78b0d",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T18:01:48-05:00",
+    "summary": "Manage towers from a compact card at the bottom of the screen.",
+    "published": true
+  },
+  {
+    "source_commit": "a6f231bf23d6d9d0a428af7549ffee544af71555",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:59:42-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "d7494fd66640833a3d6da6e2e142426fae3b9928",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:59:18-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "bdcabbc5c1b4ae978ceed13a2ff440778ad788a0",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:58:50-05:00",
+    "summary": "Campaign victory messages are shorter.",
+    "published": true
+  },
+  {
+    "source_commit": "bea44e125347f7436c727e853195918f839660de",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:58:39-05:00",
+    "summary": "Wave reward messages disappear sooner.",
+    "published": true
+  },
+  {
+    "source_commit": "38fc5a530c5a32ce345f8772ce0b9efebb297bb1",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:55:25-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "411bb61c40a582114952410b985ca9456c18106c",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:54:44-05:00",
+    "summary": "Tower placement markers line up with the tower preview.",
+    "published": true
+  },
+  {
+    "source_commit": "6f1ad763b187bd16caeb6d96862d66d42265548d",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:53:38-05:00",
+    "summary": "See a tower's attack range while dragging it into place.",
+    "published": true
+  },
+  {
+    "source_commit": "ec31d6aeed66439c2e3c2c67c6dbbf7a48794aea",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:51:11-05:00",
+    "summary": "Leaving a campaign battle asks you to confirm discarding the attempt.",
+    "published": true
+  },
+  {
+    "source_commit": "266b30171cd90881e2498facc1bfa837575446a8",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:47:52-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "c88cd47d78fe049c5ba2db38ea6fa0b9e612dcbf",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:47:21-05:00",
+    "summary": "Campaign saves correctly keep towers placed on open ground.",
+    "published": true
+  },
+  {
+    "source_commit": "4dbd0e0c7ecd9d4758cb68131fd560eb5a39c1ca",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:42:22-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "cf1541cd283429ebe02d76a4459f5291e27de8eb",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:42:08-05:00",
+    "summary": "Tower details stay open until you drag the tower portrait.",
+    "published": true
+  },
+  {
+    "source_commit": "8e690d9be50daa3faae5029327c9c974d6e050e6",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:41:10-05:00",
+    "summary": "Drag the tower portrait to start placing it.",
+    "published": true
+  },
+  {
+    "source_commit": "a928fc528827d1f47e65f189d3336f0942e75b30",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:40:34-05:00",
+    "summary": "Tower and enemy artwork has been refreshed.",
+    "published": true
+  },
+  {
+    "source_commit": "ec34ab1014dbdd3b3bb7195dfb8f19d8f87458bc",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:40:12-05:00",
+    "summary": "Tower build previews show less clutter.",
+    "published": true
+  },
+  {
+    "source_commit": "f5920e12f19dc866a21427daa8a7a750f74bdb05",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:37:25-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "0e26fcc95965e8c40ee0e3177811474c221bca48",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:37:12-05:00",
+    "summary": "Tower details slide above the compact build strip.",
+    "published": true
+  },
+  {
+    "source_commit": "22f36d0a612e4aaf9b310d579bc19fb910a1e759",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:35:43-05:00",
+    "summary": "The wave button keeps the same Start wave label.",
+    "published": true
+  },
+  {
+    "source_commit": "34534e43230523292754819212c33436ccd939e3",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:32:21-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "ec2b7e37d0090a1a8c1753e167cdfc1604bc62eb",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:32:00-05:00",
+    "summary": "Creative campaign maps show completed levels and your current destination.",
+    "published": true
+  },
+  {
+    "source_commit": "8574c9691e8a7b0d2bf81aee7986d1b4ecdf1d84",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:29:44-05:00",
+    "summary": "Creative campaigns remember which levels you have beaten.",
+    "published": true
+  },
+  {
+    "source_commit": "a236644de6fde05cdd80c3741a6126e52839428b",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:29:31-05:00",
+    "summary": "Tower build cards stay visible while battles run more efficiently.",
+    "published": true
+  },
+  {
+    "source_commit": "ecea0ac6b36c548d80e293e238826feddfa05744",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:21:09-05:00",
+    "summary": "Coin symbols sit neatly beside currency amounts.",
+    "published": true
+  },
+  {
+    "source_commit": "351ac936ea2d2442920d828334ea4705e324aa31",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:19:23-05:00",
+    "summary": "Currency amounts fit more neatly in the battle display.",
+    "published": true
+  },
+  {
+    "source_commit": "a993ecac67d142f0bb28e8fae938e18af86fe32f",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:18:48-05:00",
+    "summary": "Coin symbols are easier to read beside prices.",
+    "published": true
+  },
+  {
+    "source_commit": "679f14e46b4a1d15bd50a050e0a55a8a3482d98c",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:18:21-05:00",
+    "summary": "Restarting a campaign level restores its original starting conditions.",
+    "published": true
+  },
+  {
+    "source_commit": "6b64077094093f1d222dde4a1b817566b97c2e53",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:17:00-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "a8082a84eb837a6545ac5a3e9ca5a990c7176040",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:16:41-05:00",
+    "summary": "Customize the rules for individual Creative campaign levels.",
+    "published": true
+  },
+  {
+    "source_commit": "01e0ff36eb0a1a7196dbb007415c61d7ac15ec3a",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:15:38-05:00",
+    "summary": "Overlapping towers appear in the correct order.",
+    "published": true
+  },
+  {
+    "source_commit": "8a8554ea48609c56a4f4a58f83f0943e61c169f0",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:13:23-05:00",
+    "summary": "Tower placement scrolls the view near the screen edges.",
+    "published": true
+  },
+  {
+    "source_commit": "711424991e4bd0be7dc0c3094e49b47fef93c7a7",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:09:40-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "2a7576b0a38c56c9ba183845306d4e6680028dca",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T17:09:27-05:00",
+    "summary": "Choose towers from a sliding build menu.",
+    "published": true
+  },
+  {
+    "source_commit": "0989ccb4b3fe6847f5786b31e09b026a5d3e453c",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T16:56:25-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "12b6f9308fec254d3e39f58ff7eb1ac6ef6a2239",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T16:55:52-05:00",
+    "summary": "Drag towers onto open ground in Campaign and Infinite.",
+    "published": true
+  },
+  {
+    "source_commit": "41d232bb578add96498863fa099d716c3e2aeb14",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T16:48:17-05:00",
+    "summary": "Four level markers show how far a tower has been upgraded.",
+    "published": true
+  },
+  {
+    "source_commit": "c5a0b284c74ad55cce6ca375bd14afc9e82fb0a2",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T16:41:01-05:00",
+    "summary": "Tower build choices show simpler previews.",
+    "published": true
+  },
+  {
+    "source_commit": "2c38c18c56d0be52778b9466deac3f4193024df4",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T16:33:58-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "1fc655655b322d960539880073a3c68f527a3f34",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T16:33:28-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "087ef1cb8bd6321ec1d7c3d65062d2e157230050",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T16:33:22-05:00",
+    "summary": "Campaign battles show the level number with a less crowded status display.",
+    "published": true
+  },
+  {
+    "source_commit": "a1e3d2e0be43b22abfe5b5a8576b55c114570440",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T16:32:41-05:00",
+    "summary": "Campaign maps feature refreshed scenery across all six regions.",
+    "published": true
+  },
+  {
+    "source_commit": "4ce041bdc20ab2d9898b35181c68d1934be42252",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T16:22:50-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "2d737ba340ea20f21045c04e8a3ff8f62f691e60",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T11:09:55-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "38e9bd523529b07572a8569cfacb9306ac0e9ac3",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T11:07:26-05:00",
+    "summary": "Send a private bug report from the main menu settings.",
+    "published": true
+  },
+  {
+    "source_commit": "e9f655983041f13d6d4fc26b3a66acb9ff4b951a",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T06:58:01-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "1dd6517e57b3b3226533b52d020780eccc85bf0c",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T06:47:54-05:00",
+    "summary": "Back buttons return to the correct screen without skipping menus.",
+    "published": true
+  },
+  {
+    "source_commit": "8e527a06369a4943bc507ea29fdd2edaa2a356a9",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T06:26:44-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "6fc53300a4c424fe4e0b40256002dab8f278ef60",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T06:21:35-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  },
+  {
+    "source_commit": "3d52d72b75562435245e252b5572e6c1eebc0d2b",
+    "change_date": "2026-09-08",
+    "created_at": "2026-09-08T06:20:46-05:00",
+    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
+    "published": false
+  }
+]
