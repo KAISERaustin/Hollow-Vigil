@@ -18,6 +18,7 @@ var campaign_progress := preload("res://scripts/campaign/progress.gd").new()
 var campaign_backup: Node
 var cloud: Node
 var bug_reports: Node
+var change_log: Node
 var hud: VigilHUD
 var game := VigilState.new()
 var field: Battlefield
@@ -68,6 +69,9 @@ func _ready() -> void:
 	bug_reports = preload("res://scripts/cloud/bug_reports.gd").new()
 	bug_reports.cloud = cloud
 	add_child(bug_reports)
+	change_log = preload("res://scripts/cloud/change_log.gd").new()
+	change_log.cloud = cloud
+	add_child(change_log)
 	if not load_saved_progress:
 		campaign_progress.path = game.save_path + ".campaign-test"
 	campaign_progress.load_progress()

@@ -44,15 +44,23 @@ func exercise(host: Control, label: String) -> void:
 	check(is_equal_approx(build.palette.size.x, host.size.x), label + " drawer spans full width")
 	check(is_equal_approx(build.palette.position.y + build.palette.size.y, host.size.y), label + " drawer touches bottom edge")
 	check(build.palette.get_child(0).get_child_count() == 1, label + " drawer contains only tower row")
-	var strip: Control = build.palette.find_child("TowerCards", true, false)
+	var strip: ScrollContainer = build.palette.find_child("TowerCards", true, false)
 	for card in strip.get_node("Cards").get_children():
-		check(strip.get_global_rect().encloses(card.get_global_rect()), label + " entire card visible " + card.name)
-	check(strip.get_node("Cards").size.x <= strip.size.x, label + " row has no horizontal overflow")
+		check(card.size.x >= 48 and card.size.y >= 48, label + " phone-sized tower target " + card.name)
+		strip.ensure_control_visible(card)
+		await settle()
+		check(strip.get_global_rect().grow(1).encloses(card.get_global_rect()), label + " entire card reachable " + card.name)
+	strip.scroll_horizontal = 0
+	await settle()
 	check(is_equal_approx(strip.global_position.x, 8) and is_equal_approx(strip.size.x, host.size.x - 16), label + " matching outer gutters")
 	var first_card: Control = strip.find_child("Build_rapid", true, false)
 	check(is_equal_approx(first_card.global_position.x, 8), label + " left gutter matches card spacing")
 	var last_card: Control = strip.get_node("Cards").get_child(-1)
+	strip.ensure_control_visible(last_card)
+	await settle()
 	check(is_equal_approx(host.size.x - last_card.get_global_rect().end.x, 8), label + " right gutter matches card spacing")
+	strip.scroll_horizontal = 0
+	await settle()
 	check(is_equal_approx(first_card.global_position.y, build.palette.global_position.y), label + " no outer top padding")
 	var outside := Vector2(host.size.x * 0.5, build.palette.position.y - 20)
 	await touch(outside, true)
@@ -155,8 +163,11 @@ func exercise(host: Control, label: String) -> void:
 		Input.parse_input_event(swipe)
 		await process_frame
 	await touch(swipe_start - Vector2(144, 0), false)
-	check(build.kind.is_empty() and scroll.scroll_horizontal == 0, label + " horizontal swipe neither moves row nor arms a tower")
-	check(is_equal_approx(scroll.find_child("Build_rapid", true, false).global_position.x, 8), label + " swipe preserves edge spacing")
+	check(build.kind.is_empty(), label + " horizontal swipe does not arm a tower")
+	if scroll.get_node("Cards").size.x > scroll.size.x:
+		check(scroll.scroll_horizontal > 0, label + " horizontal finger swipe browses overflowing towers")
+	else:
+		check(scroll.scroll_horizontal == 0, label + " fitting row remains stationary")
 	build.arm("rapid")
 	await settle()
 	blocked = field.global_position + Vector2(field.size.x * 0.5, 160)

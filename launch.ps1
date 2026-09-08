@@ -86,6 +86,7 @@ try {
             Invoke-Godot -Name 'unit' -EngineArguments @('--headless', '--script', 'res://tests/test_runner.gd')
         }
         if ($UnifiedTests -or $Check) {
+            Invoke-Godot -Name 'campaign-equipment' -EngineArguments @('--headless', '--script', 'res://tests/rendered/campaign_equipment_runner.gd')
             Invoke-Godot -Name 'save-exit' -EngineArguments @('--headless', '--script', 'res://tests/rendered/save_exit_runner.gd')
             Invoke-Godot -Name 'saved-slot-continue' -EngineArguments @('--headless', '--script', 'res://tests/rendered/saved_slot_continue_runner.gd')
             Invoke-Godot -Name 'save-slot-deletion' -EngineArguments @('--script', 'res://tests/rendered/save_slot_deletion_runner.gd')
@@ -102,6 +103,7 @@ try {
             Invoke-Godot -Name 'visual' -EngineArguments @('--script', 'res://tests/rendered/visual_runner.gd')
         }
         if ($MobileTests -or $Check) {
+            Invoke-Godot -Name 'ground-build-touch' -EngineArguments @('--script', 'res://tests/rendered/ground_build_runner.gd')
             Invoke-Godot -Name 'tower-management' -EngineArguments @('--script', 'res://tests/rendered/tower_management_runner.gd')
             Invoke-Godot -Name 'touch-scroll-scope' -EngineArguments @('--headless', '--script', 'res://tests/touch_scroll_scope_runner.gd')
             Invoke-Godot -Name 'mobile-navigation' -EngineArguments @('--script', 'res://tests/rendered/mobile_navigation_runner.gd')

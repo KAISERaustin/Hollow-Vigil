@@ -11,6 +11,7 @@ func valid_data(value: Dictionary) -> bool:
 	return valid_map_progress(value) and value.get("version") == 2 and number(value.get("sequence"), 0, 1e15, true) and number(value.get("completed_levels"), 0, Catalog.COUNT, true)
 
 static func valid_map_progress(value: Dictionary) -> bool:
+	if not valid_equipment(value.get("relics", {})): return false
 	var beaten: Variant = value.get("beaten_levels", [])
 	if not beaten is Array or beaten.size() > Catalog.COUNT: return false
 	var seen := {}
@@ -20,6 +21,13 @@ static func valid_map_progress(value: Dictionary) -> bool:
 		seen[int(index)] = true
 	var current: Variant = value.get("current_level", -1)
 	return (current is int or current is float) and current == int(current) and current >= -1 and current < Catalog.COUNT
+
+static func valid_equipment(inventory: Variant) -> bool:
+	var snapshot := {"towers": {}, "regions": {}, "next_tower": 1, "balance": 0, "relics": inventory}
+	return VigilSaveStore.new().valid_loadout(snapshot)
+
+func apply_equipment(run: RefCounted) -> void:
+	run.game.data.relics.merge(data.get("relics", {}).duplicate(true))
 
 func level_completed(index: int) -> bool:
 	if index < int(data.completed_levels): return true
@@ -89,6 +97,10 @@ func unlocked(index: int) -> bool:
 func save_run(run: RefCounted) -> bool:
 	if blocked:
 		return false
+	var inventory: Dictionary = data.get("relics", {}).duplicate(true)
+	inventory.merge(run.game.data.relics)
+	var equipment_changed: bool = inventory != data.get("relics", {})
+	data.relics = inventory
 	if allow_all:
 		var index := int(run.mission.index)
 		data.current_level = index
@@ -102,7 +114,7 @@ func save_run(run: RefCounted) -> bool:
 			data.current_level = int(data.completed_levels) if int(data.completed_levels) < Catalog.COUNT else -1
 		return flush()
 	if run.phase != "victory":
-		return true
+		return flush() if equipment_changed else true
 	var completed := int(run.mission.index) + 1
 	if completed > int(data.completed_levels) + 1:
 		last_error = "Complete the preceding level first."
@@ -135,6 +147,7 @@ func _replace_progress(completed: int, reason: String) -> bool:
 			last_error = "Couldn't preserve the current campaign. Your progress is unchanged."
 			return false
 	var replacement := {"version": 2, "sequence": sequence + 1, "completed_levels": completed}
+	replacement.relics = data.get("relics", {}).duplicate(true)
 	if not write(path, replacement):
 		return false
 	data = replacement

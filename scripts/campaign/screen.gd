@@ -174,6 +174,9 @@ func _ready() -> void:
 		progress = SessionProgress.new()
 		progress.allow_all = can_author()
 		progress.data.completed_levels = int(campaign_save.completed)
+		progress.data.relics = campaign_save.get("relics", {}).duplicate(true)
+		# Recover equipment from older saves before their attempt is cleared.
+		progress.data.relics.merge(campaign_save.checkpoint.get("state", {}).get("relics", {}))
 		progress.data.beaten_levels = campaign_save.get("beaten_levels", []).duplicate()
 		progress.data.current_level = int(campaign_save.get("current_level", -1))
 	layout = VBoxContainer.new()
@@ -512,6 +515,7 @@ func restart_mission(index: int) -> void:
 	# Restart uses the level rules, never its checkpoint or imported tower loadout.
 	active_overrides = level_setup(index).overrides.duplicate(true)
 	run = Run.new(index, active_overrides, mode)
+	progress.apply_equipment(run)
 	connect_run()
 	show_battle()
 	save_progress()
@@ -701,6 +705,7 @@ func persist_slot() -> bool:
 		campaign_save.completed = int(progress.data.completed_levels)
 		campaign_save.beaten_levels = progress.data.get("beaten_levels", []).duplicate()
 		campaign_save.current_level = progress.current_level() if progress.current_level() < Catalog.COUNT else -1
+	campaign_save.relics = progress.data.get("relics", {}).duplicate(true)
 	# Preserve completed levels and configuration, never an unfinished attempt.
 	campaign_save.checkpoint = {}
 	var ok: bool = app.slot_menu.campaign_slots.save_slot(active_campaign_slot, campaign_save)
@@ -1062,6 +1067,7 @@ func configured_run(index: int) -> RefCounted:
 	active_overrides = setup.overrides.duplicate(true)
 	var next := Run.new(index, active_overrides, mode)
 	VigilSaveSlots.CampaignBuild.apply_loadout(next, setup)
+	progress.apply_equipment(next)
 	return next
 
 func save_configuration(index: int, rules: Dictionary) -> bool:

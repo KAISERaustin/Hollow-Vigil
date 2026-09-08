@@ -142,7 +142,7 @@ func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = ""
 		reward = 0.0
 	if is_boss:
 		Bosses.record(self, enemy.source).boss = {"status": "defeated", "kind": enemy.kind}
-		var drops := Relics.award_set(data, enemy.source, enemy.kind)
+		var drops := Relics.award_set(data, enemy.get("drop_source", enemy.source), enemy.kind)
 		for index in range(drops.size()):
 			var gear_kind: String = drops[index]
 			relic_drops.append(gear_kind)

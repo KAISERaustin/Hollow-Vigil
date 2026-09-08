@@ -232,12 +232,7 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 	scroll.name = "TowerCards"
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.follow_focus = true
-	if fit_row:
-		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
-		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-		scroll.accessibility_name = "Tower cards. All build options visible"
-	else:
-		UI.keyboard_scroll(scroll, "Tower cards. Swipe left or right to browse", true)
+	UI.keyboard_scroll(scroll, "Tower cards. Swipe left or right to browse", true)
 	var choices := HBoxContainer.new()
 	choices.name = "Cards"
 	if fit_row:
@@ -247,8 +242,8 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 	scroll.resized.connect(func():
 		var edge := maxf(CARD_SIZE.x, (scroll.size.x - 8.0 * (choices.get_child_count() - 1)) / maxf(1, choices.get_child_count()))
 		if fit_row:
-			# Whole layout units prevent container rounding from overflowing the row.
-			edge = maxf(1, floorf((scroll.size.x - 8.0 * (choices.get_child_count() - 1)) / maxf(1, choices.get_child_count())))
+			# Grow to fill wide rows, but scroll instead of shrinking phone targets.
+			edge = maxf(UI.TARGET, floorf((scroll.size.x - 8.0 * (choices.get_child_count() - 1)) / maxf(1, choices.get_child_count())))
 		for card in choices.get_children():
 			if fit_row:
 				card.find_child("TowerPortrait", true, false).custom_minimum_size = Vector2.ONE * maxf(1, edge - 6)
@@ -266,7 +261,7 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 			for connection in margin.minimum_size_changed.get_connections():
 				margin.minimum_size_changed.disconnect(connection.callable)
 			button.find_child("TowerPortrait", true, false).custom_minimum_size = Vector2.ZERO
-			button.custom_minimum_size = Vector2.ZERO
+			button.custom_minimum_size = Vector2.ONE * UI.TARGET
 		button.name = prefix + kind
 		button.set_meta("tower_kind", kind)
 		button.disabled = balance < definition.cost

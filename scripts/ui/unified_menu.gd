@@ -755,6 +755,17 @@ func show_settings(return_to: Callable = Callable()) -> void:
 	content.add_child(action("Sound", show_sound, "SettingsSound"))
 	if settings_return == show_main_menu:
 		content.add_child(action("Bug report", show_bug_report, "SettingsBugReport"))
+		content.add_child(action("Change log", show_change_log, "SettingsChangeLog"))
+
+func show_change_log() -> void:
+	if settings_return != show_main_menu: return
+	page_view("change_log", "Change log", show_settings)
+	var feed := preload("res://scripts/ui/shared/change_log_list.gd").new()
+	feed.service = app.change_log
+	feed.refresh_button = action("Refresh", func(): await app.change_log.refresh(), "ChangeLogRefresh")
+	footer.add_child(feed.refresh_button)
+	content.add_child(feed)
+	app.change_log.refresh()
 
 func show_bug_report() -> void:
 	if settings_return != show_main_menu: return

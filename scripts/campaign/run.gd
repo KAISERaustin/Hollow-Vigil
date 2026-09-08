@@ -82,7 +82,9 @@ func tick(delta: float) -> void:
 		spawned_counts[group_id] = int(spawned_counts.get(group_id, 0)) + 1
 		var route: Array[Vector2] = mission.routes[spawn.lane]
 		if Balance.BOSSES.has(spawn.kind):
-			game.combat.Bosses.create(game.combat, "0,0", spawn.kind, route)
+			var boss: Dictionary = game.combat.Bosses.create(game.combat, "0,0", spawn.kind, route)
+			# Stable encounter identity keeps later levels' drops distinct and replay rewards idempotent.
+			boss.drop_source = "%d,%d" % [(int(mission.index) + 1) * 1000 + wave, group_id * 100000 + int(spawn.member)]
 		else:
 			game.combat.spawn_on_path(spawn.kind, route, mission.style)
 		next_spawn += 1

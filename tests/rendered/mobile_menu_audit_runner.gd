@@ -23,10 +23,12 @@ func input_touch(at: Vector2, down: bool) -> void:
 		print("MOBILE_INPUT_STALL: %d ms while dispatching touch %s on %s" % [Time.get_ticks_msec() - started, "down" if down else "up", menu.screen])
 	await process_frame
 
-func swipe_control(scroll: ScrollContainer, upward: bool = true, travel: float = 120) -> void:
+func swipe_control(scroll: ScrollContainer, upward: bool = true, travel: float = 120, page_gutter: bool = false) -> void:
 	var area := scroll.get_global_rect()
 	var distance := minf(travel, area.size.y * 0.55)
 	var start := area.get_center() + Vector2(0, distance * (0.5 if upward else -0.5))
+	# Text fields own gestures for editing; page scrolling uses the body gutter.
+	if page_gutter: start.x = area.position.x + 4
 	if scroll.get_window() != root: start += Vector2(scroll.get_window().position)
 	var movement := Vector2(0, -distance if upward else distance)
 	await input_touch(start, true)
@@ -299,7 +301,30 @@ func audit_page_once() -> void:
 	# Keep the open modal's input ownership undisturbed.
 	if not root.get_embedded_subwindows().filter(func(window): return window.visible).is_empty(): return
 	audited_pages[id] = true
+	await audit_page_swipes(id)
 	await audit_controls(menu, id)
+
+func audit_page_swipes(context: String) -> void:
+	# Bounds checks alone can pass when a child eats the finger gesture.
+	# Exercise both ends of every overflowing page through actual touch input.
+	var scroll: ScrollContainer = menu.scroll
+	await frames()
+	var bar := scroll.get_v_scroll_bar()
+	var limit := int(bar.max_value - bar.page)
+	if limit <= 2: return # A page that fits needs no scrolling.
+	var screen_before: String = menu.screen
+	scroll.scroll_vertical = 0
+	await frames()
+	await swipe_control(scroll, true, 80, true)
+	check(scroll.scroll_vertical > 0, context + ": finger swipe moves down page")
+	check(menu.screen == screen_before, context + ": scrolling does not activate a menu action")
+	scroll.scroll_vertical = limit
+	await frames()
+	await swipe_control(scroll, false, 80, true)
+	check(scroll.scroll_vertical < limit, context + ": finger swipe moves back up from bottom (limit=%d, after=%d, current_limit=%d)" % [limit, scroll.scroll_vertical, int(bar.max_value - bar.page)])
+	check(menu.screen == screen_before, context + ": reverse scrolling preserves the page")
+	scroll.scroll_vertical = 0
+	await frames()
 
 func audit_controls(owner: Control, context: String) -> void:
 	await frames()
