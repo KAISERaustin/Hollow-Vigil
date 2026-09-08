@@ -14,7 +14,7 @@ Physical-phone measurements remain outstanding. No Android device was listed by 
 | Measure drawing and GPU work | Both modes at 360×640, 390×844 and 540×960; close, overview, edge and moving cameras; CPU/GPU timers and draw-call counts | Completed |
 | Measure visual alternatives | Same frozen state with actor art omitted, enemy markers, map omitted, and transient cosmetics omitted; fully hidden view supplement | Completed |
 | Measure interface cost | Full application shells, HUD calls and view maintenance; simulation/render/HUD ablations, three repeats | Completed |
-| Test normal playback | Five-second normal-loop samples, three repeats per mode at 390×844, actual elapsed time and audio-event work | Completed |
+| Test normal and faster playback | Five-second normal-loop samples at 1×, 2× and 4×, three repeats per mode at 390×844, elapsed time and audio-event work | Completed |
 | Check the available save | Read-only source inspection; benchmarked a private copy of the local 3-region / 2-tower Infinite save | Completed; large reported save was not present locally |
 | Inspect repeated calculations | Route distances, speed resolution, enemy index and ID maps, tower stats, component synchronization, visibility queries and atomic save writing | Completed |
 | Check camera-independent outcomes | Both modes watching, away and moving; additional rendered full/hidden/HUD-disabled state comparisons | Completed |
@@ -32,6 +32,8 @@ The sustained Infinite tests warm up for 30 simulated seconds and measure the ne
 The rendered matrix freezes simulation, warms each view for 20 frames, then records 179 consecutive frame intervals. Frame-counter gaps were checked to be one rendered frame per interval. V-Sync and the frame cap are disabled for these diagnostics. CPU/GPU values come from Godot's viewport rendering timers; they can overlap and must not be added to total frame time. Viewport counters are reported as returned by Godot. Drawing-candidate counts include the renderer's 100-pixel margin.
 
 The Campaign rendering stress fixture is level 20 with 500 manually distributed basic enemies and funded maximum-level defenses. It is intentionally separate from authored Campaign wave measurements. The `offscreen` key in the original matrix means a four-tile camera shift; in Infinite it still includes edge enemies. The supplemental `hidden` case moves twelve tiles and verifies zero enemy candidates.
+
+The render harness issues an additional visibility query each frame to record candidate counts. This adds diagnostic work to the following interval; total frame timings include that work. They are useful controlled comparisons, while the separate normal-loop test avoids this query.
 
 Tables use the median of repeated run means and the median of repeated per-run percentiles. The raw samples retain outliers. Other Godot sessions were active on this shared desktop: a recorded background process used about 86 CPU seconds during a 148-second interval. Only this audit's benchmarks were run serially; other tasks were preserved. Treat the timings as evidence for bottlenecks and relative priorities, not certified hardware limits.
 
@@ -71,6 +73,10 @@ The earlier short stress result was not a steady-state limit: it averaged the in
 
 The marker experiment removes detailed enemy bodies and their per-enemy indicators, replacing each with one circle; tower drawing stays enabled. The actor-removal experiment omits both enemy and tower drawing. Map removal includes terrain and map decorations/controls such as portals and pads. Cosmetic removal clears only the transient `combat.effects` list; gameplay fields, traps and traveling projectiles retain their independent owners.
 
+The fully hidden views measured 1.84 ms per frame in Infinite and 0.74 ms in Campaign, with zero enemy candidates in both. Existing visibility culling is effective when the battle is entirely outside the view. Removing transient cosmetics did not produce a clear improvement; the higher measured times do not establish that removing effects causes a slowdown because these supplements ran later on a shared machine.
+
+Separate instrumented overview samples attributed about 17.6 ms to enemy drawing within 29.2 ms of total draw-script work in Infinite, and 23.6 ms within 29.4 ms in Campaign. These are inclusive, instrumented scripting times; do not add them to the uninstrumented frame measurements or GPU times.
+
 These experiments are diagnostic ceilings, not implemented visual designs or promised speedups. Their savings overlap and cannot be added together. They show why camera culling alone is insufficient: the visible area can still issue thousands of small drawing commands. Godot's [GPU optimization guide](https://docs.godotengine.org/en/stable/tutorials/performance/gpu_optimization.html) explains the cost of many draw calls and the benefit of batching compatible drawing work.
 
 ## The strongest combat improvement: cached route lengths
@@ -98,8 +104,16 @@ The following separate test uses the normal application `_process(delta)` loop, 
 
 | Normal game loop, 390×844 | Median actual desktop FPS | Frame p95 (ms) | Median simulated / wall seconds |
 | --- | --- | --- | --- |
-| Infinite | 9.8 | 121.42 | 4.90 / 5.05 |
-| Campaign | 60.0 | 17.73 | 5.00 / 5.02 |
+| Infinite / 1× | 9.8 | 121.42 | 4.90 / 5.05 |
+| Infinite / 2× | 7.4 | 150.71 | 9.65 / 5.09 |
+| Infinite / 4× | 5.5 | 200.75 | 14.35 / 5.12 |
+| Campaign / 1× | 60.0 | 17.73 | 5.00 / 5.02 |
+| Campaign / 2× | 60.0 | 16.68 | 10.00 / 5.02 |
+| Campaign / 4× | 60.0 | 16.68 | 20.05 / 5.02 |
+
+These are brief samples, not sustained thermal tests. The Campaign 1× sample spawned only one enemy during its five seconds; its 60 FPS result does not establish that every Campaign battle maintains 60 FPS. Authored-wave CPU coverage and the 500-enemy rendering stress test address different workloads. Fast playback should advance approximately 10 or 20 simulated seconds in five wall seconds; compare the measured simulation progress with that target.
+
+The crowded Infinite 4× run advanced a median 14.35 simulated seconds in 5.12 wall seconds, around 2.8× effective progress, while rendering at about 5.5 FPS. This demonstrates simulation falling behind the requested speed in this fixture. The short test does not isolate every source of lost progress or predict sustained device behavior.
 
 The copied local save averaged 0.065 ms per combat step. It is too small to reproduce the reported expanded-world lag.
 
@@ -168,5 +182,7 @@ After implementing optimizations, repeat the same desktop and device workloads a
 - Runners: `tests/performance/`. Orchestration: `tools/performance_audit.py`. Aggregation and charts: `tools/summarize_performance_audit.py`. Production game scripts are changed only inside ignored profiling snapshots by the instrumentation tool.
 
 Use Python 3 to run `tools/performance_audit.py prepare`, then `run baseline render --tag _verified`, `run baseline simulation`, `run instrumented simulation`, `batch`, and `completion`. Finally run `tools/summarize_performance_audit.py`. Set `GODOT_PATH` if needed. A different source revision needs a separate snapshot directory; the tool rejects reusing an archive from another commit. Saves and credentials are not copied into the public report.
+
+The chart generator requires `matplotlib`. For the additional playback runs, set `PERF_PLAYBACK=2` and run `tools/performance_audit.py run baseline live --tag _2x`, then repeat with `PERF_PLAYBACK=4` and tag `_4x`. Unset the variable before normal-speed runs. The corresponding [2× raw samples](performance/2026-09-08/baseline_live_2x.json) and [4× raw samples](performance/2026-09-08/baseline_live_4x.json) retain elapsed time, simulation progress and enemy counts.
 
 One early rendering attempt was discarded while checking sampling. The main matrix later hit a typed-array assignment error only in its six cosmetic-removal cases; those cases were rerun after correcting the harness and are supplied by the supplement. The other 90 matrix cases completed. Initial raw state hashes encoded process-local content-object IDs; separate cross-process validation now uses stable content identities. These were measurement-harness corrections, not production gameplay fixes. All resulting comparisons and limitations are reported explicitly.

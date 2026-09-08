@@ -73,6 +73,7 @@ def main():
     if not simulations or not summary['render']: return
     import matplotlib
     matplotlib.use('Agg')
+    matplotlib.rcParams['svg.hashsalt'] = 'hollow-vigil-performance-audit'
     import matplotlib.pyplot as plt
     fig, axes = plt.subplots(1, 2, figsize=(13, 5.5), layout='constrained')
     labels = ['9 regions\nno towers','41 regions\n40 towers','81 regions\nno towers','81 regions\n80 towers','161 regions\n160 towers','81 regions\ncompact map']
@@ -100,7 +101,9 @@ def main():
         ax.set_axisbelow(True)
     fig.suptitle('Hollow Vigil performance audit • Windows / RX 7800 XT\nDesktop diagnostic measurements; not physical-phone FPS', fontsize=13)
     fig.savefig(DATA/'performance_summary.png', dpi=160)
-    fig.savefig(DATA/'performance_summary.svg')
+    svg = DATA/'performance_summary.svg'
+    fig.savefig(svg, metadata={'Date': None})
+    svg.write_text('\n'.join(line.rstrip() for line in svg.read_text(encoding='utf-8').splitlines())+'\n', encoding='utf-8')
     plt.close(fig)
     if summary['campaign_all_waves'] and summary['live'] and all(summary['fingerprints'].values()) and load('baseline_visibility.json'):
         write_report(summary)
@@ -231,6 +234,8 @@ The following separate test uses the normal application `_process(delta)` loop, 
 {live_table}
 
 These are brief samples, not sustained thermal tests. The Campaign 1× sample spawned only one enemy during its five seconds; its 60 FPS result does not establish that every Campaign battle maintains 60 FPS. Authored-wave CPU coverage and the 500-enemy rendering stress test address different workloads. Fast playback should advance approximately 10 or 20 simulated seconds in five wall seconds; compare the measured simulation progress with that target.
+
+The crowded Infinite 4× run advanced a median 14.35 simulated seconds in 5.12 wall seconds, around 2.8× effective progress, while rendering at about 5.5 FPS. This demonstrates simulation falling behind the requested speed in this fixture. The short test does not isolate every source of lost progress or predict sustained device behavior.
 
 The copied local save averaged {costs['copied_local_save.tick']['ms']['mean']:.3f} ms per combat step. It is too small to reproduce the reported expanded-world lag.
 

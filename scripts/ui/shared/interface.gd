@@ -40,7 +40,7 @@ static func font(weight: int = 400, serif: bool = false) -> Font:
 		var ts := TextServerManager.get_primary_interface()
 		f.variation_opentype = {ts.name_to_tag("wght"): float(weight)}
 		f.opentype_features = {ts.name_to_tag("tnum"): 1}
-		f.fallbacks = [preload("res://scripts/ui/shared/currency_text.gd").coin_font(f)]
+		f.fallbacks = [(preload("res://assets/fonts/VigilCoinSerif.ttf") if serif else preload("res://assets/fonts/VigilCoinSans.ttf"))]
 		fonts[key] = f
 	return fonts[key]
 

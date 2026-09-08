@@ -148,3 +148,35 @@ func check_campaign_continue() -> void:
 			await press("CampaignBack")
 			await press("CampaignSavedGames")
 			check(menu.screen == "slots" and not is_instance_valid(app.campaign), "Map exits back to saved games")
+		await press("ContinueGameSlot" + str(slot + 1))
+		app.campaign.set_process(false)
+		await press("CampaignLevel3")
+		await press("BeginCampaignMission")
+		var campaign = app.campaign
+		var old_run = campaign.run
+		# Imported builds must not put towers or their remaining balance back on restart.
+		var setup := {"overrides": {}, "loadout": {}}
+		for key in ["towers", "next_tower", "relics", "balance"]:
+			setup.loadout[key] = old_run.game.data[key]
+		campaign.campaign_save.levels["2"] = setup
+		old_run.game.data.balance = 20.0
+		old_run.health = 0
+		old_run.phase = "defeat"
+		campaign.show_result()
+		for action in campaign.dialog_body.find_children("*", "Button", true, false):
+			if action.text == "Restart level":
+				action.pressed.emit()
+				break
+		await frames()
+		check(campaign.run != old_run and campaign.run.phase == "planning" and campaign.run.wave == 0, "Restart creates a fresh level in " + mode)
+		check(campaign.run.game.data.towers.is_empty(), "Restart removes every tower including imported loadout in " + mode)
+		check(campaign.run.game.data.balance == campaign.run.mission.gold, "Restart restores starting gold in " + mode)
+		check(campaign.run.health == campaign.run.mission.flame and campaign.run.game.combat.enemies.is_empty(), "Restart restores core and clears combat in " + mode)
+		check(campaign.progress.data.completed_levels == 2 and not campaign.dialog.visible, "Restart preserves completed levels and closes result")
+		var fresh_checkpoint: Dictionary = JSON.parse_string(JSON.stringify(campaign.run.checkpoint()))
+		check(menu.campaign_slots.summary(slot).checkpoint == fresh_checkpoint, "Restart immediately replaces saved checkpoint")
+		campaign.start_mission(2)
+		check(JSON.parse_string(JSON.stringify(campaign.run.checkpoint())) == fresh_checkpoint, "Resume after restart keeps the fresh state")
+		await press("GameMenuButton")
+		await press("CampaignBack")
+		await press("CampaignSavedGames")

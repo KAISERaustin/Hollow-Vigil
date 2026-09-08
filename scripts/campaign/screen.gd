@@ -509,6 +509,16 @@ func start_mission(index: int) -> void:
 	show_battle()
 	save_progress()
 
+func restart_mission(index: int) -> void:
+	if not progress.unlocked(index):
+		return
+	# Restart uses the level rules, never its checkpoint or imported tower loadout.
+	active_overrides = level_setup(index).overrides.duplicate(true)
+	run = Run.new(index, active_overrides, mode)
+	connect_run()
+	show_battle()
+	save_progress()
+
 func connect_run() -> void:
 	run.wave_cleared.connect(func(number: int, reward: float):
 		if page != "battle": return
@@ -807,7 +817,7 @@ func show_result() -> void:
 			dialog_body.add_child(next)
 	else:
 		dialog_body.add_child(UI.paragraph("Restart this level with its original gold and core integrity. Previously completed levels remain saved.",15))
-	dialog_body.add_child(UI.button("Restart level", start_mission.bind(run.mission.index),48))
+	dialog_body.add_child(UI.button("Restart level", restart_mission.bind(run.mission.index),48))
 	dialog_body.add_child(UI.button("World map",show_map,48))
 	if not progress.last_error.is_empty():
 		dialog_body.add_child(UI.paragraph(progress.last_error,14))

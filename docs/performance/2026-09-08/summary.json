@@ -11785,6 +11785,7 @@
   "live": [
     {
       "mode": "infinite",
+      "playback": 1.0,
       "repeats": 3,
       "frame_ms": {
         "mean": 102.066020408163,
@@ -11827,6 +11828,7 @@
     },
     {
       "mode": "campaign",
+      "playback": 1.0,
       "repeats": 3,
       "frame_ms": {
         "mean": 16.6659435215947,
@@ -11863,6 +11865,178 @@
         "regions": 9,
         "shots": 0,
         "spawned": 1,
+        "towers": 14,
+        "traps": 9
+      }
+    },
+    {
+      "mode": "infinite",
+      "playback": 2.0,
+      "repeats": 3,
+      "frame_ms": {
+        "mean": 134.355894736842,
+        "p50": 133.362,
+        "p95": 150.709,
+        "p99": 157.832,
+        "max": 162.652,
+        "mean_min": 113.106133333333,
+        "mean_max": 137.060756756757,
+        "worst_observed": 165.254
+      },
+      "before": {
+        "earnings": 10164.0,
+        "effects": 100,
+        "enemies": 849,
+        "escapes": 75.0,
+        "fields": 0,
+        "kills": 1364.0,
+        "line_projectiles": 0,
+        "regions": 81,
+        "shots": 17,
+        "spawned": 2288,
+        "towers": 80,
+        "traps": 13
+      },
+      "after": {
+        "earnings": 13816.0,
+        "effects": 98,
+        "enemies": 961,
+        "escapes": 186.0,
+        "fields": 0,
+        "kills": 1844.0,
+        "line_projectiles": 10,
+        "regions": 81,
+        "shots": 19,
+        "spawned": 2991,
+        "towers": 80,
+        "traps": 11
+      }
+    },
+    {
+      "mode": "campaign",
+      "playback": 2.0,
+      "repeats": 3,
+      "frame_ms": {
+        "mean": 16.6659302325581,
+        "p50": 16.666,
+        "p95": 16.677,
+        "p99": 16.692,
+        "max": 16.952,
+        "mean_min": 16.665926910299,
+        "mean_max": 16.6659468438538,
+        "worst_observed": 17.844
+      },
+      "before": {
+        "earnings": 0.0,
+        "effects": 0,
+        "enemies": 0,
+        "escapes": 0.0,
+        "fields": 0,
+        "kills": 0.0,
+        "line_projectiles": 0,
+        "regions": 9,
+        "shots": 0,
+        "spawned": 0,
+        "towers": 14,
+        "traps": 0
+      },
+      "after": {
+        "earnings": 0.0,
+        "effects": 4,
+        "enemies": 3,
+        "escapes": 0.0,
+        "fields": 0,
+        "kills": 0.0,
+        "line_projectiles": 1,
+        "regions": 9,
+        "shots": 1,
+        "spawned": 3,
+        "towers": 14,
+        "traps": 9
+      }
+    },
+    {
+      "mode": "infinite",
+      "playback": 4.0,
+      "repeats": 3,
+      "frame_ms": {
+        "mean": 182.689892857143,
+        "p50": 184.249,
+        "p95": 200.751,
+        "p99": 209.111,
+        "max": 230.415,
+        "mean_min": 181.072714285714,
+        "mean_max": 183.304392857143,
+        "worst_observed": 240.634
+      },
+      "before": {
+        "earnings": 10164.0,
+        "effects": 100,
+        "enemies": 849,
+        "escapes": 75.0,
+        "fields": 0,
+        "kills": 1364.0,
+        "line_projectiles": 0,
+        "regions": 81,
+        "shots": 17,
+        "spawned": 2288,
+        "towers": 80,
+        "traps": 13
+      },
+      "after": {
+        "earnings": 15634.0,
+        "effects": 100,
+        "enemies": 1029,
+        "escapes": 245.0,
+        "fields": 0,
+        "kills": 2089.0,
+        "line_projectiles": 10,
+        "regions": 81,
+        "shots": 24,
+        "spawned": 3363,
+        "towers": 80,
+        "traps": 40
+      }
+    },
+    {
+      "mode": "campaign",
+      "playback": 4.0,
+      "repeats": 3,
+      "frame_ms": {
+        "mean": 16.6658970099668,
+        "p50": 16.666,
+        "p95": 16.684,
+        "p99": 16.95,
+        "max": 17.052,
+        "mean_min": 16.6658704318937,
+        "mean_max": 16.6659136212625,
+        "worst_observed": 19.356
+      },
+      "before": {
+        "earnings": 0.0,
+        "effects": 0,
+        "enemies": 0,
+        "escapes": 0.0,
+        "fields": 0,
+        "kills": 0.0,
+        "line_projectiles": 0,
+        "regions": 9,
+        "shots": 0,
+        "spawned": 0,
+        "towers": 14,
+        "traps": 0
+      },
+      "after": {
+        "earnings": 104.0,
+        "effects": 6,
+        "enemies": 6,
+        "escapes": 0.0,
+        "fields": 0,
+        "kills": 8.0,
+        "line_projectiles": 1,
+        "regions": 9,
+        "shots": 1,
+        "spawned": 14,
         "towers": 14,
         "traps": 9
       }
