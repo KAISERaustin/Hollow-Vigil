@@ -54,30 +54,62 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 		await settle()
 		dialog.go_back()
 		check(not dialog.visible, "Back closes management")
-		if viewport.x == 390:
+		if viewport.x > 0:
 			var tower: Dictionary = host.game.data.towers[host.field.selected_tower]
 			for tier in range(1, 5):
 				tower.level = tier
 				tower.branch = "frostneedle" if tier == 4 else ""
 				dialog.open_action("info")
 				await settle()
-				check(dialog.portrait.global_position.y < dialog.heading.global_position.y, "Portrait above title")
-				check(dialog.card.size.y <= 240, "Every tier stays compact")
+				check(Rect2(Vector2.ZERO, Vector2(viewport)).encloses(dialog.card.get_global_rect()), "Every tier fits portrait")
+				if tier >= 3:
+					check(dialog.branch_cards.get_child_count() == 2, "Two illustrated branch choices")
+					check(not dialog.identity_card.visible and not dialog.confirm.visible, "Branch cards replace single portrait and purchase button")
 				await Harness.capture(host, "tower-management-" + prefix + "-level-" + str(tier))
 				if tier == 3:
-					dialog.confirm.pressed.emit()
 					var branch: String = Balance.BRANCHES[tower.kind].keys()[1]
-					dialog.arm_upgrade(branch)
+					await tap(dialog.branch_cards.get_child(0).get_global_rect().get_center())
 					await settle()
+					await tap(dialog.branch_cards.get_child(1).get_global_rect().get_center())
+					await settle()
+					check(tower.level == 3 and dialog.tower_branch == branch, "Switching cards selects without purchasing")
 					check(Rect2(Vector2.ZERO, Vector2(viewport)).encloses(dialog.card.get_global_rect()), "Branch confirmation fits portrait")
 					await Harness.capture(host, "tower-upgrade-branch-" + prefix)
-					dialog.confirm.pressed.emit()
-					check(tower.level == 4 and tower.branch == branch, "Checkmark purchases selected specialization")
+					var before: float = host.game.data.balance
+					var price: float = dialog.cost
+					await tap(dialog.branch_cards.get_child(1).get_global_rect().get_center())
+					await settle()
+					check(tower.level == 4 and tower.branch == branch, "Same card purchases selected specialization")
+					check(is_equal_approx(host.game.data.balance, before - price), "Card charges once")
+					check("Locked" in dialog.branch_cards.get_child(0).accessibility_name and "Selected" in dialog.branch_cards.get_child(1).accessibility_name, "Purchased and locked paths remain visible")
+					await Harness.capture(host, "tower-branch-purchased-" + prefix + "-" + str(viewport.x))
 				dialog.dismiss()
 			tower.level = 1
 			tower.branch = ""
 
 		for touch in [false, true]:
+			var buttons: Array = [host.speed_button, host.wave_button] if prefix == "campaign" else [host.hud.speed_button, host.hud.pause_button]
+			for button in buttons:
+				select.call()
+				await settle()
+				dialog.confirm.pressed.emit()
+				await settle()
+				var activations := [0]
+				var record := func(): activations[0] += 1
+				button.pressed.connect(record)
+				var button_point: Vector2 = button.get_global_rect().get_center()
+				if touch:
+					for pressed in [true, false]:
+						var event := InputEventScreenTouch.new()
+						event.position = button_point
+						event.pressed = pressed
+						Input.parse_input_event(event)
+						await process_frame
+				else:
+					await tap(button_point)
+				button.pressed.disconnect(record)
+				check(activations[0] == 1, prefix + " external button activates exactly once on first tap")
+				check(not dialog.visible, "External button dismisses armed upgrade menu")
 			select.call()
 			await settle()
 			dialog.confirm.pressed.emit()

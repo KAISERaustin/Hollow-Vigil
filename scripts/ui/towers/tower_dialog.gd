@@ -615,6 +615,29 @@ func commit(opened_revision: int) -> void:
 		dismiss()
 		app.tower_move.begin(tower_id, tower_level, cost, rebuild_seconds)
 
+func _input(event: InputEvent) -> void:
+	if not is_visible_in_tree() or mode != "info" or dismissing:
+		return
+	var pressed: bool = (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed) or (event is InputEventScreenTouch and event.pressed)
+	if not pressed or card.get_global_rect().has_point(event.position):
+		return
+	if _external_button_at(app, event.position):
+		# Hide before GUI dispatch so the original press and release reach the button.
+		dismiss(false)
+		app.panels.close_sheet()
+
+func _external_button_at(node: Node, point: Vector2) -> bool:
+	if node == self:
+		return false
+	if node is Control and not node.is_visible_in_tree():
+		return false
+	if node is BaseButton and not node.disabled and node.mouse_filter != Control.MOUSE_FILTER_IGNORE and node.get_global_rect().has_point(point):
+		return true
+	for child in node.get_children():
+		if _external_button_at(child, point):
+			return true
+	return false
+
 func _gui_input(event: InputEvent) -> void:
 	if mode != "info" or dismissing:
 		return
