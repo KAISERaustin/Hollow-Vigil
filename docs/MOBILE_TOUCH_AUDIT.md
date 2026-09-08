@@ -1,5 +1,15 @@
 # Mobile touch menu audit
 
+## September 8 scrolling follow-up
+
+Rechecked Campaign and Infinite at 360×640, 390×844 and 540×960 upright portrait sizes. The bottom build picker was squeezing eight towers into one row, producing targets smaller than 48 units on the two narrow phones. The shared tower-choice component now retains 48-unit squares and supports horizontal finger scrolling when they do not fit. Wider rows still grow evenly; upward placement drags retain their existing behavior.
+
+The complete menu audit now probes both scroll directions on each overflowing page, in addition to checking every control's reachable bounds and navigating with finger events. Short overflowing pages use a proportionate swipe. Text editors retain ownership of editing gestures. The ground-build regression checks every tower's size and scroll reachability, plus horizontal browsing without accidental selection, and is included in `launch.ps1 -MobileTests`.
+
+Focused results so far: ground-build touch 336 checks, tower management 450 checks, shared scroll scope 28 checks, and mobile navigation 3,185 checks; all passed. The complete menu and contextual suites are being rerun for this follow-up. Screenshots of the corrected build picker were inspected in both modes. These checks simulate touch on Windows; physical iPhone and Android validation remains separate.
+
+## Previous full touch audit
+
 September 7, 2026. Scope: the current production menu tree in `UI_MENU_TREE.md`, both game modes, shared contextual menus, and legacy menu components that remain callable. This audit tests source in the Windows Godot runtime using injected `InputEventScreenTouch` and `InputEventScreenDrag`; it does not identify or update an installed phone build.
 
 ## Coverage

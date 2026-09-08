@@ -58,6 +58,19 @@ func run() -> void:
 		for enemy in campaign.run.game.combat.enemies:
 			campaign.run.game.combat.hit(enemy, 1e12, campaign.run.game.data.towers.keys()[0], "", false)
 		check(campaign.run.game.data.relics.size() == 12, "Replaying encounters does not duplicate rewards")
+		var collection: Dictionary = campaign.run.game.data.relics.duplicate(true)
+		var item: String = earned.keys()[0]
+		for level in Run.Catalog.COUNT:
+			campaign.start_mission(level)
+			var state: Dictionary = campaign.run.game.data
+			check(state.relics == collection, "Entire collection carries into level %d in %s" % [level + 1, mode])
+			check(campaign.run.game.combat.Relics.available(state).size() == collection.size(), "Previously equipped items become available in the new level")
+			var socket := int(campaign.run.mission.pads[0])
+			check(campaign.run.build(socket, "rapid" if level % 2 == 0 else "heavy"), "Build a different strategy's tower")
+			check(campaign.run.game.economy.equip_relic(campaign.run.tower_at(socket), item, ""), "Reuse the same earned item on the new tower")
+			campaign.run.phase = "victory"
+			campaign.save_progress()
+			check(menu.campaign_slots.summary(0).relics == collection, "Saving victory includes gear still equipped on towers")
 		var isolated := Progress.new()
 		var other := Run.new()
 		isolated.apply_equipment(other)

@@ -123,3 +123,5 @@ See `MOBILE_TOUCH_AUDIT.md` for the complete menu-family touch coverage, repaire
 ## Main-menu bug reports
 
 Main menu → Settings → Bug report provides Title, Description and Upload. This entry is absent from Campaign, Infinite and in-game Settings. The draft survives page navigation and failed uploads during the current app session. Upload is explicit, works without sign-in and sends only the report text, version and platform privately to the developer.
+
+Main menu → Settings → Change log appears directly below Bug report. It shows dated, public change rows with Refresh and Load older changes. Back returns to Settings; no sign-in is required. See CHANGE_LOG.md for backend editing and the September 8 import.

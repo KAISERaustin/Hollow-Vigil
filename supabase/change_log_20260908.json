@@ -28,13 +28,6 @@
     "published": true
   },
   {
-    "source_commit": "d326de32617c3f30ffd1972111d2c750f91622cc",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T18:34:04-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
     "source_commit": "45c131308808df5a6a9625306a5d21ebcb628ccf",
     "change_date": "2026-09-08",
     "created_at": "2026-09-08T18:33:44-05:00",
@@ -63,13 +56,6 @@
     "published": true
   },
   {
-    "source_commit": "0c37a4ffe511b62a28a5f143560206e430496610",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T18:22:11-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
     "source_commit": "29f03a63171050e658a4ef5e5e099df8ba873437",
     "change_date": "2026-09-08",
     "created_at": "2026-09-08T18:21:56-05:00",
@@ -84,25 +70,11 @@
     "published": true
   },
   {
-    "source_commit": "ca6ba30b38487948a33aad9e315a9574b5e1f5e5",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T18:17:35-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
     "source_commit": "7482a83c46df82f30dfb50a5b2e43d2dc050195d",
     "change_date": "2026-09-08",
     "created_at": "2026-09-08T18:17:09-05:00",
     "summary": "Tower build cards stay visible after a campaign victory.",
     "published": true
-  },
-  {
-    "source_commit": "250cc2e31ff9adc2ac4416797dee4f6433558379",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T18:14:24-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
   },
   {
     "source_commit": "75907290d74c45d71f232cbd477b2b3ec6d53881",
@@ -133,32 +105,11 @@
     "published": true
   },
   {
-    "source_commit": "6baca380b2998fef184bdd44f4c43091c5a650f1",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T18:02:06-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
     "source_commit": "2490dde470220c7755f683eb1828591612e78b0d",
     "change_date": "2026-09-08",
     "created_at": "2026-09-08T18:01:48-05:00",
     "summary": "Manage towers from a compact card at the bottom of the screen.",
     "published": true
-  },
-  {
-    "source_commit": "a6f231bf23d6d9d0a428af7549ffee544af71555",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T17:59:42-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
-    "source_commit": "d7494fd66640833a3d6da6e2e142426fae3b9928",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T17:59:18-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
   },
   {
     "source_commit": "bdcabbc5c1b4ae978ceed13a2ff440778ad788a0",
@@ -173,13 +124,6 @@
     "created_at": "2026-09-08T17:58:39-05:00",
     "summary": "Wave reward messages disappear sooner.",
     "published": true
-  },
-  {
-    "source_commit": "38fc5a530c5a32ce345f8772ce0b9efebb297bb1",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T17:55:25-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
   },
   {
     "source_commit": "411bb61c40a582114952410b985ca9456c18106c",
@@ -203,25 +147,11 @@
     "published": true
   },
   {
-    "source_commit": "266b30171cd90881e2498facc1bfa837575446a8",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T17:47:52-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
     "source_commit": "c88cd47d78fe049c5ba2db38ea6fa0b9e612dcbf",
     "change_date": "2026-09-08",
     "created_at": "2026-09-08T17:47:21-05:00",
     "summary": "Campaign saves correctly keep towers placed on open ground.",
     "published": true
-  },
-  {
-    "source_commit": "4dbd0e0c7ecd9d4758cb68131fd560eb5a39c1ca",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T17:42:22-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
   },
   {
     "source_commit": "cf1541cd283429ebe02d76a4459f5291e27de8eb",
@@ -252,13 +182,6 @@
     "published": true
   },
   {
-    "source_commit": "f5920e12f19dc866a21427daa8a7a750f74bdb05",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T17:37:25-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
     "source_commit": "0e26fcc95965e8c40ee0e3177811474c221bca48",
     "change_date": "2026-09-08",
     "created_at": "2026-09-08T17:37:12-05:00",
@@ -271,13 +194,6 @@
     "created_at": "2026-09-08T17:35:43-05:00",
     "summary": "The wave button keeps the same Start wave label.",
     "published": true
-  },
-  {
-    "source_commit": "34534e43230523292754819212c33436ccd939e3",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T17:32:21-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
   },
   {
     "source_commit": "ec2b7e37d0090a1a8c1753e167cdfc1604bc62eb",
@@ -329,13 +245,6 @@
     "published": true
   },
   {
-    "source_commit": "6b64077094093f1d222dde4a1b817566b97c2e53",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T17:17:00-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
     "source_commit": "a8082a84eb837a6545ac5a3e9ca5a990c7176040",
     "change_date": "2026-09-08",
     "created_at": "2026-09-08T17:16:41-05:00",
@@ -357,25 +266,11 @@
     "published": true
   },
   {
-    "source_commit": "711424991e4bd0be7dc0c3094e49b47fef93c7a7",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T17:09:40-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
     "source_commit": "2a7576b0a38c56c9ba183845306d4e6680028dca",
     "change_date": "2026-09-08",
     "created_at": "2026-09-08T17:09:27-05:00",
     "summary": "Choose towers from a sliding build menu.",
     "published": true
-  },
-  {
-    "source_commit": "0989ccb4b3fe6847f5786b31e09b026a5d3e453c",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T16:56:25-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
   },
   {
     "source_commit": "12b6f9308fec254d3e39f58ff7eb1ac6ef6a2239",
@@ -399,20 +294,6 @@
     "published": true
   },
   {
-    "source_commit": "2c38c18c56d0be52778b9466deac3f4193024df4",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T16:33:58-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
-    "source_commit": "1fc655655b322d960539880073a3c68f527a3f34",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T16:33:28-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
     "source_commit": "087ef1cb8bd6321ec1d7c3d65062d2e157230050",
     "change_date": "2026-09-08",
     "created_at": "2026-09-08T16:33:22-05:00",
@@ -427,20 +308,6 @@
     "published": true
   },
   {
-    "source_commit": "4ce041bdc20ab2d9898b35181c68d1934be42252",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T16:22:50-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
-    "source_commit": "2d737ba340ea20f21045c04e8a3ff8f62f691e60",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T11:09:55-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
     "source_commit": "38e9bd523529b07572a8569cfacb9306ac0e9ac3",
     "change_date": "2026-09-08",
     "created_at": "2026-09-08T11:07:26-05:00",
@@ -448,38 +315,10 @@
     "published": true
   },
   {
-    "source_commit": "e9f655983041f13d6d4fc26b3a66acb9ff4b951a",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T06:58:01-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
     "source_commit": "1dd6517e57b3b3226533b52d020780eccc85bf0c",
     "change_date": "2026-09-08",
     "created_at": "2026-09-08T06:47:54-05:00",
     "summary": "Back buttons return to the correct screen without skipping menus.",
     "published": true
-  },
-  {
-    "source_commit": "8e527a06369a4943bc507ea29fdd2edaa2a356a9",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T06:26:44-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
-    "source_commit": "6fc53300a4c424fe4e0b40256002dab8f278ef60",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T06:21:35-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
-  },
-  {
-    "source_commit": "3d52d72b75562435245e252b5572e6c1eebc0d2b",
-    "change_date": "2026-09-08",
-    "created_at": "2026-09-08T06:20:46-05:00",
-    "summary": "No gameplay change; this update only records testing, release preparation, or project upkeep.",
-    "published": false
   }
 ]

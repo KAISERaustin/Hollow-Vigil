@@ -65,14 +65,15 @@ def main():
         if date.isoformat() != '2026-09-08':
             continue
         summary = SUMMARIES.get(commit[:7])
+        if summary is None:
+            continue
         rows.append(dict(source_commit=commit, change_date=str(date), created_at=timestamp,
-                         summary=summary or 'No gameplay change; this update only records testing, release preparation, or project upkeep.',
-                         published=summary is not None))
-    assert len(rows) == 69
+                         summary=summary, published=True))
+    assert len(rows) == 46
     assert len({r['source_commit'] for r in rows}) == len(rows)
     assert all(len(r['summary']) <= 300 for r in rows)
     Path('supabase/change_log_20260908.json').write_text(json.dumps(rows, indent=2) + '\n', encoding='utf-8')
-    print(f"Reviewed {len(rows)} commits: {sum(r['published'] for r in rows)} player-facing rows.")
+    print(f"Reviewed 69 commits: {len(rows)} player-facing rows; omitted 23 non-gameplay commits.")
 
 if __name__ == '__main__':
     main()

@@ -103,6 +103,7 @@ try {
             Invoke-Godot -Name 'visual' -EngineArguments @('--script', 'res://tests/rendered/visual_runner.gd')
         }
         if ($MobileTests -or $Check) {
+            Invoke-Godot -Name 'change-log' -EngineArguments @('--script', 'res://tests/rendered/change_log_runner.gd')
             Invoke-Godot -Name 'ground-build-touch' -EngineArguments @('--script', 'res://tests/rendered/ground_build_runner.gd')
             Invoke-Godot -Name 'tower-management' -EngineArguments @('--script', 'res://tests/rendered/tower_management_runner.gd')
             Invoke-Godot -Name 'touch-scroll-scope' -EngineArguments @('--headless', '--script', 'res://tests/touch_scroll_scope_runner.gd')
