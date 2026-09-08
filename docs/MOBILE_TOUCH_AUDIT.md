@@ -48,6 +48,7 @@ Verified results:
 - Parchment corners: 960 checks, 0 failures. Waves: 6,645 checks, 0 failures after correcting a stale test heading from `Level configuration` to `Edit wave 2`.
 - UI style: 16 screens at three sizes, 0 failures. Compact menu layout: all developer types at three sizes, 0 failures. Developer layout: 29,757 checks, 0 failures. Portal UI: 168 checks, 0 failures.
 - Tuning-schema equivalence and invalid-value coverage: 1,427 checks, 0 failures. Developer tiers: 4,851 checks, 0 failures.
+- Unified persistence, all content selections, node extension and final-wave validation: 2,390 checks, 0 failures.
 
 A headless full Campaign build benchmark measured capture / compose / encode / decode at 14,124 / 4,228 / 8,685 / 9,332 ms before the optimization, versus 1,533 / 224 / 508 / 543 ms after it. The encoded document remained 1,952,411 bytes. A native touch Save privately run completed with visible success in 3,067 ms on this PC. These measurements are local observations under concurrent test load, not phone performance guarantees.
 

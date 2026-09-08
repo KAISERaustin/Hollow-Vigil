@@ -683,6 +683,8 @@ func submit_build(publish: bool) -> void:
 	# start another save, and Back during preparation safely cancels this request.
 	await get_tree().process_frame
 	await get_tree().process_frame
+	# reveal_notice also needs two layout frames; let that scroll position draw.
+	await get_tree().process_frame
 	if revision == view_revision and visible:
 		await submit_prepared_build(publish)
 	# Drain queued touch releases while the initiating actions remain disabled.

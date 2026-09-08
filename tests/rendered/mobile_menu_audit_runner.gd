@@ -127,6 +127,7 @@ func save_touch_cost_probe() -> void:
 	print("MOBILE_SAVE_COST: full Campaign Save privately touch and feedback %d ms" % [Time.get_ticks_msec() - started])
 	check(not menu.form_saved_code.is_empty() and menu.message.visible, "Timed Save touch creates a private copy with visible feedback")
 	await check_save_back_cancellation()
+	print("MOBILE_SAVE_PENDING: %d checks, %d failures" % [checks, failures.size()])
 	app.game.suspended = true
 	app.queue_free()
 	await frames()
@@ -322,6 +323,9 @@ func extra_routes() -> void:
 	await frames()
 	await press("SavePrivately")
 	check(menu.message.visible and menu.scroll.get_global_rect().grow(1).encloses(menu.message.get_global_rect()), "Touch Save at bottom reveals the missing-name error")
+	fill("BuildName", "Pending touch regression " + str(root.size.x))
+	await check_save_pending()
+	await check_save_back_cancellation()
 	menu.show_home("infinite")
 	await press("Continue")
 	await press("DeleteGameSlot1")

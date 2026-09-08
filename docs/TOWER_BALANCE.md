@@ -89,3 +89,5 @@ A shared spatial road index deduplicates overlapping routes and refreshes when I
 - `tests/test_runner.gd`: shared economy, old tower balance, movement, combat, tuning, gear, persistence and crowded-world regressions. The established solo balance thresholds remain assigned to the original four towers.
 - `tests/rendered/tower_upgrade_preview_runner.gd`: every tower, tier and branch in both modes at 360, 390 and 540 UI-unit phone widths, including touch, bounds, scrolling and pinned purchase controls.
 - Build selection, developer layout, equipment, framing, audio, Campaign export and unified persistence runners cover the connected menus and services.
+
+September 7 delivery checks passed: 56,466 shared gameplay checks; 4,818 tower integration checks including all 30 authored missions; 21,333 upgrade-preview checks; 1,416 construction-card checks; 1,983 shared-menu checks; and 2,390 unified persistence checks. The rendered checks use the supported 360x640, 390x844 and 540x960 portrait sizes. The structural dependency check passes. These are Windows Godot results with injected mobile input; no physical phone build or installation is claimed.
