@@ -2,8 +2,8 @@ extends RefCounted
 ## Shared original tower action artwork for world controls and management cards.
 const UI = preload("res://scripts/ui/shared/interface.gd")
 
-static func draw(button: Button, action: String, equipment_kind: String = "", upgrade_maxed: bool = false, pending_tower: String = "") -> void:
-	var center := button.size * 0.5
+static func draw(button: Button, action: String, equipment_kind: String = "", upgrade_maxed: bool = false, pending_tower: String = "", icon_center: Vector2 = Vector2.INF) -> void:
+	var center := button.size * 0.5 if icon_center == Vector2.INF else icon_center
 	var color := UI.TEXT
 	if action == "equipment":
 		if equipment_kind != "":

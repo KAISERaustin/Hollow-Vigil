@@ -16,11 +16,10 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 		check(dialog.confirm.is_visible_in_tree(), "Upgrade stays visible")
 		check(dialog.card.size.y <= 240, "Management remains a compact card")
 		check(dialog.body.find_child("TowerDetails", true, false) == null, "Compact card omits stats and description")
-		check(dialog.management_grid.get_child_count() == 6, "Six buttons including close")
-		for index in 6:
-			var button: Button = dialog.management_grid.get_child(index)
-			check(button.size == Vector2(48, 48), "Touch size preserved")
-			check(is_equal_approx(button.position.y, 0.0 if index < 3 else 56.0), "Two rows of buttons")
+		check(not dialog.header_close.is_visible_in_tree(), "No management close button")
+		check(dialog.management_grid.get_child(0).get_child(2).name == "Manage_sell", "Sell occupies top right")
+		check(dialog.confirm.size == Vector2(104, 48), "Upgrade spans two button slots")
+		check(dialog.management_bottom.get_child(0).size == Vector2(48, 48), "Move retains touch size")
 		var squares = dialog.level_display.get_node("LevelSquares")
 		check(squares.vertical and squares.get_child_count() == 4, "Four vertical slots")
 		check(dialog.level_holder.global_position.x < dialog.identity_card.global_position.x and dialog.identity_card.global_position.x < dialog.management_grid.global_position.x, "Slots identity actions order")
@@ -75,6 +74,28 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 				dialog.dismiss()
 			tower.level = 1
 			tower.branch = ""
+
+		for touch in [false, true]:
+			select.call()
+			await settle()
+			dialog.confirm.pressed.emit()
+			await settle()
+			var balance_before: float = host.game.data.balance
+			var point: Vector2 = host.field.get_global_rect().position + Vector2(16, 16)
+			if touch:
+				for pressed in [true, false]:
+					var event := InputEventScreenTouch.new()
+					event.position = point
+					event.pressed = pressed
+					Input.parse_input_event(event)
+					await process_frame
+			else:
+				await tap(point)
+			check(dialog.dismissing, "Battlefield tap starts downward dismissal")
+			await create_timer(0.25).timeout
+			check(not dialog.visible, "Battlefield tap hides management")
+			check(host.field.selected_tower == "", "Dismissal clears selection")
+			check(host.game.data.balance == balance_before, "Dismissal never purchases armed upgrade")
 
 func run() -> void:
 	var app := VigilApp.new()

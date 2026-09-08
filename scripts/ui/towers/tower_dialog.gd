@@ -14,7 +14,10 @@ var scroll: ScrollContainer
 var footer: BoxContainer
 var heading: Label
 var identity_card: PanelContainer
-var management_grid: GridContainer
+var management_grid: VBoxContainer
+var management_bottom: HBoxContainer
+var dismissal: Tween
+var dismissing := false
 var identity_row: BoxContainer
 var identity_text: VBoxContainer
 var level_holder: VBoxContainer
@@ -104,10 +107,8 @@ func _ready() -> void:
 	identity.add_child(header_close)
 	level_holder = VBoxContainer.new()
 	layout.add_child(level_holder)
-	management_grid = GridContainer.new()
-	management_grid.columns = 3
-	management_grid.add_theme_constant_override("h_separation", 8)
-	management_grid.add_theme_constant_override("v_separation", 8)
+	management_grid = VBoxContainer.new()
+	management_grid.add_theme_constant_override("separation", 8)
 	management_grid.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	identity.add_child(management_grid)
 	header_divider = ColorRect.new()
@@ -145,6 +146,8 @@ func _has_point(point: Vector2) -> bool:
 	return Rect2(Vector2.ZERO, size).has_point(point)
 
 func open_action(action: String, branch: String = "") -> void:
+	if dismissal: dismissal.kill()
+	dismissing = false
 	if action == "upgrade":
 		open_action("info")
 		arm_upgrade()
@@ -178,7 +181,7 @@ func open_action(action: String, branch: String = "") -> void:
 	body.add_theme_constant_override("separation", 8 if action == "preview" else 12)
 	portrait.custom_minimum_size = Vector2(40, 48) if action == "preview" else Vector2(48, 56 if action == "info" else 64)
 	header_back.visible = action != "info"
-	header_close.show()
+	header_close.visible = action != "info"
 	header_divider.visible = action == "equipment"
 	footer.show()
 	tower_id = id
@@ -279,9 +282,15 @@ func open_action(action: String, branch: String = "") -> void:
 	cancel.size_flags_horizontal = Control.SIZE_FILL
 	footer.add_child(cancel)
 	if action == "info":
-		for item in [["equipment", "Equipment"], ["target", "Targeting"], ["move", "Move tower"], ["sell", "Sell tower"]]:
+		var top := HBoxContainer.new()
+		top.add_theme_constant_override("separation", 8)
+		management_grid.add_child(top)
+		management_bottom = HBoxContainer.new()
+		management_bottom.add_theme_constant_override("separation", 8)
+		management_grid.add_child(management_bottom)
+		for item in [["equipment", "Equipment"], ["target", "Targeting"], ["sell", "Sell tower"], ["move", "Move tower"]]:
 			var action_button := management_button(item[0], item[1], open_action.bind(item[0]))
-			management_grid.add_child(action_button)
+			(management_bottom if item[0] == "move" else top).add_child(action_button)
 	var text: String = {"info": "Upgrade", "preview": "Upgrade · " + UI.exact_money(cost) + " gold", "upgrade": "Upgrade · " + UI.exact_money(cost) + " gold", "sell": "Sell · +" + UI.exact_money(refund) + " gold", "move": "Choose destination", "target": "Apply targeting", "equipment": "Apply equipment"}[action]
 	confirm = UI.accent_button(text, func(): commit(opened_revision), UI.DANGER if action == "sell" else UI.GOLD, 48)
 	confirm.name = "ConfirmTowerAction"
@@ -291,9 +300,9 @@ func open_action(action: String, branch: String = "") -> void:
 		configure_management_button(confirm, "upgrade", "Upgrade tower")
 	footer.add_child(confirm)
 	if action == "info":
-		confirm.reparent(management_grid)
-		header_close.reparent(management_grid)
-		management_grid.move_child(header_close, 2)
+		confirm.reparent(management_bottom)
+		confirm.custom_minimum_size.x = 104
+		confirm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		footer.hide()
 	if action == "equipment":
 		confirm.hide()
@@ -355,7 +364,17 @@ func configure_management_button(button: Button, action: String, label: String) 
 		button.add_theme_stylebox_override(state, style)
 	button.draw.connect(func():
 		var equipped := preload("res://scripts/gameplay/progression/relics.gd").kind(app.game.data, app.game.data.towers[tower_id]) if app.game.data.towers.has(tower_id) else ""
-		preload("res://scripts/ui/towers/tower_action_icon.gd").draw(button, action, equipped, tower_level >= Balance.MAX_TOWER_LEVEL, tower_id if upgrade_armed else "")
+		var center := button.size * 0.5
+		if action == "upgrade":
+			var caption := "Max" if tower_level >= Balance.MAX_TOWER_LEVEL else UI.exact_money(cost if upgrade_armed else Balance.upgrade_cost(app.game.data.towers[tower_id], app.game.tuning))
+			var font := button.get_theme_font("font")
+			var font_size := UI.type_size(14)
+			var width := font.get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+			var left := (button.size.x - width - 32.0) * 0.5
+			center.x = left + 12
+			button.draw_string(font, Vector2(left + 32, (button.size.y - font.get_height(font_size)) * 0.5 + font.get_ascent(font_size)), caption, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, UI.TEXT)
+			button.accessibility_description = "Upgrade tower: " + caption
+		preload("res://scripts/ui/towers/tower_action_icon.gd").draw(button, action, equipped, tower_level >= Balance.MAX_TOWER_LEVEL, tower_id if upgrade_armed else "", center)
 	)
 
 func show_equipment_details(relic_id: String) -> void:
@@ -427,7 +446,7 @@ func stat(grid: GridContainer, title: String, value: float, next: float, decimal
 	stack.add_child(value_label)
 
 func fit_dialog() -> void:
-	if not visible:
+	if not visible or dismissing:
 		return
 	if mode == "info":
 		var safe := UI.safe_rect(app).grow(-12)
@@ -491,6 +510,7 @@ func refresh() -> void:
 	rebuild_status.text = "Rebuilding · " + Balance.rebuild_time_text(remaining)
 	var disabled: bool = (mode in ["preview", "upgrade", "move"] and (app.game.data.balance < cost or remaining > 0.0)) or (mode in ["preview", "upgrade"] and tower_level >= Balance.MAX_TOWER_LEVEL)
 	if mode == "info":
+		confirm.queue_redraw()
 		disabled = tower_level >= Balance.MAX_TOWER_LEVEL or remaining > 0.0 or (upgrade_armed and app.game.data.balance < cost)
 	if mode in ["equipment", "equipment_detail"]:
 		disabled = relic_choice == relic_original
@@ -570,7 +590,24 @@ func commit(opened_revision: int) -> void:
 		dismiss()
 		app.tower_move.begin(tower_id, tower_level, cost, rebuild_seconds)
 
+func _gui_input(event: InputEvent) -> void:
+	if mode != "info" or dismissing:
+		return
+	var released: bool = (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed) or (event is InputEventScreenTouch and not event.pressed)
+	if released and not card.get_global_rect().has_point(global_position + event.position):
+		accept_event()
+		dismissing = true
+		revision += 1
+		dismissal = create_tween()
+		dismissal.tween_property(card, "position:y", size.y + card.size.y, 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		dismissal.tween_callback(func():
+			dismiss(false)
+			app.panels.close_sheet()
+		)
+
 func dismiss(restore_actions: bool = true) -> void:
+	if dismissal: dismissal.kill()
+	dismissing = false
 	revision += 1
 	hide()
 	app.tower_actions.blocked = not restore_actions

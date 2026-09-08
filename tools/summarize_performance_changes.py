@@ -67,6 +67,15 @@ def main():
     old, new = read('before_campaign_all_waves')['rows'], read('after_campaign_all_waves')['rows']
     campaign_match = all(all(a[k] == b[k] for k in ['counts','health','phase','ticks','waves_completed']) for a,b in zip(old,new,strict=True))
     out += ['', f"Campaign coverage: {len(new)} levels, {sum(r['waves_completed'] for r in new)} waves. Counts, health, phase and tick counts match: **{campaign_match}**. Both runs use the documented survival guard; this is coverage, not a balance win-rate claim."]
+    out += ['', '## Campaign simulation across all 144 waves', '', '| Revision | Steps | Weighted mean step ms | Worst step ms | Outcomes match |', '|---|---:|---:|---:|---|']
+    for name in ['before', 'route', 'configuration', 'after']:
+        if not (RESULTS / (name + '_campaign_all_waves.json')).exists(): continue
+        rows = read(name + '_campaign_all_waves')['rows']
+        same = all(all(a[k] == b[k] for k in ['counts','health','phase','ticks','waves_completed']) for a,b in zip(old,rows,strict=True))
+        steps = sum(r['ticks'] for r in rows)
+        weighted = sum(r['tick_ms']['mean'] * r['ticks'] for r in rows) / steps
+        out.append(f'| {name} | {steps} | {weighted:.4f} | {max(r["tick_ms"]["max"] for r in rows):.3f} | {same} |')
+        matches['campaign_' + name] = same
     if (RESULTS/'android_after.json').exists() and read('android_after').get('complete'):
         out += ['', '## Physical Android, native 1440 x 2304 surface', '', '| Revision | Workload | FPS | Mean | p95 | p99 | Worst | Sim / real seconds |', '|---|---|---:|---:|---:|---:|---:|---:|']
         for name in ['before','after']:

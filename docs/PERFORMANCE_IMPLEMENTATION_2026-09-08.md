@@ -101,8 +101,11 @@ Ordered image commands already allow the engine to batch compatible draws while
 preserving actor/indicator and tower depth ordering. The separate region-group
 experiment uses a favorable non-overlapping body-only layout; grouping by image
 is unsuitable as a direct replacement when different actors overlap and each
-body is interleaved with its own health/status indicators. Its results are
-diagnostic and do not authorize changing that visual order.
+body is interleaved with its own health/status indicators. The overlap comparison
+explicitly demonstrates that grouping an A/B/A sequence by image changes the top
+body. In the non-overlapping 500-identical-image case, the engine already batches
+the ordered commands into one draw call; manual region groups require six. These
+results support keeping ordered shared-image rendering.
 
 ## Correctness and limits
 
@@ -136,6 +139,21 @@ The provisional minimum performance budget is **30 FPS / 33.3 ms per frame**,
 with 60 FPS / 16.7 ms preferred where practical. The weakest supported phone
 models have not been specified, so this work makes no weakest-device acceptance
 claim. Expanded 4x Infinite remains a demanding workload even after these gains.
+
+## Regression validation
+
+The full gameplay runner passed **56,466 checks**, and dedicated optimization
+coverage passed **9,084 checks**, including all six bosses' changed/restored
+routes. Error scans accompany the exit codes. Rendered checks passed for all
+63 actor images, tower depth ordering, 1,443 Campaign HUD checks, 294 ground-build
+touch checks and 236 shared tower-management checks. Branch visuals exercise
+all 16 specializations and 48 portrait purchase confirmations.
+
+Older rendered tests assumed a screen-height battlefield, instant Campaign exit
+and the retired inline branch controls. They were updated to the current build
+tray, explicit exit confirmation and shared management card. Their original
+invalid level-three/branch combination was corrected before rendering branch
+combat. These fixture errors did not require production gameplay changes.
 
 ## Reproduction
 
