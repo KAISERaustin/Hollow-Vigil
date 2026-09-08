@@ -52,9 +52,9 @@ func _process(_delta: float) -> void:
 func fit() -> void:
 	var safe := UI.safe_rect(self)
 	var style := palette.get_theme_stylebox("panel")
-	# Scroll clipping belongs to the screen edge, not an inset card gutter.
-	style.content_margin_left = 0
-	style.content_margin_right = 0
+	# The outside gutters match the spacing between tower cards.
+	style.content_margin_left = UI.CARD_GAP
+	style.content_margin_right = UI.CARD_GAP
 	style.content_margin_top = 0
 	style.content_margin_bottom = size.y - safe.end.y
 	palette.size = Vector2(safe.size.x, 0)
@@ -174,7 +174,9 @@ func _input(event: InputEvent) -> void:
 	if not dragging and palette.get_global_rect().has_point(pos): return
 	# Cancel remains a real button. All other input belongs to placement.
 	if not dragging and banner.get_global_rect().has_point(pos): return
-	if not dragging: return
+	if not dragging:
+		get_viewport().set_input_as_handled()
+		return
 	if id == pointer and (motion or down or up):
 		point = field.world(pos - field.global_position)
 		refresh()

@@ -203,6 +203,8 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 		UI.keyboard_scroll(scroll, "Tower cards. Swipe left or right to browse", true)
 	var choices := HBoxContainer.new()
 	choices.name = "Cards"
+	if fit_row:
+		choices.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	choices.add_theme_constant_override("separation", 8)
 	scroll.add_child(choices)
 	scroll.resized.connect(func():
@@ -222,6 +224,7 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 		var definition := Balance.definition("towers", kind, tuning)
 		var button := create(kind, definition.name, definition.cost, action.bind(kind), 1, "", definition.range)
 		if fit_row:
+			button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			var margin: MarginContainer = button.get_child(0)
 			for connection in margin.minimum_size_changed.get_connections():
 				margin.minimum_size_changed.disconnect(connection.callable)

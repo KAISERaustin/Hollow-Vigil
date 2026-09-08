@@ -48,9 +48,11 @@ func exercise(host: Control, label: String) -> void:
 	for card in strip.get_node("Cards").get_children():
 		check(strip.get_global_rect().encloses(card.get_global_rect()), label + " entire card visible " + card.name)
 	check(strip.get_node("Cards").size.x <= strip.size.x, label + " row has no horizontal overflow")
-	check(is_zero_approx(strip.global_position.x) and is_equal_approx(strip.size.x, host.size.x), label + " cards clip at screen edges")
+	check(is_equal_approx(strip.global_position.x, 8) and is_equal_approx(strip.size.x, host.size.x - 16), label + " matching outer gutters")
 	var first_card: Control = strip.find_child("Build_rapid", true, false)
-	check(is_zero_approx(first_card.global_position.x), label + " no outer side padding")
+	check(is_equal_approx(first_card.global_position.x, 8), label + " left gutter matches card spacing")
+	var last_card: Control = strip.get_node("Cards").get_child(-1)
+	check(is_equal_approx(host.size.x - last_card.get_global_rect().end.x, 8), label + " right gutter matches card spacing")
 	check(is_equal_approx(first_card.global_position.y, build.palette.global_position.y), label + " no outer top padding")
 	var outside := Vector2(host.size.x * 0.5, build.palette.position.y - 20)
 	await touch(outside, true)
@@ -118,7 +120,7 @@ func exercise(host: Control, label: String) -> void:
 		await process_frame
 	await touch(swipe_start - Vector2(144, 0), false)
 	check(build.kind.is_empty() and scroll.scroll_horizontal == 0, label + " horizontal swipe neither moves row nor arms a tower")
-	check(scroll.find_child("Build_rapid", true, false).global_position.x < 8, label + " edge padding travels with scrolling cards")
+	check(is_equal_approx(scroll.find_child("Build_rapid", true, false).global_position.x, 8), label + " swipe preserves edge spacing")
 	build.arm("rapid")
 	await settle()
 	blocked = field.global_position + Vector2(field.size.x * 0.5, 160)
