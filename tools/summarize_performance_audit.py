@@ -52,6 +52,8 @@ def main():
     render = load('baseline_render_verified.json').get('rows', [])
     render += load('baseline_visibility.json').get('rows', [])
     render = list({(r['case'], tuple(r['viewport']), r['camera'], r['variant'], r['repeat']): r for r in render}.values())
+    live_rows = load('baseline_live.json').get('rows', []) + load('baseline_live_2x.json').get('rows', []) + load('baseline_live_4x.json').get('rows', [])
+    for row in live_rows: row.setdefault('playback', 1.0)
     summary = {
         'summary_statistic': 'Median across repeated runs; percentiles are medians of per-run percentiles, not pooled percentiles.',
         'simulation': simulations,
@@ -63,7 +65,7 @@ def main():
         'deep': load('detailed_deep.json').get('rows', []),
         'render_instrumentation': load('instrumented_render.json').get('rows', []),
         'campaign_all_waves': load('baseline_campaign_all_waves.json').get('rows', []),
-        'live': grouped(load('baseline_live.json').get('rows', []), ['mode'], ['frame_ms']),
+        'live': grouped(live_rows, ['mode', 'playback'], ['frame_ms']),
         'fingerprints': {name: load(f'{name}_fingerprint.json') for name in ['baseline','instrumented','detailed']},
     }
     (DATA/'summary.json').write_text(json.dumps(summary, indent=2), encoding='utf-8')
@@ -126,7 +128,6 @@ def write_report(s):
     live_raw = load('baseline_live.json')['rows']
     live_raw += load('baseline_live_2x.json').get('rows', [])
     live_raw += load('baseline_live_4x.json').get('rows', [])
-    playback_groups = grouped(live_raw, ['mode'], ['frame_ms'])
     live_speeds = sorted({r.get('playback', 1.0) for r in live_raw})
     live_table = table(['Normal game loop, 390×844','Median actual desktop FPS','Frame p95 (ms)','Median simulated / wall seconds'],
         [[f'{mode.title()} / {speed:g}×',f"{median(r['actual_fps'] for r in members):.1f}",ms(median(r['frame_ms']['p95'] for r in members)),
@@ -162,7 +163,7 @@ Physical-phone measurements remain outstanding. No Android device was listed by 
 | Measure drawing and GPU work | Both modes at 360×640, 390×844 and 540×960; close, overview, edge and moving cameras; CPU/GPU timers and draw-call counts | Completed |
 | Measure visual alternatives | Same frozen state with actor art omitted, enemy markers, map omitted, and transient cosmetics omitted; fully hidden view supplement | Completed |
 | Measure interface cost | Full application shells, HUD calls and view maintenance; simulation/render/HUD ablations, three repeats | Completed |
-| Test normal playback | Five-second normal-loop samples, three repeats per mode at 390×844, actual elapsed time and audio-event work | Completed |
+| Test normal and faster playback | Five-second normal-loop samples at 1×, 2× and 4×, three repeats per mode at 390×844, elapsed time and audio-event work | Completed |
 | Check the available save | Read-only source inspection; benchmarked a private copy of the local 3-region / 2-tower Infinite save | Completed; large reported save was not present locally |
 | Inspect repeated calculations | Route distances, speed resolution, enemy index and ID maps, tower stats, component synchronization, visibility queries and atomic save writing | Completed |
 | Check camera-independent outcomes | Both modes watching, away and moving; additional rendered full/hidden/HUD-disabled state comparisons | Completed |
