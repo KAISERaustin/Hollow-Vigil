@@ -46,7 +46,7 @@ def build(name):
         for line in declarations.splitlines():
             if line and not line.startswith('extends ') and line not in top:
                 top.append(line)
-        body = body[body.index('\nfunc ') + 1:]
+        body = body[re.search(r'\n(?:static )?func ', body).start() + 1:]
         body = body.replace('func run() -> void:', f'func run_{suite}() -> void:')
         body = re.sub(r'^\tquit\([^\n]*\)', '\treturn', body, flags=re.M)
         # The tablet's physical render surface stays native upright portrait.
@@ -157,6 +157,10 @@ permissions/internet=false
         result = subprocess.run([str(audit.GODOT), '--headless', '--path', str(dest), '--editor', '--import'],
                                 env=env, stdout=output, stderr=subprocess.STDOUT)
         if result.returncode: raise SystemExit(f'Import failed: {log}')
+        result = subprocess.run([str(audit.GODOT), '--headless', '--path', str(dest), '--script',
+                                 'res://tests/performance/mobile_runner.gd', '--check-only'], env=env,
+                                stdout=output, stderr=subprocess.STDOUT)
+        if result.returncode: raise SystemExit(f'Mobile harness parse failed: {log}')
         result = subprocess.run([str(audit.GODOT), '--headless', '--path', str(dest), '--export-release', 'Android Performance', str(apk)],
                                 env=env, stdout=output, stderr=subprocess.STDOUT)
     errors = re.findall(r'^(?:SCRIPT ERROR:|ERROR:(?! Failed to read the root certificate store\.)).*', log.read_text(encoding='utf-8'), re.M)
