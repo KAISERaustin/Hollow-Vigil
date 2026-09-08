@@ -244,3 +244,7 @@ The local [Waves reference](references/ui-waves-reference.png) above is the prim
 ## Context for future UI work
 
 Default to **Parchment cards**, based on the user-approved Waves layout. Use the existing paper texture and palette, one black 3-unit border for every UI enclosure and divider, and 4-unit corners (0 for edge-to-edge chrome). Compose a bold header, values above labels in compact cells, illustrated identity rows when applicable, and clearly labeled actions. Use 12-unit outer card padding, 8-unit inset padding and cell gaps, 12-unit section/action gaps, and 48-unit minimum screen controls. Reflow at phone widths while preserving readable text and scrolling. Reuse the shared interface and portrait components, preserve model ownership, and keep native world artwork unchanged. This is the default for future UI requests unless the user explicitly revises it.
+
+### Currency icon
+
+Currency text uses the shared colored coin glyph in place of every visible whole word gold (any capitalization). Keep source and accessible wording readable; the shared presentation translation replaces it when drawing. Coin fonts match the surrounding Noto Sans/Serif line center, scale with the text, and retain ochre fill and black detail. Measure translated text for responsive fitting.

@@ -188,6 +188,11 @@ static func theme() -> Theme:
 	if currency_translation == null:
 		currency_translation = preload("res://scripts/ui/shared/currency_text.gd").new()
 		TranslationServer.add_translation(currency_translation)
+		# Unregister the scripted presentation hook before the engine tears down
+		# scripts; native shutdown messages must not call a released script.
+		var tree := Engine.get_main_loop() as SceneTree
+		if tree != null:
+			tree.root.tree_exiting.connect(func(): TranslationServer.remove_translation(currency_translation), CONNECT_ONE_SHOT)
 	var t := Theme.new()
 	t.default_font = font()
 	t.default_font_size = type_size(BODY)
