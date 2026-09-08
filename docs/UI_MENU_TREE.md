@@ -118,3 +118,7 @@ The user authorized deleting legacy test backups instead of migrating them. New 
 See `UI_REDESIGN_IMPLEMENTATION.md` for final validation results and delivery status. Native Windows rendering and simulated mobile inputs do not substitute for a physical iOS/Android build and install.
 
 See `MOBILE_TOUCH_AUDIT.md` for the complete menu-family touch coverage, repaired input/navigation behavior, save-response measurements, and current device-testing boundary. `launch.ps1 -MobileTests` also runs the complete menu touch audit, repeated-scroll rebuild regression, illustrated picker, legacy numeric/scroll controls, Campaign/tower touch workflows, and contextual return-earnings/reset transactions.
+
+## Main-menu bug reports
+
+Main menu → Settings → Bug report provides Title, Description and Upload. This entry is absent from Campaign, Infinite and in-game Settings. The draft survives page navigation and failed uploads during the current app session. Upload is explicit, works without sign-in and sends only the report text, version and platform privately to the developer.

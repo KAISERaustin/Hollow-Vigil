@@ -753,6 +753,17 @@ func show_settings(return_to: Callable = Callable()) -> void:
 	page_view("settings", "Settings", settings_return)
 	content.add_child(action("Account", func(): show_account(show_settings), "SettingsAccount"))
 	content.add_child(action("Sound", show_sound, "SettingsSound"))
+	if settings_return == show_main_menu:
+		content.add_child(action("Bug report", show_bug_report, "SettingsBugReport"))
+
+func show_bug_report() -> void:
+	if settings_return != show_main_menu: return
+	page_view("bug_report", "Bug report", show_settings)
+	var report := preload("res://scripts/ui/shared/bug_report_form.gd").new()
+	report.service = app.bug_reports
+	report.upload_button = action("Upload", func(): await app.bug_reports.upload(), "UploadBugReport", true)
+	footer.add_child(report.upload_button)
+	content.add_child(report)
 
 func show_sound() -> void:
 	page_view("sound", "Sound", show_settings)

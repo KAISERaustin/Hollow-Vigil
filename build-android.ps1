@@ -14,11 +14,11 @@ try {
     $env:GODOT_ANDROID_KEYSTORE_RELEASE_PATH = (Resolve-Path 'exports/android-signing/hollow-vigil-upload.jks').Path
     $env:GODOT_ANDROID_KEYSTORE_RELEASE_USER = 'hollow-vigil-upload'
     $env:GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD = Get-Content 'exports/android-signing/upload-password.txt' -Raw
-    & $GodotPath --headless --path $PSScriptRoot --export-release Android 'exports/hollow-vigil-1.1.0.aab' --quit *> artifacts/android-export.log
+    & $GodotPath --headless --path $PSScriptRoot --export-release Android 'exports/hollow-vigil-1.1.1.aab' --quit *> artifacts/android-export.log
     if ($LASTEXITCODE -ne 0 -or (Select-String artifacts/android-export.log -Pattern 'SCRIPT ERROR:|^ERROR:(?! Failed to read the root certificate store)')) {
         throw 'Android export failed. See artifacts/android-export.log.'
     }
-    Get-Item 'exports/hollow-vigil-1.1.0.aab'
+    Get-Item 'exports/hollow-vigil-1.1.1.aab'
 } finally {
     foreach ($name in $names) { [Environment]::SetEnvironmentVariable($name, $saved[$name], 'Process') }
 }

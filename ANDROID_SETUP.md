@@ -1,8 +1,8 @@
 # Android invited testing
 
 The Android preset builds a signed Google Play Android App Bundle at
-`exports/hollow-vigil-1.1.0.aab` with package ID `com.kaiser.hollowvigil`,
-version name `1.1.0`, and version code `10`. It targets ARM64 Android phones.
+`exports/hollow-vigil-1.1.1.aab` with package ID `com.kaiser.hollowvigil`,
+version name `1.1.1`, and version code `11`. It targets ARM64 Android phones.
 
 ## Upload to Google Play
 
@@ -15,6 +15,18 @@ version name `1.1.0`, and version code `10`. It targets ARM64 Android phones.
 Internal testing supports up to 100 testers. Use a closed testing track for a larger invited group. The package ID becomes fixed after the first upload.
 
 Official instructions: https://support.google.com/googleplay/android-developer/answer/9845334?hl=en
+
+## Published build 1.1.1 — September 8, 2026
+
+Google Play confirmed **Available to internal testers** for **1.1.1 (11) — Bug reports** at **11:06 AM CDT**, on the existing Internal testing track. Built and uploaded entirely from this Mac with the existing upload key.
+
+Main menu → Settings → Bug report now provides Title, Description and Upload. Reports go to the private `bug_reports` table in the existing Supabase project. Live REST and native Godot form submissions were verified by database readback; role contracts block player reads, edits and deletion. Drafts survive navigation and connection failures within the app session, and retries cannot duplicate an accepted request.
+
+Validation: 56,466 gameplay checks, 3,140 mobile navigation checks, 14 report-service checks and 207 final report UI checks passed; an earlier run including native live upload passed 222 checks. All rendered sizes were upright portrait (360×640, 390×844, 540×960). The bundle passed signature and bundletool validation. Its manifest declares version code 11, name 1.1.1, portrait orientation, a non-resizable activity, and Internet access. No physical Android device testing was performed. Google Play retains warnings for absent deobfuscation files and native debug symbols.
+
+Bundle: `exports/android/hollow-vigil-1.1.1.aab`. SHA-256: `38674d3de18f23bfab8b7d56e430e440252fa1922310f25dfc4dde54711da7a0`. Build source: `/private/tmp/hollow-vigil-1.1.1-verified`. Logs and screenshots: ignored `artifacts/bug-report-1.1.1/`.
+
+[Release details](https://play.google.com/console/u/0/developers/8488140280625083251/app/4976066018708949593/tracks/4699447376683851190/releases/3/details).
 
 ## Published build 1.1.0 — September 8, 2026
 

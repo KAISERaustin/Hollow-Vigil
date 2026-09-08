@@ -16,6 +16,7 @@ var private_backups: Node
 var campaign_progress := preload("res://scripts/campaign/progress.gd").new()
 var campaign_backup: Node
 var cloud: Node
+var bug_reports: Node
 var hud: VigilHUD
 var game := VigilState.new()
 var field: Battlefield
@@ -63,6 +64,9 @@ func _ready() -> void:
 	cloud.enabled = load_saved_progress
 	cloud.restore_requested.connect(restore_cloud_progress)
 	add_child(cloud)
+	bug_reports = preload("res://scripts/cloud/bug_reports.gd").new()
+	bug_reports.cloud = cloud
+	add_child(bug_reports)
 	if not load_saved_progress:
 		campaign_progress.path = game.save_path + ".campaign-test"
 	campaign_progress.load_progress()

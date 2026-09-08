@@ -96,3 +96,9 @@ The legacy `supabase/tests/cloud_contract.sql`, codec/service runners and `tools
 On September 7 the new live SQL contracts passed and Security Advisor returned no findings. User-authorized cleanup removed two legacy world backups, one legacy Campaign backup and 31 local backup files; active games and the existing public build were preserved. No migration of those test backups was performed.
 
 Native desktop rendering and simulated second-device services do not establish installed-device acceptance. Email delivery, SMTP configuration, a physical second-device restore and a new iOS/Android release were not exercised as part of this redesign. Historical Auth setup and cloud investigations remain in `CLOUD_ACCEPTANCE_2026-09-06.md` and Git history; their quota and dashboard observations are dated.
+
+## Bug reports
+
+`bug_reports.gd` owns the main-menu feedback draft and explicit upload. The separate `public.bug_reports` table stores a client-generated UUID, title (120 characters), description (5,000 characters), app version, platform and server timestamp. Player roles have column-limited INSERT access with RLS; they cannot list, read, update or delete reports. The form requires no account and sends no saves, logs or device identifiers. A retry reuses the UUID until the payload changes, so a lost response cannot create a duplicate. Drafts remain in memory across navigation and failed requests, and clear after confirmed submission.
+
+Validation: `tests/bug_reports_runner.gd`, `tests/rendered/bug_report_runner.gd` (optional `-- --live` submits one labeled report), `supabase/tests/bug_reports_contract.sql` (rolled back), and `tools/bug_reports_live_check.py` (leaves one labeled report for administrator readback).

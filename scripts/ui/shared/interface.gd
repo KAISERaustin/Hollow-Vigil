@@ -608,3 +608,13 @@ static func margin(parent: Node, padding: int = 16) -> VBoxContainer:
 	v.add_theme_constant_override("separation", GAP)
 	m.add_child(v)
 	return v
+
+static func style_entry(entry: Control) -> void:
+	for state in ["normal", "read_only"]:
+		entry.add_theme_stylebox_override(state, box(SURFACE))
+	entry.add_theme_stylebox_override("focus", focus_box())
+	entry.add_theme_color_override("font_color", TEXT)
+	entry.add_theme_color_override("font_readonly_color", TEXT)
+	entry.add_theme_color_override("font_placeholder_color", MUTED)
+	entry.add_theme_color_override("caret_color", TEXT)
+	entry.add_theme_font_size_override("font_size", type_size(14))

@@ -382,14 +382,7 @@ func show_archive(slot: int) -> void:
 	)
 
 func style_entry(entry: Control) -> void:
-	for state in ["normal", "read_only"]:
-		entry.add_theme_stylebox_override(state, UI.box(UI.SURFACE))
-	entry.add_theme_stylebox_override("focus", UI.focus_box())
-	entry.add_theme_color_override("font_color", UI.TEXT)
-	entry.add_theme_color_override("font_readonly_color", UI.TEXT)
-	entry.add_theme_color_override("font_placeholder_color", UI.MUTED)
-	entry.add_theme_color_override("caret_color", UI.TEXT)
-	entry.add_theme_font_size_override("font_size", UI.type_size(14))
+	UI.style_entry(entry)
 
 func add_back(back: Button) -> void:
 	UI.configure_back_button(back, back.text)
