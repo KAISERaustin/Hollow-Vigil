@@ -1,8 +1,8 @@
 # Android invited testing
 
 The Android preset builds a signed Google Play Android App Bundle at
-`exports/hollow-vigil-1.0.9.aab` with package ID `com.kaiser.hollowvigil`,
-version name `1.0.9`, and version code `9`. It targets ARM64 Android phones.
+`exports/hollow-vigil-1.1.0.aab` with package ID `com.kaiser.hollowvigil`,
+version name `1.1.0`, and version code `10`. It targets ARM64 Android phones.
 
 ## Upload to Google Play
 
@@ -15,6 +15,20 @@ version name `1.0.9`, and version code `9`. It targets ARM64 Android phones.
 Internal testing supports up to 100 testers. Use a closed testing track for a larger invited group. The package ID becomes fixed after the first upload.
 
 Official instructions: https://support.google.com/googleplay/android-developer/answer/9845334?hl=en
+
+## Published build 1.1.0 — September 8, 2026
+
+Google Play confirmed **Available to internal testers** for **1.1.0 (10) — Navigation fix** at **6:51 AM CDT** on the existing Internal testing track. No testers are configured, so nobody can install from that track until testers are added. The existing empty tester list was preserved.
+
+Source: `1dd6517`. Back buttons now use their own page's destination, ignore detached/hidden sources, and share a viewport transition guard against queued duplicate navigation. Keyboard and Android Back follow the current visible header, including Campaign configuration pickers.
+
+Validation: gameplay **56,466 checks**, Back navigation **246 checks**, general rendered mobile navigation **3,140 checks**, and Campaign controls **1,610 checks**, all with zero failures. Rendered coverage uses 360×640, 390×844 and 540×960. The app was also opened and clicked through Campaign settings, Sound, map, mission, saved games and main-menu returns on macOS at phone size. The Campaign runner reported two ObjectDB instances at shutdown; no script errors or navigation failures occurred in the final runs. Physical Android installation and rotation were not tested.
+
+The signed AAB passed bundletool validation and JAR signature verification. Its game activity declares portrait and non-resizable behavior, with minimum API 24 and target API 36. Google Play accepted the existing upload key; its three warnings concern the empty tester list, missing deobfuscation mapping and missing native debug symbols.
+
+Bundle: `exports/android/hollow-vigil-1.1.0.aab`. SHA-256: `9ab0c504c21a924f273905363fb48d18f78ace0c9c1fb98dca0443bf0de9d5b0`. Isolated build source: `/private/tmp/hollow-vigil-android-1.1.0-source`. Logs and manifest: ignored `artifacts/navigation-1.1.0/`.
+
+[Release details](https://play.google.com/console/u/0/developers/8488140280625083251/app/4976066018708949593/tracks/4699447376683851190/releases/2/details).
 
 ## Published build 1.0.9 — September 8, 2026
 

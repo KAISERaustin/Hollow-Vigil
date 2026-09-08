@@ -4,6 +4,20 @@
 
 The app is locked to upright portrait through `display/window/handheld/orientation.ios=1` in `project.godot`. Godot generates both `UISupportedInterfaceOrientations` and `UISupportedInterfaceOrientations~ipad` with only `UIInterfaceOrientationPortrait`; its native template retains `UIRequiresFullScreen=true`. Verify those values in the newly exported Xcode project's Info.plist, and confirm turning an iPhone leaves gameplay and menus upright before releasing. Use a fresh export/archive to apply the settings; existing TestFlight installations are unchanged until a new build is installed. Historical build reports below retain their original test coverage.
 
+## TestFlight build 1.1.0 — September 8, 2026
+
+Version **0.1.0 (1.1.0)** contains the navigation fix from source commit `1dd6517e57b3b3226533b52d020780eccc85bf0c`. Xcode Organizer confirmed **App upload complete** through **Distribute App → App Store Connect → Distribute** at 6:54 AM CDT (Apple records the upload at 6:53 AM). After processing, build `1.1.0` was assigned to **Just for Testing** and its group build list visibly confirmed **Testing**, with nine testers and ten builds. Build-specific navigation testing notes were saved in TestFlight.
+
+Back buttons now retain their page's destination, reject detached or hidden sources, and share a viewport transition guard so queued duplicate Back actions cannot skip pages. Keyboard and system Back follow the visible header, including older Campaign build pickers.
+
+Validation: fresh import and structure checks passed; gameplay **56,466 checks**, Back navigation **246 checks**, general mobile navigation **3,140 checks**, and Campaign controls **1,610 checks**, all with zero failures. Rendered checks use 360×640, 390×844 and 540×960 and cover all 30 Campaign levels. The app was opened on macOS at phone size, and Sound → Settings → Campaign menu → map, mission → map, map → saved games, and saved games → main were manually verified. No physical iPhone installation or rotation check was performed. The final Campaign runner reported two ObjectDB instances at shutdown without script errors or failed checks.
+
+The Release archive and deep, strict signature verification passed. Both iPhone/iPad orientation arrays contain only `UIInterfaceOrientationPortrait`, and `UIRequiresFullScreen=true`. All 727 tracked source files were checked against Git or the patch in both release snapshots. The archived PCK matches the final export. Xcode retains the existing generated-header, empty privacy usage description and skipped App Intents extraction warnings.
+
+Archive: `~/Library/Developer/Xcode/Archives/2026-09-08/HollowVigil-1.1.0.xcarchive`. Source: `/private/tmp/hollow-vigil-release-1.1.0-source`. Logs: ignored `artifacts/navigation-1.1.0/`. PCK SHA-256: `6a81c8b08afe093aed192e96eb8a2e6dd397c913918911946f83078a38bf68cb`.
+
+[Build 1.1.0 in App Store Connect](https://appstoreconnect.apple.com/teams/9e8e8295-c906-4d21-8e40-988d2e1a8075/apps/6809097281/testflight/ios/fa05c375-0f96-4183-a5dd-ddc9553f7d5a).
+
 ## TestFlight build 1.0.9 — September 7, 2026
 
 Version **0.1.0 (1.0.9)** contains source from `f0753573a8bce7b5a895651d250c3214b661e873`, with the iOS build number increased from `1.0.8` to `1.0.9`. Xcode Organizer confirmed **Uploaded to Apple** at 7:41 PM CDT through **Distribute App → App Store Connect → Distribute**. Apple processing and Just for Testing assignment are pending verification.
