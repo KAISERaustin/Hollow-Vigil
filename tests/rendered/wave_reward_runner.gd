@@ -40,7 +40,7 @@ func run() -> void:
 		campaign.run.tick(Balance.STEP)
 		var transition: Control = campaign.reward_transition
 		transition.set_process(false)
-		transition.elapsed = 1.2
+		transition.elapsed = 0.7
 		transition._update_visuals()
 		await frame()
 		transition._update_visuals()
@@ -54,7 +54,9 @@ func run() -> void:
 		check(campaign.run.phase == "planning" and campaign.wave_button.disabled, "Next wave waits for presentation")
 		check(Rect2(Vector2.ZERO, Vector2(viewport)).encloses(transition.card.get_global_rect()), "Reward fits phone")
 		await Harness.capture(app, "wave-reward-" + str(viewport.x))
-		transition._process(3.0)
+		transition._process(0.69)
+		check(transition.active, "Reward remains visible just before 1.4 seconds")
+		transition._process(0.02)
 		check(not transition.active and not campaign.wave_button.disabled, "Transition automatically returns to planning")
 		check(campaign.status.text == "Wave 2 / 3" and campaign.wave_button.text == "Start wave" and campaign.wave_button.accessibility_name == "Start wave 2", "Planning advances the count and offers the next wave")
 		campaign.run.tick(0.1)

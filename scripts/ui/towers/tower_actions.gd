@@ -106,7 +106,7 @@ func _process(_delta: float) -> void:
 	refresh()
 
 func refresh() -> void:
-	visible = not blocked and field.state.data.towers.has(field.selected_tower)
+	visible = false # Controls now live in the shared tower information menu.
 	if not visible:
 		cancel_upgrade()
 		if not framing_signature.is_empty():

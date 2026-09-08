@@ -26,15 +26,15 @@ def prepare(name, group):
     def copy(relative):
         target = dest / relative
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(audit.ROOT / relative, target)
+        shutil.copy2(BASE / 'after' / relative, target)
 
     combat_path = 'scripts/gameplay/combat/combat.gd'
     before = (dest / combat_path).read_text(encoding='utf-8')
-    current = (audit.ROOT / combat_path).read_text(encoding='utf-8')
+    current = (BASE / 'after' / combat_path).read_text(encoding='utf-8')
     if group == 'artwork':
         for relative in ['scripts/rendering/battlefield.gd', 'scripts/rendering/terrain/terrain_art.gd', 'scripts/rendering/actors/actor_images.gd']:
             copy(relative)
-        shutil.copytree(audit.ROOT / 'assets/artwork', dest / 'assets/artwork', dirs_exist_ok=True)
+        shutil.copytree(BASE / 'after/assets/artwork', dest / 'assets/artwork', dirs_exist_ok=True)
     elif group == 'route':
         for relative in ['scripts/gameplay/combat/route_cache.gd', 'scripts/gameplay/combat/route_geometry.gd', 'scripts/gameplay/combat/targeting.gd', 'scripts/gameplay/encounters/bosses.gd']:
             copy(relative)

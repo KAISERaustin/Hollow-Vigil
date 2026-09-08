@@ -2,7 +2,7 @@ extends Control
 ## Reusable presentation component. Its owner supplies an already-paid reward.
 ## Animation state belongs to this instance and never changes the economy.
 const UI = preload("res://scripts/ui/shared/interface.gd")
-const DURATION := 2.8
+const DURATION := 1.4
 signal finished
 var elapsed := 0.0
 var active := false

@@ -52,7 +52,7 @@ func _ready() -> void:
 	identity = HBoxContainer.new()
 	identity.add_theme_constant_override("separation", 12)
 	layout.add_child(identity)
-	header_back = UI.back_button("Back to equipment", func(): open_action("equipment"))
+	header_back = UI.back_button("Back to tower", go_back)
 	header_back.hide()
 	identity.add_child(header_back)
 	portrait = Control.new()
@@ -107,10 +107,7 @@ func _ready() -> void:
 
 func open_action(action: String, branch: String = "") -> void:
 	if action == "upgrade":
-		if visible:
-			dismiss()
-		app.tower_actions.request_upgrade()
-		return
+		action = "preview"
 	app.tower_actions.cancel_upgrade()
 	var id: String = app.field.selected_tower
 	if not action in ["info", "preview", "upgrade", "sell", "move", "target", "equipment"] or not app.game.data.towers.has(id):
@@ -121,8 +118,8 @@ func open_action(action: String, branch: String = "") -> void:
 	layout.add_theme_constant_override("separation", 8 if action == "preview" else 16)
 	body.add_theme_constant_override("separation", 8 if action == "preview" else 12)
 	portrait.custom_minimum_size = Vector2(40, 48) if action == "preview" else Vector2(48, 64)
-	header_back.hide()
-	header_close.visible = action in ["equipment", "preview"]
+	header_back.visible = action != "info"
+	header_close.show()
 	header_divider.visible = action == "equipment"
 	footer.show()
 	tower_id = id
@@ -205,45 +202,30 @@ func open_action(action: String, branch: String = "") -> void:
 		var progression := "Maximum level reached · %d / %d" % [tower_level, Balance.MAX_TOWER_LEVEL] if tower_level >= Balance.MAX_TOWER_LEVEL else "Level %d → %d / %d" % [tower_level, tower_level + 1, Balance.MAX_TOWER_LEVEL]
 		body.add_child(UI.label(progression, 14))
 	if action == "info":
-		body.add_child(UI.paragraph(Balance.tower_description(stats), 14))
-		var relic_kind := preload("res://scripts/gameplay/progression/relics.gd").kind(app.game.data, tower)
-		body.add_child(UI.heading("Equipment", 18))
-		body.add_child(UI.paragraph("Empty slot · Defeat bosses to collect relics." if relic_kind == "" else preload("res://scripts/gameplay/progression/relics.gd").DEFINITIONS[relic_kind].name + "\n" + preload("res://scripts/gameplay/progression/relics.gd").description(relic_kind, app.game.tuning), 14))
-		if tower_level == 3:
-			body.add_child(UI.heading("Level 4 specializations", 18))
-			var instructions := "Open Upgrade, choose a specialization to compare its stats and cost, then press Upgrade to purchase that permanent specialization." if app.tower_actions.upgrade_in_dialog else "At level 3, the upgrade button locks and two choices appear beside it. Tap a side once, then tap its checkmark to purchase that permanent specialization."
-			body.add_child(UI.paragraph(instructions, 14))
-			var branch_options: Array = Balance.BRANCHES[tower.kind].keys()
-			for side in range(branch_options.size()):
-				var option := Balance.stats(tower.kind, 4, app.game.tuning, branch_options[side])
-				body.add_child(UI.heading(("Left · " if side == 0 else "Right · ") + option.name, 16))
-				body.add_child(UI.paragraph(Balance.tower_description(option), 14))
-		var next := Balance.equipment_stats(Balance.stats(tower.kind, mini(tower_level + 1, Balance.MAX_TOWER_LEVEL), app.game.tuning), tower, app.game.tuning, app.game.data.relics)
-		var grid := GridContainer.new()
-		grid.name = "TowerStats"
-		grid.columns = 2
-		grid.resized.connect(func(): grid.columns = 1 if card.size.x < 400 * UI.text_scale else 2)
-		grid.add_theme_constant_override("h_separation", 16)
-		grid.add_theme_constant_override("v_separation", 12)
-		body.add_child(grid)
-		stat(grid, "Damage / hit", stats.damage, next.damage)
-		stat(grid, "Fire rate / sec", 1.0 / stats.period, 1.0 / next.period, 2)
-		stat(grid, "Base DPS / target", stats.damage / stats.period, next.damage / next.period)
-		stat(grid, "Range", stats.range, next.range, 0)
-		if stats.has("targets"):
-			stat(grid, "Targets per pulse", stats.targets, next.targets, 0)
-		stat(grid, "Attack interval", stats.period, next.period, 2, "s")
-		if stats.splash > 0:
-			stat(grid, "Blast radius", stats.splash, next.splash, 0)
+		var actions := GridContainer.new()
+		actions.name = "TowerManagementActions"
+		actions.columns = 2
+		actions.add_theme_constant_override("h_separation", 8)
+		actions.add_theme_constant_override("v_separation", 8)
+		body.add_child(actions)
+		for entry in [["equipment", "Equipment"], ["target", "Targeting"], ["move", "Move tower"], ["sell", "Sell tower"]]:
+			var button := UI.button(entry[1], open_action.bind(entry[0]), 48)
+			button.name = "Manage_" + entry[0]
+			button.add_theme_font_size_override("font_size", UI.type_size(14))
+			actions.add_child(button)
+		body.add_child(UI.label("Targeting · " + Balance.TARGET_MODES[target_choice], 14))
+		body.add_child(TowerChoice.details(tower_kind, app.game.tuning, tower_level, tower_branch, {}, true, stats))
+	if action == "sell":
+		body.add_child(UI.paragraph("Remove this tower and refund " + UI.exact_money(refund) + " gold. Its stored " + UI.exact_money(tower.earnings) + " gold will also be collected. Equipment returns to your inventory.", 16))
 	var opened_revision := revision
 	scroll.scroll_vertical = 0
-	cancel = UI.button("Cancel", dismiss, 48)
+	cancel = UI.button("Cancel", go_back, 48)
 	cancel.name = "CancelTowerAction"
 	cancel.custom_minimum_size.x = 92
 	cancel.size_flags_horizontal = Control.SIZE_FILL
 	footer.add_child(cancel)
-	var text: String = {"info": "Close", "preview": "Upgrade · " + UI.exact_money(cost) + " gold", "upgrade": "Upgrade · " + UI.exact_money(cost) + " gold", "sell": "Sell · +" + UI.exact_money(refund) + " gold", "move": "Choose destination", "target": "Apply targeting", "equipment": "Apply equipment"}[action]
-	confirm = UI.accent_button(text, func(): commit(opened_revision), UI.DANGER if action == "sell" else (UI.SURFACE if action == "info" else UI.GOLD), 48)
+	var text: String = {"info": "Upgrade", "preview": "Upgrade · " + UI.exact_money(cost) + " gold", "upgrade": "Upgrade · " + UI.exact_money(cost) + " gold", "sell": "Sell · +" + UI.exact_money(refund) + " gold", "move": "Choose destination", "target": "Apply targeting", "equipment": "Apply equipment"}[action]
+	confirm = UI.accent_button(text, func(): commit(opened_revision), UI.DANGER if action == "sell" else UI.GOLD, 48)
 	confirm.name = "ConfirmTowerAction"
 	confirm.add_theme_font_size_override("font_size", UI.type_size(16))
 	footer.add_child(confirm)
@@ -400,7 +382,7 @@ func commit(opened_revision: int) -> void:
 	if not visible or opened_revision != revision:
 		return
 	if mode == "info":
-		dismiss()
+		open_action("preview")
 	elif mode == "preview":
 		refresh()
 		if not visible or revision != opened_revision or confirm.disabled:
@@ -463,5 +445,7 @@ func go_back() -> void:
 	# System Back follows the same nested equipment route as its visible controls.
 	if mode in ["equipment_detail", "equipment_remove"]:
 		open_action("equipment")
+	elif mode != "info":
+		open_action("info")
 	else:
 		dismiss()

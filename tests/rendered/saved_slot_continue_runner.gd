@@ -63,120 +63,42 @@ func run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 func check_campaign_continue() -> void:
-	menu.show_main_menu()
-	await press("OpenCampaign")
-	check(menu.screen == "home" and menu.game_type == "campaign", "Infinite saves do not change empty Campaign destination")
 	for mode in ["survival", "creative"]:
-		var slot: int = 0 if mode == "survival" else 1
-		var value: Dictionary = menu.campaign_slots.create(slot, mode, "Saved " + mode)
-		var saved_run := preload("res://scripts/campaign/run.gd").new(2, {}, mode)
-		check(saved_run.build(6, "rapid"), "Prepare saved Campaign tower")
-		saved_run.wave = slot
-		check(saved_run.start_wave(), "Prepare saved Campaign wave")
-		value.completed = 2
-		value.checkpoint = saved_run.checkpoint()
-		check(menu.campaign_slots.save_slot(slot, value), "Save Campaign with level checkpoint")
-		var checkpoint: Dictionary = JSON.parse_string(JSON.stringify(value.checkpoint))
 		for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
-			var stored_checkpoint: Dictionary = menu.campaign_slots.summary(slot).checkpoint
 			root.size = dimensions
 			root.content_scale_size = dimensions
-			menu.show_main_menu()
-			await press("OpenCampaign")
-			check(menu.screen == "slots" and menu.game_type == "campaign", "Campaign opens saved games directly")
-			await press("ContinueGameSlot" + str(slot + 1))
+			menu.campaign_slots.base_path = "user://fresh-level-" + str(Time.get_ticks_usec())
+			var value: Dictionary = menu.campaign_slots.create(0, mode, "Fresh entry")
+			var old_run := preload("res://scripts/campaign/run.gd").new(2, {}, mode)
+			check(old_run.build(6, "rapid"), "Prepare old tower layout")
+			old_run.wave = 1
+			check(old_run.start_wave(), "Prepare old wave")
+			value.completed = 2
+			value.checkpoint = old_run.checkpoint()
+			check(menu.campaign_slots.save_slot(0, value), "Legacy checkpoint remains readable")
+			app.open_campaign_slot(0, value)
 			app.campaign.set_process(false)
-			check(app.campaign.page == "map" and app.campaign.run == null and not menu.visible, "Campaign Continue opens map without running saved level")
-			check(app.campaign.active_campaign_slot == slot and app.campaign.campaign_save.name == value.name, "Continue opens selected Campaign slot")
-			check(app.campaign.progress.data.completed_levels == 2, "Continue preserves unlocked level progress")
-			check(menu.campaign_slots.summary(slot).checkpoint == stored_checkpoint, "Opening map preserves stored level checkpoint")
-			var saved_games := button("CampaignSavedGames")
-			check(saved_games != null and saved_games.text == "←", "Campaign map uses a back arrow")
-			await press("CampaignSavedGames")
-			check(menu.screen == "slots" and menu.game_type == "campaign" and not is_instance_valid(app.campaign), "Map returns directly to Campaign saved games")
-			await press("BackButton")
-			check(menu.screen == "main", "Campaign saved games Back returns directly to main")
-			await press("OpenCampaign")
-			check(menu.campaign_slots.summary(slot).checkpoint == stored_checkpoint, "Returning to saved games preserves checkpoint")
-			await press("ContinueGameSlot" + str(slot + 1))
-			app.campaign.set_process(false)
-			await press("CampaignLevel1")
-			check(app.campaign.page == "briefing", "Another unlocked level opens its briefing")
-			await press("CampaignBack")
-			check(menu.campaign_slots.summary(slot).checkpoint == stored_checkpoint, "Previewing another level preserves saved checkpoint")
 			await press("CampaignLevel3")
-			check(app.campaign.page == "briefing", "Saved level opens information")
+			check(button("BeginCampaignMission").text == "Begin level", "Entry never offers resume")
 			await press("BeginCampaignMission")
-			check(app.campaign.page == "battle" and app.campaign.run.mission.index == 2, "Confirm resumes saved level")
-			check(JSON.parse_string(JSON.stringify(app.campaign.run.checkpoint())) == checkpoint, "Resumed level preserves saved wave and build")
-			check(app.campaign.paused, "Loaded Campaign wave waits for player to start")
-			check(app.campaign.wave_button.disabled and app.campaign.floating_hud.header.get_child_count() == 3, "Loaded wave retains the three-card HUD while paused")
-			for step in 20: app.campaign._process(0.1)
-			check(app.campaign.run.wave_time == 0.0 and app.campaign.run.game.combat.enemies.is_empty(), "Waiting after Continue never advances or spawns the wave")
-			await press("CampaignWaves")
-			app.campaign.dialog.hide()
+			var campaign = app.campaign
+			check(campaign.run.wave == 0 and campaign.run.phase == "planning" and campaign.run.game.data.towers.is_empty(), "Legacy attempt starts fresh")
+			check(campaign.run.health == campaign.run.mission.flame and campaign.run.game.data.balance == campaign.run.mission.gold, "Starting resources restored")
+			check(menu.campaign_slots.summary(0).checkpoint.is_empty(), "Legacy checkpoint cleared on entry")
+			check(campaign.run.build(6, "rapid"), "Build in new attempt")
+			check(menu.campaign_slots.summary(0).checkpoint.is_empty(), "Placed towers are not saved")
 			await press("GameMenuButton")
-			check(app.campaign.page == "briefing" and not menu.visible, "Battle Back returns to information")
-			await press("CampaignBack")
-			check(menu.campaign_slots.summary(slot).checkpoint == checkpoint, "Returning to map preserves the saved wave and build")
-			await press("CampaignLevel3")
-			check(app.campaign.page == "briefing", "Reopening retains information step")
+			check(campaign.exit_confirmation and campaign.page == "battle", "Back requires exit confirmation")
+			await press("CancelCampaignExit")
+			check(not campaign.run.game.data.towers.is_empty(), "Cancel retains current attempt")
+			check(campaign.run.start_wave(), "Start wave before exit")
+			await press("GameMenuButton")
+			await press("ConfirmCampaignExit")
+			check(campaign.page == "briefing", "Exit returns to level information")
 			await press("BeginCampaignMission")
-			app.campaign._process(0.1)
-			check(app.campaign.paused and app.campaign.run.wave_time == 0.0, "Returning from map keeps loaded wave stopped")
-			var toolbar: Control = app.campaign.game_toolbar
-			check(toolbar.menu_button.text == "←" and is_equal_approx(toolbar.menu_button.global_position.x, toolbar.global_position.x), "Back arrow sits at the far left")
-			check(toolbar.pause_button.global_position.x > toolbar.menu_button.get_global_rect().end.x, "Playback sits to the right of Back")
-			check(toolbar.speed_button.get_global_rect().end.x < app.campaign.find_child("CampaignWaves", true, false).global_position.x and is_equal_approx(app.campaign.wave_button.get_global_rect().end.x, toolbar.get_global_rect().end.x), "Waves and the wave action follow playback in the same bar")
-			app.campaign.wave_button.pressed.emit()
-			check(app.campaign.paused, "Bottom button cannot release a loaded paused wave")
-			await press("PauseButton")
-			check(not app.campaign.paused, "Toolbar play explicitly releases loaded wave")
-			app.campaign._process(0.1)
-			check(app.campaign.run.wave_time > 0.0 and app.campaign.run.next_spawn > 0, "Wave advances and spawns only after toolbar play")
-			check(JSON.parse_string(JSON.stringify(app.campaign.run.checkpoint())) == checkpoint, "Starting loaded wave preserves the original checkpoint")
-			var wave_time: float = app.campaign.run.wave_time
-			await press("PauseButton")
-			app.campaign._process(0.1)
-			check(app.campaign.run.wave_time == wave_time, "Playback pause still freezes a running wave")
-			app.campaign.wave_button.pressed.emit()
-			check(app.campaign.paused and app.campaign.wave_button.disabled, "Bottom button remains inactive after pausing a resumed save")
-			await press("PauseButton")
-			check(not app.campaign.paused and app.campaign.run.wave_time == wave_time, "Toolbar play resumes a paused wave without restarting it")
+			check(campaign.run.wave == 0 and campaign.run.game.data.towers.is_empty(), "Reentry clears towers and waves")
+			check(campaign.progress.data.completed_levels == 2, "Completed levels remain saved")
 			await press("GameMenuButton")
-			check(app.campaign.page == "briefing" and not menu.visible, "Running level Back returns to information")
+			await press("ConfirmCampaignExit")
 			await press("CampaignBack")
 			await press("CampaignSavedGames")
-			check(menu.screen == "slots" and not is_instance_valid(app.campaign), "Map exits back to saved games")
-		await press("ContinueGameSlot" + str(slot + 1))
-		app.campaign.set_process(false)
-		await press("CampaignLevel3")
-		await press("BeginCampaignMission")
-		var campaign = app.campaign
-		var old_run = campaign.run
-		# Imported builds must not put towers or their remaining balance back on restart.
-		var setup := {"overrides": {}, "loadout": {}}
-		for key in ["towers", "next_tower", "relics", "balance"]:
-			setup.loadout[key] = old_run.game.data[key]
-		campaign.campaign_save.levels["2"] = setup
-		old_run.game.data.balance = 20.0
-		old_run.health = 0
-		old_run.phase = "defeat"
-		campaign.show_result()
-		for action in campaign.dialog_body.find_children("*", "Button", true, false):
-			if action.text == "Restart level":
-				action.pressed.emit()
-				break
-		await frames()
-		check(campaign.run != old_run and campaign.run.phase == "planning" and campaign.run.wave == 0, "Restart creates a fresh level in " + mode)
-		check(campaign.run.game.data.towers.is_empty(), "Restart removes every tower including imported loadout in " + mode)
-		check(campaign.run.game.data.balance == campaign.run.mission.gold, "Restart restores starting gold in " + mode)
-		check(campaign.run.health == campaign.run.mission.flame and campaign.run.game.combat.enemies.is_empty(), "Restart restores core and clears combat in " + mode)
-		check(campaign.progress.data.completed_levels == 2 and not campaign.dialog.visible, "Restart preserves completed levels and closes result")
-		var fresh_checkpoint: Dictionary = JSON.parse_string(JSON.stringify(campaign.run.checkpoint()))
-		check(menu.campaign_slots.summary(slot).checkpoint == fresh_checkpoint, "Restart immediately replaces saved checkpoint")
-		campaign.start_mission(2)
-		check(JSON.parse_string(JSON.stringify(campaign.run.checkpoint())) == fresh_checkpoint, "Resume after restart keeps the fresh state")
-		await press("GameMenuButton")
-		await press("CampaignBack")
-		await press("CampaignSavedGames")

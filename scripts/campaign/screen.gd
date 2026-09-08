@@ -124,6 +124,7 @@ func select_ground_tower(region: String, pad: int) -> void:
 	board.selected_tower = selection_tower
 	tower_actions.blocked = false
 	tower_actions.refresh()
+	tower_dialog.open_action("info")
 
 func clear_tower_ui() -> void:
 	for control in [ground_build, tower_dialog, tower_move, tower_actions]:
@@ -493,22 +494,13 @@ func show_briefing(index: int) -> void:
 	var details := UI.button("Preview waves", show_waves, 52)
 	details.name = "PreviewCampaignWaves"
 	actions.add_child(details)
-	var start := UI.gold_button("Resume level" if active_campaign_slot >= 0 and campaign_save.checkpoint.get("level", -1) == index else "Begin level", start_mission.bind(index), 52)
+	var start := UI.gold_button("Begin level", start_mission.bind(index), 52)
 	start.name = "BeginCampaignMission"
 	actions.add_child(start)
 
 func start_mission(index: int) -> void:
 	if not progress.unlocked(index):
 		return
-	# Resume only after confirmation on the level information screen.
-	if active_campaign_slot >= 0 and campaign_save.checkpoint.get("level", -1) == index:
-		run = Run.from_checkpoint(campaign_save.checkpoint)
-		if run != null:
-			active_overrides = run.rules.duplicate(true)
-			connect_run()
-			show_battle(true)
-			if run.phase == "victory": show_result()
-			return
 	run = configured_run(index)
 	connect_run()
 	show_battle()
@@ -701,7 +693,7 @@ func save_progress() -> void:
 		save_notice.text = progress.last_error
 		save_notice.show()
 
-func persist_slot(discard_attempt: bool = false) -> bool:
+func persist_slot() -> bool:
 	if active_campaign_slot < 0: return true
 	var previous_checkpoint: Dictionary = campaign_save.checkpoint
 	if run != null and page == "battle":
@@ -709,7 +701,8 @@ func persist_slot(discard_attempt: bool = false) -> bool:
 		campaign_save.completed = int(progress.data.completed_levels)
 		campaign_save.beaten_levels = progress.data.get("beaten_levels", []).duplicate()
 		campaign_save.current_level = progress.current_level() if progress.current_level() < Catalog.COUNT else -1
-		campaign_save.checkpoint = {} if discard_attempt else run.checkpoint()
+	# Preserve completed levels and configuration, never an unfinished attempt.
+	campaign_save.checkpoint = {}
 	var ok: bool = app.slot_menu.campaign_slots.save_slot(active_campaign_slot, campaign_save)
 	if not ok: campaign_save.checkpoint = previous_checkpoint
 	if not ok and is_instance_valid(save_notice):
@@ -775,6 +768,7 @@ func show_socket(socket: int) -> void:
 		dialog.hide()
 		tower_actions.blocked = false
 		tower_actions.refresh()
+		tower_dialog.open_action("info")
 		return
 	ground_build.open()
 
@@ -904,7 +898,7 @@ func confirm_level_exit() -> void:
 func exit_level() -> void:
 	if not exit_confirmation or page != "battle" or run == null: return
 	# Clear the durable checkpoint before leaving so future saves cannot revive it.
-	if not persist_slot(true):
+	if not persist_slot():
 		dialog_body.add_child(UI.paragraph("Couldn't reset this attempt. Please try Exit again.", 14))
 		return
 	var index := index_for_run()
@@ -1044,9 +1038,7 @@ func save_campaign_tuning(changes: Dictionary, level_changes: Dictionary = {}) -
 	if active_campaign_slot >= 0:
 		var next := campaign_save.duplicate(true)
 		next.levels = levels
-		if run != null and page == "battle": next.checkpoint = run.checkpoint()
-		if not next.checkpoint.is_empty():
-			next.checkpoint.rules = levels[str(int(next.checkpoint.level))].overrides.duplicate(true)
+		next.checkpoint = {}
 		if not app.slot_menu.campaign_slots.save_slot(active_campaign_slot, next): return false
 		campaign_save = next
 		app.queue_private_backup()

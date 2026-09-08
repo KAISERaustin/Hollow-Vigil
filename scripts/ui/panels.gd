@@ -222,7 +222,6 @@ func select_pad(region: String, pad: int) -> void:
 		# Selection collects once; rebuilding the upgrade panel never collects.
 		app.collect_one(selection_tower, true)
 		show_tower()
-		app.tower_dialog.open_action("preview")
 	else:
 		show_build()
 
@@ -270,6 +269,7 @@ func show_tower() -> void:
 	app.tower_actions.reset_framing()
 	app.tower_actions.refresh()
 	app.update_hud()
+	app.tower_dialog.open_action("info")
 
 func show_expansion(id: String) -> void:
 	if not VigilWorld.frontier(game.data.regions, int(game.data.seed)).has(id):
