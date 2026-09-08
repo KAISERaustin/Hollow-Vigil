@@ -62,6 +62,19 @@ func exercise(host: Control, label: String) -> void:
 	check(build.palette.get_global_rect().grow(1).encloses(build.palette.find_child("TowerCards", true, false).get_global_rect()), label + " cards fit")
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://artifacts/ground-palette-%s-%d.png" % [label, root.size.x])
+	# Capture composite bow artwork at a nonzero position and both raster/native zooms.
+	var previous_zoom := field.zoom
+	for preview_zoom in [1.0, 3.0]:
+		field.zoom = preview_zoom
+		build.arm("ironspike")
+		await settle()
+		await touch(build.banner.find_child("BuildPortrait", true, false).get_global_rect().get_center(), true)
+		await drag(field.global_position + field.size * 0.5)
+		check(build.dragging and build.kind == "ironspike", label + " Ironspike drag renders composite artwork")
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://artifacts/ground-ironspike-%s-%d-%d.png" % [label, root.size.x, preview_zoom])
+		build.cancel()
+	field.zoom = previous_zoom
 	var button: Button = build.palette.find_child("Build_rapid", true, false)
 	var start := button.get_global_rect().get_center()
 	var before: int = host.game.data.towers.size()

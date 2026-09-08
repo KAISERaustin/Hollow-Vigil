@@ -230,9 +230,14 @@ func _draw() -> void:
 	# Use the same level-one stats as the tower being built, including save tuning.
 	var radius: float = Balance.stats(kind, 1, field.state.tuning).range
 	draw_arc(Vector2.ZERO, radius, 0, TAU, 72, VigilTerrainArt.GOLD, 1.5 / field.zoom, true)
-	VigilTerrainArt.sentinel(self, kind, Vector2.ZERO, 1.0, 1, "")
-	draw_arc(Vector2.ZERO, 20, 0, TAU, 48, tint, 3.0 / field.zoom, true)
+	# Composite artwork sets its own transform for mounted parts such as the bow.
+	draw_set_transform(Vector2.ZERO)
+	VigilTerrainArt.sentinel(self, kind, at, field.zoom, 1, "")
+	draw_set_transform(at, 0, Vector2.ONE * field.zoom)
+	# Align the placement indicator's bottom with the tower plinth at y = 12.
+	var placement_center := Vector2(0, -8)
+	draw_arc(placement_center, 20, 0, TAU, 48, tint, 3.0 / field.zoom, true)
 	if not valid:
-		draw_line(Vector2(-9, -9), Vector2(9, 9), tint, 3.0 / field.zoom, true)
-		draw_line(Vector2(9, -9), Vector2(-9, 9), tint, 3.0 / field.zoom, true)
+		draw_line(placement_center + Vector2(-9, -9), placement_center + Vector2(9, 9), tint, 3.0 / field.zoom, true)
+		draw_line(placement_center + Vector2(9, -9), placement_center + Vector2(-9, 9), tint, 3.0 / field.zoom, true)
 	draw_set_transform(Vector2.ZERO)
