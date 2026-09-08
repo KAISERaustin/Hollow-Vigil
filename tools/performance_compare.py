@@ -55,11 +55,21 @@ def run(name, suites):
     for suite in suites:
         tag = ''
         os.environ.pop('PERF_RENDER_CAMERA', None)
+        os.environ.pop('PERF_OVERVIEW_ONLY', None)
+        for key in ['PERF_DURATION', 'PERF_REPEATS', 'PERF_MODE']:
+            os.environ.pop(key, None)
         if suite == 'behavior_rendered':
             os.environ['PERF_RENDER_CAMERA'] = '1'
             suite, tag = 'behavior', '_rendered'
         if suite == 'costs_memory':
             suite, tag = 'costs', '_memory'
+        if suite == 'render_overview':
+            os.environ['PERF_OVERVIEW_ONLY'] = '1'
+            suite, tag = 'render', '_overview'
+        if suite == 'sustained':
+            os.environ.update(PERF_DURATION='60', PERF_REPEATS='1', PERF_MODE='infinite', PERF_PLAYBACK='4')
+            audit.run(name, 'live', '_sustained_4x', instrumented=False)
+            continue
         if suite == 'campaign_all_waves':
             suite, tag = 'campaign', '_all_waves'
         if suite.startswith('live_'):

@@ -58,6 +58,7 @@ var battle_bar_margin: MarginContainer
 var floating_hud: Control
 var reward_transition: Control
 var result_pending := false
+var exit_confirmation := false
 
 class SessionProgress extends Progress:
 	func flush() -> bool:
@@ -254,6 +255,7 @@ func fit() -> void:
 			dialog_card.position = safe.position + (safe.size - dialog_card.size) * 0.5
 
 func clear_page(next: String) -> void:
+	exit_confirmation = false
 	if is_instance_valid(reward_transition): reward_transition.cancel()
 	result_pending = false
 	clear_selection()
@@ -574,7 +576,7 @@ func show_battle(start_paused: bool = false) -> void:
 	, func():
 		speed = game_toolbar.next_speed(speed)
 		update_time_controls()
-	, go_back, "", "Back to level information")
+	, go_back, "", "Exit level")
 	pause_button = game_toolbar.pause_button
 	speed_button = game_toolbar.speed_button
 	update_time_controls()
@@ -699,15 +701,17 @@ func save_progress() -> void:
 		save_notice.text = progress.last_error
 		save_notice.show()
 
-func persist_slot() -> bool:
+func persist_slot(discard_attempt: bool = false) -> bool:
 	if active_campaign_slot < 0: return true
+	var previous_checkpoint: Dictionary = campaign_save.checkpoint
 	if run != null and page == "battle":
 		if not progress.save_run(run): return false
 		campaign_save.completed = int(progress.data.completed_levels)
 		campaign_save.beaten_levels = progress.data.get("beaten_levels", []).duplicate()
 		campaign_save.current_level = progress.current_level() if progress.current_level() < Catalog.COUNT else -1
-		campaign_save.checkpoint = run.checkpoint()
+		campaign_save.checkpoint = {} if discard_attempt else run.checkpoint()
 	var ok: bool = app.slot_menu.campaign_slots.save_slot(active_campaign_slot, campaign_save)
+	if not ok: campaign_save.checkpoint = previous_checkpoint
 	if not ok and is_instance_valid(save_notice):
 		save_notice.text = app.slot_menu.campaign_slots.error
 		save_notice.show()
@@ -874,10 +878,41 @@ func _build_dialog() -> void:
 	dialog.hide()
 
 func close_dialog() -> void:
+	var restore_exit_focus := exit_confirmation
+	exit_confirmation = false
 	dialog.hide()
 	clear_selection()
+	if restore_exit_focus and is_instance_valid(game_toolbar):
+		game_toolbar.menu_button.grab_focus()
+
+func confirm_level_exit() -> void:
+	open_dialog("Exit level?")
+	exit_confirmation = true
+	dialog.color = Color(0, 0, 0, 0.65)
+	dialog_body.add_child(UI.paragraph("Are you sure you want to exit? Your progress in this level will not be saved. All placed towers and wave progress will be lost. The level will start over next time.", 16))
+	dialog_body.add_child(UI.paragraph("Previously completed levels remain saved.", 14))
+	var cancel := UI.button("Cancel", close_dialog)
+	cancel.name = "CancelCampaignExit"
+	dialog_actions.add_child(cancel)
+	var leave := UI.accent_button("Exit", exit_level, UI.DANGER)
+	leave.name = "ConfirmCampaignExit"
+	dialog_actions.add_child(leave)
+	dialog_actions.show()
+	fit.call_deferred()
+	cancel.grab_focus()
+
+func exit_level() -> void:
+	if not exit_confirmation or page != "battle" or run == null: return
+	# Clear the durable checkpoint before leaving so future saves cannot revive it.
+	if not persist_slot(true):
+		dialog_body.add_child(UI.paragraph("Couldn't reset this attempt. Please try Exit again.", 14))
+		return
+	var index := index_for_run()
+	close_dialog()
+	show_briefing(index)
 
 func open_dialog(title: String, for_socket: bool = false) -> void:
+	exit_confirmation = false
 	var previous_build_back := dialog_header.get_node_or_null("BackToTowers")
 	if previous_build_back != null:
 		dialog_header.remove_child(previous_build_back)
@@ -915,8 +950,8 @@ func add_dialog_back(label: String, action: Callable) -> void:
 	fit.call_deferred()
 
 func _process(delta: float) -> void:
-	# Only the player's playback control pauses an active battle; overlays do not.
-	if page != "battle" or run == null or paused:
+	# Exit decisions freeze the attempt; ordinary information overlays keep playing.
+	if page != "battle" or run == null or paused or exit_confirmation:
 		return
 	accumulator += minf(delta,0.1) * speed
 	while accumulator >= Balance.STEP:
@@ -950,9 +985,7 @@ func go_back() -> void:
 		if back != null and back.visible: back.pressed.emit()
 		else: close_dialog()
 	elif page == "battle":
-		var index := index_for_run()
-		save_progress()
-		show_briefing(index)
+		confirm_level_exit()
 	elif active_campaign_slot >= 0 and page == "map":
 		app.slot_menu.open_saved_games()
 	elif page == "map":

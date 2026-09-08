@@ -196,5 +196,9 @@
     "tests\\performance\\simulation_runner.gd": "81ad6e4e21856f12d0ff65f28b73ef03d187e89adbc632bef49ec1994d5e7569",
     "tests\\performance\\ui_runner.gd": "47acb8d168240633d8956ad4916177718b5a24c49c7adb5a9111d5a5b4aae2b7",
     "tests\\performance\\visibility_runner.gd": "6b7ca3e9250e4d4a6ca42c71846fd88db28f1db328f6acd5ccc735f865fb17ae"
+  },
+  "asset_sha256": {
+    "project.godot": "f55020331885dbb897d82261d421ed27426802fee6a4845a22e1ab3eda40e297",
+    "export_presets.cfg": "001d7cf33c98aa5e7bb58520d25b6e0f9a1dfacd17b098b7906f0c78a7875d97"
   }
 }

@@ -44,7 +44,7 @@ def prepare(name, group):
         before += '\nvar route_cache := preload("res://scripts/gameplay/combat/route_cache.gd").new()\n\n' + function(current, 'set_enemy_route')
         (dest / combat_path).write_text(before, encoding='utf-8')
     elif group == 'configuration':
-        for relative in ['scripts/gameplay/combat/configuration_cache.gd', 'scripts/gameplay/combat/enemy_index.gd', 'scripts/gameplay/combat/projectiles.gd', 'scripts/gameplay/combat/tower_components.gd', 'scripts/gameplay/progression/relics.gd', 'scripts/content/nodes/boss_node.gd', 'scripts/content/nodes/bosses/cindermaw.gd']:
+        for relative in ['scripts/gameplay/game_state.gd', 'scripts/gameplay/combat/configuration_cache.gd', 'scripts/gameplay/combat/enemy_index.gd', 'scripts/gameplay/combat/projectiles.gd', 'scripts/gameplay/combat/tower_components.gd', 'scripts/gameplay/progression/relics.gd', 'scripts/content/nodes/boss_node.gd', 'scripts/content/nodes/bosses/cindermaw.gd']:
             copy(relative)
         current = current.replace(function(current, 'set_enemy_route'), '')
         current = current.replace('var route_cache := preload("res://scripts/gameplay/combat/route_cache.gd").new()\n', '')

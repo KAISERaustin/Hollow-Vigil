@@ -8,11 +8,13 @@ func _initialize() -> void:
 func run() -> void:
 	var rows := []
 	var playback := float(OS.get_environment("PERF_PLAYBACK")) if OS.has_environment("PERF_PLAYBACK") else 1.0
+	var duration := float(OS.get_environment("PERF_DURATION")) if OS.has_environment("PERF_DURATION") else 5.0
+	var repeats := int(OS.get_environment("PERF_REPEATS")) if OS.has_environment("PERF_REPEATS") else 3
 	root.size = Vector2i(390,844)
 	root.content_scale_size = root.size
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
-	for mode in ["infinite", "campaign"]:
-		for repeat in range(3):
+	for mode in ([OS.get_environment("PERF_MODE")] if OS.has_environment("PERF_MODE") else ["infinite", "campaign"]):
+		for repeat in range(repeats):
 			var app := VigilApp.new()
 			app.load_saved_progress = false
 			if mode == "infinite":
@@ -50,18 +52,26 @@ func run() -> void:
 			var samples := []
 			var start := Time.get_ticks_usec()
 			var last := start
-			while Time.get_ticks_usec() - start < 5000000:
+			var timeline := []
+			var memory_before := Performance.get_monitor(Performance.MEMORY_STATIC)
+			var next_memory_sample := start + 1000000
+			while Time.get_ticks_usec() - start < duration * 1000000:
 				await process_frame
 				var now := Time.get_ticks_usec()
 				samples.append((now - last) / 1000.0)
 				last = now
+				if duration > 5.0 and now >= next_memory_sample:
+					timeline.append({"wall_seconds": (now-start)/1000000.0, "simulation_seconds": game.combat.simulation_time-sim_start,
+						"memory_bytes": Performance.get_monitor(Performance.MEMORY_STATIC), "enemies": game.combat.enemies.size()})
+					next_memory_sample = now + 1000000
 			app.set_process(false)
 			if mode == "campaign": app.campaign.set_process(false)
 			var elapsed := (Time.get_ticks_usec() - start) / 1000000.0
 			var row := {"mode": mode, "repeat": repeat, "playback": playback, "elapsed_seconds": elapsed, "actual_fps": samples.size()/elapsed,
 				"frame_ms": F.stats(samples), "simulation_seconds": game.combat.simulation_time-sim_start,
 				"before": before, "after": F.counts(game), "audio_events": app.audio.accepted_events,
-				"phase": app.campaign.run.phase if mode == "campaign" else "infinite"}
+				"phase": app.campaign.run.phase if mode == "campaign" else "infinite", "memory_before": memory_before,
+				"memory_after": Performance.get_monitor(Performance.MEMORY_STATIC), "timeline": timeline}
 			rows.append(row)
 			print("LIVE ", row)
 			app.free()

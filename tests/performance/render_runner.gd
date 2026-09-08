@@ -108,13 +108,15 @@ func run() -> void:
 		field.set_process(false)
 		var viewports := [Vector2i(390,844)] if OS.get_environment("PERF_INSTRUMENTED") == "1" else [Vector2i(360,640), Vector2i(390,844), Vector2i(540,960)]
 		var repeats := 1 if OS.get_environment("PERF_INSTRUMENTED") == "1" else 3
+		var overview_only := OS.get_environment("PERF_OVERVIEW_ONLY") == "1"
+		if overview_only: viewports = [Vector2i(390,844)]
 		for viewport in viewports:
 			root.size = viewport
 			root.content_scale_size = viewport
 			await settle()
-			for camera_mode in ["close", "overview", "offscreen", "pan"]:
+			for camera_mode in (["overview"] if overview_only else ["close", "overview", "offscreen", "pan"]):
 				for repeat in range(repeats): await sample(field, mode, camera_mode, "full", repeat)
-			if viewport.x == 390:
+			if viewport.x == 390 and not overview_only:
 				for variant in ["no_actors", "markers", "no_map", "no_cosmetics"]:
 					for repeat in range(repeats): await sample(field, mode, "overview", variant, repeat)
 		field.free()

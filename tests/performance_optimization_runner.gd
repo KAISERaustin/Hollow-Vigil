@@ -8,6 +8,7 @@ func run() -> void:
 	routes()
 	configuration()
 	pooling()
+	boss_routes()
 	print("PERFORMANCE OPTIMIZATION: %d checks, %d failures" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
 
@@ -98,3 +99,30 @@ func pooling() -> void:
 	game.combat.route_cache.prune()
 	check(game.combat.route_cache.routes.is_empty(), "Unused route geometries are released after recycling")
 	check(game.combat.configuration.towers.is_empty(), "Empty combat retains no tower statistics")
+
+func boss_routes() -> void:
+	var fixtures = preload("res://tests/unit/boss_checks.gd")
+	for kind in Balance.BOSSES:
+		var game: VigilState = fixtures.fixture(kind)
+		var boss: Dictionary = game.combat.enemies[0]
+		check(boss.has("_route_geometry"), "Boss creation assigns owned route geometry")
+		for leg in range(3):
+			boss.pos = boss.path[-1]
+			game.combat.Bosses.next_leg(game.combat, boss)
+			check(is_same(boss.path, boss._route_geometry.points), "Each boss patrol leg replaces its route geometry")
+			check(is_equal_approx(game.combat.distance_remaining(boss), Targeting.exact_distance_remaining(boss)), "Boss patrol distance remains exact for target ranking")
+		game.data.last_accounted = 1000.0
+		game.save_path = "user://performance-boss-route-" + kind + ".save"
+		clean_test_save(game.save_path)
+		check(not JSON.stringify(game.snapshot(1000)).contains("_route_geometry"), "Optimization geometry is absent from saves")
+		check(game.save(1000), "Boss route fixture saves through the normal owner")
+		var restored := VigilState.new(879)
+		restored.save_path = game.save_path
+		check(restored.load_save(1000), "Boss route fixture restores through the normal owner")
+		var found := false
+		for enemy in restored.combat.enemies:
+			if not enemy.get("boss", false) or enemy.kind != kind: continue
+			found = true
+			check(enemy.has("_route_geometry") and is_same(enemy.path, enemy._route_geometry.points), "Restored bosses rebuild transient route geometry")
+			check(is_equal_approx(restored.combat.distance_remaining(enemy), Targeting.exact_distance_remaining(enemy)), "Restored routes preserve targeting distance")
+		check(found, "Saved boss is still active after restoration")
