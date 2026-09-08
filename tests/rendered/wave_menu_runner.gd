@@ -109,7 +109,7 @@ func run() -> void:
 	await settle()
 	screen.find_child("EditCampaignWave2", true, false).pressed.emit()
 	await settle()
-	check(screen.dialog_title.text == "Level configuration" and screen.dialog_body.get_child(0).initial_scope == 1, "Edit wave 2 selects the second wave")
+	check(screen.dialog_title.text == "Edit wave 2" and screen.dialog_body.get_child(0).initial_scope == 1, "Edit wave 2 selects the second wave")
 	screen.start_mission(0)
 	screen.run.wave = 1
 	screen.run.phase = "wave"

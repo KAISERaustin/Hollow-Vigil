@@ -38,10 +38,21 @@ func run() -> void:
 		for category in Build.STAT_GROUPS:
 			await press(category.capitalize() + "Category")
 			var controls: Control = menu.rules_editor
-			var definitions: Dictionary = Balance.TOWERS if category == "towers" else Balance.definitions(category)
+			var definitions: Dictionary = Balance.TOWERS if category == "towers" else Balance.portal_definitions() if category == "rifts" else Balance.definitions(category)
 			check(controls.selector.item_count == definitions.size(), "Every %s type is available" % category)
 			for item in controls.selector.item_count:
 				check(controls.selector.get_item_metadata(item) == definitions.keys()[item], "Selector contains the registered %s identity" % category)
+			if category == "rifts":
+				check(controls.authored_spawns, "Campaign editor supplies authored portal context")
+				for item in controls.selector.item_count:
+					controls.selector.select(item)
+					controls.selector.item_selected.emit(item)
+					check(not controls.description.text.contains("Attune"), "Campaign portals do not describe Infinite attunements")
+					check(controls.inputs.has("strength") == Balance.RIFTS.has(controls.selected_kind), "Neutral portals stay viewable without inventing editable effects")
+				# The first biome is neutral; exercise a real effect edit on Forge.
+				var forge: int = definitions.keys().find("ashen_forge")
+				controls.selector.select(forge)
+				controls.selector.item_selected.emit(forge)
 			var kind: String = controls.editing_kind()
 			var stat: String = "damage" if category == "towers" else "hp" if category in ["enemies", "bosses"] else controls.inputs.keys()[0]
 			var number: SpinBox = controls.inputs[stat]
