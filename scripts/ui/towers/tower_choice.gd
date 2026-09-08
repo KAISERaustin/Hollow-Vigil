@@ -54,6 +54,7 @@ static func branch_card(kind: String, title: String, price: float, branch: Strin
 		margin.add_theme_constant_override("margin_" + side, 8)
 	button.add_child(margin)
 	var column := HBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	column.add_theme_constant_override("separation", 4)
 	margin.add_child(column)
 	var art := Portrait.preview("towers", kind, 4, branch)
@@ -67,11 +68,15 @@ static func branch_card(kind: String, title: String, price: float, branch: Strin
 	column.add_child(label)
 	var marker := Control.new()
 	marker.custom_minimum_size.x = 24
+	marker.visible = selected or state == "Locked"
 	column.add_child(marker)
 	button.draw.connect(func():
 		if selected or state == "Locked":
-			preload("res://scripts/ui/towers/tower_action_icon.gd").draw(button, "upgrade", "", state == "Locked", "selected" if selected else "", Vector2(button.size.x - 20, button.size.y * 0.5))
+			var center := margin.position + column.position + marker.position + marker.size * 0.5
+			preload("res://scripts/ui/towers/tower_action_icon.gd").draw(button, "upgrade", "", state == "Locked", "selected" if selected else "", center)
 	)
+	marker.item_rect_changed.connect(button.queue_redraw)
+	column.item_rect_changed.connect(button.queue_redraw)
 	margin.minimum_size_changed.connect(func(): button.custom_minimum_size = Vector2(48, 48).max(margin.get_combined_minimum_size()))
 	_ignore_mouse(margin)
 	return button
