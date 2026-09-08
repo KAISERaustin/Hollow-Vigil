@@ -24,11 +24,13 @@ var zoom := 1.0
 var unrestricted_camera := false
 var show_health_numbers := false
 var upgrade_range_preview: Dictionary = {}
+var selected_tower_range_visible := true
 var selected_tower := "":
 	set(value):
 		var changed := selected_tower != value
 		selected_tower = value
 		if changed:
+			selected_tower_range_visible = true
 			camera_framing.cancel()
 			tower_selection_changed.emit()
 		queue_redraw()
@@ -382,6 +384,8 @@ func selected_range() -> float:
 	if state == null:
 		return 0.0
 	if state.data.towers.has(selected_tower):
+		if not selected_tower_range_visible:
+			return 0.0
 		var tower: Dictionary = state.data.towers[selected_tower]
 		if upgrade_range_preview.get("id", "") == selected_tower and upgrade_range_preview.get("level", -1) == tower.level:
 			tower = tower.duplicate(true)

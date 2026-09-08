@@ -142,6 +142,8 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 			else:
 				await tap(point)
 			check(dialog.dismissing, "Battlefield tap starts downward dismissal")
+			check(host.field.selected_range() == 0.0, "Range disappears before dismissal animation finishes")
+			check(host.field.upgrade_range_preview.is_empty(), "Dismissal immediately clears upgrade preview")
 			await create_timer(0.25).timeout
 			check(not dialog.visible, "Battlefield tap hides management")
 			check(host.field.selected_tower == "", "Dismissal clears selection")

@@ -150,6 +150,7 @@ func _has_point(point: Vector2) -> bool:
 	return Rect2(Vector2.ZERO, size).has_point(point)
 
 func open_action(action: String, branch: String = "") -> void:
+	app.field.selected_tower_range_visible = true
 	if dismissal: dismissal.kill()
 	dismissing = false
 	if action == "upgrade":
@@ -666,6 +667,9 @@ func _gui_input(event: InputEvent) -> void:
 	if released and not card.get_global_rect().has_point(global_position + event.position):
 		accept_event()
 		dismissing = true
+		app.field.selected_tower_range_visible = false
+		app.field.upgrade_range_preview.clear()
+		app.field.queue_redraw()
 		revision += 1
 		dismissal = create_tween()
 		dismissal.tween_property(card, "position:y", size.y + card.size.y, 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
@@ -675,6 +679,7 @@ func _gui_input(event: InputEvent) -> void:
 		)
 
 func dismiss(restore_actions: bool = true) -> void:
+	app.field.selected_tower_range_visible = false
 	app.field.upgrade_range_preview.clear()
 	app.field.queue_redraw()
 	if dismissal: dismissal.kill()

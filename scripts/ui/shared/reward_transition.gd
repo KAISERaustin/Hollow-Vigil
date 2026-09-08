@@ -6,6 +6,8 @@ const DURATION := 1.4
 signal finished
 var elapsed := 0.0
 var active := false
+var dismissed_pointers: Dictionary = {}
+var dismissed_frame := -1
 var card: PanelContainer
 var title: Label
 var reward_label: Label
@@ -52,12 +54,34 @@ func cancel() -> void:
 	hide()
 	set_process(false)
 
+func dismiss() -> void:
+	if not active: return
+	cancel()
+	finished.emit()
+
+func _input(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton or event is InputEventScreenTouch): return
+	# Godot can synthesize a mouse event from the same touch after it is dismissed.
+	if event.device == InputEvent.DEVICE_ID_EMULATION and (not dismissed_pointers.is_empty() or dismissed_frame == Engine.get_process_frames()):
+		get_viewport().set_input_as_handled()
+		return
+	var pointer := "touch_%d" % event.index if event is InputEventScreenTouch else "mouse_%d" % event.button_index
+	if not event.pressed and dismissed_pointers.has(pointer):
+		dismissed_pointers.erase(pointer)
+		get_viewport().set_input_as_handled()
+		return
+	if not active or not is_visible_in_tree(): return
+	if event.pressed:
+		dismissed_frame = Engine.get_process_frames()
+		dismissed_pointers[pointer] = true
+		get_viewport().set_input_as_handled()
+		dismiss()
+
 func _process(delta: float) -> void:
 	if not is_visible_in_tree(): return
 	elapsed += delta
 	if elapsed >= DURATION:
-		cancel()
-		finished.emit()
+		dismiss()
 		return
 	_update_visuals()
 
