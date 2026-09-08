@@ -14,8 +14,10 @@ var scroll: ScrollContainer
 var footer: BoxContainer
 var heading: Label
 var identity_card: PanelContainer
-var identity_row: HBoxContainer
+var management_grid: GridContainer
+var identity_row: BoxContainer
 var identity_text: VBoxContainer
+var level_holder: VBoxContainer
 var level_display: Control
 var identity: HBoxContainer
 var equipment_summary: VBoxContainer
@@ -68,13 +70,13 @@ func _ready() -> void:
 			preload("res://scripts/rendering/actors/relic_art.gd").draw(portrait, app.game.data.relics[relic_choice], portrait.size * 0.5, minf(portrait.size.x, portrait.size.y) / 34.0)
 		else:
 			var shown_level := mini(tower_level + 1, Balance.MAX_TOWER_LEVEL) if mode == "preview" else tower_level
-			VigilTerrainArt.sentinel_portrait(portrait, tower_kind, Vector2(20, 41) if mode == "preview" else Vector2(24, 51), 0.65 if mode == "preview" else 0.85, Rect2(Vector2.ZERO, portrait.size).grow(-2), shown_level, tower_branch)
+			VigilTerrainArt.sentinel_portrait(portrait, tower_kind, Vector2(20, 41) if mode == "preview" else Vector2(24, 45 if mode == "info" else 51), 0.65 if mode == "preview" else 0.85, Rect2(Vector2.ZERO, portrait.size).grow(-2), shown_level, tower_branch)
 	)
 	identity_card = PanelContainer.new()
 	identity_card.name = "TowerIdentityCard"
 	identity_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	identity.add_child(identity_card)
-	identity_row = HBoxContainer.new()
+	identity_row = BoxContainer.new()
 	identity_row.add_theme_constant_override("separation", 8)
 	identity_card.add_child(identity_row)
 	portrait.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -98,6 +100,14 @@ func _ready() -> void:
 	header_close.size_flags_horizontal = Control.SIZE_SHRINK_END
 	header_close.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	identity.add_child(header_close)
+	level_holder = VBoxContainer.new()
+	layout.add_child(level_holder)
+	management_grid = GridContainer.new()
+	management_grid.columns = 3
+	management_grid.add_theme_constant_override("h_separation", 8)
+	management_grid.add_theme_constant_override("v_separation", 8)
+	management_grid.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	identity.add_child(management_grid)
 	header_divider = ColorRect.new()
 	header_divider.color = UI.BORDER
 	header_divider.custom_minimum_size.y = UI.OUTLINE
@@ -141,7 +151,19 @@ func open_action(action: String, branch: String = "") -> void:
 		return
 	opener = get_viewport().gui_get_focus_owner()
 	revision += 1
+	header_close.reparent(identity)
+	for child in management_grid.get_children():
+		management_grid.remove_child(child)
+		child.queue_free()
 	mode = action
+	management_grid.visible = action == "info"
+	identity_row.vertical = action == "info"
+	identity_card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER if action == "info" else HORIZONTAL_ALIGNMENT_LEFT
+	portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	level_holder.reparent(identity if action == "info" else layout)
+	if action == "info": identity.move_child(level_holder, 0)
+	level_holder.visible = action == "info"
 	identity_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 8) if action == "info" else UI.surface(UI.PANEL, 0, 0))
 	footer.alignment = BoxContainer.ALIGNMENT_CENTER if action == "info" else BoxContainer.ALIGNMENT_BEGIN
 	footer.add_theme_constant_override("separation", 8 if action == "info" else 12)
@@ -166,13 +188,13 @@ func open_action(action: String, branch: String = "") -> void:
 	portrait.queue_redraw()
 	tower_level = int(tower.level)
 	if is_instance_valid(level_display):
-		identity_text.remove_child(level_display)
+		level_holder.remove_child(level_display)
 		level_display.queue_free()
 		level_display = null
 	heading.add_theme_font_size_override("font_size", UI.type_size(18 if action == "info" else 24))
 	if action == "info":
-		level_display = preload("res://scripts/ui/shared/tower_level_indicator.gd").create(tower_level, false)
-		identity_text.add_child(level_display)
+		level_display = preload("res://scripts/ui/shared/tower_level_indicator.gd").create(tower_level, false, true)
+		level_holder.add_child(level_display)
 	cost = Balance.upgrade_cost(tower, app.game.tuning) if action == "upgrade" else 0.0
 	if action == "preview":
 		if tower_level == 3:
@@ -253,7 +275,7 @@ func open_action(action: String, branch: String = "") -> void:
 	if action == "info":
 		for item in [["equipment", "Equipment"], ["target", "Targeting"], ["move", "Move tower"], ["sell", "Sell tower"]]:
 			var action_button := management_button(item[0], item[1], open_action.bind(item[0]))
-			footer.add_child(action_button)
+			management_grid.add_child(action_button)
 	var text: String = {"info": "Upgrade", "preview": "Upgrade · " + UI.exact_money(cost) + " gold", "upgrade": "Upgrade · " + UI.exact_money(cost) + " gold", "sell": "Sell · +" + UI.exact_money(refund) + " gold", "move": "Choose destination", "target": "Apply targeting", "equipment": "Apply equipment"}[action]
 	confirm = UI.accent_button(text, func(): commit(opened_revision), UI.DANGER if action == "sell" else UI.GOLD, 48)
 	confirm.name = "ConfirmTowerAction"
@@ -262,6 +284,11 @@ func open_action(action: String, branch: String = "") -> void:
 		confirm.text = ""
 		configure_management_button(confirm, "upgrade", "Upgrade tower")
 	footer.add_child(confirm)
+	if action == "info":
+		confirm.reparent(management_grid)
+		header_close.reparent(management_grid)
+		management_grid.move_child(header_close, 2)
+		footer.hide()
 	if action == "equipment":
 		confirm.hide()
 		cancel.text = "Close"
@@ -370,6 +397,9 @@ func fit_dialog() -> void:
 	if mode == "info":
 		var safe := UI.safe_rect(app).grow(-12)
 		card.size.x = minf(520.0, safe.size.x)
+		heading.set_meta("fitted_heading_max", 18)
+		heading.set_meta("fitted_heading_min", 14)
+		UI.fit_heading(heading)
 		footer.vertical = false
 		scroll.custom_minimum_size.y = 0
 		card.size.y = 0

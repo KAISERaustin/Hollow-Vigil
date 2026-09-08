@@ -1,10 +1,7 @@
 {
-  "source": "before",
-  "package": "com.kaiser.hollowvigil.performance",
-  "apk_sha256": "21c3823aaf967ff78791b1daddeba17d373af557c2cf96484dc1cd09b5bd7fd3",
-  "release_template_sha256": "6d1bb2cfa126a1b1c87e064a35b3cbd181bef0ec784dec1efd1d64dffa8be6cb",
-  "harness_sha256": "a9de51d7ec8c1106a43f521e899aab7c69619e0f0d0c4a3e9ae12d83a2f978f4",
-  "production_sha256": {
+  "base": "before",
+  "optimization": "interface",
+  "sha256": {
     "scripts\\app\\main.gd": "cae5fc06eb9c9294d40e085dc3e4550f9fd937468cf3cadca0324db806ef433d",
     "scripts\\audio\\audio_director.gd": "9f6f031d4a05f2df829dec123ad24e5b49a547cf8b90ffc563f9be0232868333",
     "scripts\\audio\\audio_settings.gd": "0dba989996ef88ea1a45cb613d39940acf26f7eb0cbe203a45a9c64067b5e7d5",
@@ -16,7 +13,7 @@
     "scripts\\campaign\\level_marker.gd": "7d18b1fb1b8234cecb41cd059eef84eb1414608bb6b2ad8435a12187314d5265",
     "scripts\\campaign\\progress.gd": "0fdb02bb178b6aa66e746b0fc8e242e3070653114fb2914840a05dec8bca50ee",
     "scripts\\campaign\\run.gd": "538747810e8542745b815bb849f358ff17b5643aafd38c18336f9868f774f267",
-    "scripts\\campaign\\screen.gd": "1437b760073c015bbff4fb517ea1a1eb0a7dddb9788c3429a0bef5c2b53bd4cc",
+    "scripts\\campaign\\screen.gd": "b432e83502255497461b6c585a1b5e66b24802e37e4fa1d07c8f897811d703d2",
     "scripts\\campaign\\session.gd": "a63ceec5a21e0472ab6884d38d90f8a717477ba5b2ec1a0c3dc3c11b2a87ca55",
     "scripts\\campaign\\world_map.gd": "46e94677721e4b8e9a3da9bd5f0a82832893b2b3b71a513440599ce3864325dc",
     "scripts\\cloud\\bug_reports.gd": "2d8b876bb943645713ce9d6bf6ef7c09a98cef94694e7fdf72eb83ad77feebe6",
@@ -42,7 +39,7 @@
     "scripts\\rendering\\build_preview.gd": "e617d9304caf55ab315180d9a32fd415fcf023a05338a492f35d0056c738c3da",
     "scripts\\rendering\\camera_framing.gd": "3591c35af87ce21499cbd21111de9608e0d898a1c13abc3d10bac5ac5b5f7e75",
     "scripts\\ui\\configuration_picker.gd": "14d5dcf2a323debf337f3412cc0b6552d7e2e17a0c17a2df2c5fb15d71e32f2a",
-    "scripts\\ui\\hud.gd": "8f26cb47b63741133b764b2716e546f5fcc3dbe3e0ec33188a6d463a4342ef4c",
+    "scripts\\ui\\hud.gd": "ce57a5018d7736c83317cc003117ab25dd0b5b3d810ccfd700ad67209363c7b7",
     "scripts\\ui\\panels.gd": "de93831e1e46bca31adcb1141cb081b75a9722c66639a5136d6c1cb859fcfd21",
     "scripts\\ui\\public_builds_panel.gd": "221bdd3db0cde33a33e5e70f37ff5ebf39ffd3d546222c91eb2c4c01215ef61a",
     "scripts\\ui\\save_slots_panel.gd": "7479c2e5ad31655c0fa05024b1831d94ff536f4e28ad5d3d758dcec3cc9edda2",
@@ -163,7 +160,7 @@
     "scripts\\ui\\shared\\content_portrait.gd": "2eb284f9be960add53ab2f594c5f7c0dec8c43bcf0032148d899bc0e5f045539",
     "scripts\\ui\\shared\\currency_text.gd": "aee8df1c093fa46bacb497e8833ef70af96fe8eeafc9e09ed746aeb2358392bb",
     "scripts\\ui\\shared\\drawer_caret.gd": "234ce2569abbe5300946aed6b7e8b70da4d280fd45d39c0c620e80d6fec453e5",
-    "scripts\\ui\\shared\\floating_game_hud.gd": "3fed1d79ce4e087ecb1888781a7bbf0a9cb79cb7bcac95c5055c3d639330e885",
+    "scripts\\ui\\shared\\floating_game_hud.gd": "5ec82d79fb692e9752f12e2b6a85b3b1fb3dfa72f1b98e28b70020f8bd9f2fe2",
     "scripts\\ui\\shared\\game_toolbar.gd": "49069ec5a42e05a83082fcfe38d63ec889c5db2842136c6ce02897a4369add4d",
     "scripts\\ui\\shared\\illustrated_picker.gd": "46f11208987f50285f1948d16a8115b0315afa287462643349016d45a956cab8",
     "scripts\\ui\\shared\\interface.gd": "857c4c68244c402ebc814115fbbf7d24f1d292423a3dc4737c8cf35b7db703e1",
@@ -175,6 +172,7 @@
     "scripts\\ui\\shared\\stat_comparison.gd": "db70e408d983839230a49b376fa6e52179e09b33c27b0c01a2ba196fdbb117e0",
     "scripts\\ui\\shared\\touch_scroll.gd": "0825841d50516efbea5fededa20f4cc2a8d5c679b5dde3ebc1059358c9b7da35",
     "scripts\\ui\\shared\\tower_level_indicator.gd": "060ce56617c32d537390f2a334b72e7c9bc2d656db36c3e7e12aefd8fd66e8e9",
+    "scripts\\ui\\shared\\value_refresh.gd": "66df5d38e6ac01b21acfd9bba31347ab551ef7aa8b2c1250cf072ba09dc4e381",
     "scripts\\ui\\shared\\wave_balance.gd": "d600ec1b3e860841a8738a0e0fd6ece3f68d354b4fa096314682aa0355d7ad40",
     "scripts\\ui\\shared\\wave_summary.gd": "2fb86f8216bd9104c309a1802399837c77d68c550124c0251f0f27305d044bcc",
     "scripts\\ui\\shared\\welcome_art.gd": "05d43503e3e37aef78cf07a17e4ce9bc52993d0ecde07f7b42819898659ecb84",
@@ -185,7 +183,5 @@
     "scripts\\ui\\towers\\tower_choice.gd": "582e4e25e24bfff979df9deac05b7d626367311f803264fb54116043236ac886",
     "scripts\\ui\\towers\\tower_dialog.gd": "713a0415eccd39e2010b1d6fec1d84b5339ccc2330bdc622cba3164c50749435",
     "scripts\\ui\\towers\\tower_move.gd": "dce738ec2a72cd2bdef3c4f2b3994006401cffe642d6ccd9742b693bceeb3c98"
-  },
-  "release_template": true,
-  "network_permission": false
+  }
 }

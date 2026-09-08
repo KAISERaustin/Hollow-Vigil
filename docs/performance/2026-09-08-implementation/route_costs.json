@@ -1,0 +1,266 @@
+{
+	"rows": [
+		{
+			"label": "undefended.all_enemy_speed_resolution",
+			"ms": {
+				"max": 10.035,
+				"mean": 8.81771,
+				"n": 100,
+				"p50": 8.691,
+				"p95": 9.489,
+				"p99": 9.89
+			},
+			"retained_bytes": 4180.0,
+			"retained_objects": 0.0,
+			"units_per_call": 3202
+		},
+		{
+			"label": "undefended.rebuild_enemy_index",
+			"ms": {
+				"max": 2.809,
+				"mean": 2.18184,
+				"n": 100,
+				"p50": 2.134,
+				"p95": 2.554,
+				"p99": 2.72
+			},
+			"retained_bytes": 4180.0,
+			"retained_objects": 0.0,
+			"units_per_call": 3202
+		},
+		{
+			"label": "undefended.rebuild_id_map",
+			"ms": {
+				"max": 0.698,
+				"mean": 0.42419,
+				"n": 100,
+				"p50": 0.396,
+				"p95": 0.54,
+				"p99": 0.679
+			},
+			"retained_bytes": 4180.0,
+			"retained_objects": 0.0,
+			"units_per_call": 3202
+		},
+		{
+			"label": "undefended.all_remaining_distances",
+			"ms": {
+				"max": 3.08,
+				"mean": 2.53253333333333,
+				"n": 30,
+				"p50": 2.463,
+				"p95": 2.876,
+				"p99": 3.065
+			},
+			"retained_bytes": 1804.0,
+			"retained_objects": 0.0,
+			"units_per_call": 3202
+		},
+		{
+			"label": "undefended.experimental_remaining_distance_suffix_lookup",
+			"ms": {
+				"max": 1.423,
+				"mean": 0.97245,
+				"n": 100,
+				"p50": 0.928,
+				"p95": 1.126,
+				"p99": 1.327
+			},
+			"retained_bytes": 4180.0,
+			"retained_objects": 0.0,
+			"units_per_call": 3202
+		},
+		{
+			"label": "undefended.suffix_equivalence",
+			"max_absolute_error": 0.0,
+			"note": "Isolated calculation experiment; not integrated into combat."
+		},
+		{
+			"label": "undefended.close_visibility_query",
+			"ms": {
+				"max": 0.337,
+				"mean": 0.14166,
+				"n": 100,
+				"p50": 0.135,
+				"p95": 0.161,
+				"p99": 0.274
+			},
+			"retained_bytes": 4180.0,
+			"retained_objects": 0.0,
+			"units_per_call": 1
+		},
+		{
+			"label": "undefended.wide_visibility_query",
+			"ms": {
+				"max": 10.645,
+				"mean": 9.67165,
+				"n": 100,
+				"p50": 9.472,
+				"p95": 10.493,
+				"p99": 10.573
+			},
+			"retained_bytes": 4180.0,
+			"retained_objects": 0.0,
+			"units_per_call": 1
+		},
+		{
+			"label": "undefended.save_snapshot_validation_write",
+			"ms": {
+				"max": 10.268,
+				"mean": 9.57165,
+				"n": 20,
+				"p50": 9.59,
+				"p95": 10.177,
+				"p99": 10.177
+			},
+			"retained_bytes": 1468.0,
+			"retained_objects": 0.0,
+			"units_per_call": 1
+		},
+		{
+			"label": "defended.all_enemy_speed_resolution",
+			"ms": {
+				"max": 3.299,
+				"mean": 2.81827,
+				"n": 100,
+				"p50": 2.809,
+				"p95": 3.049,
+				"p99": 3.215
+			},
+			"retained_bytes": 4180.0,
+			"retained_objects": 0.0,
+			"units_per_call": 980
+		},
+		{
+			"label": "defended.rebuild_enemy_index",
+			"ms": {
+				"max": 0.964,
+				"mean": 0.67989,
+				"n": 100,
+				"p50": 0.639,
+				"p95": 0.823,
+				"p99": 0.924
+			},
+			"retained_bytes": 4180.0,
+			"retained_objects": 0.0,
+			"units_per_call": 980
+		},
+		{
+			"label": "defended.rebuild_id_map",
+			"ms": {
+				"max": 0.232,
+				"mean": 0.11676,
+				"n": 100,
+				"p50": 0.107,
+				"p95": 0.158,
+				"p99": 0.218
+			},
+			"retained_bytes": 4180.0,
+			"retained_objects": 0.0,
+			"units_per_call": 980
+		},
+		{
+			"label": "defended.all_remaining_distances",
+			"ms": {
+				"max": 0.963,
+				"mean": 0.746966666666667,
+				"n": 30,
+				"p50": 0.7,
+				"p95": 0.878,
+				"p99": 0.958
+			},
+			"retained_bytes": 1804.0,
+			"retained_objects": 0.0,
+			"units_per_call": 980
+		},
+		{
+			"label": "defended.experimental_remaining_distance_suffix_lookup",
+			"ms": {
+				"max": 0.39,
+				"mean": 0.26667,
+				"n": 100,
+				"p50": 0.255,
+				"p95": 0.363,
+				"p99": 0.388
+			},
+			"retained_bytes": 4180.0,
+			"retained_objects": 0.0,
+			"units_per_call": 980
+		},
+		{
+			"label": "defended.suffix_equivalence",
+			"max_absolute_error": 0.0,
+			"note": "Isolated calculation experiment; not integrated into combat."
+		},
+		{
+			"label": "defended.close_visibility_query",
+			"ms": {
+				"max": 0.285,
+				"mean": 0.03441,
+				"n": 100,
+				"p50": 0.029,
+				"p95": 0.043,
+				"p99": 0.156
+			},
+			"retained_bytes": 4180.0,
+			"retained_objects": 0.0,
+			"units_per_call": 1
+		},
+		{
+			"label": "defended.wide_visibility_query",
+			"ms": {
+				"max": 3.097,
+				"mean": 2.69814,
+				"n": 100,
+				"p50": 2.703,
+				"p95": 2.932,
+				"p99": 3.045
+			},
+			"retained_bytes": 4180.0,
+			"retained_objects": 0.0,
+			"units_per_call": 1
+		},
+		{
+			"label": "defended.all_tower_stats",
+			"ms": {
+				"max": 14.143,
+				"mean": 1.18402,
+				"n": 100,
+				"p50": 0.759,
+				"p95": 2.723,
+				"p99": 8.0
+			},
+			"retained_bytes": 4180.0,
+			"retained_objects": 0.0,
+			"units_per_call": 80
+		},
+		{
+			"label": "defended.all_tower_component_sync",
+			"ms": {
+				"max": 4.885,
+				"mean": 0.29987,
+				"n": 100,
+				"p50": 0.236,
+				"p95": 0.35,
+				"p99": 0.461
+			},
+			"retained_bytes": 4180.0,
+			"retained_objects": 0.0,
+			"units_per_call": 80
+		},
+		{
+			"label": "defended.save_snapshot_validation_write",
+			"ms": {
+				"max": 14.586,
+				"mean": 13.7618,
+				"n": 20,
+				"p50": 13.716,
+				"p95": 14.579,
+				"p99": 14.579
+			},
+			"retained_bytes": 1468.0,
+			"retained_objects": 0.0,
+			"units_per_call": 1
+		}
+	]
+}

@@ -59,7 +59,11 @@ func run() -> void:
 		app.add_child(indicator)
 		await settle()
 		check(indicator.get_meta("level") == level, "Correct owned level")
-		check(indicator.get_node("LevelSquares").texture == Indicator.IMAGES[level - 1], "Correct image state")
+		var squares := indicator.get_node("LevelSquares")
+		check(squares.get_child_count() == 4, "Four image squares")
+		for index in 4:
+			var artwork: TextureRect = squares.get_child(index).get_node("LevelArtwork")
+			check(artwork.texture == (Indicator.IMAGES[index] if index < level else null), "Each earned stage reveals its distinct image")
 		indicator.free()
 	app.free()
 	print("TOWER LEVEL INDICATOR: %d checks, %d failures" % [checks, failures])

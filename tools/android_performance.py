@@ -30,6 +30,12 @@ def package_pid():
     return subprocess.run([str(ADB), 'shell', 'pidof', PACKAGE], capture_output=True, text=True).stdout.strip()
 
 
+def battery_state():
+    raw = adb('shell', 'dumpsys', 'battery').decode()
+    keys = ['AC powered', 'USB powered', 'status', 'health', 'level', 'voltage', 'temperature']
+    return {key: re.search(r'^\s*' + re.escape(key) + r': (.*)$', raw, re.M)[1].strip() for key in keys}
+
+
 def build(name):
     source = BASE / name
     dest = BASE / ('android_' + name)
@@ -49,6 +55,10 @@ def build(name):
         body = body[re.search(r'\n(?:static )?func ', body).start() + 1:]
         body = body.replace('func run() -> void:', f'func run_{suite}() -> void:')
         body = re.sub(r'^\tquit\([^\n]*\)', '\treturn', body, flags=re.M)
+        # Standalone runners exit immediately after writing. In this combined
+        # coroutine, close the report before the caller reads the next result.
+        body = re.sub(r'^(\t*)(file|output)\.store_string\([^\n]*\)$',
+                      lambda match: match[0] + '\n' + match[1] + match[2] + '.close()', body, flags=re.M)
         # The tablet's physical render surface stays native upright portrait.
         # A 390x844 logical canvas makes the crowded fixture comparable.
         body = re.sub(r'^\s*root.size = .*$', '', body, flags=re.M)
@@ -189,6 +199,7 @@ def run(name):
     log = BASE / f'android_{name}_logcat.txt'
     telemetry = []
     complete = False
+    observed_lines = {}
     # No user data is collected: only our package's Godot output and public
     # device thermal/battery/memory telemetry are read.
     pid = ''
@@ -198,10 +209,12 @@ def run(name):
         time.sleep(0.5)
     if not pid: raise SystemExit('Benchmark package did not start')
     while time.monotonic() - start < 1200:
-        data = adb('logcat', '-d', '-v', 'brief', '-T', timestamp, '--pid='+pid, 'godot:I', '*:S').decode('utf-8', errors='replace')
+        fresh = adb('logcat', '-d', '-v', 'brief', '-T', timestamp, '--pid='+pid, 'godot:I', '*:S').decode('utf-8', errors='replace')
+        for line in fresh.splitlines(): observed_lines.setdefault(line, None)
+        data = '\n'.join(observed_lines)
         log.write_text(data, encoding='utf-8')
         telemetry.append({'seconds': time.monotonic()-start,
-            'battery': adb('shell', 'dumpsys', 'battery').decode(),
+            'battery': battery_state(),
             'thermal': adb('shell', 'dumpsys', 'thermalservice').decode(),
             'memory': adb('shell', 'dumpsys', 'meminfo', PACKAGE).decode()})
         ends = re.findall(r'HV_PERF_END (\S+)', data)

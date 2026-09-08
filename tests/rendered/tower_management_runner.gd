@@ -16,12 +16,14 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 		check(dialog.confirm.is_visible_in_tree(), "Upgrade stays visible")
 		check(dialog.card.size.y <= 240, "Management remains a compact card")
 		check(dialog.body.find_child("TowerDetails", true, false) == null, "Compact card omits stats and description")
-		var action_y := dialog.confirm.get_global_rect().position.y
-		for button: Button in dialog.footer.get_children():
-			if not button.visible: continue
-			check(button.size == Vector2(48, 48) and is_equal_approx(button.global_position.y, action_y), "Five square actions share one row")
-			check(button.text.is_empty() and not button.accessibility_name.is_empty(), "Icon actions retain accessible names")
-		check(absf(dialog.portrait.get_global_rect().get_center().y - dialog.identity_text.get_global_rect().get_center().y) < 1, "Portrait and title vertically centered in identity card")
+		check(dialog.management_grid.get_child_count() == 6, "Six buttons including close")
+		for index in 6:
+			var button: Button = dialog.management_grid.get_child(index)
+			check(button.size == Vector2(48, 48), "Touch size preserved")
+			check(is_equal_approx(button.position.y, 0.0 if index < 3 else 56.0), "Two rows of buttons")
+		var squares = dialog.level_display.get_node("LevelSquares")
+		check(squares.vertical and squares.get_child_count() == 4, "Four vertical slots")
+		check(dialog.level_holder.global_position.x < dialog.identity_card.global_position.x and dialog.identity_card.global_position.x < dialog.management_grid.global_position.x, "Slots identity actions order")
 		check(dialog.identity_card.get_theme_stylebox("panel").border_width_left == 3, "Identity card uses shared black outline")
 		await Harness.capture(host, "tower-management-" + prefix + "-" + str(viewport.x))
 		for action in ["equipment", "target", "move", "sell"]:
@@ -40,6 +42,19 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 		await settle()
 		dialog.go_back()
 		check(not dialog.visible, "Back closes management")
+		if viewport.x == 390:
+			var tower: Dictionary = host.game.data.towers[host.field.selected_tower]
+			for tier in range(1, 5):
+				tower.level = tier
+				tower.branch = "frostneedle" if tier == 4 else ""
+				dialog.open_action("info")
+				await settle()
+				check(dialog.portrait.global_position.y < dialog.heading.global_position.y, "Portrait above title")
+				check(dialog.card.size.y <= 240, "Every tier stays compact")
+				await Harness.capture(host, "tower-management-" + prefix + "-level-" + str(tier))
+				dialog.dismiss()
+			tower.level = 1
+			tower.branch = ""
 
 func run() -> void:
 	var app := VigilApp.new()
