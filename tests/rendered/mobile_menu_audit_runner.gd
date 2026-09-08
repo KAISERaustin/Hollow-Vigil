@@ -20,9 +20,9 @@ func input_touch(at: Vector2, down: bool) -> void:
 	Input.parse_input_event(event)
 	await process_frame
 
-func swipe_control(scroll: ScrollContainer, upward: bool = true) -> void:
+func swipe_control(scroll: ScrollContainer, upward: bool = true, travel: float = 120) -> void:
 	var area := scroll.get_global_rect()
-	var distance := minf(180, area.size.y * 0.55)
+	var distance := minf(travel, area.size.y * 0.55)
 	var start := area.get_center() + Vector2(0, distance * (0.5 if upward else -0.5))
 	if scroll.get_window() != root: start += Vector2(scroll.get_window().position)
 	var movement := Vector2(0, -distance if upward else distance)
@@ -33,7 +33,16 @@ func swipe_control(scroll: ScrollContainer, upward: bool = true) -> void:
 		event.position = start + movement * float(step + 1) / 8.0
 		event.relative = movement / 8.0
 		Input.parse_input_event(event)
-		await process_frame
+		# A human-paced gesture avoids the artificial momentum of a 240-FPS flick.
+		await create_timer(0.035).timeout
+	# Pause the finger before lifting for precise movement through long cards.
+	var stopped := InputEventScreenDrag.new()
+	stopped.index = 0
+	stopped.position = start + movement
+	stopped.relative = Vector2.ZERO
+	Input.parse_input_event(stopped)
+	await create_timer(0.2).timeout
+	if "--trace-mobile-scroll" in OS.get_cmdline_user_args(): print("MOBILE_SCROLL_DRAG_END: %d" % scroll.scroll_vertical)
 	await input_touch(start + movement, false)
 	# Momentum continues after release; target coordinates are valid once it ends.
 	var stable := 0
@@ -56,11 +65,51 @@ func reveal(target: Control) -> void:
 				var visible_area: Rect2 = ancestor.get_global_rect().grow(-1)
 				if visible_area.encloses(target.get_global_rect().grow(-2)): break
 				var before: int = ancestor.scroll_vertical
-				await swipe_control(ancestor, target.get_global_rect().get_center().y > visible_area.get_center().y)
+				var delta: float = target.get_global_rect().get_center().y - visible_area.get_center().y
+				await swipe_control(ancestor, delta > 0, clampf(absf(delta) * 0.4, 32, 120))
 				if not is_instance_valid(target): return
+				if "--trace-mobile-scroll" in OS.get_cmdline_user_args(): print("MOBILE_SCROLL: %s step=%d before=%d after=%d target=%s viewport=%s" % [target.name, attempt, before, ancestor.scroll_vertical, target.get_global_rect(), ancestor.get_global_rect()])
 				if ancestor.scroll_vertical == before: break
 		ancestor = ancestor.get_parent()
 	await frames()
+
+func run() -> void:
+	if "--library-touch-only" in OS.get_cmdline_user_args():
+		await library_touch_probe()
+		return
+	await super.run()
+	print("MOBILE_MENU_AUDIT_FINAL: %d checks, %d failures; %d touch actions and %d touch picker choices across three portrait sizes" % [checks, failures.size(), touch_actions, touch_choices])
+
+func library_touch_probe() -> void:
+	app = VigilApp.new()
+	app.load_saved_progress = false
+	app.game.save_path = "user://mobile-library-" + str(Time.get_ticks_usec()) + ".save"
+	root.add_child(app)
+	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	app.set_process(false)
+	Engine.max_fps = 240
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	app.show_save_slots()
+	menu = app.slot_menu
+	for index in 2:
+		var build := Build.capture("infinite", VigilState.new(), {}, "all", -1, {"enemies": ["basic"]}, "Long library card " + str(index), "Long readable description. ".repeat(65))
+		check(menu.slots.save_shared(Build.encode(build)), "Seed isolated long library card")
+	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
+		root.size = dimensions
+		root.content_scale_size = dimensions
+		menu.show_home("infinite")
+		await press("MyBuilds")
+		await press("BuildDetails")
+		check(menu.screen == "detail", "Finger reaches Details in long library card at " + str(dimensions))
+		await press("BackButton")
+		await press("DeleteBuild")
+		await press("CancelConfirmation")
+		check(menu.screen == "library", "Finger cancels library deletion at " + str(dimensions))
+	print("MOBILE_LIBRARY_TOUCH: %d checks, %d failures" % [checks, failures.size()])
+	app.game.suspended = true
+	app.queue_free()
+	await frames()
+	quit(0 if failures.is_empty() else 1)
 
 func tap_control(target: Control, context: String) -> void:
 	await reveal(target)
@@ -68,12 +117,19 @@ func tap_control(target: Control, context: String) -> void:
 	if not is_instance_valid(target): return
 	var area := target.get_global_rect()
 	var viewport_area := Rect2(Vector2.ZERO, Vector2(target.get_viewport().size))
+	check(area.size.x >= UI.TARGET and area.size.y >= UI.TARGET, "Touch action is at least 48 units: " + context)
 	check(viewport_area.grow(1).encloses(area), "Touch target is on screen: " + context)
+	var reachable := viewport_area.grow(1).encloses(area)
 	var ancestor := target.get_parent()
 	while ancestor != null:
 		if ancestor is ScrollContainer:
 			check(ancestor.get_global_rect().grow(1).encloses(area), "Touch target is reachable by finger: " + context)
+			reachable = reachable and ancestor.get_global_rect().grow(1).encloses(area)
 		ancestor = ancestor.get_parent()
+	if not reachable:
+		quit(1)
+		await process_frame
+		return
 	var center := area.get_center()
 	if target.get_window() != root: center += Vector2(target.get_window().position)
 	await input_touch(center, true)
@@ -235,7 +291,7 @@ func portrait_pages() -> void:
 		await press("BuildDetails")
 		await press("SharePrivateBuild")
 		await audit_controls(menu, type + " portrait save form")
-		if type == "campaign":
+		if menu.form.game_type == "campaign":
 			await choose("BuildScope", 1)
 			await choose("BuildLevel", 20)
 		menu.show_backups(menu.show_home)

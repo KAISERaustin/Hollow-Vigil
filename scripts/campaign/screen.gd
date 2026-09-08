@@ -261,6 +261,10 @@ func clear_page(next: String) -> void:
 		child.queue_free()
 	var parent: Node = self
 	if next != "battle": parent = page_scroll
+	if parent == page_scroll and layout.get_parent() == page_scroll:
+		# Reattach the rebuilt page so ScrollContainer recalculates its range even
+		# when its replacement content has the same minimum as the previous page.
+		layout.reparent(self, false)
 	if layout.get_parent() != parent:
 		layout.reparent(parent, false)
 		layout.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)

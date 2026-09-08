@@ -6,20 +6,18 @@ static func positions(combat, tower: Dictionary, origin: Vector2, target: Dictio
 	for trap in combat.traps:
 		if trap.tower_id == tower.id: occupied.append(trap.pos)
 	if occupied.size() >= int(stats.trap_capacity): return []
-	var roads: Array = combat.authored_roads if combat.scripted_spawns else combat.paths.values()
 	var aim: Vector2 = origin if target.is_empty() else target.pos
 	var choices: Array[Vector2] = []
-	for road in roads:
-		for index in range(1, road.size()):
-			var a: Vector2 = road[index - 1]
-			var b: Vector2 = road[index]
-			# Project first, so short or oblique segments retain a valid candidate.
-			var closest := Geometry2D.get_closest_point_to_segment(aim, a, b)
-			var samples: Array[Vector2] = [closest]
-			var steps := maxi(1, ceili(a.distance_to(b) / 20.0))
-			for step in range(steps + 1): samples.append(a.lerp(b, float(step) / steps))
-			for sample in samples:
-				if sample.distance_squared_to(origin) <= stats.range * stats.range and not choices.has(sample): choices.append(sample)
+	for segment in combat.road_geometry.nearby(origin, stats.range):
+		var a: Vector2 = segment.from
+		var b: Vector2 = segment.to
+		# Project first, so short or oblique segments retain a valid candidate.
+		var closest := Geometry2D.get_closest_point_to_segment(aim, a, b)
+		var samples: Array[Vector2] = [closest]
+		var steps := maxi(1, ceili(a.distance_to(b) / 20.0))
+		for step in range(steps + 1): samples.append(a.lerp(b, float(step) / steps))
+		for sample in samples:
+			if sample.distance_squared_to(origin) <= stats.range * stats.range and not choices.has(sample): choices.append(sample)
 	choices.sort_custom(func(a, b): return a.distance_squared_to(aim) < b.distance_squared_to(aim))
 	var result: Array[Vector2] = []
 	for choice in choices:

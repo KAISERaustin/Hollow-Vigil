@@ -21,6 +21,19 @@ The Forge's coal imp, anvil-headed golem and ember tender; the Crypt's waterlogg
 
 ## Portal appearance
 
+Campaign uses the same six portal kinds at every entrance in each biome's five-level chapter:
+
+| Campaign levels | Biome | Portal kind |
+| --- | --- | --- |
+| 1–5 | Forest | Forest Rift |
+| 6–10 | Ashen Forge | Forged Rift |
+| 11–15 | Drowned Crypt | Drowned Rift |
+| 16–20 | Bloodmoon Sanctuary | Bloodmoon Rift |
+| 21–25 | Castle Ruin | Castle Ruin Portal |
+| 26–30 | Mourning Orchard | Mourning Orchard Portal |
+
+Edit rules → Portals discovers all six registered Portal nodes, including their native portraits. Forest, Castle Ruin and Mourning Orchard have no additional tunable portal effect; their entries display their identity without a strength input. Forge health, Crypt speed and Bloodmoon regeneration retain their existing values and saved tuning keys. Campaign descriptions explain authored wave spawns; Infinite descriptions retain roster attunements. Viewing a portal does not alter rules or saved games.
+
 All six families retain their native base silhouette and compose the shared `presentation/portal` content component in the `appearance` slot. Traffic levels 1–6 add a foundation, feet, buttresses, pillars, lintel and finials. Levels 7–12 add six successive gold inlays. Each level changes the drawing at normal and reduced map zooms. The receiving core shares the stone foundation and keeps its mint heart; it has no traffic or attunement state.
 
 Available inhabitants add ornaments at fixed mounts: Forest leaf/thorns/roots; Forge ember/lantern/anvil; Crypt reeds/shell/bell; Sanctuary crescent/ribbons/sword; Castle shroud/shield/battlements; Orchard thorns/veil/coffin. These are architectural references, not enemy models. Orchard shows its full roster immediately. Campaign portals use the current authored lane/wave roster, without inventing purchased traffic levels.
@@ -39,3 +52,5 @@ The save owner validates old attunements against their original portal prices, r
 - `tests/rendered/portal_roster_checks.gd`: actual mouse/touch opening and purchases for all six portal menus at 360x640, 390x844 and 540x960.
 - `tests/rendered/enemy_art_checks.gd`: eighteen distinct native portraits and four battlefield zooms, including the complete grouped lineup at `artifacts/enemy-lineup.png`.
 - Existing rift-effect, Orchard, castle, campaign and persistence suites cover interactions with the rest of the game.
+- `tests/campaign_runner.gd` checks all thirty levels' entrance spawns and portal identity after checkpoint restoration, including cross-family authored waves and unchanged effect tuning keys.
+- `tests/rendered/campaign_portal_runner.gd` checks all thirty levels' portal artwork at every lane across three portrait sizes, six distinct silhouettes, and all six rule-editor entries.

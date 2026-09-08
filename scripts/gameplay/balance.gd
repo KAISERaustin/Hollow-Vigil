@@ -96,24 +96,35 @@ static func rift_name(style: String) -> String:
 	var node := Content.portal(style)
 	return node.attribute("name") if node != null else "Wild Rift"
 
-static func rift_description(style: String, tuning: Dictionary = {}) -> String:
+static func portal_definitions() -> Dictionary:
+	# All portal identities are discoverable, including types without tunable effects.
+	var result := {}
+	for node in Content.catalog().children("portal"):
+		result[node.rule("kind")] = node.attributes()
+	return result
+
+static func rift_description(style: String, tuning: Dictionary = {}, authored_spawns: bool = false) -> String:
 	var portal := Content.portal(style)
 	if portal == null:
 		return ""
+	var effect := portal_effect_description(style, tuning)
+	if authored_spawns:
+		return "Used at every campaign entrance in this biome. Enemies and timing follow the authored waves. " + (effect if not effect.is_empty() else "No additional portal effect.")
 	var inhabitants: Array[String] = []
 	for kind in portal.enemy_kinds():
 		inhabitants.append(ENEMIES[kind].name)
 	var roster := "Summons only " + ", ".join(inhabitants) + ". "
 	var availability := "All three are active immediately, with equal chances." if portal.unlock_costs().is_empty() else "Attune the other inhabitants to add them to this portal's spawns."
+	var placement := "One dungeon portal per castle ruin. " if style == "castle_ruin" else ""
+	return placement + roster + availability + (" " + effect if not effect.is_empty() else "")
+
+static func portal_effect_description(style: String, tuning: Dictionary = {}) -> String:
 	var amount := String.num(rift_strength(style, tuning), 2)
 	match style:
-		"mourning_orchard":
-			return roster + availability
-		"castle_ruin": return "One dungeon portal per castle ruin. " + roster + availability
-		"ashen_forge": return roster + availability + " Hardened: +" + amount + "% maximum health throughout the journey."
-		"drowned_crypt": return roster + availability + " Restless: +" + amount + "% movement speed throughout the journey."
-		"bloodmoon_sanctuary": return roster + availability + " Regeneration: restores " + amount + "% of maximum health each second throughout the journey."
-	return roster + availability
+		"ashen_forge": return "Hardened: +" + amount + "% maximum health throughout the journey."
+		"drowned_crypt": return "Restless: +" + amount + "% movement speed throughout the journey."
+		"bloodmoon_sanctuary": return "Regeneration: restores " + amount + "% of maximum health each second throughout the journey."
+	return ""
 
 static func enemy_portal_style(kind: String) -> String:
 	var node := Content.enemy(kind)

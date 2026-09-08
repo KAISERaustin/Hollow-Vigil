@@ -25,6 +25,30 @@ static func run(t) -> void:
 	campaign_and_portable_builds(t)
 	component_families(t)
 	boss_and_effect_limits(t)
+	road_queries(t)
+
+static func road_queries(t) -> void:
+	var geometry = preload("res://scripts/gameplay/combat/road_geometry.gd").new()
+	var random := RandomNumberGenerator.new()
+	random.seed = 852
+	var road := []
+	for index in range(80): road.append(Vector2(random.randf_range(-1500, 1500), random.randf_range(-1500, 1500)))
+	geometry.rebuild([road, road])
+	t.check(geometry.segments.size() == road.size() - 1, "Road geometry deduplicates shared paths")
+	for index in range(60):
+		var center := Vector2(random.randf_range(-1500, 1500), random.randf_range(-1500, 1500))
+		var radius := random.randf_range(1, 500)
+		var expected := 0
+		for segment in range(1, road.size()):
+			if Geometry2D.get_closest_point_to_segment(center, road[segment - 1], road[segment]).distance_squared_to(center) <= radius * radius: expected += 1
+		t.check(geometry.nearby(center, radius).size() == expected, "Spatial road query agrees with full geometry")
+	var f := live_fixture(t, "caltrop_keep")
+	f.game.combat.authored_roads = [[f.origin + Vector2(0, 400), f.origin + Vector2(200, 400)]]
+	f.game.combat.tick(Balance.STEP)
+	t.check(f.game.combat.traps.is_empty(), "Changing authored routes removes stale placement candidates")
+	f.game.combat.authored_roads = [[f.origin + Vector2(0, 30), f.origin + Vector2(200, 30)]]
+	f.game.combat.tick(Balance.STEP)
+	t.check(f.game.combat.traps.size() == 1 and is_equal_approx(f.game.combat.traps[0].pos.y, f.origin.y + 30), "New authored road geometry becomes available immediately")
 
 static func boss_and_effect_limits(t) -> void:
 	var f := live_fixture(t, "ironspike", 4, "siegebreaker")

@@ -5,6 +5,7 @@ const Run = preload("res://scripts/campaign/run.gd")
 const Progress = preload("res://scripts/campaign/progress.gd")
 
 func run() -> void:
+	check_biome_portals()
 	check_setup_refunds()
 	check_effect_cleanup()
 	check(Catalog.MISSIONS.size() == Catalog.COUNT, "Campaign contains six complete authored chapters")
@@ -170,6 +171,47 @@ func check_setup_refunds() -> void:
 	check(fresh.build(6, "rapid"), "Restarted campaign starts a fresh setup")
 	var fresh_tower: Dictionary = fresh.game.data.towers[fresh.tower_at(6)]
 	check(fresh.game.economy.sell_refund(fresh_tower) == Balance.invested_cost(fresh_tower), "Component replacement never mutates shared campaign definitions")
+
+func check_biome_portals() -> void:
+	var definitions := Balance.portal_definitions()
+	check(definitions.keys() == VigilWorld.ALL_STYLES, "All six biome portals are discoverable in biome order")
+	var names: Array = []
+	for style in definitions:
+		var portal := Balance.Content.portal(style)
+		check(portal != null and portal.id == Balance.Content.region(style).rule("portal"), "Biome resolves its own registered portal: " + style)
+		check(definitions[style].name not in names, "Each biome has a distinct portal name")
+		names.append(definitions[style].name)
+		var description := Balance.rift_description(style, {}, true)
+		check(description.contains("campaign entrance") and not description.contains("Attune") and not description.contains("Summons only"), "Campaign portal descriptions explain authored spawns: " + style)
+		if style not in Balance.RIFTS:
+			check(Balance.rift_strength(style) == 0 and not Balance.valid_tuning({"rifts": {style: {"strength": 1.0}}}), "Neutral portal discovery cannot introduce an effect: " + style)
+	definitions.forest.name = "Changed preview"
+	check(Balance.portal_definitions().forest.name == "Forest Rift", "Portal discovery returns independent presentation data")
+	var frozen: Dictionary = preload("res://scripts/campaign/configuration.gd").gameplay_values({})
+	check(frozen.rifts.keys() == Balance.RIFTS.keys(), "Campaign exports retain only the existing tunable portal kinds")
+	for index in range(Catalog.COUNT):
+		var mission := Catalog.level(index)
+		var style: String = Catalog.CHAPTERS[index / Catalog.LEVELS_PER_CHAPTER].style
+		check(mission.style == style, "Every campaign level uses its chapter biome")
+		var groups: Array = []
+		# Exercise the real wave scheduler at every entrance, including authored
+		# cross-family enemies, which must still use the entrance biome's effect.
+		for lane in range(mission.routes.size()):
+			groups.append(["basic", 1, lane, 0.0, 1.0])
+		var battle := Run.new(index, {"waves": {"0": {"groups": groups}}})
+		check(battle.start_wave(), "Every campaign biome starts its entrance wave")
+		battle.tick(0.001)
+		check(battle.game.combat.enemies.size() == mission.routes.size(), "Every campaign entrance spawns its assigned group")
+		for enemy in battle.game.combat.enemies:
+			check(enemy.rift_style == style and enemy.path in mission.routes, "Campaign spawn retains its biome portal and authored route")
+			check(is_equal_approx(enemy.max_hp, Balance.ENEMIES.basic.hp * Balance.rift_health_multiplier(style)), "Campaign portal applies its own health effect")
+		var restored: RefCounted = Run.from_checkpoint(JSON.parse_string(JSON.stringify(battle.checkpoint())))
+		check(restored != null and restored.mission.style == style, "Saved campaign restores its biome portal")
+		if restored != null:
+			restored.tick(0.001)
+			for enemy in restored.game.combat.enemies:
+				check(enemy.rift_style == style, "Restored campaign entrance keeps its portal kind")
+	print("PASS GROUP: six campaign portals, all level entrances, effects and checkpoint identity")
 
 func check_effect_cleanup() -> void:
 	for outcome in ["planning", "victory", "defeat"]:

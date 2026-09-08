@@ -529,7 +529,7 @@ func show_developer_controls() -> void:
 		back.name = "BackToCategories" if controls.editor.visible else "BackToSettings"
 		back.accessibility_name = "Back to categories" if controls.editor.visible else "Back to settings"
 		var title := header_content.find_child("SheetTitle", true, false) as Label
-		title.text = controls.category.capitalize() if controls.editor.visible else "Developer Controls"
+		title.text = controls.category_title(controls.category) if controls.editor.visible else "Developer Controls"
 		UI.fit_heading(title)
 		content_scroll.scroll_vertical = 0
 		call_deferred("fit_sheet")

@@ -109,11 +109,11 @@ func run() -> void:
 	if not is_instance_valid(app.slot_menu):
 		quit(1)
 		return
-	app.slot_menu.campaign_slots.base_path = app.game.save_path + ".campaign"
 	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		if "--quick" in OS.get_cmdline_user_args() and dimensions != Vector2i(360, 640): continue
 		root.size = dimensions
 		root.content_scale_size = dimensions
+		app.slot_menu.campaign_slots.base_path = app.game.save_path + ".campaign-" + str(dimensions.x)
 		var saved: Dictionary = app.slot_menu.campaign_slots.create(0, "creative", "Mobile Campaign audit")
 		app.open_campaign_slot(0, saved)
 		campaign = app.campaign
@@ -125,7 +125,7 @@ func run() -> void:
 		await battle_menus()
 		print("MOBILE CAMPAIGN: battle menus checked")
 		await result_routes()
-		campaign.close()
+		if is_instance_valid(campaign): campaign.close()
 		await settle()
 	var prefix: String = app.game.save_path.get_file()
 	app.queue_free()
@@ -133,17 +133,20 @@ func run() -> void:
 	await process_frame
 	for filename in DirAccess.get_files_at("user://"):
 		if filename.begins_with(prefix): DirAccess.remove_absolute("user://" + filename)
-	print("MOBILE CAMPAIGN CONTROLS: %d checks, %d failures; %d map levels, four viewport sizes, touch menus/scroll/pan/pinch/modal shielding/Android Back" % [checks, failures.size(), Catalog.COUNT])
+	print("MOBILE CAMPAIGN CONTROLS: %d checks, %d failures; %d map levels, three portrait sizes, touch menus/scroll/pan/pinch/modal shielding/Android Back" % [checks, failures.size(), Catalog.COUNT])
 	quit(0 if failures.is_empty() else 1)
 
 func map_and_briefing() -> void:
-	campaign.show_map()
 	await settle()
 	var scroll: ScrollContainer = campaign.page_scroll
-	await capture("map-before")
-	print("MAP BEFORE: %s touchscreen=%s scroll=%s max=%s page=%s" % [scroll.get_global_rect(), DisplayServer.is_touchscreen_available(), scroll.scroll_vertical, scroll.get_v_scroll_bar().max_value, campaign.page])
+	check(scroll.get_v_scroll_bar().max_value > scroll.size.y, "Opening map computes its scrolling range")
+	campaign.show_map()
+	await settle()
+	check(scroll.get_v_scroll_bar().max_value > scroll.size.y, "Refreshing map retains its scrolling range")
 	await swipe(scroll.get_global_rect().get_center(), Vector2(0, -160))
 	check(scroll.scroll_vertical > 40 and campaign.page == "map", "Map swipe scrolls without entering a level: scroll=%d page=%s" % [scroll.scroll_vertical, campaign.page])
+	await audit(campaign.page_scroll, "All map markers")
+	await capture("map")
 	var indices: Array = range(Catalog.COUNT) if root.size.x == 390 else [0, Catalog.COUNT - 1]
 	for index in indices:
 		await press(named("CampaignLevel%d" % (index + 1)))
@@ -200,10 +203,6 @@ func battle_menus() -> void:
 	await back()
 	await back()
 	check(campaign.page == "map" and not app.slot_menu.visible, "Battle system Back follows visible Back to map")
-	await back()
-	check(app.slot_menu.visible and app.slot_menu.screen == "slots", "Map system Back follows visible Back to saved games")
-	app.slot_menu.resume_game()
-	await settle()
 
 func wave_menus() -> void:
 	var scroll := campaign.dialog_body.get_parent() as ScrollContainer
@@ -249,25 +248,25 @@ func tower_menus(socket: Dictionary, id: String) -> void:
 		check(campaign.tower_dialog.target_choice == target and tower.get("target_mode", "first") == "first", "Target selection waits for Apply")
 	await press(campaign.tower_dialog.confirm)
 	check(tower.target_mode == Balance.TARGET_MODES.keys()[-1], "Touch applies targeting")
-	for index in 18: campaign.game.data.relics["mobile-" + str(index)] = Relics.DEFINITIONS.keys()[index % Relics.DEFINITIONS.size()]
+	for index in 18: Relics.award(campaign.game.data, "90,%d" % index, Relics.DEFINITIONS.keys()[index % Relics.DEFINITIONS.size()])
 	campaign.show_socket(socket.index)
 	await settle()
 	await press(campaign.tower_actions.buttons.equipment)
 	var dialog: VigilTowerDialog = campaign.tower_dialog
 	await swipe(dialog.scroll.get_global_rect().get_center(), Vector2(0, -70))
 	check(dialog.scroll.scroll_vertical > 0 and dialog.mode == "equipment", "Equipment inventory swipes without selecting")
-	await press(named("Relic_mobile-17"))
+	await press(named("Relic_90,17"))
 	check(dialog.mode == "equipment_detail", "Last equipment row opens by touch")
 	await audit(dialog.card, "Equipment detail")
 	await back()
 	check(dialog.visible and dialog.mode == "equipment" and not tower.has("relic"), "Equipment detail Back retains inventory without equipping")
-	await press(named("Relic_mobile-17"))
+	await press(named("Relic_90,17"))
 	await press(dialog.confirm)
-	check(dialog.mode == "equipment" and tower.relic == "mobile-17", "Touch equips inventory item")
+	check(dialog.mode == "equipment" and tower.relic == "90,17", "Touch equips inventory item")
 	await press(named("RemoveEquipment"))
 	await audit(dialog.card, "Equipment removal")
 	await back()
-	check(dialog.visible and dialog.mode == "equipment" and tower.relic == "mobile-17", "Equipment removal Back cancels without removing")
+	check(dialog.visible and dialog.mode == "equipment" and tower.relic == "90,17", "Equipment removal Back cancels without removing")
 	await press(named("RemoveEquipment"))
 	await press(dialog.confirm)
 	check(dialog.mode == "equipment" and not tower.has("relic"), "Touch confirms equipment removal")
@@ -323,6 +322,7 @@ func map_gestures() -> void:
 func result_routes() -> void:
 	app.slot_menu.hide()
 	campaign.start_mission(0)
+	campaign.begin_wave()
 	campaign.run.phase = "defeat"
 	campaign.show_result()
 	await audit(campaign.dialog_card, "Defeat")
@@ -333,10 +333,12 @@ func result_routes() -> void:
 			break
 	check(campaign.run.phase == "planning" and not campaign.dialog.visible, "Touch restarts defeated level")
 	campaign.run.phase = "victory"
+	campaign.run.wave = campaign.run.mission.waves.size()
 	campaign.show_result()
 	await audit(campaign.dialog_card, "Victory")
 	await press(named("NextCampaignLevel"))
 	check(campaign.run.mission.index == 1 and campaign.run.phase == "planning", "Touch advances to next level")
+	campaign.begin_wave()
 	campaign.run.phase = "defeat"
 	campaign.show_result()
 	for button in campaign.dialog_body.find_children("*", "Button", true, false):
@@ -344,3 +346,5 @@ func result_routes() -> void:
 			await press(button)
 			break
 	check(campaign.page == "map", "Result World map touch returns to map")
+	await back()
+	check(app.slot_menu.visible and app.slot_menu.screen == "slots" and not is_instance_valid(app.campaign), "Map system Back follows visible Back to saved games")

@@ -45,7 +45,11 @@ var indexed_enemy_count := -1
 var ticking := false
 # Authored missions own their spawn schedule; ordinary worlds keep rift timers.
 var scripted_spawns := false
-var authored_roads: Array = []
+var road_geometry := preload("res://scripts/gameplay/combat/road_geometry.gd").new()
+var authored_roads: Array = []:
+	set(value):
+		authored_roads = value
+		road_geometry.rebuild(authored_roads if scripted_spawns else paths.values())
 var tower_overrides: Dictionary = {}
 var tower_component_state: Dictionary = {}
 var component_serial := 0
@@ -84,6 +88,7 @@ func rebuild_routes() -> void:
 		paths[id] = VigilWorld.route(data.regions, id, route_exits)
 		var choices: Array = route_exits[id]
 		branching_routes[id] = choices.size() > 1 or (not choices.is_empty() and branching_routes[choices[0]])
+	road_geometry.rebuild(authored_roads if scripted_spawns else paths.values())
 
 func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = "", fire: bool = false, pierce: bool = false) -> bool:
 	if enemy.dead or not is_finite(damage) or damage <= 0.0 or not data.towers.has(tower_id):

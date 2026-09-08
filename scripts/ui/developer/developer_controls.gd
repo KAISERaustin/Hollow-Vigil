@@ -9,6 +9,7 @@ const Picker = preload("res://scripts/ui/shared/illustrated_picker.gd")
 const Portrait = preload("res://scripts/ui/shared/content_portrait.gd")
 var categories: Array[String] = ["session", "bosses", "rifts", "enemies", "towers", "gear"]
 var configuration_only := false
+var authored_spawns := false
 var game: VigilState
 var field: Battlefield
 var category := "enemies"
@@ -66,7 +67,7 @@ func _ready() -> void:
 	add_child(category_list)
 	move_child(category_list, 0)
 	for section in categories:
-		var tab := UI.button("Starting resources" if section == "session" else section.capitalize(), show_category.bind(section))
+		var tab := UI.button(category_title(section), show_category.bind(section))
 		tab.name = section.capitalize() + "Category"
 		tabs[section] = tab
 		category_list.add_child(UI.action_row(tab.text, tab, "Open"))
@@ -132,7 +133,7 @@ func _ready() -> void:
 	var reset_selected := UI.button("Reset selected type / tier", func():
 		commit_fields()
 		game.reset_developer_balance(category, editing_kind())
-		rules_edited.emit(category, editing_kind(), Balance.editable_fields_for(category, editing_kind()).keys())
+		rules_edited.emit(category, editing_kind(), selected_fields().keys())
 		show_fields()
 		changed.emit()
 	)
@@ -170,8 +171,8 @@ func show_category(section: String) -> void:
 	general.hide()
 	editor.show()
 	selector.clear()
-	selector.menu_title = "Choose " + category
-	var definitions: Dictionary = Balance.TOWERS if category == "towers" else Balance.definitions(category)
+	selector.menu_title = "Choose " + category_title(category).to_lower()
+	var definitions: Dictionary = Balance.TOWERS if category == "towers" else editor_definitions()
 	for kind in definitions:
 		selector.add_item(definitions[kind].name)
 		selector.set_item_metadata(selector.item_count - 1, kind)
@@ -187,13 +188,27 @@ func show_category(section: String) -> void:
 		selector.accessibility_name = "Choose boss type"
 		hint.text = "Live changes · Auto-saved"
 	if category == "rifts":
-		selector.accessibility_name = "Choose rift type"
-		hint.text = "Live changes · Auto-saved · Grass always has no effect"
+		selector.accessibility_name = "Choose portal type"
 	populate_tiers()
 	show_fields()
 
 func editing_kind() -> String:
 	return Balance.tier_key(selected_kind, selected_level, selected_branch) if category == "towers" else selected_kind
+
+static func category_title(section: String) -> String:
+	return {"session": "Starting resources", "rifts": "Portals"}.get(section, section.capitalize())
+
+func editor_definitions() -> Dictionary:
+	return Balance.portal_definitions() if category == "rifts" else Balance.definitions(category)
+
+func selected_fields() -> Dictionary:
+	# Viewing a portal with no effect must not add a new saved tuning kind.
+	if not Balance.definitions(category).has(editing_kind()):
+		return {}
+	return Balance.editable_fields_for(category, editing_kind())
+
+func portal_detail() -> String:
+	return "Set effect strength to 0 to disable. Health adjustments preserve remaining health percentage." if not selected_fields().is_empty() else "This portal has no editable effect strength."
 
 func populate_tiers() -> void:
 	tier_selector.clear()
@@ -225,20 +240,23 @@ func show_fields() -> void:
 	if category == "gear":
 		detail.text = "Changes apply on the next attack. Launched shots and active effects keep their values. Root cooldowns retain their remaining proportion; stack limits update immediately. Removing or transferring gear clears its active effects."
 	if category == "rifts":
-		detail.text = Balance.rift_description(selected_kind, game.tuning) + " Set to 0 to disable. Health adjustments preserve remaining health percentage."
+		hint.text = "%d biome portals · Live changes · Auto-saved" % selector.item_count
+		detail.text = portal_detail()
 	if configuration_only:
 		hint.text = hint.text.replace("Live changes", "Draft").replace("Auto-saved", "Apply changes to keep edits")
 	inputs.clear()
 	for child in fields.get_children():
 		fields.remove_child(child)
 		child.queue_free()
-	for stat in Balance.editable_fields_for(category, editing_kind()):
+	for stat in selected_fields():
 		add_number(stat)
+	var reset_selected := find_child("ResetSelectedBalance", true, false) as Button
+	reset_selected.disabled = inputs.is_empty()
 	# Scrolling follows focus as players move between exact-value fields.
 	call_deferred("refresh_focus")
 
 func refresh_identity() -> void:
-	var definition: Dictionary = Balance.definitions(category)[editing_kind()]
+	var definition: Dictionary = editor_definitions()[editing_kind()]
 	portrait.visible = category != "session"
 	identity_title.text = definition.name
 	match category:
@@ -249,7 +267,7 @@ func refresh_identity() -> void:
 			description.text = Balance.tower_description(Balance.stats(selected_kind, selected_level, game.tuning, selected_branch))
 			if selected_branch != "":
 				identity_title.text = Balance.BRANCHES[selected_kind][selected_branch].name + " · Tier 4"
-		"rifts": description.text = Balance.rift_description(selected_kind, game.tuning)
+		"rifts": description.text = Balance.rift_description(selected_kind, game.tuning, authored_spawns)
 		"gear":
 			const Relics = preload("res://scripts/gameplay/progression/relics.gd")
 			var boss_kind: String = Relics.DEFINITIONS[selected_kind].boss
@@ -293,7 +311,7 @@ func add_number(stat: String) -> void:
 			rules_edited.emit(section, kind, [stat])
 			refresh_identity()
 			if section == "rifts":
-				detail.text = Balance.rift_description(kind, game.tuning) + " Set to 0 to disable. Health adjustments preserve remaining health percentage."
+				detail.text = portal_detail()
 			changed.emit()
 		else:
 			number.set_value_no_signal(current_value(stat))

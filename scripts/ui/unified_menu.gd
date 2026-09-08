@@ -812,6 +812,7 @@ func show_campaign_content_rules() -> void:
 	rules_editor = preload("res://scripts/ui/developer/developer_controls.gd").new()
 	rules_editor.game = editor_game
 	rules_editor.configuration_only = true
+	rules_editor.authored_spawns = true
 	rules_editor.categories.assign(Build.STAT_GROUPS)
 	rules_editor.rules_edited.connect(func(category: String, kind: String, stats: Array):
 		if not campaign_rule_changes.has(category): campaign_rule_changes[category] = {}
