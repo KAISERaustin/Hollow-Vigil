@@ -17,7 +17,7 @@ September 7, 2026. Scope: the current production menu tree in `UI_MENU_TREE.md`,
 | Campaign | Chapter map, level markers, briefing, battle, Waves, wave details/editor, construction, shared tower actions, result navigation | `mobile_playthrough_runner`, `mobile_campaign_controls_runner`, `campaign_upgrade_runner` |
 | Shared touch behavior | Swipe over cards/buttons, tap versus drag, dropdown selection, nested scrolling, cancellation, modal shielding, pan/pinch, safe-area coordinate conversion and rotation | `touch_scroll_scope_runner`, `mobile_navigation_runner`, `mobile_scroll_runner`, `illustrated_picker_touch_runner` |
 
-The main reachability audit uses 360×640, 390×844, 540×960 and 844×390 viewports. Full menu workflows and rendered screenshots complement checks of bounds: an element existing or receiving a directly emitted signal alone is not evidence of a successful finger interaction. Text and network responses use deterministic fixtures where native keyboards or services are unavailable.
+The main reachability audit uses 360×640, 390×844 and 540×960 upright portrait viewports. Full menu workflows and rendered screenshots complement checks of bounds: an element existing or receiving a directly emitted signal alone is not evidence of a successful finger interaction. Text and network responses use deterministic fixtures where native keyboards or services are unavailable.
 
 ## Repairs
 

@@ -1,8 +1,8 @@
 extends SceneTree
 
 const UI = preload("res://scripts/ui/shared/interface.gd")
-const Harness = preload("res://tests/rendered/visual_smoke.gd")
 var failures: Array[String] = []
+var checks := 0
 
 # Real cloud UI with an offline fixture: button tests must never upload a save.
 const Service = preload("res://scripts/cloud/cloud_service.gd")
@@ -20,6 +20,7 @@ class CloudFixture extends Service:
 func _initialize() -> void:
 	# Enable the engine's touchscreen scrolling path on desktop test hosts.
 	Input.emulate_touch_from_mouse = true
+	root.gui_embed_subwindows = true
 	preload("res://tests/support/timeout.gd").arm(self)
 	call_deferred("run")
 
@@ -27,7 +28,20 @@ func settle() -> void:
 	for i in range(6): await process_frame
 
 func check(ok: bool, message: String) -> void:
+	checks += 1
 	if not ok: failures.append(message)
+
+func tap(position: Vector2) -> void:
+	var press := InputEventScreenTouch.new()
+	press.position = position
+	press.index = 0
+	press.pressed = true
+	Input.parse_input_event(press)
+	await process_frame
+	var release := press.duplicate()
+	release.pressed = false
+	Input.parse_input_event(release)
+	await settle()
 
 func swipe(position: Vector2) -> void:
 	var press := InputEventScreenTouch.new()
@@ -98,14 +112,14 @@ func run() -> void:
 		await settle()
 		var sync_button: Button = sync_row.get_child(1)
 		var before: int = service.sync_count
-		await Harness.tap(frame, sync_row.get_child(0).get_global_rect().get_center(), true)
+		await tap(sync_row.get_child(0).get_global_rect().get_center())
 		check(service.sync_count == before, "Tapping row text triggered sync")
 		await swipe(sync_row.get_child(0).get_global_rect().get_center())
 		check(scroll.scroll_vertical > 30, "Touch drag on row text did not scroll at " + str(viewport))
 		check(service.sync_count == before, "Scrolling triggered sync")
 		scroll.ensure_control_visible(sync_row)
 		await settle()
-		await Harness.tap(frame, sync_button.get_global_rect().get_center(), true)
+		await tap(sync_button.get_global_rect().get_center())
 		check(service.sync_count == before + 1, "Trailing Sync button did not activate exactly once")
 		service.busy = true
 		panel.rebuild()
@@ -127,7 +141,7 @@ func run() -> void:
 	await check_number_rows()
 	await check_menu_pages()
 	for failure in failures: push_error(failure)
-	print("MOBILE_SCROLL: ", failures.size(), " failures; touch scrolling, safe actions and numeric controls; full-screen menus at 3 upright portrait sizes")
+	print("MOBILE_SCROLL: %d checks, %d failures; touch scrolling, safe actions and numeric controls; full-screen menus at 3 upright portrait sizes" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
 
 func check_menu_pages() -> void:
@@ -153,7 +167,7 @@ func check_menu_pages() -> void:
 		menu.show_slots()
 		await settle()
 		check(menu.welcome_paper.visible, "Saved games lost the full-screen paper")
-		var first: Button = menu.find_child("SaveSlot1", true, false)
+		var first: Button = menu.find_child("NewGameSlot1", true, false)
 		menu.scroll.ensure_control_visible(first)
 		await settle()
 		var before: int = menu.scroll.scroll_vertical
@@ -161,16 +175,17 @@ func check_menu_pages() -> void:
 		await swipe(first.get_global_rect().get_center())
 		if remaining > 30:
 			check(menu.scroll.scroll_vertical > before + 30, "Saved game button blocks swipe at " + str(viewport))
-		check(menu.find_child("SaveSlot1", true, false) == first, "Saved game swipe activated New game")
+		check(menu.find_child("NewGameSlot1", true, false) == first, "Saved game swipe activated New game")
 		menu.scroll.ensure_control_visible(menu.content.get_child(-1))
 		await settle()
 		check(menu.scroll.get_global_rect().grow(1).encloses(menu.content.get_child(-1).get_global_rect()), "Last saved-games action unreachable")
 		menu.show_creation(0)
+		menu.new_game.mode = "creative"
+		menu.show_review()
 		await settle()
-		var create := menu.find_child("CreateSave", true, false)
-		menu.scroll.ensure_control_visible(create)
+		var create := menu.find_child("StartGame", true, false)
 		await settle()
-		check(menu.scroll.get_global_rect().grow(1).encloses(create.get_global_rect()), "Create action unreachable at " + str(viewport))
+		check(menu.get_global_rect().grow(1).encloses(create.get_global_rect()), "Fixed Start game action unreachable at " + str(viewport))
 		app.show_campaign()
 		var campaign: Control = app.campaign
 		campaign.set_process(false)
@@ -229,9 +244,9 @@ func check_number_rows() -> void:
 			await settle()
 			var buttons := number.get_parent().get_child(1)
 			number.value = 37
-			await Harness.tap(app, buttons.get_child(1).get_global_rect().get_center(), true)
+			await tap(buttons.get_child(1).get_global_rect().get_center())
 			check(number.value == 37 + number.step, screen + " plus button did not apply one step")
-			await Harness.tap(app, buttons.get_child(0).get_global_rect().get_center(), true)
+			await tap(buttons.get_child(0).get_global_rect().get_center())
 			check(number.value == 37, screen + " minus button did not apply one step")
 			var entry := number.get_line_edit()
 			entry.grab_focus()

@@ -1,5 +1,7 @@
 # Verification
 
+The app supports fixed upright portrait on iOS and Android. Run layout and input checks at portrait sizes only (normally 360x640, 390x844 and 540x960); do not add sideways or upside-down app viewport cases. Wide artwork contact sheets and world-coordinate tests are separate from device orientation. For native release acceptance, verify Android's portrait activity manifest and iOS's portrait-only iPhone/iPad orientation arrays, then confirm turning each phone leaves the app upright. See `AGENTS.md` for the persistent platform contract.
+
 Use the root `launch.ps1` commands documented in the README. `-Check` runs headless, full rendered UI, GPU terrain and artwork checks sequentially. The runner prepares imports, checks script compilation, isolates test saves under `.runtime/tests`, and fails on script/engine errors. Each automated test entry point has a timeout for interrupted or failed coroutines.
 
 `./launch.ps1 -StyleTests` checks sixteen UI screens, including tower information, Developer Controls, targeting, and relocation, at 540×960, 360×640, and 390×844 with the standard text size. It verifies viewport containment and reachable close/confirmation controls and captures `artifacts/style-*.png`. It is also included in `-Check`. Tower action targets are 48 map units at baseline zoom; their size and offsets scale with their towers, including at screen edges. Rendered smoke checks cover mouse and touch at four zooms and three viewport sizes.

@@ -36,6 +36,8 @@ as appropriate. Never regenerate the upload key for a routine update.
 
 ## Verification
 
+The app is locked to upright portrait through `display/window/handheld/orientation.android=1` in `project.godot`. The Android phone and tablet presets both inherit it. `display/window/size/resizable.android=false` disables activity resizing. Before releasing a new build, inspect its manifest for `android:screenOrientation="portrait"` (numeric value `1`) and `android:resizeableActivity="false"`, then confirm turning an Android phone leaves gameplay and menus upright. Rebuild and install the app to receive these settings.
+
 The signed AAB passed Google's bundletool validation and JAR signature verification.
 Its manifest confirms package `com.kaiser.hollowvigil`, version code 1, minimum
 Android API 24 and target API 36. No signing files, local saves or tests are included.

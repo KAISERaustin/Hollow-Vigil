@@ -1,5 +1,9 @@
 # Hollow Vigil on iPhone
 
+## Portrait-only orientation
+
+The app is locked to upright portrait through `display/window/handheld/orientation.ios=1` in `project.godot`. Godot generates both `UISupportedInterfaceOrientations` and `UISupportedInterfaceOrientations~ipad` with only `UIInterfaceOrientationPortrait`; its native template retains `UIRequiresFullScreen=true`. Verify those values in the newly exported Xcode project's Info.plist, and confirm turning an iPhone leaves gameplay and menus upright before releasing. Use a fresh export/archive to apply the settings; existing TestFlight installations are unchanged until a new build is installed. Historical build reports below retain their original test coverage.
+
 ## TestFlight build 1.0.8 — September 7, 2026
 
 Version **0.1.0 (1.0.8)** contains the latest source from `6696e3ffad2a92b349f35d8053246aea29e2d957`, with the iOS build number updated to `1.0.8`. Xcode Organizer confirmed **Uploaded to Apple** at 2:39 PM CDT through **Distribute App → App Store Connect → Distribute** using the signed-in developer account. App Store Connect subsequently confirmed **Testing** in the internal **Just for Testing** group, with seven testers and eight available builds.

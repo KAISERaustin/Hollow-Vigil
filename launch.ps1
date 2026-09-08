@@ -96,9 +96,12 @@ try {
         if ($MobileTests -or $Check) {
             Invoke-Godot -Name 'touch-scroll-scope' -EngineArguments @('--headless', '--script', 'res://tests/touch_scroll_scope_runner.gd')
             Invoke-Godot -Name 'mobile-navigation' -EngineArguments @('--script', 'res://tests/rendered/mobile_navigation_runner.gd')
+            Invoke-Godot -Name 'mobile-menu-audit' -EngineArguments @('--script', 'res://tests/rendered/mobile_menu_audit_runner.gd')
+            Invoke-Godot -Name 'mobile-scroll' -EngineArguments @('--script', 'res://tests/rendered/mobile_scroll_runner.gd')
             Invoke-Godot -Name 'mobile-playthrough' -EngineArguments @('--script', 'res://tests/rendered/mobile_playthrough_runner.gd')
             Invoke-Godot -Name 'mobile-picker' -EngineArguments @('--script', 'res://tests/rendered/illustrated_picker_touch_runner.gd')
             Invoke-Godot -Name 'mobile-campaign-upgrades' -EngineArguments @('--script', 'res://tests/rendered/campaign_upgrade_runner.gd')
+            Invoke-Godot -Name 'mobile-campaign-controls' -EngineArguments @('--script', 'res://tests/rendered/mobile_campaign_controls_runner.gd')
             Invoke-Godot -Name 'mobile-equipment' -EngineArguments @('--script', 'res://tests/rendered/relic_runner.gd')
         }
         if ($StyleTests -or $Check) {

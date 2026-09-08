@@ -19,7 +19,7 @@ func check(ok: bool, message: String) -> void:
 		push_error(message)
 
 func run() -> void:
-	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960), Vector2i(844, 390)]:
+	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		await check_picker(dimensions)
 	print("PICKER TOUCH: %d checks, %d failures; taps, passive/action drags, cancellation, disabled items, rotation and dismissal at four sizes" % [checks, failures])
 	quit(1 if failures else 0)

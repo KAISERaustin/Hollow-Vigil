@@ -147,8 +147,8 @@ serif wordmark, a small mint seal, a moonlit sanctuary landscape above the actio
 and compact footer lettering. Its artwork uses the native drawing library and
 never owns input or starts a simulation. Campaign, Infinite and Settings keep
 their existing gold-paper treatment, 56-unit height, up-to-320-unit width and
-14-unit vertical gaps. At landscape widths, put the identity and illustration
-beside the actions; keep the complete composition scrollable on small screens.
+14-unit vertical gaps. Keep the identity and illustration above the actions in
+upright portrait; keep the complete composition scrollable on small screens.
 
 ### Campaign world map
 

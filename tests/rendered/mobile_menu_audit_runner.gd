@@ -35,6 +35,16 @@ func swipe_control(scroll: ScrollContainer, upward: bool = true) -> void:
 		Input.parse_input_event(event)
 		await process_frame
 	await input_touch(start + movement, false)
+	# Momentum continues after release; target coordinates are valid once it ends.
+	var stable := 0
+	var previous: int = scroll.scroll_vertical
+	for frame in 120:
+		await physics_frame
+		if not is_instance_valid(scroll): return
+		if scroll.scroll_vertical == previous: stable += 1
+		else: stable = 0
+		previous = scroll.scroll_vertical
+		if stable >= 6: break
 	await frames()
 
 func reveal(target: Control) -> void:
@@ -71,10 +81,15 @@ func tap_control(target: Control, context: String) -> void:
 	await frames()
 
 func press(key: String) -> void:
+	if "--trace-mobile" in OS.get_cmdline_user_args(): print("MOBILE_TOUCH: %s %s %s" % [root.size, menu.screen, key])
 	await frames()
 	var target := button(key)
 	check(target != null, "Reachable touch action: " + key)
-	if target == null: return
+	if target == null:
+		# A missing route invalidates the remaining workflow; avoid cascade noise.
+		quit(1)
+		await process_frame
+		return
 	touch_actions += 1
 	await tap_control(target, key)
 	for frame in 120:
@@ -82,6 +97,16 @@ func press(key: String) -> void:
 		await process_frame
 	await frames()
 	await audit_page_once()
+	if key == "CreativeTools" and menu.screen == "creative_tools":
+		for toggle_name in ["UnrestrictedCamera", "ShowHealthNumbers"]:
+			var toggle := button(toggle_name)
+			var previous: bool = toggle.button_pressed
+			await tap_control(toggle, toggle_name)
+			check(toggle.button_pressed != previous, "Creative tool toggles exactly once by touch: " + toggle_name)
+			await tap_control(toggle, toggle_name)
+		var gold_before: float = app.game.data.balance
+		await tap_control(button("AddMillionGold"), "AddMillionGold")
+		check(app.game.data.balance == gold_before + 1000000, "Creative gold action executes once per touch")
 
 func choose(key: String, index: int) -> void:
 	await press(key)
@@ -100,6 +125,13 @@ func choose(key: String, index: int) -> void:
 func capture(key: String) -> void:
 	await super.capture("touch-" + key)
 	await audit_page_once()
+
+func compare_toolbar() -> void:
+	for key in toolbar_rects:
+		var control := button(key)
+		if control != null and not control.get_global_rect().is_equal_approx(toolbar_rects[key]):
+			print("MOBILE_TOOLBAR_GEOMETRY: %s Campaign=%s Infinite=%s" % [key, toolbar_rects[key], control.get_global_rect()])
+	super.compare_toolbar()
 
 func audit_page_once() -> void:
 	if not menu.visible: return
@@ -135,16 +167,7 @@ func audit_controls(owner: Control, context: String) -> void:
 func extended_workflows() -> void:
 	await super.extended_workflows()
 	await extra_routes()
-	# Portrait workflows above cover creation, replacement, share/retry, pagination,
-	# restoration, rules, and live sessions. Repeat every page layout in landscape.
-	var portrait := root.size
-	root.size = Vector2i(844, 390)
-	root.content_scale_size = root.size
-	await frames()
-	await landscape_pages()
-	root.size = portrait
-	root.content_scale_size = portrait
-	await frames()
+	await portrait_pages()
 	print("MOBILE_MENU_AUDIT: %d touch actions, %d touch choices, %d distinct phone page audits" % [touch_actions, touch_choices, audited_pages.size()])
 
 func extra_routes() -> void:
@@ -177,18 +200,38 @@ func extra_routes() -> void:
 	await press("RecoverMyBuilds")
 	await press("BackupAccount")
 	await audit_controls(menu, "signed in account")
+	fill("PlayerName", "")
+	await press("SavePlayerName")
+	check(menu.message.visible, "Touch Save name reports validation feedback")
+	var prior_account: String = network.player_id
+	var prior_name: String = network.display_name
+	network.session_store.path = app.game.save_path + ".mobile-account"
+	await press("SignOut")
+	check(not network.signed_in() and menu.find_child("AccountEmail", true, false) != null, "Touch signs out and opens sign-in form")
+	await audit_controls(menu, "signed out account")
+	await tap_control(menu.find_child("AccountEmail", true, false), "AccountEmail")
+	check(menu.find_child("AccountEmail", true, false).has_focus(), "Touch focuses email field")
+	await press("SendSignInCode")
+	check(menu.message.visible, "Touch email-code action reports offline configuration")
+	network.email = "fixture@example.invalid"
+	fill("AccountCode", "invalid")
+	await press("SignIn")
+	check(menu.message.visible and not network.signed_in(), "Touch invalid sign-in shows recoverable feedback")
+	network.player_id = prior_account
+	network.display_name = prior_name
+	network.refresh_token = "fixture"
 	await press("AccountDone")
 	menu.show_main_menu()
 
-func landscape_pages() -> void:
+func portrait_pages() -> void:
 	for type in ["campaign", "infinite"]:
 		menu.show_main_menu()
-		await audit_controls(menu, "landscape main")
+		await audit_controls(menu, "portrait main")
 		await press("OpenCampaign" if type == "campaign" else "OpenInfinite")
-		await audit_controls(menu, type + " landscape slots")
+		await audit_controls(menu, type + " portrait slots")
 		await press("BackButton")
 		menu.show_home(type)
-		await audit_controls(menu, type + " landscape home")
+		await audit_controls(menu, type + " portrait home")
 		await press("NewGame")
 		await press("ChooseCreative")
 		await press("NextPlayStyle")
@@ -198,20 +241,20 @@ func landscape_pages() -> void:
 		await press("MyBuilds")
 		await press("BuildDetails")
 		await press("SharePrivateBuild")
-		await audit_controls(menu, type + " landscape save form")
+		await audit_controls(menu, type + " portrait save form")
 		if type == "campaign":
 			await choose("BuildScope", 1)
-			await choose("BuildLevel", 19)
+			await choose("BuildLevel", 20)
 		menu.show_backups(menu.show_home)
-		await audit_controls(menu, type + " landscape backups")
+		await audit_controls(menu, type + " portrait backups")
 		await press("RestoreBackup")
 		await press("RestoreIntoSlot1")
-		await audit_controls(menu, type + " landscape restore comparison")
+		await audit_controls(menu, type + " portrait restore comparison")
 		menu.show_settings(menu.show_home)
 		await press("SettingsSound")
-		await audit_controls(menu, type + " landscape sound")
+		await audit_controls(menu, type + " portrait sound")
 		await press("BackButton")
 		await press("SettingsAccount")
-		await audit_controls(menu, type + " landscape account")
+		await audit_controls(menu, type + " portrait account")
 		await press("AccountDone")
 	menu.show_main_menu()
