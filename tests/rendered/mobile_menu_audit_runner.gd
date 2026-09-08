@@ -113,7 +113,7 @@ func save_touch_cost_probe() -> void:
 	root.add_child(app)
 	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	app.set_process(false)
-	root.size = Vector2i(390, 844)
+	root.size = Vector2i(360, 640) if "--compact-save" in OS.get_cmdline_user_args() else Vector2i(390, 844)
 	root.content_scale_size = root.size
 	Engine.max_fps = 240
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)

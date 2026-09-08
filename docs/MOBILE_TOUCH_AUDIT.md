@@ -13,7 +13,8 @@ September 7, 2026. Scope: the current production menu tree in `UI_MENU_TREE.md`,
 | Backups and recovery | Account entry, backup lists, destination, local/cloud comparison, restore/replace/cancel and deletion confirmations | `mobile_menu_audit_runner`; local fixture data only |
 | Settings and account | Sound mute, category volumes, numeric entry/step buttons, previews/defaults, email/code/player-name fields, Paste, sign-in return and Done | `mobile_navigation_runner`, `mobile_menu_audit_runner`, `mobile_scroll_runner` |
 | Creative rules and tools | Every registered rule category, illustrated type/tier choices, exact values, Apply/Cancel/discard, camera/health toggles, gold action | `mobile_navigation_runner`, `mobile_menu_audit_runner`, `illustrated_picker_touch_runner` |
-| Infinite contextual menus | Construction, territory, portals, core, tower information, targeting, equipment, upgrade/branch, sale and relocation | `mobile_navigation_runner`, `mobile_playthrough_runner`, equipment and Campaign shared-tower runners |
+| Infinite contextual menus | Construction, territory, portals, core, tower information, targeting, equipment, upgrade/branch, sale and relocation | `mobile_navigation_runner`, `mobile_playthrough_runner`, `mobile_context_actions_runner`, equipment and Campaign shared-tower runners |
+| Return earnings and reset | Return overlay, Close, Collect, repeated collection, persistence, reset Cancel/Back/confirm and blocking touches behind dialogs | `mobile_context_actions_runner` with isolated saves |
 | Campaign | Chapter map, level markers, briefing, battle, Waves, wave details/editor, construction, shared tower actions, result navigation | `mobile_playthrough_runner`, `mobile_campaign_controls_runner`, `campaign_upgrade_runner` |
 | Shared touch behavior | Swipe over cards/buttons, tap versus drag, dropdown selection, nested scrolling, cancellation, modal shielding, pan/pinch, safe-area coordinate conversion and portrait sizing | `touch_scroll_scope_runner`, `mobile_navigation_runner`, `mobile_scroll_runner`, `illustrated_picker_touch_runner` |
 
@@ -36,6 +37,7 @@ Run `./launch.ps1 -MobileTests` for the touch suites and `./launch.ps1 -StyleTes
 
 Verified results:
 
+- Complete menu touch workflow: 6,092 checks, 0 failures; 485 touch actions, 31 touch picker choices and 105 distinct page/viewport audits across the three portrait sizes.
 - Shared touch and repeated page rebuilds: 28 checks, 0 failures.
 - Mobile navigation after the shared scroll repair: 3,140 checks, 0 failures.
 - Illustrated picker: 261 rendered checks, 0 failures.
@@ -43,14 +45,16 @@ Verified results:
 - Campaign upgrades across all 30 levels: 1,200 checks, 0 failures.
 - Campaign touch controls: 1,610 checks, 0 failures. All 30 markers were checked at each portrait size and all 30 levels were opened by touch at 390×844.
 - Shared equipment UI: 117 checks, 0 failures.
+- Contextual transactions, return earnings and reset: 201 checks, 0 failures across the three portrait sizes.
 - Long-library finger scrolling and Details/Delete/Cancel: 137 checks, 0 failures.
+- Save preparation feedback, duplicate-tap prevention and Back before serialization: 10 checks each at 360×640 and 390×844, 0 failures.
 - Rendered Campaign landscape/map/map-menu/HUD checks: 104 / 2,073 / 627 / 1,581 checks, all passing.
 - Parchment corners: 960 checks, 0 failures. Waves: 6,645 checks, 0 failures after correcting a stale test heading from `Level configuration` to `Edit wave 2`.
 - UI style: 16 screens at three sizes, 0 failures. Compact menu layout: all developer types at three sizes, 0 failures. Developer layout: 29,757 checks, 0 failures. Portal UI: 168 checks, 0 failures.
 - Tuning-schema equivalence and invalid-value coverage: 1,427 checks, 0 failures. Developer tiers: 4,851 checks, 0 failures.
 - Unified persistence, all content selections, node extension and final-wave validation: 2,390 checks, 0 failures.
 
-A headless full Campaign build benchmark measured capture / compose / encode / decode at 14,124 / 4,228 / 8,685 / 9,332 ms before the optimization, versus 1,533 / 224 / 508 / 543 ms after it. The encoded document remained 1,952,411 bytes. A native touch Save privately run completed with visible success in 3,067 ms on this PC. These measurements are local observations under concurrent test load, not phone performance guarantees.
+A headless full Campaign build benchmark measured capture / compose / encode / decode at 14,124 / 4,228 / 8,685 / 9,332 ms before the optimization, versus 1,533 / 224 / 508 / 543 ms after it. The encoded document remained 1,952,411 bytes. Final touch Save privately runs, including visible progress and duplicate-tap protection, completed in 2,852 ms at 360×640 and 2,862 ms at 390×844 on this PC. These measurements are local observations under concurrent test load, not phone performance guarantees.
 
 The initial navigation test expected Infinite to open the retired home route; it now checks Saved games. The toolbar regression expected identical Campaign and Infinite button coordinates despite their intentionally different compositions; it now verifies reachability, minimum target sizes and non-overlap. Touch workflow fixtures now stop kinetic movement before tapping a specific row, and use valid saved-game data for navigation that requires a successful save.
 
