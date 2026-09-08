@@ -70,6 +70,9 @@ try {
     } else {
         # Registers script classes and imports assets on a completely clean checkout.
         Invoke-Godot -Name 'import' -EngineArguments @('--headless', '--editor', '--import')
+        if ($Tests -or $MobileTests -or $Check) {
+            Invoke-Godot -Name 'tuning-schema' -EngineArguments @('--headless', '--script', 'res://tests/tuning_schema_runner.gd')
+        }
         if ($Tests -or $Check) {
             Invoke-Godot -Name 'tower-expansion' -EngineArguments @('--headless', '--script', 'res://tests/tower_expansion_runner.gd')
             Invoke-Godot -Name 'tower-expansion-balance' -EngineArguments @('--headless', '--script', 'res://tests/tower_expansion_balance_runner.gd')

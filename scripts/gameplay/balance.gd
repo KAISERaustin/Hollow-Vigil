@@ -136,13 +136,15 @@ const TUNING_FIELDS = preload("res://scripts/content/catalogs/tuning.gd").TUNING
 
 static func fields_for(category: String, kind: String) -> Dictionary:
 	var result := {}
+	var schema: Dictionary = TUNING_FIELDS[category]
+	var defaults: Dictionary = definitions(category)[kind]
 	var order: Array = ["hp", "speed", "payout", "cost", "damage", "period", "range", "splash", "targets"]
-	for stat in TUNING_FIELDS[category]:
+	for stat in schema:
 		if stat not in order:
 			order.append(stat)
 	for stat in order:
-		if TUNING_FIELDS[category].has(stat) and definitions(category)[kind].has(stat):
-			result[stat] = field_limits(category, kind, stat)
+		if schema.has(stat) and defaults.has(stat):
+			result[stat] = _resolved_field_limits(category, kind, stat, defaults)
 	return result
 
 static func editable_fields_for(category: String, kind: String) -> Dictionary:
@@ -155,11 +157,15 @@ static func editable_fields_for(category: String, kind: String) -> Dictionary:
 # Legacy base tuning scales some upgrades beyond the base slider's ceiling.
 # Those inherited values must remain representable as independent tier values.
 static func field_limits(category: String, kind: String, stat: String) -> Dictionary:
+	return _resolved_field_limits(category, kind, stat)
+
+static func _resolved_field_limits(category: String, kind: String, stat: String, defaults: Dictionary = {}) -> Dictionary:
 	var limits: Dictionary = TUNING_FIELDS[category][stat].duplicate()
 	if category == "towers" and kind.contains(":") and stat in ["cost", "damage", "range", "splash"]:
 		var base: float = TOWERS[kind.get_slice(":", 0)][stat]
 		if base > 0.0:
-			limits.max = ceil(limits.max * maxf(1.0, definitions(category)[kind][stat] / base)) + 1.0 # Allow scaling roundoff.
+			if defaults.is_empty(): defaults = definitions(category)[kind]
+			limits.max = ceil(limits.max * maxf(1.0, defaults[stat] / base)) + 1.0 # Allow scaling roundoff.
 	return limits
 
 static func definitions(category: String) -> Dictionary:
@@ -190,14 +196,19 @@ static func valid_tuning(value: Variant) -> bool:
 	for category in value:
 		if not TUNING_FIELDS.has(category) or not value[category] is Dictionary:
 			return false
+		# Resolve this call's catalog once; later calls still see newly registered
+		# nodes. Validation only needs membership and limits, not editor ordering.
+		var schema: Dictionary = TUNING_FIELDS[category]
+		var catalog: Dictionary = definitions(category)
 		for kind in value[category]:
-			if not definitions(category).has(kind) or not value[category][kind] is Dictionary:
+			if not catalog.has(kind) or not value[category][kind] is Dictionary:
 				return false
+			var defaults: Dictionary = catalog[kind]
 			for stat in value[category][kind]:
-				if not fields_for(category, kind).has(stat):
+				if not schema.has(stat) or not defaults.has(stat):
 					return false
 				var number: Variant = value[category][kind][stat]
-				var limits: Dictionary = field_limits(category, kind, stat)
+				var limits := _resolved_field_limits(category, kind, stat, defaults)
 				if not (number is float or number is int):
 					return false
 				if limits.get("integer", false) and number != floor(number):

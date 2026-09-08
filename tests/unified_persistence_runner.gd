@@ -63,6 +63,16 @@ func run() -> void:
 		check(Build.compose_campaign(campaign_build, {}).ok, "Whole campaign composes validated fresh levels")
 		check(not Build.infinite_snapshot(campaign_build, {}, "creative").ok, "Whole Campaign stats require explicit source level in Infinite")
 		check(Build.infinite_snapshot(campaign_build, {"source_level": 4}, "creative").ok, "Explicit Campaign level stats are portable")
+		var last_level := str(Build.Configuration.Catalog.COUNT - 1)
+		var last_wave: String = campaign_build.data.levels[last_level].waves.keys()[-1]
+		var tier: String = Balance.tier_key("rapid", 2)
+		var altered := campaign_build.duplicate(true)
+		altered.data.levels[last_level].waves[last_wave].stats.towers[tier].erase("damage")
+		check(not Build.valid(altered), "Shared schema still rejects a missing tower tier field in the final wave")
+		altered.data.levels[last_level].waves[last_wave].stats.towers[tier].damage = INF
+		check(not Build.valid(altered), "Every wave still rejects non-finite numeric tuning")
+		altered.data.levels[last_level].waves[last_wave].stats.towers[tier].damage = campaign_build.data.levels[last_level].waves[last_wave].stats.towers[tier].damage
+		check(Build.valid(altered), "Validation results are recomputed after document edits")
 	var library := VigilSaveSlots.new()
 	library.base_path = slots.base_path
 	var code := Build.encode(build)

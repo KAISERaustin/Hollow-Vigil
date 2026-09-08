@@ -174,8 +174,9 @@ static func valid(value: Dictionary) -> bool:
 				if not kind is String or seen.has(kind) or kind not in Balance.Content.catalog().find("build_contents", key).types(): return false
 				seen[kind] = true
 		elif selection != true: return false
+	var required_stats := _required_stats(value.contents)
 	if value.game_type == "infinite":
-		if not _valid_stats(value.data.get("stats"), value.contents): return false
+		if not _valid_stats(value.data.get("stats"), value.contents, required_stats): return false
 		var composed := infinite_snapshot(value, {}, "creative")
 		return composed.get("ok", false)
 	if value.data.size() != 1 or not value.data.get("levels") is Dictionary: return false
@@ -184,30 +185,41 @@ static func valid(value: Dictionary) -> bool:
 	if value.data.levels.size() != indices.size(): return false
 	for index in indices:
 		var entry: Variant = value.data.levels.get(str(index))
-		if not entry is Dictionary or not _valid_stats(entry.get("stats"), value.contents) or not entry.get("waves") is Dictionary: return false
+		if not entry is Dictionary or not _valid_stats(entry.get("stats"), value.contents, required_stats) or not entry.get("waves") is Dictionary: return false
 		var defaults := Configuration.Catalog.level(index)
 		if entry.waves.size() != defaults.waves.size(): return false
 		for wave in defaults.waves.size():
 			var part: Variant = entry.waves.get(str(wave))
-			if not part is Dictionary or not _valid_stats(part.get("stats"), value.contents): return false
+			if not part is Dictionary or not _valid_stats(part.get("stats"), value.contents, required_stats): return false
 			if not _valid_wave_part(part, value.contents, defaults.roads.size()): return false
 		var composed := campaign_level(value, index)
 		# Missing companion groups are a reviewable content conflict, not bad data.
 		if not composed.ok and not composed.get("dependency", false): return false
 	return true
 
-static func _valid_stats(tuning: Variant, contents: Dictionary) -> bool:
+static func _required_stats(contents: Dictionary) -> Dictionary:
+	# Resolve the selected node schema once per document validation. Every level
+	# and wave must still validate its own values; no mutable results are cached.
+	var required := {}
+	for category in STAT_GROUPS:
+		var selected: Array = contents.get(category, [])
+		if selected.is_empty(): continue
+		required[category] = {}
+		for kind in Balance.definitions(category):
+			if kind.get_slice(":", 0) in selected:
+				required[category][kind] = Balance.editable_fields_for(category, kind).keys()
+	return required
+
+static func _valid_stats(tuning: Variant, contents: Dictionary, required: Dictionary) -> bool:
 	if not Balance.valid_tuning(tuning) or tuning.has("session"): return false
 	for category in tuning:
 		for kind in tuning[category]:
 			if kind.get_slice(":", 0) not in contents.get(category, []): return false
-	for category in STAT_GROUPS:
-		for kind in contents.get(category, []):
-			for key in Balance.definitions(category):
-				if key.get_slice(":", 0) == kind:
-					if not tuning.get(category, {}).has(key): return false
-					for stat in Balance.editable_fields_for(category, key):
-						if not tuning[category][key].has(stat): return false
+	for category in required:
+		for kind in required[category]:
+			if not tuning.get(category, {}).has(kind): return false
+			for stat in required[category][kind]:
+				if not tuning[category][kind].has(stat): return false
 	return true
 
 static func _valid_wave_part(part: Dictionary, contents: Dictionary, lanes: int) -> bool:

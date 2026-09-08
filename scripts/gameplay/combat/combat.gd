@@ -11,6 +11,8 @@ const Projectiles = preload("res://scripts/gameplay/combat/projectiles.gd")
 const TowerAbilities = preload("res://scripts/gameplay/combat/tower_abilities.gd")
 const EffectFields = preload("res://scripts/gameplay/combat/effect_fields.gd")
 const TowerComponents = preload("res://scripts/gameplay/combat/tower_components.gd")
+const LineProjectiles = preload("res://scripts/gameplay/combat/line_projectiles.gd")
+const RoadTraps = preload("res://scripts/gameplay/combat/road_traps.gd")
 
 const Relics = preload("res://scripts/gameplay/progression/relics.gd")
 const Bosses = preload("res://scripts/gameplay/encounters/bosses.gd")
@@ -55,6 +57,15 @@ var tower_component_state: Dictionary = {}
 var component_serial := 0
 var line_projectiles: Array[Dictionary] = []
 var traps: Array[Dictionary] = []
+
+func launch_line_attack(tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary, returning: bool) -> void:
+	LineProjectiles.launch(self, tower, origin, target, stats, returning)
+
+func can_deploy_road_traps(tower: Dictionary, origin: Vector2, stats: Dictionary) -> bool:
+	return not RoadTraps.positions(self, tower, origin, {}, stats).is_empty()
+
+func deploy_road_traps(tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary) -> void:
+	RoadTraps.deploy(self, tower, origin, target, stats)
 
 func rebuild_enemy_index() -> void:
 	enemy_index.rebuild(enemies)

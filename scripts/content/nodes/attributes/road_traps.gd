@@ -4,7 +4,7 @@ func allows_empty_target() -> bool:
 	return true
 
 func ready(combat, tower: Dictionary, origin: Vector2, stats: Dictionary) -> bool:
-	return not preload("res://scripts/gameplay/combat/road_traps.gd").positions(combat, tower, origin, {}, stats).is_empty()
+	return combat.can_deploy_road_traps(tower, origin, stats)
 
 func attack(combat, tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary) -> void:
-	preload("res://scripts/gameplay/combat/road_traps.gd").deploy(combat, tower, origin, target, stats)
+	combat.deploy_road_traps(tower, origin, target, stats)

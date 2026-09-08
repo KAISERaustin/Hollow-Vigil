@@ -27,6 +27,7 @@ The main reachability audit uses 360×640, 390×844 and 540×960 upright portrai
 - Mouse emulation from physical touch is explicit in the project configuration, preserving Godot control taps alongside the battlefield's native touch handling.
 - Form errors/status are revealed after scrolling settles, so pressing a pinned footer action cannot leave its response offscreen. Navigation revisions prevent an old response from scrolling a later page.
 - Scroll containers refresh their cached content measurements after rebuilding a page. This repairs the zero scroll range reproduced when refreshing the Campaign map with equally tall replacement content.
+- Full Campaign build saving no longer repeatedly reconstructs the same validation schemas. Each document still validates every selected value, level and wave. The Save form paints progress before serialization, prevents duplicate taps, and cancels preparation if Back navigates away.
 - Stale menu expectations and unusable test helpers were corrected; the launcher includes the additional touch regressions.
 
 ## Validation and release boundary
@@ -35,17 +36,23 @@ Run `./launch.ps1 -MobileTests` for the touch suites and `./launch.ps1 -StyleTes
 
 Verified results:
 
-- Mobile navigation: 3,158 checks, 0 failures.
-- Illustrated picker: 270 rendered checks, 0 failures.
+- Shared touch and repeated page rebuilds: 28 checks, 0 failures.
+- Mobile navigation after the shared scroll repair: 3,140 checks, 0 failures.
+- Illustrated picker: 261 rendered checks, 0 failures.
 - Mobile scrolling, legacy menus and numeric controls: 345 rendered checks, 0 failures.
 - Campaign upgrades across all 30 levels: 1,200 checks, 0 failures.
+- Campaign touch controls: 1,610 checks, 0 failures. All 30 markers were checked at each portrait size and all 30 levels were opened by touch at 390×844.
 - Shared equipment UI: 117 checks, 0 failures.
 - Long-library finger scrolling and Details/Delete/Cancel: 137 checks, 0 failures.
 - Rendered Campaign landscape/map/map-menu/HUD checks: 104 / 2,073 / 627 / 1,581 checks, all passing.
 - Parchment corners: 960 checks, 0 failures. Waves: 6,645 checks, 0 failures after correcting a stale test heading from `Level configuration` to `Edit wave 2`.
+- UI style: 16 screens at three sizes, 0 failures. Compact menu layout: all developer types at three sizes, 0 failures. Developer layout: 29,757 checks, 0 failures. Portal UI: 168 checks, 0 failures.
+- Tuning-schema equivalence and invalid-value coverage: 1,427 checks, 0 failures. Developer tiers: 4,851 checks, 0 failures.
+
+A headless full Campaign build benchmark measured capture / compose / encode / decode at 14,124 / 4,228 / 8,685 / 9,332 ms before the optimization, versus 1,533 / 224 / 508 / 543 ms after it. The encoded document remained 1,952,411 bytes. A native touch Save privately run completed with visible success in 3,067 ms on this PC. These measurements are local observations under concurrent test load, not phone performance guarantees.
 
 The initial navigation test expected Infinite to open the retired home route; it now checks Saved games. The toolbar regression expected identical Campaign and Infinite button coordinates despite their intentionally different compositions; it now verifies reachability, minimum target sizes and non-overlap. Touch workflow fixtures now stop kinetic movement before tapping a specific row, and use valid saved-game data for navigation that requires a successful save.
 
-The structural dependency checker still reports three pre-existing imports from content attributes into gameplay services: `line_attack.gd:13` and `road_traps.gd:7,10`. All three were verified at `21d551f` and were unchanged by this touch work. The Windows certificate-store warning appeared in the local test runtime; it is not evidence of a successful device/network test.
+The three content-to-gameplay imports observed during this audit were subsequently removed by the tower integration work. Line attacks and road traps now call the injected combat owner; `tools/check_structure.py` passes with zero failures. The Windows certificate-store warning appeared in the local test runtime; it is not evidence of a successful device/network test.
 
 Physical iOS and Android validation remains required for display density, native text keyboards, safe areas reported by the OS, edge/back gestures, interruption/resume, and device performance. The intended native keyboard overlay policy is preserved. World-anchored tower controls continue to scale with their towers as required by the style guide. No real account was signed in and no cloud record was published, replaced or deleted by the touch fixtures. A passing desktop audit cannot guarantee that every future phone session is free of issues; the delivered source must still be built and installed on the phone.

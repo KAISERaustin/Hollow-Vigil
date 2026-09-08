@@ -80,6 +80,9 @@ func run() -> void:
 	if "--build-cost-only" in OS.get_cmdline_user_args():
 		build_cost_probe()
 		return
+	if "--save-touch-cost-only" in OS.get_cmdline_user_args():
+		await save_touch_cost_probe()
+		return
 	if "--library-touch-only" in OS.get_cmdline_user_args() or "--level-picker-only" in OS.get_cmdline_user_args():
 		await library_touch_probe()
 		return
@@ -102,6 +105,73 @@ func build_cost_probe() -> void:
 	print("BUILD_COST: decode Campaign %d ms" % [Time.get_ticks_msec() - started])
 	check(composed.get("ok", false) and not decoded.is_empty(), "Timed Campaign build round trip remains valid")
 	quit(0 if failures.is_empty() else 1)
+
+func save_touch_cost_probe() -> void:
+	app = VigilApp.new()
+	app.load_saved_progress = false
+	app.game.save_path = "user://mobile-save-cost-" + str(Time.get_ticks_usec()) + ".save"
+	root.add_child(app)
+	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	app.set_process(false)
+	root.size = Vector2i(390, 844)
+	root.content_scale_size = root.size
+	Engine.max_fps = 240
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	app.show_save_slots()
+	menu = app.slot_menu
+	menu.show_export(app.game, {"levels": {}, "index": -1}, menu.show_main_menu)
+	fill("BuildName", "Timed full Campaign save")
+	await frames()
+	var started := Time.get_ticks_msec()
+	await check_save_pending()
+	print("MOBILE_SAVE_COST: full Campaign Save privately touch and feedback %d ms" % [Time.get_ticks_msec() - started])
+	check(not menu.form_saved_code.is_empty() and menu.message.visible, "Timed Save touch creates a private copy with visible feedback")
+	await check_save_back_cancellation()
+	app.game.suspended = true
+	app.queue_free()
+	await frames()
+	quit(0 if failures.is_empty() else 1)
+
+func queue_tap(at: Vector2) -> void:
+	for down in [true, false]:
+		var event := InputEventScreenTouch.new()
+		event.index = 0
+		event.position = at
+		event.pressed = down
+		Input.parse_input_event(event)
+
+func check_save_pending() -> void:
+	var action := button("SavePrivately")
+	var presses := [0]
+	var observed := [false]
+	action.pressed.connect(func():
+		presses[0] += 1
+		observed[0] = menu.submitting_build and action.disabled and button("ShareToCommunity").disabled and menu.message.visible and menu.message.text == "Saving build…"
+	)
+	var center := action.get_global_rect().get_center()
+	await input_touch(center, true)
+	await input_touch(center, false)
+	# A fast second finger tap must not start the same operation again.
+	queue_tap(center)
+	for frame in 20: await process_frame
+	check(observed[0], "Save touch shows pending feedback and disables Save and Share before serialization")
+	check(presses[0] == 1, "A rapid second Save tap is ignored while pending")
+	check(not menu.submitting_build and not action.disabled and not button("ShareToCommunity").disabled, "Save completion restores both touch actions")
+	check(not menu.form_saved_code.is_empty(), "The initial Save touch completes its private copy")
+
+func check_save_back_cancellation() -> void:
+	var saved_before: int = menu.slots.shared_configurations("all").size()
+	menu.show_export(app.game, {"levels": {}, "index": -1}, menu.show_main_menu)
+	fill("BuildName", "Cancelled pending Campaign save")
+	await frames()
+	var back_center := button("BackButton").get_global_rect().get_center()
+	button("SavePrivately").pressed.connect(func(): queue_tap.call_deferred(back_center))
+	var center := button("SavePrivately").get_global_rect().get_center()
+	await input_touch(center, true)
+	await input_touch(center, false)
+	for frame in 20: await process_frame
+	check(menu.screen == "main" and not menu.submitting_build, "Back touch during save preparation closes the form and releases pending state")
+	check(menu.slots.shared_configurations("all").size() == saved_before, "Back touch before preparation finishes creates no private save")
 
 func library_touch_probe() -> void:
 	app = VigilApp.new()

@@ -57,12 +57,12 @@ Damage is per contact, not guaranteed DPS. Moonwheel may hit once on each travel
 | Caltrop Keep | Scatterworks | 32 | 2 | 155 | 0 | 320 | 760 |
 
 - **Frostneedle:** Ice needles slow enemies by 25% for 2 seconds. Repeated hits refresh the slow; they never stack.
-- **Poison Arrow:** Arrows poison their target for 3 seconds, dealing {poison_dps} damage each second. Hits from this tower refresh the poison without stacking.
-- **Cinderfield:** Blasts leave burning ground for 3 seconds at {burn_dps} damage per second. Overlapping fire from this tower refreshes without stacking.
+- **Poison Arrow:** Arrows poison their target for 3 seconds, dealing 5 damage each second. Hits from this tower refresh the poison without stacking.
+- **Cinderfield:** Blasts leave burning ground for 3 seconds at 12 damage per second. Overlapping fire from this tower refreshes without stacking.
 - **Rupture Pyre:** Blasts deal 54 damage every 1.5 seconds and push enemies back 20 units, reduced by enemy resistance. Enemies resist another push for 1 seconds.
-- **Grave Echo:** A heavy orb bursts into 5 seeking fragments. Each deals {fragment_percent}% of its damage to a different enemy within 90 units. The original target is excluded; unused fragments fade.
-- **Doomstone:** Consecutive hits on one enemy increase this tower's damage by {curse_percent}% per curse stack, up to {curse_max_percent}% bonus. Switching targets resets the curse.
-- **Tempest Web:** Strikes up to 5 enemies. Each strike arcs to one additional, distinct enemy within 60 units for {arc_percent}% damage, reaching beyond normal range.
+- **Grave Echo:** A heavy orb bursts into 5 seeking fragments. Each deals 20% of its damage to a different enemy within 90 units. The original target is excluded; unused fragments fade.
+- **Doomstone:** Consecutive hits on one enemy increase this tower's damage by 20% per curse stack, up to 100% bonus. Switching targets resets the curse.
+- **Tempest Web:** Strikes up to 5 enemies. Each strike arcs to one additional, distinct enemy within 60 units for 50% damage, reaching beyond normal range.
 - **Thunderseal:** After 5 hits from this tower, a seal detonates for 3 times hit damage as a bonus and a 0.4-second stun. Charges reset; 2-second stun immunity prevents continuous lockdown.
 - **Siegebreaker:** Heavy bolts pierce 3 enemies at full damage. Boss hits deal 1.5 times damage before defenses. A slower reload rewards focus fire.
 - **Needle Battery:** Fires 3 parallel bolts, each piercing 4 enemies. A victim takes at most one hit per volley; wider coverage trades away single-target force.

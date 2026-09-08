@@ -11,6 +11,8 @@ func _initialize() -> void:
 		for branch in Balance.BRANCHES[kind]:
 			var price: float = Balance.BRANCHES[kind][branch].cost
 			rows.append({"kind": kind, "level": 4, "branch": branch, "price": price, "total": total + price, "stats": Balance.stats(kind, 4, {}, branch)})
+	for row in rows:
+		row["description"] = Balance.tower_description(row.stats)
 	FileAccess.open("res://artifacts/tower-catalog.json", FileAccess.WRITE).store_string(JSON.stringify(rows, "\t"))
 	print("TOWER CATALOG: ", rows.size(), " stages exported")
 	quit()

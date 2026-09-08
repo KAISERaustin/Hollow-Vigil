@@ -10,4 +10,4 @@ func ready(combat, tower: Dictionary, _origin: Vector2, _stats: Dictionary) -> b
 	return true
 
 func attack(combat, tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary) -> void:
-	preload("res://scripts/gameplay/combat/line_projectiles.gd").launch(combat, tower, origin, target, stats, returning())
+	combat.launch_line_attack(tower, origin, target, stats, returning())

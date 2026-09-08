@@ -22,6 +22,7 @@ var held_paused := false
 var pending_publish := ""
 var pending_publish_owner := ""
 var form_saved_code := ""
+var submitting_build := false
 var account_return: Callable
 var settings_return: Callable
 var backup_return: Callable
@@ -661,11 +662,36 @@ func show_build_form() -> void:
 	footer.add_child(action("Share to Community", submit_build.bind(true), "ShareToCommunity"))
 	if not pending_publish.is_empty(): footer.add_child(action("Retry", retry_share, "RetryShare"))
 	if not form_saved_code.is_empty(): notice("Private copy saved in My builds.")
+	set_build_actions_pending(submitting_build)
+
+func set_build_actions_pending(pending: bool) -> void:
+	if screen != "save_build": return
+	for key in ["SavePrivately", "ShareToCommunity", "RetryShare"]:
+		var button := footer.find_child(key, true, false) as Button
+		if button != null: button.disabled = pending
 
 func submit_build(publish: bool) -> void:
+	if submitting_build: return
 	if str(form.name).strip_edges().is_empty(): notice("Name this build before saving."); return
 	if form.game_type == "campaign" and form.scope == "level" and int(form.level) < 0: notice("Choose a level before saving."); return
 	if form.contents.is_empty(): notice("Choose at least one content option."); return
+	submitting_build = true
+	set_build_actions_pending(true)
+	var revision := view_revision
+	notice("Preparing Community share…" if publish else "Saving build…")
+	# Paint feedback before serializing a large campaign. A second tap cannot
+	# start another save, and Back during preparation safely cancels this request.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if revision == view_revision and visible:
+		await submit_prepared_build(publish)
+	# Drain queued touch releases while the initiating actions remain disabled.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	submitting_build = false
+	set_build_actions_pending(false)
+
+func submit_prepared_build(publish: bool) -> void:
 	var build := prepared_form()
 	if build.is_empty(): notice("These contents could not be saved. Check the selected contents and try again."); return
 	var compatible_content := Build.compose_campaign(build, {}) if build.game_type == "campaign" else Build.infinite_snapshot(build, {}, "creative")
