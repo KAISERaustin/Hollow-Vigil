@@ -15,3 +15,5 @@ All 69 commits reachable from main at request start (`4296367`) whose commit dat
 `tools/seed_change_log_20260908.py` reproduces the reviewed seed, without uploading it. The unique `source_commit` prevents duplicate imports. This is a one-time reviewed import, not automatic publication of future Git commits.
 
 Validation: `tests/rendered/change_log_runner.gd` covers navigation, three portrait sizes, pagination, empty/error/malformed responses, and refresh. Add `-- --live` to verify the actual production feed. Physical iOS/Android testing remains separate.
+
+Verified September 8: 234 rendered checks passed, including the production feed through Godot at 360×640, 390×844, and 540×960 (live feed at 540×960). Screenshots were visually inspected. Database contract checks passed for anonymous and signed-in read access, hidden/future rows, and denied write permissions; Supabase security advisors returned no findings. The live table contains exactly 46 published rows, all dated September 8. The restricted run could not reach the backend; the network-enabled rerun passed.
