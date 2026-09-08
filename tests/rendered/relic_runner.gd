@@ -26,6 +26,12 @@ func frame() -> void:
 				await process_frame
 	await RenderingServer.frame_post_draw
 
+func open_equipment(app: VigilApp, touch: bool = false) -> void:
+	app.tower_dialog.open_action("info")
+	await frame()
+	var button: Button = app.tower_dialog.find_child("Manage_equipment", true, false)
+	await Harness.tap(app, button.get_global_rect().get_center(), touch)
+	await frame()
 func run() -> void:
 	var app := VigilApp.new()
 	app.load_saved_progress = false
@@ -47,7 +53,7 @@ func run() -> void:
 	root.size = Vector2i(390, 844)
 	root.content_scale_size = root.size
 	await frame()
-	await Harness.tap(app, app.tower_actions.buttons.equipment.get_global_rect().get_center())
+	await open_equipment(app)
 	check(app.tower_dialog.visible and app.tower_dialog.mode == "equipment", "Equipment action opens collection with no drops")
 	if not app.tower_dialog.visible:
 		quit(1)
@@ -63,7 +69,7 @@ func run() -> void:
 	for touch in [false, true]:
 		app.field.selected_tower = towers[0]
 		await frame()
-		await Harness.tap(app, app.tower_actions.buttons.equipment.get_global_rect().get_center(), touch)
+		await open_equipment(app, touch)
 		var dialog := app.tower_dialog
 		var before := app.game.data.duplicate(true)
 		var choice := dialog.find_child("Relic_90,90", true, false) as Button
@@ -85,7 +91,7 @@ func run() -> void:
 		check(app.game.storage.read_candidate(app.game.save_path).get("towers", {}).get(towers[0], {}).get("relic") == "90,90", "Equipment UI persists the transaction: " + app.game.save_error)
 		app.field.selected_tower = towers[1]
 		await frame()
-		await Harness.tap(app, app.tower_actions.buttons.equipment.get_global_rect().get_center(), touch)
+		await open_equipment(app, touch)
 		check(dialog.find_child("Relic_90,90", true, false) == null, "Equipment on another tower is excluded from available inventory")
 		# Supported service transfers remain atomic and invalidate open pickers.
 		check(app.game.economy.equip_relic(towers[1], "90,90", "", towers[0]), "Transfer keeps authoritative ownership")
@@ -116,16 +122,17 @@ func run() -> void:
 	await Harness.capture(app, "relic-equipped-towers")
 	app.game.economy.equip_relic(towers[0], "", "90,90")
 	app.field.selected_tower = towers[3]
-	for dimensions in [Vector2i(360,640), Vector2i(390,844), Vector2i(768,1024)]:
+	for dimensions in [Vector2i(360,640), Vector2i(390,844), Vector2i(540,960)]:
 		root.size = dimensions
 		root.content_scale_size = dimensions
 		for zoom in [0.42, 1.0, 1.65]:
 			app.field.zoom = zoom
 			await frame()
-			check(app.tower_actions.buttons.size() == 6, "Six tower actions exist")
-			var bounds: Rect2 = app.tower_actions.buttons.equipment.get_global_rect()
-			for action in ["info", "move", "target", "upgrade", "sell"]:
-				check(not bounds.intersects(app.tower_actions.buttons[action].get_global_rect()), "Equipment button does not overlap " + action)
+			app.tower_dialog.open_action("info")
+			await frame()
+			var bounds: Rect2 = app.tower_dialog.find_child("Manage_equipment", true, false).get_global_rect()
+			for action in ["move", "target", "upgrade", "sell"]:
+				check(not bounds.intersects((app.tower_dialog.confirm if action == "upgrade" else app.tower_dialog.find_child("Manage_" + action, true, false)).get_global_rect()), "Equipment button does not overlap " + action)
 		app.field.zoom = 1.0
 		await frame()
 		app.tower_dialog.open_action("equipment")
@@ -174,3 +181,4 @@ func run() -> void:
 	await process_frame
 	print("RELIC UI: %d checks, %d failures" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
+

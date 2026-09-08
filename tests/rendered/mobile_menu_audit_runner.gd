@@ -23,12 +23,26 @@ func input_touch(at: Vector2, down: bool) -> void:
 		print("MOBILE_INPUT_STALL: %d ms while dispatching touch %s on %s" % [Time.get_ticks_msec() - started, "down" if down else "up", menu.screen])
 	await process_frame
 
-func swipe_control(scroll: ScrollContainer, upward: bool = true, travel: float = 120, page_gutter: bool = false) -> void:
+func swipe_control(scroll: ScrollContainer, upward: bool = true, travel: float = 120) -> void:
 	var area := scroll.get_global_rect()
 	var distance := minf(travel, area.size.y * 0.55)
 	var start := area.get_center() + Vector2(0, distance * (0.5 if upward else -0.5))
-	# Text fields own gestures for editing; page scrolling uses the body gutter.
-	if page_gutter: start.x = area.position.x + 4
+	# Swipe on visible page labels/cards, rather than a text editor that owns
+	# its gesture. Keep the complete stroke inside the scroll viewport.
+	var nearest := INF
+	var candidates := scroll.find_children("*", "Label", true, false)
+	candidates.append_array(scroll.find_children("*", "BaseButton", true, false))
+	for control in candidates:
+		if not control.is_visible_in_tree(): continue
+		var rect: Rect2 = control.get_global_rect().intersection(area.grow(-4))
+		if rect.size.x < 8 or rect.size.y < 8: continue
+		var point := rect.get_center()
+		point.y = clampf(point.y, area.position.y + 4 + (distance if upward else 0), area.end.y - 4 - (0 if upward else distance))
+		if not rect.has_point(point): continue
+		var score := point.distance_squared_to(start)
+		if score < nearest:
+			nearest = score
+			start = point
 	if scroll.get_window() != root: start += Vector2(scroll.get_window().position)
 	var movement := Vector2(0, -distance if upward else distance)
 	await input_touch(start, true)
@@ -316,12 +330,12 @@ func audit_page_swipes(context: String) -> void:
 	var screen_before: String = menu.screen
 	scroll.scroll_vertical = 0
 	await frames()
-	await swipe_control(scroll, true, minf(80, limit), true)
+	await swipe_control(scroll, true, clampf(limit, 24, 80))
 	check(scroll.scroll_vertical > 0, context + ": finger swipe moves down page")
 	check(menu.screen == screen_before, context + ": scrolling does not activate a menu action")
 	scroll.scroll_vertical = limit
 	await frames()
-	await swipe_control(scroll, false, minf(80, limit), true)
+	await swipe_control(scroll, false, clampf(limit, 24, 80))
 	check(scroll.scroll_vertical < limit, context + ": finger swipe moves back up from bottom (limit=%d, after=%d, current_limit=%d)" % [limit, scroll.scroll_vertical, int(bar.max_value - bar.page)])
 	check(menu.screen == screen_before, context + ": reverse scrolling preserves the page")
 	scroll.scroll_vertical = 0

@@ -177,22 +177,12 @@ func battle_menus() -> void:
 	await press(named("CampaignWaves"))
 	await wave_menus()
 	await press(named("CloseCampaignDialog"))
+	# Ground placement's complete finger flow is covered by ground_build_runner.
+	# Set up a tower here to audit the current shared management menus.
 	var socket: Dictionary = campaign.run.mission.sockets[0]
-	await tap_at(campaign.board.global_position + campaign.board.screen(socket.position))
-	check(campaign.dialog.visible and campaign.socket_dialog, "Socket touch opens build cards")
-	var cards: ScrollContainer = campaign.build_choices
-	await swipe(cards.get_global_rect().get_center(), Vector2(-100, 0))
-	check(cards.scroll_horizontal > 0 and not campaign.build_selection.details_open, "Tower carousel swipe scrolls without selecting a card")
-	for kind in Balance.TOWERS:
-		await press(named("CampaignBuild_" + kind))
-		check(campaign.board.preview_kind == kind and campaign.build_selection.details_open, "Touch previews tower " + kind)
-		await audit(campaign.dialog_card, "Build " + kind)
-		await back()
-		check(campaign.dialog.visible and not campaign.build_selection.details_open, "Build details Back returns to cards")
-	await press(named("CampaignBuild_rapid"))
-	await press(named("CampaignBuildConfirm"))
+	campaign.run.build(socket.index, "rapid")
 	var id: String = campaign.run.tower_at(socket.index)
-	check(not id.is_empty() and not campaign.dialog.visible and campaign.board.selected_tower == id, "Build touch purchases once and selects tower")
+	check(not id.is_empty(), "Campaign tower fixture builds")
 	if id.is_empty(): return
 	await tower_menus(socket, id)
 	await map_gestures()
@@ -204,7 +194,7 @@ func battle_menus() -> void:
 	check(campaign.run.wave_time > before and not campaign.paused, "Waves keeps combat running")
 	await back()
 	await back()
-	check(campaign.page == "briefing" and not app.slot_menu.visible, "Battle system Back returns to information")
+	check(campaign.page == "map" and not app.slot_menu.visible, "Battle system Back returns to map")
 	await back()
 	check(campaign.page == "map", "Information Back returns to map")
 
@@ -242,20 +232,20 @@ func wave_menus() -> void:
 
 func tower_menus(socket: Dictionary, id: String) -> void:
 	var tower: Dictionary = campaign.game.data.towers[id]
-	for action in ["info", "target", "equipment", "sell", "move"]:
+	for action in ["target", "equipment", "sell", "move"]:
 		campaign.show_socket(socket.index)
 		await settle()
-		await press(campaign.tower_actions.buttons[action])
+		await press(named("Manage_" + action))
 		check(campaign.tower_dialog.visible and campaign.tower_dialog.mode == action, "Touch opens tower " + action)
 		await audit(campaign.tower_dialog.card, "Tower " + action)
 		var balance: float = campaign.game.data.balance
 		await tap_at(Vector2(4, campaign.board.global_position.y + 8))
 		check(campaign.tower_dialog.visible and campaign.game.data.balance == balance, "Tower " + action + " shields backdrop input")
 		await back()
-		check(not campaign.tower_dialog.visible and campaign.tower_actions.visible, "Tower " + action + " Back restores actions")
+		check(campaign.tower_dialog.visible and campaign.tower_dialog.mode == "info", "Tower " + action + " Back restores management")
 	campaign.show_socket(socket.index)
 	await settle()
-	await press(campaign.tower_actions.buttons.target)
+	await press(named("Manage_target"))
 	for target in Balance.TARGET_MODES:
 		await press(named("Target_" + target))
 		check(campaign.tower_dialog.target_choice == target and tower.get("target_mode", "first") == "first", "Target selection waits for Apply")
@@ -264,7 +254,7 @@ func tower_menus(socket: Dictionary, id: String) -> void:
 	for index in 18: Relics.award(campaign.game.data, "90,%d" % index, Relics.DEFINITIONS.keys()[index % Relics.DEFINITIONS.size()])
 	campaign.show_socket(socket.index)
 	await settle()
-	await press(campaign.tower_actions.buttons.equipment)
+	await press(named("Manage_equipment"))
 	var dialog: VigilTowerDialog = campaign.tower_dialog
 	await swipe(dialog.scroll.get_global_rect().get_center(), Vector2(0, -70))
 	check(dialog.scroll.scroll_vertical > 0 and dialog.mode == "equipment", "Equipment inventory swipes without selecting")
@@ -286,12 +276,12 @@ func tower_menus(socket: Dictionary, id: String) -> void:
 	await back()
 	campaign.show_socket(socket.index)
 	await settle()
-	await press(campaign.tower_actions.buttons.move)
+	await press(named("Manage_move"))
 	await press(dialog.confirm)
 	check(campaign.tower_move.visible and campaign.board.moving_tower == id, "Move touch starts destination selection")
 	await press(campaign.tower_move.cancel_button)
 	check(not campaign.tower_move.visible and campaign.board.moving_tower.is_empty(), "Move Cancel clears destination selection")
-	await press(campaign.tower_actions.buttons.move)
+	await press(named("Manage_move"))
 	await press(dialog.confirm)
 	var destination: Dictionary = campaign.run.mission.sockets[1]
 	campaign.board.camera = destination.position
@@ -302,11 +292,11 @@ func tower_menus(socket: Dictionary, id: String) -> void:
 	tower.rebuild_remaining = 0.0
 	campaign.show_socket(destination.index)
 	await settle()
-	await press(campaign.tower_actions.buttons.sell)
+	await press(named("Manage_sell"))
 	await capture("tower-sale")
 	await press(dialog.cancel)
 	check(campaign.game.data.towers.has(id), "Touch sale Cancel preserves tower")
-	await press(campaign.tower_actions.buttons.sell)
+	await press(named("Manage_sell"))
 	await press(dialog.confirm)
 	check(not campaign.game.data.towers.has(id) and not dialog.visible, "Touch confirms sale once")
 
@@ -361,3 +351,4 @@ func result_routes() -> void:
 	check(campaign.page == "map", "Result World map touch returns to map")
 	await back()
 	check(app.slot_menu.visible and app.slot_menu.screen == "slots" and not is_instance_valid(app.campaign), "Map system Back follows visible Back to saved games")
+
