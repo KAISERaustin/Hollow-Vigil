@@ -1,0 +1,9 @@
+{
+  "simulation": {
+    "before": true,
+    "route": true,
+    "configuration": true,
+    "after": true
+  },
+  "campaign": true
+}
