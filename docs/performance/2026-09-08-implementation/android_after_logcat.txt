@@ -1,7 +1,7 @@
 --------- beginning of main
 I/godot   (18898): Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 I/godot   (18898): OpenGL API OpenGL ES 3.2 v1.r38p1-01eac0-mbs2v41_0.0b37450fbb12e582df79a7906d0ad856 - Compatibility - Using Device: ARM - Mali-G68
-I/godot   (18898): 
+I/godot   (18898):
 I/godot   (18898): HV_PERF_ENV {"adapter":"Mali-G68","dpi_scale":1.75,"engine":{"build":"official","hash":"ed1daf0bf001b61586d9930840f2f1394092c079","hex":263938,"major":4,"minor":7,"patch":2,"status":"stable","string":"4.7.2-stable (official)","timestamp":0},"physical_viewport":[1440,2304],"renderer":"gl_compatibility","template_debug":false}
 I/godot   (18898): RENDER_API viewport_set_measure_render_time
 I/godot   (18898): RENDER_API viewport_get_measured_render_time_cpu
