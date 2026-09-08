@@ -171,7 +171,7 @@ permissions/internet=false
 
 def run(name):
     apk = BASE / f'android_{name}.apk'
-    print(adb('install', '--no-incremental', '-r', str(apk)).decode(), flush=True)
+    print(adb('install', '--no-incremental', '--no-streaming', '-r', str(apk)).decode(), flush=True)
     # Stop only our separate benchmark package; preserve application data.
     adb('shell', 'am', 'force-stop', PACKAGE)
     timestamp = adb('shell', 'date', "'+%m-%d %H:%M:%S.000'").decode().strip()
