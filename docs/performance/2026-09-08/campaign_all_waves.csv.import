@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://chcxrycqmodi3"
+
+[deps]
+
+files=["res://docs/performance/2026-09-08/campaign_all_waves.name.translation", "res://docs/performance/2026-09-08/campaign_all_waves.waves.translation", "res://docs/performance/2026-09-08/campaign_all_waves.waves.translation", "res://docs/performance/2026-09-08/campaign_all_waves.peak.translation", "res://docs/performance/2026-09-08/campaign_all_waves.mean.translation", "res://docs/performance/2026-09-08/campaign_all_waves.p95.translation"]
+
+source_file="res://docs/performance/2026-09-08/campaign_all_waves.csv"
+dest_files=["res://docs/performance/2026-09-08/campaign_all_waves.name.translation", "res://docs/performance/2026-09-08/campaign_all_waves.waves.translation", "res://docs/performance/2026-09-08/campaign_all_waves.waves.translation", "res://docs/performance/2026-09-08/campaign_all_waves.peak.translation", "res://docs/performance/2026-09-08/campaign_all_waves.mean.translation", "res://docs/performance/2026-09-08/campaign_all_waves.p95.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

@@ -65,8 +65,8 @@ func fit() -> void:
 	# Scroll clipping belongs to the screen edge, not an inset card gutter.
 	style.content_margin_left = 0
 	style.content_margin_right = 0
-	style.content_margin_top = 20
-	style.content_margin_bottom = 20 + size.y - safe.end.y
+	style.content_margin_top = 24
+	style.content_margin_bottom = 24 + size.y - safe.end.y
 	if is_instance_valid(build_button):
 		var field_safe := UI.safe_rect(field)
 		build_button.position = Vector2(0, field_safe.end.y - 72)

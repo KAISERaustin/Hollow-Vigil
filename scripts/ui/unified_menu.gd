@@ -852,7 +852,7 @@ func show_campaign_content_rules(return_to: Callable = Callable()) -> void:
 	campaign_rule_changes = {}
 	page_view("rules", "Edit rules", rules_back)
 	editor_game = VigilState.new(42, "creative", Build.Configuration.resolve(0, app.campaign.level_setup(0).overrides).tuning)
-	content.add_child(UI.paragraph("Content rules apply across the campaign. Levels changes one level's starting resources and rewards. Edit wave rewards and spawns in Waves. Choose Apply changes to save this draft."))
+	content.add_child(UI.paragraph("Content rules apply across the campaign. Use Levels to change each level's starting resources and rewards. Edit wave rewards and spawns in Waves. Choose Apply changes to save this draft."))
 	rules_editor = preload("res://scripts/ui/developer/developer_controls.gd").new()
 	rules_editor.game = editor_game
 	rules_editor.configuration_only = true

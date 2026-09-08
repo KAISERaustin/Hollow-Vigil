@@ -93,6 +93,7 @@ try {
             Invoke-Godot -Name 'backup-deletion' -EngineArguments @('--headless', '--script', 'res://tests/backup_deletion_runner.gd')
             Invoke-Godot -Name 'backup-delete-ui' -EngineArguments @('--script', 'res://tests/rendered/backup_deletion_menu_runner.gd')
             Invoke-Godot -Name 'unified-menu' -EngineArguments @('--script', 'res://tests/rendered/unified_menu_runner.gd')
+            Invoke-Godot -Name 'campaign-level-rules' -EngineArguments @('--script', 'res://tests/rendered/campaign_level_rules_runner.gd')
             Invoke-Godot -Name 'recovery-menu' -EngineArguments @('--script', 'res://tests/rendered/recovery_menu_runner.gd')
         }
         if ($Smoke -or $Check) {

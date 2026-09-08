@@ -30,6 +30,7 @@ const SANS = preload("res://assets/fonts/NotoSans.ttf")
 const SERIF = preload("res://assets/fonts/NotoSerif.ttf")
 const text_scale := 1.0
 static var fonts: Dictionary = {}
+static var currency_translation: Translation
 
 static func font(weight: int = 400, serif: bool = false) -> Font:
 	var key := str(weight) + str(serif)
@@ -39,6 +40,7 @@ static func font(weight: int = 400, serif: bool = false) -> Font:
 		var ts := TextServerManager.get_primary_interface()
 		f.variation_opentype = {ts.name_to_tag("wght"): float(weight)}
 		f.opentype_features = {ts.name_to_tag("tnum"): 1}
+		f.fallbacks = [preload("res://scripts/ui/shared/currency_text.gd").coin_font(f)]
 		fonts[key] = f
 	return fonts[key]
 
@@ -183,6 +185,9 @@ static func keyboard_scroll(scroll: ScrollContainer, description: String, horizo
 	)
 
 static func theme() -> Theme:
+	if currency_translation == null:
+		currency_translation = preload("res://scripts/ui/shared/currency_text.gd").new()
+		TranslationServer.add_translation(currency_translation)
 	var t := Theme.new()
 	t.default_font = font()
 	t.default_font_size = type_size(BODY)

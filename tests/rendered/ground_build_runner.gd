@@ -52,6 +52,9 @@ func exercise(host: Control, label: String) -> void:
 	check(is_equal_approx(build.drawer_open, 1.0), label + " slide completes")
 	var strip: Control = build.palette.find_child("TowerCards", true, false)
 	check(is_zero_approx(strip.global_position.x) and is_equal_approx(strip.size.x, host.size.x), label + " cards clip at screen edges")
+	var first_card: Control = strip.find_child("Build_rapid", true, false)
+	check(is_equal_approx(first_card.global_position.x - strip.global_position.x, 8.0), label + " first card starts one card gap from edge")
+	check(strip.get_node("CardInsets").get_theme_constant("margin_right") == 8, label + " trailing card gap matches leading gap")
 	var outside := Vector2(host.size.x * 0.5, build.palette.position.y - 20)
 	await touch(outside, true)
 	check(build.visible and build.drawer_closing, label + " outside tap begins animated close")
@@ -111,6 +114,7 @@ func exercise(host: Control, label: String) -> void:
 		await process_frame
 	await touch(swipe_start - Vector2(144, 0), false)
 	check(build.kind.is_empty() and scroll.scroll_horizontal > 0, label + " horizontal swipe browses without arming")
+	check(scroll.find_child("Build_rapid", true, false).global_position.x < 8, label + " edge padding travels with scrolling cards")
 	build.arm("rapid")
 	await settle()
 	var count: int = host.game.data.towers.size()

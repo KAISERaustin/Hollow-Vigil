@@ -124,9 +124,15 @@ def write_report(s):
          for mode in ['infinite','campaign'] for full in [next(r for r in s['ui'] if r['mode']==mode and r['variant']=='full')]
          for hidden in [next(r for r in s['ui'] if r['mode']==mode and r['variant']=='no_render')]])
     live_raw = load('baseline_live.json')['rows']
+    live_raw += load('baseline_live_2x.json').get('rows', [])
+    live_raw += load('baseline_live_4x.json').get('rows', [])
+    playback_groups = grouped(live_raw, ['mode'], ['frame_ms'])
+    live_speeds = sorted({r.get('playback', 1.0) for r in live_raw})
     live_table = table(['Normal game loop, 390×844','Median actual desktop FPS','Frame p95 (ms)','Median simulated / wall seconds'],
-        [[mode.title(),f"{median(r['actual_fps'] for r in live_raw if r['mode']==mode):.1f}",ms(next(r for r in s['live'] if r['mode']==mode)['frame_ms']['p95']),
-          f"{median(r['simulation_seconds'] for r in live_raw if r['mode']==mode):.2f} / {median(r['elapsed_seconds'] for r in live_raw if r['mode']==mode):.2f}"] for mode in ['infinite','campaign']])
+        [[f'{mode.title()} / {speed:g}×',f"{median(r['actual_fps'] for r in members):.1f}",ms(median(r['frame_ms']['p95'] for r in members)),
+          f"{median(r['simulation_seconds'] for r in members):.2f} / {median(r['elapsed_seconds'] for r in members):.2f}"]
+         for mode in ['infinite','campaign'] for speed in live_speeds
+         for members in [[r for r in live_raw if r['mode']==mode and r.get('playback', 1.0)==speed]] if members])
     all_waves = s['campaign_all_waves']
     losses = [str(r['level']) for r in s['campaign'] if r['phase']!='victory']
     completed = sum(r['waves_completed'] for r in all_waves)
@@ -175,6 +181,8 @@ The rendered matrix freezes simulation, warms each view for 20 frames, then reco
 
 The Campaign rendering stress fixture is level 20 with 500 manually distributed basic enemies and funded maximum-level defenses. It is intentionally separate from authored Campaign wave measurements. The `offscreen` key in the original matrix means a four-tile camera shift; in Infinite it still includes edge enemies. The supplemental `hidden` case moves twelve tiles and verifies zero enemy candidates.
 
+The render harness issues an additional visibility query each frame to record candidate counts. This adds diagnostic work to the following interval; total frame timings include that work. They are useful controlled comparisons, while the separate normal-loop test avoids this query.
+
 Tables use the median of repeated run means and the median of repeated per-run percentiles. The raw samples retain outliers. Other Godot sessions were active on this shared desktop: a recorded background process used about 86 CPU seconds during a 148-second interval. Only this audit's benchmarks were run serially; other tasks were preserved. Treat the timings as evidence for bottlenecks and relative priorities, not certified hardware limits.
 
 ## Sustained Infinite combat
@@ -192,6 +200,10 @@ The earlier short stress result was not a steady-state limit: it averaged the in
 {ablations}
 
 The marker experiment removes detailed enemy bodies and their per-enemy indicators, replacing each with one circle; tower drawing stays enabled. The actor-removal experiment omits both enemy and tower drawing. Map removal includes terrain and map decorations/controls such as portals and pads. Cosmetic removal clears only the transient `combat.effects` list; gameplay fields, traps and traveling projectiles retain their independent owners.
+
+The fully hidden views measured {find_render('infinite', camera='hidden')['frame_ms']['mean']:.2f} ms per frame in Infinite and {find_render('campaign', camera='hidden')['frame_ms']['mean']:.2f} ms in Campaign, with zero enemy candidates in both. Existing visibility culling is effective when the battle is entirely outside the view. Removing transient cosmetics did not produce a clear improvement; the higher measured times do not establish that removing effects causes a slowdown because these supplements ran later on a shared machine.
+
+Separate instrumented overview samples attributed about 17.6 ms to enemy drawing within 29.2 ms of total draw-script work in Infinite, and 23.6 ms within 29.4 ms in Campaign. These are inclusive, instrumented scripting times; do not add them to the uninstrumented frame measurements or GPU times.
 
 These experiments are diagnostic ceilings, not implemented visual designs or promised speedups. Their savings overlap and cannot be added together. They show why camera culling alone is insufficient: the visible area can still issue thousands of small drawing commands. Godot's [GPU optimization guide](https://docs.godotengine.org/en/stable/tutorials/performance/gpu_optimization.html) explains the cost of many draw calls and the benefit of batching compatible drawing work.
 
@@ -216,6 +228,8 @@ HUD refresh cost is small relative to crowded drawing. Suppressing refresh did n
 The following separate test uses the normal application `_process(delta)` loop, its 60 FPS cap, and real elapsed time. Infinite starts from the warmed compact world. Campaign plays level 30's final authored wave with the funded defense fixture. Audio processing remains active; only the test application's output bus is muted.
 
 {live_table}
+
+These are brief samples, not sustained thermal tests. The Campaign 1× sample spawned only one enemy during its five seconds; its 60 FPS result does not establish that every Campaign battle maintains 60 FPS. Authored-wave CPU coverage and the 500-enemy rendering stress test address different workloads. Fast playback should advance approximately 10 or 20 simulated seconds in five wall seconds; compare the measured simulation progress with that target.
 
 The copied local save averaged {costs['copied_local_save.tick']['ms']['mean']:.3f} ms per combat step. It is too small to reproduce the reported expanded-world lag.
 
@@ -253,6 +267,8 @@ After implementing optimizations, repeat the same desktop and device workloads a
 - Runners: `tests/performance/`. Orchestration: `tools/performance_audit.py`. Aggregation and charts: `tools/summarize_performance_audit.py`. Production game scripts are changed only inside ignored profiling snapshots by the instrumentation tool.
 
 Use Python 3 to run `tools/performance_audit.py prepare`, then `run baseline render --tag _verified`, `run baseline simulation`, `run instrumented simulation`, `batch`, and `completion`. Finally run `tools/summarize_performance_audit.py`. Set `GODOT_PATH` if needed. A different source revision needs a separate snapshot directory; the tool rejects reusing an archive from another commit. Saves and credentials are not copied into the public report.
+
+The chart generator requires `matplotlib`. For the additional playback runs, set `PERF_PLAYBACK=2` and run `tools/performance_audit.py run baseline live --tag _2x`, then repeat with `PERF_PLAYBACK=4` and tag `_4x`. Unset the variable before normal-speed runs. The corresponding [2× raw samples](performance/2026-09-08/baseline_live_2x.json) and [4× raw samples](performance/2026-09-08/baseline_live_4x.json) retain elapsed time, simulation progress and enemy counts.
 
 One early rendering attempt was discarded while checking sampling. The main matrix later hit a typed-array assignment error only in its six cosmetic-removal cases; those cases were rerun after correcting the harness and are supplied by the supplement. The other 90 matrix cases completed. Initial raw state hashes encoded process-local content-object IDs; separate cross-process validation now uses stable content identities. These were measurement-harness corrections, not production gameplay fixes. All resulting comparisons and limitations are reported explicitly.
 '''
