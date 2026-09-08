@@ -1,7 +1,9 @@
 extends RefCounted
 ## Shared, stateless placement geometry. Economy owns spending and instances.
 const FOOTPRINT := 18.0
-const ROAD_CLEARANCE := 14.0 + FOOTPRINT
+# The ground-contact base is smaller than the tower-to-tower footprint.
+# Match its 12-unit extent so the artwork can sit against the road's ink edge.
+const ROAD_CLEARANCE := 14.0 + 12.0
 const PORTAL_CLEARANCE := 48.0
 
 static func campaign_bounds(mission: Dictionary) -> Rect2:

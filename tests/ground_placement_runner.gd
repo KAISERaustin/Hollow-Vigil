@@ -21,6 +21,12 @@ func find_ground(game: VigilState) -> Vector2:
 	return Vector2.INF
 
 func run() -> void:
+	var edge_game := VigilState.new(771)
+	var straight_road: Array = [PackedVector2Array([Vector2(-120, 80), Vector2(120, 80)])]
+	check(Placement.allowed(edge_game.data, Vector2(0, 54), straight_road), "Tower base can touch road edge at 26 units")
+	check(not Placement.allowed(edge_game.data, Vector2(0, 55), straight_road), "Tower base cannot overlap road edge")
+	check(Placement.allowed(edge_game.data, Vector2(0, 106), straight_road), "Closer road clearance works on opposite side")
+	check(not Placement.allowed(edge_game.data, Vector2(0, 105), straight_road), "Opposite road edge still blocks overlap")
 	for point in [Vector2(-150, -150), Vector2(-150.1, 450.2), Vector2(123.4, -98.7), Vector2(149.9, 149.9)]:
 		var location := VigilWorld.ground_location(point)
 		check(VigilWorld.pad_position(location.region, location.pad).distance_to(point) < 0.11, "Ground coordinate round trip")

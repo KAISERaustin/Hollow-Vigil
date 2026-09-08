@@ -100,6 +100,7 @@ func mobile_run() -> void:
     print("HV_PERF_DONE ", failures)
     quit(1 if failures else 0)
 '''
+    bootstrap = re.sub(r'^( +)', lambda match: '\t' * (len(match[1]) // 4), bootstrap, flags=re.M)
     runner = '\n'.join(top) + '\n\n' + '\n'.join(bodies) + bootstrap
     (dest / 'tests/performance/mobile_runner.gd').write_text(runner, encoding='utf-8')
     settings = (dest / 'project.godot').read_text(encoding='utf-8')
