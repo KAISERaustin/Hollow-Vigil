@@ -26,6 +26,8 @@ func verify_preview(host: Control, tower: Dictionary, context: String) -> void:
 	check(dialog.find_child("TowerCards", true, false) == null, context + " skips the construction catalog")
 	var details: Control = dialog.body.get_node("TowerDetails")
 	var next_level := mini(int(tower.level) + 1, Balance.MAX_TOWER_LEVEL)
+	check(dialog.body.find_child("TowerLevelIndicator", true, false).get_meta("level") == tower.level, context + " indicator shows owned level, not preview level")
+	check((dialog.body.find_child("UpgradeBranches", true, false) != null) == (tower.level == 3), context + " branches appear only at level three")
 	var after := Balance.stats(tower.kind, next_level, host.game.tuning, dialog.tower_branch)
 	var before := Balance.tower_stats(tower, host.game.tuning)
 	var level_label := "Level %d" % next_level if tower.level == Balance.MAX_TOWER_LEVEL else "Level %d → %d" % [tower.level, next_level]

@@ -52,7 +52,7 @@ func _ready() -> void:
 	landscape.add_child(roads)
 	resized.connect(_resize_view)
 	reset_view()
-	accessibility_name = "Campaign battlefield. Tap a socket to build or manage. Drag to explore, pinch or scroll to zoom."
+	accessibility_name = "Campaign battlefield. Use Build to drag towers onto clear ground. Tap a tower to manage. Drag to explore, pinch or scroll to zoom."
 
 func overview_zoom() -> float:
 	var available := overview_rect().size
@@ -90,17 +90,15 @@ func pick(point: Vector2) -> void:
 	tap(point)
 
 func tap(point: Vector2) -> void:
-	var nearest := -1
-	var distance := maxf(25, 26 * zoom)
-	for socket in run.mission.sockets:
-		var candidate := point.distance_to(screen(socket.position))
-		if candidate < distance:
-			distance = candidate
-			nearest = socket.index
-	if nearest >= 0:
-		socket_picked.emit(nearest)
-	else:
-		empty_picked.emit()
+	var location := VigilWorld.ground_location(world(point))
+	if moving_tower != "":
+		relocation_picked.emit(location.region, location.pad)
+		return
+	for tower in state.data.towers.values():
+		if point.distance_to(screen(VigilWorld.pad_position(tower.region, tower.pad))) < maxf(25, 26 * zoom):
+			picked.emit(tower.region, tower.pad)
+			return
+	empty_picked.emit()
 
 func select_socket(index: int) -> void:
 	selected = index

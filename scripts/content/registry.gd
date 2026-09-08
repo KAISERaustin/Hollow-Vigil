@@ -135,7 +135,7 @@ func _add(entry: ContentNode, category: String = "", kind: String = "") -> Conte
 func _populate() -> void:
 	var root := _add(ContentNode.new("content"))
 	var entity := _add(ContentNode.new("entity", root))
-	_add(TowerNode.new("tower", entity, {"targets": 1}, {"placement": "plus", "equipment_slots": ["relic"], "target_modes": ["first", "last", "most_hp"], "max_level": 4, "tuning_category": "towers"},
+	_add(TowerNode.new("tower", entity, {"targets": 1}, {"placement": "ground", "equipment_slots": ["relic"], "target_modes": ["first", "last", "most_hp"], "max_level": 4, "tuning_category": "towers"},
 		{"level": 1, "earnings": 0.0, "cooldown": 0.0, "angle": 0.0, "rebuild_remaining": 0.0, "target_mode": "first"}))
 	_add(EnemyNode.new("enemy", entity, {}, {"tuning_category": "enemies", "escape_damage": 1, "movement": "road", "authored_paths": true, "targetable": true}, {"segment": 1, "dead": false}))
 	_add(BossNode.new("boss", get_node("enemy"), {}, {"tuning_category": "bosses", "escape_damage": 20, "movement": "patrol"}, {"boss": true, "path": [], "previous": "", "steps": 0, "toll_delayed": false}))

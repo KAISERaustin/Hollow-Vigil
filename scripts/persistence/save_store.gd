@@ -324,7 +324,7 @@ func valid_loadout(d: Dictionary, max_tower_level: int = 4) -> bool:
 			var branch: Variant = t.get("branch", "")
 			if not branch is String or (t.level == 4 and not Balance.valid_branch(t.kind, branch)) or (t.level != 4 and branch != ""):
 				return false
-		if not number(t.pad, 0, 3, true) or not number(t.level, 1, max_tower_level, true) or not number(t.earnings) or not number(t.cooldown, 0, maxf(10.0, Balance.TUNING_FIELDS.towers.period.max)) or not number(t.angle, -TAU, TAU):
+		if not number(t.pad, 0, VigilWorld.MAX_GROUND_PAD, true) or not number(t.level, 1, max_tower_level, true) or not number(t.earnings) or not number(t.cooldown, 0, maxf(10.0, Balance.TUNING_FIELDS.towers.period.max)) or not number(t.angle, -TAU, TAU):
 			return false
 		var relic_id: Variant = t.get("relic", "")
 		if not relic_id is String or (relic_id != "" and (not inventory.has(relic_id) or equipped.has(relic_id))):

@@ -38,6 +38,7 @@ var dialog_title: Label
 var dialog_header: HBoxContainer
 var save_notice: Label
 var socket_dialog := false
+var ground_build: Control
 var build_choices: ScrollContainer
 var build_selection := preload("res://scripts/ui/towers/build_selection.gd").new()
 var waves_dialog := false
@@ -108,13 +109,22 @@ func clear_selection() -> void:
 		tower_actions.refresh()
 
 func show_tower() -> void:
-	for socket in run.mission.sockets:
-		if socket.region == selection_region and socket.pad == selection_pad:
-			show_socket(socket.index)
-			return
+	select_ground_tower(selection_region, selection_pad)
+
+func select_ground_tower(region: String, pad: int) -> void:
+	if not run.editable(): return
+	clear_selection()
+	selection_region = region
+	selection_pad = pad
+	selection_tower = game.economy.tower_at(region, pad)
+	board.selected_region = region
+	board.selected_pad = pad
+	board.selected_tower = selection_tower
+	tower_actions.blocked = false
+	tower_actions.refresh()
 
 func clear_tower_ui() -> void:
-	for control in [tower_dialog, tower_move, tower_actions]:
+	for control in [ground_build, tower_dialog, tower_move, tower_actions]:
 		if is_instance_valid(control):
 			control.get_parent().remove_child(control)
 			control.queue_free()
@@ -574,6 +584,13 @@ func show_battle(start_paused: bool = false) -> void:
 	status.name = "CampaignStatus"
 	save_notice = floating_hud.notice
 	build_tower_ui()
+	ground_build = preload("res://scripts/ui/towers/ground_build.gd").new()
+	ground_build.host = self
+	ground_build.field = board
+	ground_build.allowed_to_build = run.editable
+	add_child(ground_build)
+	board.picked.connect(select_ground_tower)
+	board.relocation_picked.connect(tower_move.place)
 	refresh()
 	call_deferred("frame_battle")
 
@@ -739,33 +756,7 @@ func show_socket(socket: int) -> void:
 		tower_actions.blocked = false
 		tower_actions.refresh()
 		return
-	open_dialog("Build a tower", true)
-	build_selection.bind_game(game)
-	var confirm := UI.gold_button("", func():
-		if board.preview_kind.is_empty() or not dialog_actions.is_visible_in_tree():
-			return
-		if run.build(socket, board.preview_kind):
-			build_selection.show_choices()
-			board.build_preview.clear(board)
-			board.select_socket(socket)
-			dialog.hide()
-	)
-	confirm.name = "CampaignBuildConfirm"
-	var choices := TowerChoice.build_list(run.game.tuning, func(kind: String):
-		select_build_preview(kind, confirm)
-	, build_selection.kind, INF, "CampaignBuild_")
-	build_choices = choices
-	dialog_body.add_child(choices)
-	dialog_actions.add_child(confirm)
-	add_dialog_back("Back to towers", show_build_choices)
-	dialog_header.get_node("BackButton").name = "BackToTowers"
-	dialog_header.get_node("BackToTowers").hide()
-	board.preview_kind = build_selection.kind
-	if build_selection.details_open:
-		select_build_preview(build_selection.kind, confirm)
-	else:
-		board.build_preview.open(board, dialog_card)
-	fit.call_deferred()
+	ground_build.open()
 
 func select_build_preview(kind: String, confirm: Button) -> void:
 	build_selection.select(kind)

@@ -88,7 +88,7 @@ The Open World Level node owns `starter_radius` and `starter_style`. World gener
 | Ability | Specialization parameters and resolution against launched tower stats | Ability/projectile services execute effects on the simulation clock |
 | Region | Saved terrain identity and fresh history, traffic and unlock state | World service owns geography and routes |
 | Portal | Enemy family, exclusivity and biome tuning | Combat owns spawn clocks |
-| Socket / landmark | Plus geometry and capacity; landmark properties | World and economy enforce placement and topology |
+| Ground placement / landmark | Shared footprint, road and portal clearance; landmark properties | World location keys and economy enforce placement and ownership |
 | Level | Open-world/mode rules or authored campaign layout and allowed sockets | State/campaign run owns progress and saves |
 | Wave | Spawn groups and stable schedule ordering | Campaign run advances the schedule |
 | Targeting | Per-mode lock policy | Combat owns locks; First/Last keep switching |
@@ -217,3 +217,20 @@ Poison Arrow retains the stable `thorn_volley` branch ID. Its Ability node compo
 Developer type and tier selection composes the shared illustrated_picker.gd button/menu component with content_portrait.gd native artwork. Callers supply choice metadata and a preview factory; the picker owns scrolling, row separators, selection and focus. Developer transactions stay in the editor and all picker state belongs to its own instance.
 
 The Portals rule picker discovers all six children of the shared Portal node through `Balance.portal_definitions()`. Identity discovery is separate from the three tunable rift-effect definitions, so neutral portal previews do not change the saved tuning schema. Campaign supplies authored-spawn context to the shared editor; its entrance artwork and live spawn effects both use the Level node's chapter biome. Each of the thirty campaign levels therefore uses its biome's own portal at every authored entrance. Portal rosters, custom waves, and the receiving core retain their existing ownership.
+
+
+### Ground tower placement
+
+Both modes use the stateless geometry in `scripts/content/nodes/ground_placement.gd`.
+The economy supplies owned regions, live towers, and (in Campaign) authored roads
+and level bounds. It validates again before spending. New positions are encoded
+in the existing region/pad location key at 0.1 world-unit precision; keys 0–3
+retain legacy platform coordinates, so existing saves, targeting, upgrades,
+equipment, and effects keep their positions. Legacy build APIs remain available
+for authored fixtures and older layouts. The visible Build palette always uses
+ground coordinates. Footprints cannot overlap roads, portals, or other towers.
+
+`scripts/ui/towers/ground_build.gd` owns one drag pointer per host. Horizontal
+swipes browse the catalog; upward drags pick up a tower. A valid release buys
+once. An invalid release keeps a red outlined preview without spending, ready
+for another drag. Cancel, Back, and app interruption discard only the preview.

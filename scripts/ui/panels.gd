@@ -227,50 +227,7 @@ func select_pad(region: String, pad: int) -> void:
 		show_build()
 
 func show_build() -> void:
-	mode = "build"
-	clear_sheet("Build")
-	build_selection.bind_game(game)
-	selection_kind = build_selection.kind
-	field.preview_kind = selection_kind
-	if game.economy.needs_first_property():
-		sheet_content.add_child(UI.paragraph("Buy your first property before building a tower. Close this panel and select a neighboring territory marked + to buy it for 100 gold. You will have 180 gold left for towers.", 14))
-	var row := preload("res://scripts/ui/towers/tower_choice.gd").build_list(game.tuning, func(kind: String):
-		select_build_kind(kind, build_choices)
-	, selection_kind)
-	build_choices = row
-	sheet_content.add_child(row)
-	build_back = UI.back_button("Back to towers", show_build_choices)
-	build_back.name = "BackToTowers"
-	header_content.get_child(0).add_child(build_back)
-	header_content.get_child(0).move_child(build_back, 0)
-	build_back.hide()
-	var s := Balance.definition("towers", selection_kind, game.tuning)
-	action_cost = s.cost
-	var revision := sheet_revision
-	action_button = UI.gold_button("Build " + s.name + "  ·  " + UI.exact_money(s.cost) + " gold", func():
-		if revision != sheet_revision:
-			return
-		if not build_back.visible:
-			return
-		if game.economy.needs_first_property():
-			app.toast("Buy your first property before building a tower.")
-			return
-		var id := game.economy.build(selection_kind, selection_region, selection_pad)
-		if id != "":
-			selection_tower = id
-			field.selected_tower = id
-			app.persist()
-			show_tower()
-		else:
-			app.toast("Not enough gold, or this socket is already occupied.")
-	)
-	action_footer.add_child(action_button)
-	action_footer.get_parent().hide()
-	if build_selection.details_open:
-		select_build_kind(selection_kind, build_choices)
-	else:
-		field.build_preview.open(field, self)
-	app.update_hud()
+	app.ground_build.open()
 
 func select_build_kind(kind: String, choices: ScrollContainer) -> void:
 	build_selection.select(kind)

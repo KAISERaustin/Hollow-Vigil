@@ -98,7 +98,5 @@ func _draw() -> void:
 		VigilTerrainArt.ground_detail(self, style, detail.pos, detail.variant, detail.scale)
 	if render_roads:
 		preload("res://scripts/rendering/terrain/road_layer.gd").draw_roads(self, roads)
-	for pad in pads:
-		VigilTerrainArt.socket(self, pad)
 	for prop in scenery:
 		VigilTerrainArt.scenery(self, region.get("style", "forest"), prop.pos, prop.extent)

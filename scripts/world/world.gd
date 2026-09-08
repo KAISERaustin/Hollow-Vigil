@@ -172,4 +172,16 @@ static func frontier(regions: Dictionary, _seed_value: int = -1) -> Dictionary:
 	return result
 
 static func pad_position(region: String, pad: int) -> Vector2:
-	return center(region) + PADS[pad]
+	if pad < 4:
+		return center(region) + PADS[pad]
+	var packed := pad - 4
+	return center(region) + Vector2(packed % 3000, packed / 3000) * 0.1 - Vector2.ONE * 150.0
+
+# Legacy 0..3 locations remain stable; ground keys encode tenths of a unit.
+const MAX_GROUND_PAD := 9000003
+
+static func ground_location(point: Vector2) -> Dictionary:
+	var cell := Vector2i(floori((point.x + 150.0) / 300.0), floori((point.y + 150.0) / 300.0))
+	var region := key(cell)
+	var local := (point - center(region) + Vector2.ONE * 150.0) * 10.0
+	return {"region": region, "pad": 4 + clampi(roundi(local.x), 0, 2999) + clampi(roundi(local.y), 0, 2999) * 3000}

@@ -55,7 +55,7 @@ func begin(id: String, level: int, cost: float, seconds: float) -> void:
 	app.field.moving_tower = id
 	app.tower_actions.blocked = true
 	app.tower_actions.refresh()
-	prompt.text = "Tap an empty socket to move.\n%s gold · Rebuild %s" % [UI.exact_money(cost), Balance.rebuild_time_text(seconds)]
+	prompt.text = "Tap clear ground to move.\n%s gold · Rebuild %s" % [UI.exact_money(cost), Balance.rebuild_time_text(seconds)]
 	show()
 	call_deferred("fit_prompt")
 	cancel_button.grab_focus()
@@ -87,10 +87,10 @@ func place(region: String, pad: int) -> void:
 		app.toast("This tower changed. Choose Move again.")
 		return
 	if app.game.economy.tower_at(region, pad) != "":
-		app.toast("Choose an empty socket in your territory.")
+		app.toast("Choose clear ground in your territory.")
 		return
 	if not app.game.economy.relocate(id, region, pad, int(source.level)):
-		app.toast("Unable to move. Check your gold and choose an empty socket.")
+		app.toast("Unable to move. Check your gold and choose clear ground.")
 		return
 	cancel()
 	app.panels.selection_region = region

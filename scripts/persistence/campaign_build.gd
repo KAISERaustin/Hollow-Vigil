@@ -41,7 +41,7 @@ static func valid(value: Variant) -> bool:
 		snapshot[key] = value.loadout[key]
 	if not VigilSaveStore.new().valid_loadout(snapshot): return false
 	for tower in snapshot.towers.values():
-		var allowed := false
+		var allowed := int(tower.pad) >= 4 and preload("res://scripts/content/nodes/ground_placement.gd").allowed(snapshot, VigilWorld.pad_position(tower.region, tower.pad), run.mission.routes, run.game.economy.placement_bounds, tower.id)
 		for socket in run.mission.sockets:
 			if socket.region == tower.region and socket.pad == tower.pad: allowed = true
 		if not allowed: return false

@@ -11,6 +11,7 @@ var active_slot := 0
 var audio: Node
 var application_paused := false
 var application_unfocused := false
+var ground_build: Control
 var public_builds: Node
 var private_backups: Node
 var campaign_progress := preload("res://scripts/campaign/progress.gd").new()
@@ -175,6 +176,10 @@ func build_interface() -> void:
 	tower_dialog = TowerDialog.new()
 	tower_dialog.app = self
 	add_child(tower_dialog)
+	ground_build = preload("res://scripts/ui/towers/ground_build.gd").new()
+	ground_build.host = self
+	ground_build.field = field
+	add_child(ground_build)
 	build_return_popup()
 	get_viewport().size_changed.connect(fit_display)
 	fit_display()

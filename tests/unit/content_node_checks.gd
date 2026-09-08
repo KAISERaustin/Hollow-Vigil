@@ -83,7 +83,7 @@ static func tower_instances(t) -> void:
 			t.check(node.can_equip(Content.gear(gear_kind)) and Content.gear(gear_kind).can_equip_on(node), "All existing relics fit the shared tower equipment slot")
 	var game: VigilState = t.legacy_core_fixture(91345)
 	var balance: float = game.data.balance
-	t.check(game.economy.build("missing", "0,0", 0) == "" and game.economy.build("rapid", "0,0", 4) == "" and game.data.balance == balance, "Invalid node placement never spends gold")
+	t.check(game.economy.build("missing", "0,0", 0) == "" and game.economy.build("rapid", "0,0", VigilWorld.MAX_GROUND_PAD + 1) == "" and game.data.balance == balance, "Invalid node placement never spends gold")
 	for key in ["rapid:2", "rapid:3", "rapid:frostneedle"]:
 		t.check(game.economy.build(key, "0,0", 0) == "" and game.data.balance == balance, "Tier catalog keys cannot bypass upgrade purchases: " + key)
 	var id: String = game.economy.build("rapid", "0,0", 0)

@@ -288,23 +288,18 @@ func _notification(what: int) -> void:
 
 func tap(pos: Vector2) -> void:
 	if moving_tower != "":
-		var destination := world(pos)
-		for id in state.data.regions:
-			for pad in range(4):
-				if destination.distance_to(VigilWorld.pad_position(id, pad)) < maxf(26.0, 25.0 / zoom):
-					relocation_picked.emit(id, pad)
-					return
+		var destination := VigilWorld.ground_location(world(pos))
+		relocation_picked.emit(destination.region, destination.pad)
 		return
 	for t in state.data.towers.values():
 		if earnings_badge_visible(t) and earnings_rect(t).has_point(pos):
 			earnings_picked.emit(t.id)
 			return
 	var point := world(pos)
-	for id in state.data.regions:
-		for pad in range(4):
-			if point.distance_to(VigilWorld.pad_position(id, pad)) < maxf(26.0, 25.0 / zoom):
-				picked.emit(id, pad)
-				return
+	for tower in state.data.towers.values():
+		if point.distance_to(VigilWorld.pad_position(tower.region, tower.pad)) < maxf(26.0, 25.0 / zoom):
+			picked.emit(tower.region, tower.pad)
+			return
 	if core_is_visible() and pos.distance_to(screen(VigilWorld.CORE_POSITION)) <= maxf(36.0 * zoom, 22.0):
 		core_picked.emit()
 		return
@@ -478,17 +473,8 @@ func draw_map() -> void:
 	draw_core()
 
 
-func draw_region(region: Dictionary) -> void:
-	# The shared terrain owns pad artwork; this layer adds relocation feedback.
-	if moving_tower.is_empty():
-		return
-	for pad in range(4):
-		if state.economy.tower_at(region.id, pad) != "":
-			continue
-		var p := screen(VigilWorld.pad_position(region.id, pad))
-		if moving_tower != "":
-			draw_circle(p, 22.0 * zoom, Color(GOLD, 0.22))
-			draw_arc(p, 22.0 * zoom, 0, TAU, 32, GOLD, 2, true)
+func draw_region(_region: Dictionary) -> void:
+	pass
 
 func draw_entrance(id: String) -> void:
 	var gate := screen(VigilWorld.center(id))

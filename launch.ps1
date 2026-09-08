@@ -81,6 +81,7 @@ try {
             Invoke-Godot -Name 'first-property' -EngineArguments @('--headless', '--script', 'res://tests/first_property_runner.gd')
             Invoke-Godot -Name 'audio' -EngineArguments @('--headless', '--script', 'res://tests/audio_runner.gd')
             Invoke-Godot -Name 'audio-pitch' -EngineArguments @('--headless', '--script', 'res://tests/audio_pitch_runner.gd')
+            Invoke-Godot -Name 'ground-placement' -EngineArguments @('--headless', '--script', 'res://tests/ground_placement_runner.gd')
             Invoke-Godot -Name 'unit' -EngineArguments @('--headless', '--script', 'res://tests/test_runner.gd')
         }
         if ($UnifiedTests -or $Check) {
@@ -124,7 +125,7 @@ try {
             Invoke-Godot -Name 'build-cards' -EngineArguments @('--script', 'res://tests/rendered/build_cards_runner.gd')
             Invoke-Godot -Name 'tower-upgrade-preview' -EngineArguments @('--script', 'res://tests/rendered/tower_upgrade_preview_runner.gd')
             Invoke-Godot -Name 'tower-expansion-art' -EngineArguments @('--script', 'res://tests/rendered/tower_expansion_art_runner.gd')
-            Invoke-Godot -Name 'build-preview' -EngineArguments @('--script', 'res://tests/rendered/build_preview_runner.gd')
+            Invoke-Godot -Name 'ground-build' -EngineArguments @('--script', 'res://tests/rendered/ground_build_runner.gd')
             Invoke-Godot -Name 'build-selection' -EngineArguments @('--script', 'res://tests/rendered/build_selection_runner.gd')
             Invoke-Godot -Name 'tower-framing' -EngineArguments @('--script', 'res://tests/rendered/tower_framing_runner.gd')
             Invoke-Godot -Name 'welcome-menu' -EngineArguments @('--script', 'res://tests/rendered/welcome_menu_checks.gd')

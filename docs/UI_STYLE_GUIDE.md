@@ -174,7 +174,7 @@ Aim to leave at least 60% of screen height to the battlefield during ordinary pl
 
 ### Tower selection and details
 
-The empty-slot build menu retains two layers: the existing tower cards, then a compact visual roadmap with native base-tower artwork and two illustrated specialization names labeled Choose at level 4. Omit numeric stat grids and long descriptions from this second layer; keep Back, Close, and the exact-cost Build action visible. The roadmap previews future choices without selecting or purchasing them. Full inspection and upgrade comparisons retain their statistics.
+The empty-slot build menu retains two layers: the existing tower cards, then a compact row with native base-tower artwork and a four-square horizontal level indicator. Omit numeric stat grids and long descriptions from this second layer; keep Back, Close, and the exact-cost Build action visible. The four vector image states fill one through four squares for the owned tower level; all four indicate maximum level. Construction shows level 1. Specialization choices appear only when an existing tower reaches level 3. Full inspection and upgrade comparisons retain their statistics.
 
 Selection attaches the existing Info, Upgrade, and Sell actions to the tower context. Keep those actions in a stable order and avoid moving the camera solely to select an object. Clamp the control group inside the visible battlefield; preserve the connection to the tower through placement or a simple pointer. Hide competing tower gold badges while selection or its dialog is active, matching existing behavior.
 

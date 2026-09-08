@@ -160,6 +160,7 @@ func open_action(action: String, branch: String = "") -> void:
 	body.add_child(rebuild_status)
 	if action == "preview":
 		var next_level := mini(tower_level + 1, Balance.MAX_TOWER_LEVEL)
+		body.add_child(preload("res://scripts/ui/shared/tower_level_indicator.gd").create(tower_level))
 		var next := Balance.stats(tower_kind, next_level, app.game.tuning, tower_branch)
 		heading.text = next.name
 		if tower_level == Balance.MAX_TOWER_LEVEL:

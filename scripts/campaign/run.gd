@@ -42,6 +42,8 @@ func _init(index: int = 0, overrides: Dictionary = {}, game_mode: String = "surv
 			game.data.regions[id] = VigilWorld.make_region(id, "0,0", game.data.seed)
 	game.combat.scripted_spawns = true
 	game.combat.authored_roads = mission.routes
+	game.economy.placement_roads = mission.routes
+	game.economy.placement_bounds = preload("res://scripts/content/nodes/ground_placement.gd").campaign_bounds(mission)
 	game.combat.rng.seed = 91000 + index
 	game.combat.enemy_escaped.connect(_escaped)
 
@@ -140,6 +142,8 @@ func apply_configuration(overrides: Dictionary) -> bool:
 			health = int(next.flame)
 	mission = next
 	game.combat.authored_roads = mission.routes
+	game.economy.placement_roads = mission.routes
+	game.economy.placement_bounds = preload("res://scripts/content/nodes/ground_placement.gd").campaign_bounds(mission)
 	rules = overrides.duplicate(true)
 	game.data.settings.developer_balance = (mission.wave_rules[wave].tuning if phase == "wave" else mission.tuning).duplicate(true)
 	changed.emit()
@@ -219,7 +223,7 @@ static func valid_checkpoint(value: Dictionary) -> bool:
 	snapshot.merge(value.state, true)
 	if not VigilSaveStore.new().valid_loadout(snapshot): return false
 	for tower in snapshot.towers.values():
-		var allowed := false
+		var allowed := int(tower.pad) >= 4 and preload("res://scripts/content/nodes/ground_placement.gd").allowed(snapshot, VigilWorld.pad_position(tower.region, tower.pad), checkpoint_mission.routes, preload("res://scripts/content/nodes/ground_placement.gd").campaign_bounds(checkpoint_mission), tower.id)
 		for socket in checkpoint_mission.sockets:
 			if socket.region == tower.region and socket.pad == tower.pad: allowed = true
 		if not allowed: return false

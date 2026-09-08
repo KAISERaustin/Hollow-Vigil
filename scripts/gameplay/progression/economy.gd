@@ -10,6 +10,9 @@ signal tower_upgraded(region: String, pad: int, kind: String)
 
 var data: Dictionary
 var sale_rules: VigilContentNode
+var placement_roads: Array = []
+var placement_bounds := Rect2()
+
 var tower_cells: Dictionary = {}
 var indexed_tower_count := -1
 
@@ -68,7 +71,12 @@ func needs_first_property() -> bool:
 
 func can_place(kind: String, region: String, pad: int) -> bool:
 	var node := Balance.Content.tower(kind)
-	return node != null and pad >= 0 and pad < VigilWorld.PADS.size() and node.can_place("plus", data.regions.has(region), tower_at(region, pad) != "")
+	if node == null or pad < 0 or pad > VigilWorld.MAX_GROUND_PAD:
+		return false
+	return node.can_place("ground", data.regions.has(region), tower_at(region, pad) != "") and (pad < 4 or ground_allowed(VigilWorld.pad_position(region, pad)))
+
+func ground_allowed(point: Vector2, ignore_id: String = "") -> bool:
+	return preload("res://scripts/content/nodes/ground_placement.gd").allowed(data, point, placement_roads, placement_bounds, ignore_id)
 
 func build(kind: String, region: String, pad: int) -> String:
 	if needs_first_property():

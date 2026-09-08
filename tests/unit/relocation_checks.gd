@@ -31,7 +31,7 @@ static func test_transactions(suite: SceneTree) -> void:
 		region.history = {id: 50.0, other: 25.0}
 		region.history_time = 60.0
 	var before := g.data.duplicate(true)
-	for target in [["missing", "0,0", 2, 2], [id, "2,0", 0, 2], [id, "0,0", -1, 2], [id, "0,0", 4, 2], [id, "0,0", 0, 2], [id, "1,0", 1, 2], [id, "1,0", 2, 1]]:
+	for target in [["missing", "0,0", 2, 2], [id, "2,0", 0, 2], [id, "0,0", -1, 2], [id, "0,0", VigilWorld.MAX_GROUND_PAD + 1, 2], [id, "0,0", 0, 2], [id, "1,0", 1, 2], [id, "1,0", 2, 1]]:
 		suite.check(not g.economy.relocate(target[0], target[1], target[2], target[3]) and g.data == before, "Invalid or stale relocation has no side effects: " + str(target))
 	g.data.balance = Balance.move_cost(g.data.towers[id]) - 0.5
 	var poor := g.data.duplicate(true)

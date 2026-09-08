@@ -127,14 +127,11 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 
 func check_details(details: Control, viewport: ScrollContainer, context: String) -> void:
 	check(details.find_child("TowerStats", true, false) == null, context + " omits stat grid")
-	check(details.size.y <= 190, context + " keeps roadmap compact")
-	check(viewport.scroll_vertical == 0, context + " opens at top")
-	var kind: String = details.get_meta("tower_kind")
-	for branch in Balance.BRANCHES[kind]:
-		var card: Control = details.find_child("Path_" + branch, true, false)
-		check(viewport.get_global_rect().grow(1).encloses(card.get_global_rect()), context + " shows complete path")
-		for content: Label in card.find_children("*", "Label", true, false):
-			check(card.get_global_rect().grow(1).encloses(content.get_global_rect()) and content.get_visible_line_count() == content.get_line_count(), context + " fits path name")
+	check(details.size.y <= 72, context + " keeps construction preview compact")
+	check(details.find_child("UpgradePaths", true, false) == null, context + " hides future specializations")
+	var indicator: Control = details.find_child("TowerLevelIndicator", true, false)
+	check(indicator.get_meta("level") == 1, context + " shows one filled square before building")
+	check(viewport.get_global_rect().grow(1).encloses(indicator.get_global_rect()), context + " keeps level indicator visible")
 	await settle()
 
 func run() -> void:
