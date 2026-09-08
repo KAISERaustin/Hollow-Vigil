@@ -473,6 +473,9 @@ func _notification(what: int) -> void:
 		navigate_back()
 
 func navigate_back() -> void:
+	if is_instance_valid(ground_build) and ground_build.visible:
+		ground_build.cancel()
+		return
 	preload("res://scripts/ui/shared/back_navigation.gd").invoke(self, route_back)
 
 func route_back() -> void:

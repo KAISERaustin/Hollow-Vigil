@@ -65,7 +65,7 @@ static func test_transactions(suite: SceneTree) -> void:
 	suite.check(tower != "", "Valid build commits")
 	balance = g.data.balance
 	suite.check(g.economy.build("heavy", "0,0", 1) == "" and g.data.balance == balance, "Duplicate placement cannot charge")
-	suite.check(g.economy.build("rapid", "missing", 0) == "" and g.economy.build("rapid", "0,0", 9) == "", "Invalid placement is rejected")
+	suite.check(g.economy.build("rapid", "missing", 0) == "" and g.economy.build("rapid", "0,0", VigilWorld.MAX_GROUND_PAD + 1) == "", "Invalid placement is rejected")
 	suite.check(not g.economy.spend(-1) and not g.economy.spend(NAN) and not g.economy.spend(INF), "Invalid costs are rejected")
 	g.data.balance = 1
 	suite.check(not g.economy.upgrade("1") and not g.expand("1,0") and g.data.balance == 1, "Unaffordable actions do not mutate balance")

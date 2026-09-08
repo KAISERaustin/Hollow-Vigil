@@ -11,7 +11,7 @@ const DEFINITIONS := {
 	"gear": {"name": "Gear", "description": "Values for selected equipment types."},
 	"rifts": {"name": "Rifts", "description": "Effects for selected rift types."},
 	"resources": {"name": "Starting resources", "description": "Starting gold and Campaign core integrity."},
-	"layout": {"name": "Tower layout and equipment", "description": "Placed towers, upgrades and equipment. Requires their placement tiles or level sockets.", "selection_group": "layout", "export_game_type": "infinite"},
+	"layout": {"name": "Tower layout and equipment", "description": "Placed towers, upgrades and equipment. Requires their owned territory or campaign level.", "selection_group": "layout", "export_game_type": "infinite"},
 	"terrain": {"name": "Explored tiles", "description": "The explored Infinite map and its portal settings.", "game_type": "infinite", "selection_group": "layout"},
 	"timing": {"name": "Wave timing and counts", "description": "Counts, delays and spawn intervals for each wave's groups.", "game_type": "campaign"},
 	"composition": {"name": "Enemy types and entrances", "description": "Which enemies appear in each wave and which entrances they use.", "game_type": "campaign"},

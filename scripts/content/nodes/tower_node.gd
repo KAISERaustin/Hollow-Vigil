@@ -6,7 +6,7 @@ const ContentNode = preload("res://scripts/content/nodes/content_node.gd")
 const Tuning = preload("res://scripts/content/catalogs/tuning.gd")
 
 func can_place(socket_kind: String, owned: bool, occupied: bool) -> bool:
-	return socket_kind in ["plus", "ground"] and owned and not occupied
+	return (socket_kind == _rules.get("placement", "") or (socket_kind == "plus" and _rules.get("placement", "") == "ground")) and owned and not occupied
 
 func can_equip(gear: ContentNode) -> bool:
 	return gear != null and gear.is_a("gear") and gear.rule("slot") in _rules.get("equipment_slots", [])

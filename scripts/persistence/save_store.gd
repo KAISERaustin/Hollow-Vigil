@@ -202,6 +202,9 @@ func _valid_data(d: Dictionary, version: int, max_tower_level: int) -> bool:
 			return false
 	if not valid_loadout(d, max_tower_level):
 		return false
+	for tower in d.towers.values():
+		if int(tower.pad) >= 4 and not preload("res://scripts/content/nodes/ground_placement.gd").allowed(d, VigilWorld.pad_position(tower.region, int(tower.pad)), [], Rect2(), tower.id):
+			return false
 	# Parent links describe purchase history, not enemy routes. Validate them
 	# separately now that movement can also use non-parent neighbors.
 	var rooted := {"0,0": true}

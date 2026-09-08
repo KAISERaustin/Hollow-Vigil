@@ -7,6 +7,7 @@ var field: Battlefield
 var palette: PanelContainer
 var prompt: Label
 var banner: PanelContainer
+var build_button: Button
 var preview_body: VBoxContainer
 var kind := ""
 var candidate := ""
@@ -47,17 +48,18 @@ func _ready() -> void:
 	palette.minimum_size_changed.connect(func(): fit.call_deferred())
 	banner.minimum_size_changed.connect(func(): fit.call_deferred())
 	cancel()
-	var build_button := UI.button("Build", open)
+	build_button = UI.button("Build", open)
 	build_button.name = "OpenGroundBuild"
 	field.add_child(build_button)
-	build_button.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	build_button.offset_left = 12
-	build_button.offset_right = 100
-	build_button.offset_top = -60
-	build_button.offset_bottom = -12
+	field.resized.connect(fit)
+	fit.call_deferred()
 
 func fit() -> void:
 	var safe := UI.safe_rect(self)
+	if is_instance_valid(build_button):
+		var field_safe := UI.safe_rect(field)
+		build_button.position = Vector2(field_safe.position.x + 12, field_safe.end.y - 60)
+		build_button.size = Vector2(88, 48)
 	for panel in [palette, banner]:
 		panel.size = Vector2(maxf(1, safe.size.x - 24), 0)
 	palette.position = Vector2(safe.position.x + 12, safe.end.y - palette.size.y - 12)
@@ -68,6 +70,7 @@ func open() -> void:
 	cancel()
 	host.clear_selection() if host.has_method("clear_selection") else host.panels.close_sheet()
 	show()
+	build_button.hide()
 	for child in palette.get_children():
 		palette.remove_child(child)
 		child.queue_free()
@@ -164,9 +167,11 @@ func _input(event: InputEvent) -> void:
 			candidate = ""
 		elif up:
 			candidate = ""
-	if kind.is_empty(): return
+	if kind.is_empty():
+		if down and candidate.is_empty() and not palette.get_global_rect().has_point(pos): cancel()
+		return
 	# Cancel remains a real button. All other input belongs to placement.
-	if down and banner.get_global_rect().has_point(pos): return
+	if not dragging and banner.get_global_rect().has_point(pos): return
 	if down and not dragging:
 		pointer = id
 		dragging = true
@@ -207,6 +212,7 @@ func cancel() -> void:
 		field.touches.clear()
 		field.mouse_down = false
 		field.gesture_consumed = true
+	if is_instance_valid(build_button): build_button.show()
 	if is_instance_valid(palette): palette.hide()
 	if is_instance_valid(banner): banner.hide()
 	hide()

@@ -200,7 +200,7 @@ func open_action(action: String, branch: String = "") -> void:
 		var quote := UI.value("%s gold · Rebuild %s" % [UI.exact_money(cost), Balance.rebuild_time_text(rebuild_seconds)], 18)
 		quote.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		body.add_child(quote)
-		body.add_child(UI.paragraph("Choose an empty socket in any owned territory. Tapping it pays the cost and starts rebuilding. Your tower keeps its level and stored gold, but cannot fire, upgrade, or move again until ready. Rebuilding continues while you are away.", 14))
+		body.add_child(UI.paragraph("Choose clear ground away from roads, portals, and other towers. Tapping it pays the cost and starts rebuilding. Your tower keeps its level and stored gold, but cannot fire, upgrade, or move again until ready. Rebuilding continues while you are away.", 14))
 	if action == "upgrade":
 		var progression := "Maximum level reached · %d / %d" % [tower_level, Balance.MAX_TOWER_LEVEL] if tower_level >= Balance.MAX_TOWER_LEVEL else "Level %d → %d / %d" % [tower_level, tower_level + 1, Balance.MAX_TOWER_LEVEL]
 		body.add_child(UI.label(progression, 14))

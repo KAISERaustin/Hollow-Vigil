@@ -6,6 +6,9 @@ static func run(suite: SceneTree) -> void:
 
 static func test_gestures(suite: SceneTree) -> void:
 	var g: VigilState = suite.legacy_core_fixture(8)
+	g.data.balance = 100000
+	for pad in range(4): g.economy.build("rapid", "0,0", pad)
+	var initial_balance: float = g.data.balance
 	var field := Battlefield.new()
 	field.state = g
 	field.size = Vector2(540, 620)
@@ -47,7 +50,7 @@ static func test_gestures(suite: SceneTree) -> void:
 		touch.pressed = false
 		field._on_gui_input(touch)
 	suite.check(field.zoom > 1 and taps[0] == 1, "Pinch zooms without releasing a purchase tap")
-	suite.check(g.data.balance == Balance.STARTING_GOLD and g.data.towers.is_empty(), "Gestures never commit financial actions")
+	suite.check(g.data.balance == initial_balance and g.data.towers.size() == 4, "Gestures never commit financial actions")
 	var badge_taps := [0]
 	field.earnings_picked.connect(func(_id): badge_taps[0] += 1)
 	g.economy.build("rapid", "0,0", 0)
@@ -68,7 +71,7 @@ static func test_gestures(suite: SceneTree) -> void:
 		var pads_before: int = taps[0]
 		for pad in range(4):
 			field.tap(field.screen(VigilWorld.pad_position("0,0", pad)))
-		suite.check(taps[0] == pads_before + 4 and core_taps[0] == core_before + 1, "Core hit targets leave all surrounding sockets selectable at zoom %.2f" % scale)
+		suite.check(taps[0] == pads_before + 4 and core_taps[0] == core_before + 1, "Core hit targets leave all surrounding towers selectable at zoom %.2f" % scale)
 	field.camera = Vector2(3000, 3000)
 	suite.check(not field.core_is_visible(), "Offscreen core is not visible")
 	field.camera = Vector2.ZERO

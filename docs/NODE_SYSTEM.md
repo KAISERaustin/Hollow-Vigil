@@ -234,3 +234,12 @@ ground coordinates. Footprints cannot overlap roads, portals, or other towers.
 swipes browse the catalog; upward drags pick up a tower. A valid release buys
 once. An invalid release keeps a red outlined preview without spending, ready
 for another drag. Cancel, Back, and app interruption discard only the preview.
+
+
+Ground placement validation: `tests/ground_placement_runner.gd` checks every
+campaign level, road/portal exclusion, overlap, checkpoints, sharing, Infinite
+save/reload, and relocation. `tests/rendered/ground_build_runner.gd` replaces
+the platform build-card, selection, and camera-preview workflow checks in the
+launcher, exercising both modes at 360×640, 390×844, and 540×960. The independent
+tower-level-indicator suite retains the compact level-preview coverage.
+Physical iOS/Android drag, safe-area, and interruption acceptance remains required.

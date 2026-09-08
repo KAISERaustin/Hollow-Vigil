@@ -286,7 +286,7 @@ func show_expansion(id: String) -> void:
 		boss_text += " This is its encounter tile."
 	sheet_content.add_child(UI.paragraph(boss_text, 14))
 	if VigilWorld.is_ruin(id, int(game.data.seed)):
-		var description := "Open dungeon ground with connecting paths and four tower sockets. This territory has no portal; the other ruin territories remain available to claim."
+		var description := "Open dungeon ground with connecting paths and room for towers. This territory has no portal; the other ruin territories remain available to claim."
 		if VigilWorld.is_dungeon_portal(id, int(game.data.seed)):
 			description = "Four tower sockets surround this dungeon’s only portal. Other ruin territories remain available to claim. " + Balance.rift_description("castle_ruin", game.tuning)
 		sheet_content.add_child(UI.paragraph(description, 14))

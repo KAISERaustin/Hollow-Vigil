@@ -14,6 +14,7 @@ import re
 import shutil
 import subprocess
 import zipfile
+import ctypes
 
 ROOT = Path(__file__).resolve().parents[1]
 WORK = ROOT / '.runtime/performance-audit-20260908'
@@ -54,15 +55,25 @@ def instrument(directory):
         'scripts/app/main.gd': ['update_hud'],
         'scripts/ui/shared/floating_game_hud.gd': ['fit'],
     }
+    if directory.name == 'detailed':
+        owners.update({
+            'scripts/gameplay/balance.gd': ['tower_stats', 'tuned_value'],
+            'scripts/gameplay/combat/targeting.gd': ['distance_remaining', 'select_target'],
+            'scripts/gameplay/combat/road_traps.gd': ['positions'],
+            'scripts/gameplay/combat/line_projectiles.gd': ['aim_point'],
+            'scripts/gameplay/combat/tower_components.gd': ['snapshot', 'ensure'],
+            'scripts/gameplay/combat/enemy_index.gd': ['query_rect'],
+        })
     for path, funcs in owners.items():
         target = directory / path
-        source = target.read_text(encoding='utf-8')
+        source = (WORK / 'baseline' / path).read_text(encoding='utf-8')
         # Constants can be declared after class_name/extends; append at EOF.
-        source += '\nconst _Perf = preload("res://tests/performance/probe.gd")\n'
+        if path != 'scripts/campaign/board.gd':
+            source += '\nconst _Perf = preload("res://tests/performance/probe.gd")\n'
         for func in funcs: source = wrap(source, func, f'{path}:{func}')
         target.write_text(source, encoding='utf-8')
     target = directory / 'scripts/gameplay/combat/combat.gd'
-    source = target.read_text(encoding='utf-8')
+    source = (WORK / 'baseline/scripts/gameplay/combat/combat.gd').read_text(encoding='utf-8')
     start, end = source.index('func tick('), source.index('\nfunc launch_shot(')
     tick = source[start:end]
     boundaries = [
@@ -106,12 +117,13 @@ def prepare(revision):
     if not (WORK / 'baseline').exists():
         subprocess.run(['git', 'archive', resolved, '--format=zip', '-o', str(archive)], cwd=ROOT, check=True)
         with zipfile.ZipFile(archive) as z: z.extractall(WORK / 'baseline')
-    for name in ['baseline', 'instrumented']:
+    for name in ['baseline', 'instrumented', 'detailed']:
         dest = WORK / name
         if not dest.exists():
             with zipfile.ZipFile(archive) as z: z.extractall(dest)
         shutil.copytree(ROOT / 'tests/performance', dest / 'tests/performance', dirs_exist_ok=True)
     instrument(WORK / 'instrumented')
+    instrument(WORK / 'detailed')
     manifest = {str(p.relative_to(WORK/'baseline')): hashlib.sha256(p.read_bytes()).hexdigest()
                 for p in (WORK/'baseline/scripts').rglob('*.gd')}
     (RESULTS/'source_manifest.json').write_text(json.dumps({'commit': resolved, 'sha256': manifest}, indent=2), encoding='utf-8')
@@ -128,6 +140,8 @@ def run(name, suite, tag):
     Path(env['LOCALAPPDATA']).mkdir(parents=True, exist_ok=True)
     env['PERF_OUTPUT'] = str(RESULTS/f'{name}_{suite}{tag}.json')
     env['PERF_CAPTURE'] = str(RESULTS)
+    env['PERF_INSTRUMENTED'] = '0' if name == 'baseline' else '1'
+    env['PERF_SAVE_INPUT'] = str(WORK / 'vigil.save')
     command = [str(GODOT), '--path', str(dest)]
     if suite not in ['render', 'ui']: command += ['--headless']
     else: command += ['--resolution', '390x844', '--disable-vsync']
@@ -147,11 +161,28 @@ def run(name, suite, tag):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('action', choices=['prepare', 'run'])
+    parser.add_argument('action', choices=['prepare', 'run', 'batch'])
     parser.add_argument('name', nargs='?', default='baseline')
     parser.add_argument('suite', nargs='?', default='simulation')
     parser.add_argument('--revision', default='c5a0b28')
     parser.add_argument('--tag', default='')
+    parser.add_argument('--wait-pid', type=int)
     args = parser.parse_args()
     if args.action == 'prepare': prepare(args.revision)
-    else: run(args.name, args.suite, args.tag)
+    elif args.action == 'run': run(args.name, args.suite, args.tag)
+    else:
+        if args.wait_pid:
+            kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+            kernel.OpenProcess.restype = ctypes.c_void_p
+            kernel.WaitForSingleObject.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+            kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+            handle = kernel.OpenProcess(0x00100000, False, args.wait_pid)
+            if handle:
+                print(f'Waiting for audit process {args.wait_pid} before serial benchmarks.', flush=True)
+                while kernel.WaitForSingleObject(handle, 60000) == 258:
+                    print('Rendered benchmark still running; remaining suites stay queued.', flush=True)
+                kernel.CloseHandle(handle)
+        for name, suite in [('baseline', 'campaign'), ('detailed', 'import'), ('detailed', 'deep'),
+                            ('baseline', 'costs'), ('baseline', 'camera'), ('baseline', 'ui'), ('instrumented', 'render')]:
+            print(f'START {name} {suite}', flush=True)
+            run(name, suite, '')

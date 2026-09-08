@@ -92,6 +92,7 @@ func close_sheet() -> void:
 	clear_selection()
 
 func clear_selection() -> void:
+	if is_instance_valid(ground_build): ground_build.cancel()
 	if is_instance_valid(dialog) and socket_dialog:
 		dialog.hide()
 	if is_instance_valid(tower_dialog) and tower_dialog.visible:
@@ -918,6 +919,9 @@ func _notification(what: int) -> void:
 		save_progress()
 
 func go_back() -> void:
+	if is_instance_valid(ground_build) and ground_build.visible:
+		ground_build.cancel()
+		return
 	if is_instance_valid(app.slot_menu) and app.slot_menu.visible:
 		app.slot_menu.go_back()
 		return

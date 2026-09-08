@@ -10,7 +10,7 @@ func run() -> void:
 	var rows := []
 	var cases := [[4, false, false], [20, true, false], [40, false, false], [40, true, false], [80, true, false], [4, true, true]]
 	for item in cases:
-		for repeat in range(3):
+		for repeat in range(1 if OS.get_environment("PERF_INSTRUMENTED") == "1" else 3):
 			Probe.enabled = false
 			var game := F.infinite(item[0], item[1], item[2])
 			for step in range(600): game.combat.tick(Balance.STEP)

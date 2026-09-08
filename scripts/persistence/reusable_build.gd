@@ -65,7 +65,7 @@ static func compatible(value: Dictionary, target: String) -> bool:
 static func dependencies(value: Dictionary) -> String:
 	var notes: PackedStringArray = []
 	if value.contents.get("layout", false):
-		notes.append("Layout includes compatible equipment and its " + ("placement tiles and connecting paths." if value.game_type == "infinite" else "authored level sockets."))
+		notes.append("Layout includes compatible equipment and its " + ("placement tiles and connecting paths." if value.game_type == "infinite" else "authored level ground."))
 	if value.contents.get("timing", false) != value.contents.get("composition", false):
 		notes.append("Wave groups must match the original group count. Select both wave groups if you added or removed spawn groups.")
 	if value.game_type == "campaign" and has_stats(value):

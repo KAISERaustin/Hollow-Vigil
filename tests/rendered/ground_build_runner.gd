@@ -3,6 +3,7 @@ var checks := 0
 var failures := 0
 
 func _initialize() -> void:
+	Input.emulate_touch_from_mouse = true
 	preload("res://tests/support/timeout.gd").arm(self, 180)
 	call_deferred("run")
 
@@ -76,7 +77,35 @@ func exercise(host: Control, label: String) -> void:
 		check(not field.selected_tower.is_empty(), label + " ground tower selectable")
 	build.open()
 	await settle()
+	var scroll: ScrollContainer = build.palette.find_child("TowerCards", true, false)
+	var swipe_start := scroll.global_position + Vector2(scroll.size.x - 30, 35)
+	await touch(swipe_start, true)
+	for step in range(1, 9):
+		var swipe := InputEventScreenDrag.new()
+		swipe.position = swipe_start - Vector2(step * 18, 0)
+		swipe.relative = Vector2(-18, 0)
+		Input.parse_input_event(swipe)
+		await process_frame
+	await touch(swipe_start - Vector2(144, 0), false)
+	check(build.kind.is_empty() and scroll.scroll_horizontal > 0, label + " horizontal swipe browses without arming")
 	build.arm("rapid")
+	await settle()
+	var count: int = host.game.data.towers.size()
+	await touch(blocked, true)
+	await touch(blocked + Vector2(30, 0), true, 1)
+	await touch(blocked + Vector2(30, 0), false, 1)
+	check(build.dragging and build.pointer == 0 and host.game.data.towers.size() == count, label + " secondary finger cannot commit")
+	await drag(Vector2(-30, -30))
+	await touch(Vector2(-30, -30), false)
+	check(not build.valid and host.game.data.towers.size() == count, label + " offscreen release cannot build")
+	var cancel_button: Button = build.banner.find_children("*", "Button", true, false)[0]
+	await touch(cancel_button.get_global_rect().get_center(), true)
+	await touch(cancel_button.get_global_rect().get_center(), false)
+	check(not build.visible, label + " touch Cancel dismisses preview")
+	build.open()
+	build.arm("rapid")
+	build._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	check(not build.visible and host.game.data.towers.size() == count, label + " interruption cancels without spending")
 	build.cancel()
 	check(build.kind.is_empty() and not build.visible, label + " cancel clears preview")
 
@@ -101,6 +130,8 @@ func run() -> void:
 		root.content_scale_size = viewport
 		await settle()
 		await exercise(campaign, "campaign")
-	app.free()
+	await settle()
+	app.queue_free()
+	await settle()
 	print("GROUND BUILD TOUCH: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

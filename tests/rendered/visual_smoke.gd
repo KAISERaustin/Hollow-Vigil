@@ -57,13 +57,13 @@ static func run(app: Control) -> void:
 		failures.append("New game spawned enemies before territory purchase")
 	app.panels.select_pad("0,0", 0)
 	app.update_hud()
-	if not app.panels.action_button.disabled:
-		failures.append("Tower build button is enabled before the first property purchase")
+	app.ground_build.arm("rapid")
+	if app.ground_build.valid:
+		failures.append("Ground build enabled before first property purchase")
 	await capture(app, "first-property-required")
-	app.panels.action_button.pressed.emit()
 	if not game.data.towers.is_empty() or game.data.balance != Balance.STARTING_GOLD:
-		failures.append("Build callback bypassed the first property requirement")
-	app.panels.close_sheet()
+		failures.append("Build preview bypassed the first property requirement")
+	app.ground_build.cancel()
 	app.field.camera = Vector2(-150, 0)
 	await tap(app, app.field.global_position + app.field.screen(app.field.expansion_marker("-1,0")))
 	await tap(app, app.panels.action_button.global_position + app.panels.action_button.size * 0.5)
@@ -72,7 +72,16 @@ static func run(app: Control) -> void:
 	app.field.camera = Vector2.ZERO
 	app.panels.select_pad("0,0", 0)
 	await capture(app, "first-tower-purchase")
-	await tap(app, app.panels.action_button.get_global_rect().get_center())
+	app.ground_build.arm("rapid")
+	await settle(app)
+	var ground := Vector2(-120, -120)
+	for y in range(-120, 121, 20):
+		for x in range(-120, 121, 20):
+			if game.economy.ground_allowed(Vector2(x, y)):
+				ground = Vector2(x, y)
+				break
+		if game.economy.ground_allowed(ground): break
+	await tap(app, app.field.global_position + app.field.screen(ground), true)
 	if game.data.towers.size() != 1 or game.data.balance != Balance.STARTING_GOLD - Balance.expansion_cost(1) - Balance.TOWERS.rapid.cost:
 		failures.append("First tower purchase did not charge its price")
 	if "--first-property-only" in OS.get_cmdline_user_args():
@@ -150,11 +159,10 @@ static func run(app: Control) -> void:
 	await tap(app, app.tower_actions.buttons.upgrade.get_global_rect().get_center(), true)
 	if game.data.towers["1"].level != level + 1:
 		failures.append("Physical touch did not buy upgrade while collection animated")
-	app.panels.select_pad("0,0", 3)
+	app.ground_build.open()
 	await capture(app, "build")
-	await tap(app, app.panels.action_button.global_position + app.panels.action_button.size * 0.5)
-	if game.economy.tower_at("0,0", 3) == "":
-		failures.append("Live build confirmation did not place a tower")
+	# Pointer commits and retries are exercised by ground_build_runner.
+	app.ground_build.cancel()
 	app.panels.show_entrance("-1,0")
 	await capture(app, "rift")
 	game.data.balance = 500.0
@@ -275,7 +283,7 @@ static func run(app: Control) -> void:
 		failures.append("Reset did not restore the live battlefield")
 	await capture(app, "reset-complete")
 	var f := FileAccess.open("res://artifacts/visual-results.txt", FileAccess.WRITE)
-	f.store_string("Rendered Godot smoke test\nMouse and touch rift/expansion selection at four zoom levels, neutral gap between controls, touch and mouse core details, central routes from all four directions, return to core, touch collection, touch upgrades, purchases during animations, build confirmation, expansion confirmation, panel bounds, lifecycle pause/resume, duplicate resume protection.\nFailures: %d\n" % failures.size())
+	f.store_string("Rendered Godot smoke test\nMouse and touch rift/expansion selection at four zoom levels, neutral gap between controls, touch and mouse core details, central routes from all four directions, return to core, touch collection, touch upgrades, purchases during animations, ground build palette, expansion confirmation, panel bounds, lifecycle pause/resume, duplicate resume protection.\nFailures: %d\n" % failures.size())
 	for failure in failures:
 		f.store_line(failure)
 		push_error(failure)
