@@ -36,8 +36,19 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 		var level: int = host.game.data.towers[host.field.selected_tower].level
 		dialog.confirm.pressed.emit()
 		await settle()
-		check(dialog.mode == "preview", "Upgrade opens comparison")
+		check(dialog.mode == "info" and dialog.upgrade_armed, "Upgrade arms inline confirmation")
+		check(dialog.upgrade_quote.is_visible_in_tree(), "Gold consequence visible")
+		await Harness.capture(host, "tower-upgrade-confirm-" + prefix + "-" + str(viewport.x))
 		check(host.game.data.towers[host.field.selected_tower].level == level, "Preview does not purchase")
+		var balance: float = host.game.data.balance
+		var quote: float = dialog.cost
+		dialog.confirm.pressed.emit()
+		await settle()
+		check(host.game.data.towers[host.field.selected_tower].level == level + 1, "Checkmark upgrades directly")
+		check(is_equal_approx(host.game.data.balance, balance - quote), "Charges quoted gold once")
+		host.game.data.towers[host.field.selected_tower].level = level
+		dialog.open_action("info")
+		dialog.confirm.pressed.emit()
 		dialog.go_back()
 		await settle()
 		dialog.go_back()
@@ -52,6 +63,15 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 				check(dialog.portrait.global_position.y < dialog.heading.global_position.y, "Portrait above title")
 				check(dialog.card.size.y <= 240, "Every tier stays compact")
 				await Harness.capture(host, "tower-management-" + prefix + "-level-" + str(tier))
+				if tier == 3:
+					dialog.confirm.pressed.emit()
+					var branch: String = Balance.BRANCHES[tower.kind].keys()[1]
+					dialog.arm_upgrade(branch)
+					await settle()
+					check(Rect2(Vector2.ZERO, Vector2(viewport)).encloses(dialog.card.get_global_rect()), "Branch confirmation fits portrait")
+					await Harness.capture(host, "tower-upgrade-branch-" + prefix)
+					dialog.confirm.pressed.emit()
+					check(tower.level == 4 and tower.branch == branch, "Checkmark purchases selected specialization")
 				dialog.dismiss()
 			tower.level = 1
 			tower.branch = ""

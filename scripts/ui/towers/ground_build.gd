@@ -45,9 +45,10 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	visible = field.is_visible_in_tree()
-	palette.visible = not allowed_to_build.is_valid() or allowed_to_build.call()
+	# Keep the tower strip in place while the completed battlefield is shown.
+	var can_build := not allowed_to_build.is_valid() or bool(allowed_to_build.call())
 	for button in palette.find_children("Build_*", "Button", true, false):
-		button.disabled = field.state.data.balance < Balance.definition("towers", button.get_meta("tower_kind"), field.state.tuning).cost
+		button.disabled = not can_build or field.state.data.balance < Balance.definition("towers", button.get_meta("tower_kind"), field.state.tuning).cost
 
 func fit() -> void:
 	var safe := UI.safe_rect(self)
@@ -118,6 +119,7 @@ func arm(value: String) -> void:
 	fit.call_deferred()
 
 func card_input(event: InputEvent, value: String, button: Control) -> void:
+	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
 	if button is Button and button.disabled: return
 	if event is InputEventScreenTouch and event.pressed and candidate.is_empty():
 		candidate = value

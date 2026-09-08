@@ -39,8 +39,12 @@ func run() -> void:
 			var field: Control = campaign.board
 			var hud: Control = campaign.floating_hud
 			var bounds := Rect2(Vector2.ZERO, Vector2(viewport))
-			check(field.global_position.x == 0 and field.get_global_rect().end == bounds.end, "Terrain fills the screen below the bar")
-			check(field.size.y > viewport.y * 0.85, "Terrain owns over 85 percent of phone height")
+			var palette: Control = campaign.ground_build.palette
+			check(field.global_position.x == 0 and is_equal_approx(field.size.x, viewport.x)
+				and absf(field.get_global_rect().end.y - palette.global_position.y) <= UI.CARD_GAP,
+				"Terrain fills the width and reaches the persistent build tray")
+			check(field.size.y >= viewport.y - campaign.battle_bar.size.y - palette.size.y - UI.CARD_GAP,
+				"Terrain uses the space available between the toolbar and build tray")
 			check(field.find_child("CampaignMapBorder", true, false) == null and not campaign.parchment.visible, "No frame encloses the battlefield")
 			check(field.get_global_rect().encloses(hud.header.get_global_rect()), "Top information row fits inside terrain")
 			check(hud.identity.get_child_count() == 1 and hud.title.text == "%d. %s" % [level + 1, campaign.run.mission.name], "Identity contains the level number and name")
@@ -115,7 +119,12 @@ func run() -> void:
 				campaign._process(0.1)
 				check(not campaign.paused and campaign.run.wave_time > 0.0, "Restored wave resumes through its top playback action")
 			await Harness.tap(app, campaign.game_toolbar.menu_button.get_global_rect().get_center(), true)
-			check(campaign.page == "map", "Top back action returns to the campaign map")
+			check(campaign.page == "battle" and campaign.exit_confirmation, "Top back action asks before discarding the level")
+			await Harness.tap(app, campaign.find_child("CancelCampaignExit", true, false).get_global_rect().get_center(), true)
+			check(campaign.page == "battle" and not campaign.exit_confirmation, "Cancel keeps the current battle")
+			await Harness.tap(app, campaign.game_toolbar.menu_button.get_global_rect().get_center(), true)
+			await Harness.tap(app, campaign.find_child("ConfirmCampaignExit", true, false).get_global_rect().get_center(), true)
+			check(campaign.page == "briefing", "Confirmed exit returns to the level briefing")
 		campaign.start_mission(3)
 		await frame()
 		var expanded_hud: Control = campaign.floating_hud

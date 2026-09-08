@@ -2,11 +2,14 @@ extends RefCounted
 ## Four fixed visual states shared by construction and placed-tower panels.
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const IMAGES = [
-	preload("res://assets/ui/tower-levels/stage-1.png"),
-	preload("res://assets/ui/tower-levels/stage-2.png"),
-	preload("res://assets/ui/tower-levels/stage-3.png"),
-	preload("res://assets/ui/tower-levels/stage-4.png"),
+	preload("res://assets/ui/tower-levels/bubbles-1.png"),
+	preload("res://assets/ui/tower-levels/bubbles-2.png"),
+	preload("res://assets/ui/tower-levels/bubbles-3.png"),
+	preload("res://assets/ui/tower-levels/bubbles-4.png"),
 ]
+
+const BUBBLE_SHADER = preload("res://scripts/ui/shared/level_bubble.gdshader")
+const REGIONS = [[[58, 121, 470, 465], [586, 120, 471, 466], [1115, 119, 472, 467], [1645, 119, 473, 467]], [[88, 134, 432, 426], [612, 134, 430, 426], [1134, 134, 430, 426], [1653, 134, 431, 426]], [[61, 119, 482, 479], [581, 119, 486, 480], [1104, 119, 487, 479], [1629, 119, 483, 479]], [[62, 114, 467, 465], [587, 114, 470, 465], [1116, 114, 468, 465], [1642, 114, 467, 465]]]
 
 static func create(level: int, show_caption: bool = true, vertical: bool = false) -> VBoxContainer:
 	var current := clampi(level, 1, IMAGES.size())
@@ -26,18 +29,20 @@ static func create(level: int, show_caption: bool = true, vertical: bool = false
 	row.accessibility_name = "Tower level %d of 4" % current
 	column.add_child(row)
 	for index in IMAGES.size():
-		var square := PanelContainer.new()
-		square.name = "Level%d" % (index + 1)
-		square.custom_minimum_size = Vector2(32, 32)
-		square.add_theme_stylebox_override("panel", UI.surface(UI.GOLD if index < current else UI.SURFACE, UI.OUTLINE, 4))
-		square.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.add_child(square)
 		var image := TextureRect.new()
-		image.name = "LevelArtwork"
-		image.texture = IMAGES[index] if index < current else null
+		image.name = "Level%d" % (index + 1)
+		image.custom_minimum_size = Vector2(32, 32)
+		image.texture = IMAGES[current - 1]
 		image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		image.stretch_mode = TextureRect.STRETCH_SCALE
 		image.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		image.accessibility_name = "Level %d %s" % [index + 1, "reached" if index < current else "not reached"]
-		square.add_child(image)
+		image.set_meta("earned", index < current)
+		var region: Array = REGIONS[current - 1][index]
+		var ink := ShaderMaterial.new()
+		ink.shader = BUBBLE_SHADER
+		ink.set_shader_parameter("source_region", Vector4(region[0] / 2172.0, region[1] / 724.0, region[2] / 2172.0, region[3] / 724.0))
+		ink.set_shader_parameter("outline", float(UI.OUTLINE))
+		image.material = ink
+		row.add_child(image)
 	return column

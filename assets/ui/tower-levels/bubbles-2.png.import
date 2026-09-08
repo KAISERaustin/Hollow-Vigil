@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d2k6pf4306ogs"
-path="res://.godot/imported/stage-4.png-0f7679c3af92725fb24daaeafaee5281.ctex"
+uid="uid://4lpl315go8id"
+path="res://.godot/imported/bubbles-2.png-b07ac242f789462d35b75fccaa34d3f1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/tower-levels/stage-4.png"
-dest_files=["res://.godot/imported/stage-4.png-0f7679c3af92725fb24daaeafaee5281.ctex"]
+source_file="res://assets/ui/tower-levels/bubbles-2.png"
+dest_files=["res://.godot/imported/bubbles-2.png-b07ac242f789462d35b75fccaa34d3f1.ctex"]
 
 [params]
 
@@ -36,5 +36,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=128
+process/size_limit=512
 detect_3d/compress_to=1

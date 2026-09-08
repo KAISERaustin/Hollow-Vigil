@@ -36,7 +36,8 @@ def battery_state():
     return {key: re.search(r'^\s*' + re.escape(key) + r': (.*)$', raw, re.M)[1].strip() for key in keys}
 
 
-def build(name):
+def build(name, smoke=False):
+    artifact = name + ('_smoke' if smoke else '')
     source = BASE / name
     dest = BASE / ('android_' + name)
     if not dest.exists():
@@ -44,7 +45,7 @@ def build(name):
     shutil.copytree(audit.ROOT / 'tests/performance', dest / 'tests/performance', dirs_exist_ok=True)
     (dest / 'tests/support').mkdir(exist_ok=True)
     shutil.copy2(audit.ROOT / 'tests/support/timeout.gd', dest / 'tests/support/timeout.gd')
-    top = ['class_name VigilMobileBenchmark', 'extends SceneTree']
+    top = ['class_name VigilMobileBenchmark', 'extends SceneTree', 'const MOBILE_SMOKE := ' + str(smoke).lower()]
     bodies = []
     for suite in ['render', 'live', 'behavior']:
         text = (dest / f'tests/performance/{suite}_runner.gd').read_text(encoding='utf-8')
@@ -63,6 +64,9 @@ def build(name):
         # A 390x844 logical canvas makes the crowded fixture comparable.
         body = re.sub(r'^\s*root.size = .*$', '', body, flags=re.M)
         body = body.replace('root.content_scale_size = root.size', 'root.content_scale_size = Vector2i(390,844)')
+        for count in [180, 600, 140]:
+            body = body.replace(f'range({count})', f'range(3 if MOBILE_SMOKE else {count})')
+        body = body.replace('F.infinite(4,', 'F.infinite(0 if MOBILE_SMOKE else 4,')
         bodies.append(body)
     bootstrap = '''
 func _initialize() -> void:
@@ -79,8 +83,9 @@ func emit_report(suite: String) -> void:
         # cryptographic state digest is compared between Android releases.
         row.erase("state")
     var payload := JSON.stringify({"suite": suite, "report": report})
-    for offset in range(0, payload.length(), 1800):
-        print("HV_PERF_CHUNK ", suite, " ", offset, " ", payload.substr(offset, 1800))
+    # Godot's Android logger truncates messages at roughly 1024 bytes.
+    for offset in range(0, payload.length(), 600):
+        print("HV_PERF_CHUNK ", suite, " ", offset, " ", payload.substr(offset, 600))
     print("HV_PERF_END ", suite)
 
 func mobile_run() -> void:
@@ -94,13 +99,13 @@ func mobile_run() -> void:
         "physical_viewport": [root.size.x, root.size.y], "template_debug": OS.is_debug_build()}))
     await run_render()
     emit_report("render")
-    OS.set_environment("PERF_DURATION", "10")
+    OS.set_environment("PERF_DURATION", "0.1" if MOBILE_SMOKE else "10")
     OS.set_environment("PERF_REPEATS", "1")
     for playback in ["1", "2", "4"]:
         OS.set_environment("PERF_PLAYBACK", playback)
         await run_live()
         emit_report("live_" + playback)
-    OS.set_environment("PERF_DURATION", "180")
+    OS.set_environment("PERF_DURATION", "0.1" if MOBILE_SMOKE else "180")
     OS.set_environment("PERF_MODE", "infinite")
     await run_live()
     emit_report("sustained_4x")
@@ -130,7 +135,7 @@ func mobile_run() -> void:
                         '-alias', 'benchmark', '-keypass', 'benchmark', '-dname', 'CN=Local Benchmark',
                         '-keyalg', 'RSA', '-keysize', '2048', '-validity', '3650'], check=True, capture_output=True)
     template = audit.ROOT / 'exports/android-tools/android_release.apk'
-    apk = BASE / f'android_{name}.apk'
+    apk = BASE / f'android_{artifact}.apk'
     preset = f'''[preset.0]
 name="Android Performance"
 platform="Android"
@@ -150,7 +155,7 @@ architectures/arm64-v8a=true
 architectures/x86=false
 architectures/x86_64=false
 version/code=1
-version/name="performance-{name}"
+version/name="performance-{artifact}"
 package/unique_name="{PACKAGE}"
 package/name="Hollow Vigil Performance"
 package/signed=true
@@ -163,7 +168,7 @@ permissions/internet=false
     (dest / 'export_presets.cfg').write_text(preset, encoding='utf-8')
     env = os.environ.copy()
     env['APPDATA'] = str(profile)
-    log = BASE / f'android_{name}_export.log'
+    log = BASE / f'android_{artifact}_export.log'
     with log.open('w', encoding='utf-8') as output:
         result = subprocess.run([str(audit.GODOT), '--headless', '--path', str(dest), '--editor', '--import'],
                                 env=env, stdout=output, stderr=subprocess.STDOUT)
@@ -176,7 +181,7 @@ permissions/internet=false
                                 env=env, stdout=output, stderr=subprocess.STDOUT)
     errors = re.findall(r'^(?:SCRIPT ERROR:|ERROR:(?! Failed to read the root certificate store\.)).*', log.read_text(encoding='utf-8'), re.M)
     if result.returncode or errors: raise SystemExit(f'Export failed: {errors[:8]}; {log}')
-    (RESULTS / f'android_{name}_build.json').write_text(json.dumps({
+    (RESULTS / f'android_{artifact}_build.json').write_text(json.dumps({
         'source': name, 'package': PACKAGE, 'apk_sha256': hashlib.sha256(apk.read_bytes()).hexdigest(),
         'release_template_sha256': hashlib.sha256(template.read_bytes()).hexdigest(),
         'harness_sha256': hashlib.sha256(runner.encode()).hexdigest(),
@@ -186,7 +191,8 @@ permissions/internet=false
     print(f'Built release-template benchmark: {apk}', flush=True)
 
 
-def run(name):
+def run(name, smoke=False):
+    name += '_smoke' if smoke else ''
     apk = BASE / f'android_{name}.apk'
     print(adb('install', '--no-incremental', '--no-streaming', '-r', str(apk)).decode(), flush=True)
     # Stop only our separate benchmark package; preserve application data.
@@ -246,5 +252,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('action', choices=['build', 'run'])
     parser.add_argument('name', choices=['before', 'after'])
+    parser.add_argument('--smoke', action='store_true')
     args = parser.parse_args()
-    (build if args.action == 'build' else run)(args.name)
+    (build if args.action == 'build' else run)(args.name, args.smoke)

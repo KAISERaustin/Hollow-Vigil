@@ -44,6 +44,8 @@ var relic_original := ""
 var relic_owner := ""
 var equipment_state := ""
 var preview_state := ""
+var upgrade_armed := false
+var upgrade_quote: Label
 
 func _ready() -> void:
 	name = "TowerDialog"
@@ -144,7 +146,10 @@ func _has_point(point: Vector2) -> bool:
 
 func open_action(action: String, branch: String = "") -> void:
 	if action == "upgrade":
-		action = "preview"
+		open_action("info")
+		arm_upgrade()
+		return
+	upgrade_armed = false
 	app.tower_actions.cancel_upgrade()
 	var id: String = app.field.selected_tower
 	if not action in ["info", "preview", "upgrade", "sell", "move", "target", "equipment"] or not app.game.data.towers.has(id):
@@ -302,6 +307,35 @@ func open_action(action: String, branch: String = "") -> void:
 	(header_close if action in ["equipment", "preview"] else (confirm if action == "info" else cancel)).grab_focus()
 	UI.trap_focus(card)
 
+func arm_upgrade(branch: String = "") -> void:
+	if tower_level >= Balance.MAX_TOWER_LEVEL:
+		return
+	upgrade_armed = true
+	if tower_level == 3:
+		tower_branch = branch if Balance.valid_branch(tower_kind, branch) else str(Balance.BRANCHES[tower_kind].keys()[0])
+	cost = Balance.upgrade_cost(app.game.data.towers[tower_id], app.game.tuning, tower_branch)
+	for child in footer.get_children():
+		footer.remove_child(child)
+		child.queue_free()
+	var stack := VBoxContainer.new()
+	stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stack.add_theme_constant_override("separation", 8)
+	footer.add_child(stack)
+	if tower_level == 3:
+		for option in Balance.BRANCHES[tower_kind]:
+			var choice := UI.button(Balance.stats(tower_kind, 4, app.game.tuning, option).name, arm_upgrade.bind(option), 48)
+			choice.toggle_mode = true
+			choice.set_pressed_no_signal(option == tower_branch)
+			stack.add_child(choice)
+	upgrade_quote = UI.paragraph("", 14)
+	upgrade_quote.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stack.add_child(upgrade_quote)
+	footer.show()
+	confirm.accessibility_name = "Confirm upgrade"
+	confirm.queue_redraw()
+	refresh()
+	call_deferred("fit_dialog")
+
 func management_button(action: String, label: String, callback: Callable) -> Button:
 	var button := UI.button("", callback, 48)
 	button.name = "Manage_" + action
@@ -320,7 +354,7 @@ func configure_management_button(button: Button, action: String, label: String) 
 		button.add_theme_stylebox_override(state, style)
 	button.draw.connect(func():
 		var equipped := preload("res://scripts/gameplay/progression/relics.gd").kind(app.game.data, app.game.data.towers[tower_id]) if app.game.data.towers.has(tower_id) else ""
-		preload("res://scripts/ui/towers/tower_action_icon.gd").draw(button, action, equipped, tower_level >= Balance.MAX_TOWER_LEVEL)
+		preload("res://scripts/ui/towers/tower_action_icon.gd").draw(button, action, equipped, tower_level >= Balance.MAX_TOWER_LEVEL, tower_id if upgrade_armed else "")
 	)
 
 func show_equipment_details(relic_id: String) -> void:
@@ -433,7 +467,7 @@ func fit_dialog() -> void:
 func refresh() -> void:
 	if not visible:
 		return
-	if (mode.begins_with("equipment") or mode == "preview") and app.field.selected_tower != tower_id:
+	if (mode.begins_with("equipment") or mode in ["info", "preview"]) and app.field.selected_tower != tower_id:
 		dismiss(false)
 		return
 	if not app.game.data.towers.has(tower_id) or app.game.data.towers[tower_id].level != tower_level:
@@ -447,9 +481,16 @@ func refresh() -> void:
 		open_action("equipment")
 		return
 	var remaining: float = tower.get("rebuild_remaining", 0.0)
+	if mode == "info" and upgrade_armed:
+		if Balance.upgrade_cost(tower, app.game.tuning, tower_branch) != cost:
+			open_action("info")
+			return
+		upgrade_quote.text = "Upgrade · −%s gold\nGold: %s → %s" % [UI.exact_money(cost), UI.exact_money(app.game.data.balance), UI.exact_money(maxf(0, app.game.data.balance - cost))]
 	rebuild_status.visible = remaining > 0.0
 	rebuild_status.text = "Rebuilding · " + Balance.rebuild_time_text(remaining)
 	var disabled: bool = (mode in ["preview", "upgrade", "move"] and (app.game.data.balance < cost or remaining > 0.0)) or (mode in ["preview", "upgrade"] and tower_level >= Balance.MAX_TOWER_LEVEL)
+	if mode == "info":
+		disabled = tower_level >= Balance.MAX_TOWER_LEVEL or remaining > 0.0 or (upgrade_armed and app.game.data.balance < cost)
 	if mode in ["equipment", "equipment_detail"]:
 		disabled = relic_choice == relic_original
 	if disabled != confirm.disabled:
@@ -475,7 +516,16 @@ func commit(opened_revision: int) -> void:
 	if not visible or opened_revision != revision:
 		return
 	if mode == "info":
-		open_action("preview")
+		refresh()
+		if not visible or confirm.disabled or opened_revision != revision:
+			return
+		if not upgrade_armed:
+			arm_upgrade()
+		elif app.game.economy.upgrade(tower_id, tower_level, tower_branch):
+			upgrade_armed = false
+			upgraded.emit()
+			app.persist()
+			open_action("info")
 	elif mode == "preview":
 		refresh()
 		if not visible or revision != opened_revision or confirm.disabled:
@@ -538,6 +588,8 @@ func go_back() -> void:
 	# System Back follows the same nested equipment route as its visible controls.
 	if mode in ["equipment_detail", "equipment_remove"]:
 		open_action("equipment")
+	elif mode == "info" and upgrade_armed:
+		open_action("info")
 	elif mode != "info":
 		open_action("info")
 	else:
