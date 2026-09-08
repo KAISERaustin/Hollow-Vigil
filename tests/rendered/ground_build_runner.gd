@@ -110,6 +110,8 @@ func exercise(host: Control, label: String) -> void:
 		await touch(build.banner.find_child("BuildPortrait", true, false).get_global_rect().get_center(), true)
 		await drag(target)
 		check(build.valid, label + " retry preview valid")
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://artifacts/ground-range-%s-%d.png" % [label, root.size.x])
 		await touch(target, false)
 		check(host.game.data.towers.size() == before + 1 and (build.kind.is_empty() and build.palette.visible), label + " retry release builds once")
 		check(is_equal_approx(funds - host.game.data.balance, Balance.definition("towers", "rapid", host.game.tuning).cost), label + " spends exact price")

@@ -227,6 +227,9 @@ func _draw() -> void:
 	var at := field.global_position - global_position + field.screen(point)
 	var tint := Color("368149") if valid else Color("cc3030")
 	draw_set_transform(at, 0, Vector2.ONE * field.zoom)
+	# Use the same level-one stats as the tower being built, including save tuning.
+	var radius: float = Balance.stats(kind, 1, field.state.tuning).range
+	draw_arc(Vector2.ZERO, radius, 0, TAU, 72, VigilTerrainArt.GOLD, 1.5 / field.zoom, true)
 	VigilTerrainArt.sentinel(self, kind, Vector2.ZERO, 1.0, 1, "")
 	draw_arc(Vector2.ZERO, 20, 0, TAU, 48, tint, 3.0 / field.zoom, true)
 	if not valid:
