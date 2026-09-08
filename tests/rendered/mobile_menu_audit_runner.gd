@@ -145,9 +145,13 @@ func check_save_pending() -> void:
 	var action := button("SavePrivately")
 	var presses := [0]
 	var observed := [false]
+	var painted := [false]
+	menu.scroll.scroll_vertical = int(menu.scroll.get_v_scroll_bar().max_value)
+	await frames()
 	action.pressed.connect(func():
 		presses[0] += 1
 		observed[0] = menu.submitting_build and action.disabled and button("ShareToCommunity").disabled and menu.message.visible and menu.message.text == "Saving build…"
+		observe_pending_frame(painted)
 	)
 	var center := action.get_global_rect().get_center()
 	await input_touch(center, true)
@@ -156,9 +160,18 @@ func check_save_pending() -> void:
 	queue_tap(center)
 	for frame in 20: await process_frame
 	check(observed[0], "Save touch shows pending feedback and disables Save and Share before serialization")
+	check(painted[0], "Saving feedback is painted and revealed from the form bottom before serialization finishes")
 	check(presses[0] == 1, "A rapid second Save tap is ignored while pending")
 	check(not menu.submitting_build and not action.disabled and not button("ShareToCommunity").disabled, "Save completion restores both touch actions")
 	check(not menu.form_saved_code.is_empty(), "The initial Save touch completes its private copy")
+
+func observe_pending_frame(painted: Array) -> void:
+	for draw in 3:
+		await RenderingServer.frame_post_draw
+		if menu.submitting_build and menu.message.visible and menu.message.text == "Saving build…" and menu.scroll.get_global_rect().grow(1).encloses(menu.message.get_global_rect()):
+			painted[0] = true
+			root.get_texture().get_image().save_png("res://artifacts/mobile-saving-%d.png" % root.size.x)
+			return
 
 func check_save_back_cancellation() -> void:
 	var saved_before: int = menu.slots.shared_configurations("all").size()
