@@ -7,6 +7,7 @@ const Run = preload("res://scripts/campaign/run.gd")
 var failures := 0
 
 func _initialize() -> void:
+	preload("res://tests/support/timeout.gd").arm(self, 240.0)
 	call_deferred("run")
 
 static func stable(value: Variant) -> Variant:
@@ -55,6 +56,7 @@ func run() -> void:
 				field = Field.new(); field.state = F.infinite(4, true, true)
 			else:
 				field = Board.new(); battle = F.campaign(); field.run = battle
+				field.state = battle.game
 			field.state.combat.rng.seed = 570
 			root.add_child(field)
 			field.set_process(false)

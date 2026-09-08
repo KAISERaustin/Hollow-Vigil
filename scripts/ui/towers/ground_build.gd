@@ -58,11 +58,11 @@ func fit() -> void:
 	style.content_margin_top = 0
 	style.content_margin_bottom = size.y - safe.end.y
 	palette.size = Vector2(safe.size.x, 0)
-	banner.size = Vector2(maxf(1, safe.size.x - 24), 0)
+	banner.size = Vector2(maxf(1, safe.size.x - UI.CARD_GAP * 2), 0)
 	palette.position = Vector2(safe.position.x, size.y - palette.size.y)
 	if is_instance_valid(layout_owner):
 		layout_owner.offset_bottom = -palette.size.y
-	banner.position = Vector2(safe.position.x + 12, palette.position.y - banner.size.y * reveal)
+	banner.position = Vector2(safe.position.x + UI.CARD_GAP, palette.position.y - (banner.size.y + UI.GAP) * reveal)
 
 func open() -> void:
 	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
@@ -95,7 +95,7 @@ func arm(value: String) -> void:
 		if child.name == "TowerDetails":
 			preview_body.remove_child(child)
 			child.queue_free()
-	preview_body.add_child(Choice.build_preview(kind, field.state.tuning, cancel))
+	preview_body.add_child(Choice.build_preview(kind, field.state.tuning))
 	preview_body.move_child(preview_body.get_child(-1), 0)
 	var portrait: Control = preview_body.find_child("BuildPortrait", true, false)
 	portrait.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -172,9 +172,10 @@ func _input(event: InputEvent) -> void:
 			candidate = ""
 	if kind.is_empty(): return
 	if not dragging and palette.get_global_rect().has_point(pos): return
-	# Cancel remains a real button. All other input belongs to placement.
+	# Keep portrait drags inside the card; consume outside dismissal before world input.
 	if not dragging and banner.get_global_rect().has_point(pos): return
 	if not dragging:
+		if down: cancel()
 		get_viewport().set_input_as_handled()
 		return
 	if id == pointer and (motion or down or up):

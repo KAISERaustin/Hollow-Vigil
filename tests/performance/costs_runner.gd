@@ -57,7 +57,7 @@ func run() -> void:
 		if defended:
 			measure("defended.all_tower_stats", func():
 				for tower in game.data.towers.values():
-					if game.combat.has_method("tower_stats"): game.combat.tower_stats(tower)
+					if game.combat.has_method("tower_stats"): game.combat.call("tower_stats", tower)
 					else: Balance.tower_stats(tower, game.tuning, game.data.relics)
 			, 100, game.data.towers.size())
 			measure("defended.all_tower_component_sync", func(): game.combat.TowerComponents.sync(game.combat), 100, game.data.towers.size())

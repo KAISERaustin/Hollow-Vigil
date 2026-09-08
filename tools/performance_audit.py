@@ -160,6 +160,7 @@ def run(name, suite, tag, instrumented=None):
     log = WORK/f'{name}_{suite}{tag}.log'
     with log.open('w', encoding='utf-8') as output:
         process = subprocess.Popen(command, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', errors='replace')
+        print(f'BENCHMARK_PROCESS {process.pid}: {name} {suite} {tag}', flush=True)
         for line in process.stdout:
             output.write(line)
             output.flush()

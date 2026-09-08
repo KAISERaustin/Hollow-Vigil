@@ -82,6 +82,7 @@ try {
             Invoke-Godot -Name 'audio' -EngineArguments @('--headless', '--script', 'res://tests/audio_runner.gd')
             Invoke-Godot -Name 'audio-pitch' -EngineArguments @('--headless', '--script', 'res://tests/audio_pitch_runner.gd')
             Invoke-Godot -Name 'ground-placement' -EngineArguments @('--headless', '--script', 'res://tests/ground_placement_runner.gd')
+            Invoke-Godot -Name 'campaign-ground-save' -EngineArguments @('--headless', '--script', 'res://tests/campaign_ground_save_runner.gd')
             Invoke-Godot -Name 'unit' -EngineArguments @('--headless', '--script', 'res://tests/test_runner.gd')
         }
         if ($UnifiedTests -or $Check) {

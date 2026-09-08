@@ -29,7 +29,7 @@ static func select_target(candidates: Array, pos: Vector2, radius: float, mode: 
 		var remaining: float = enemy.distance_remaining
 		# Suffix summation changes addition order. Resolve nearly equal ranks with
 		# the original forward sum so ties keep their historical spawn-ID order.
-		if not target.is_empty() and absf(remaining - best_distance) <= maxf(1.0, absf(remaining)) * 1.0e-10:
+		if not target.is_empty() and enemy.has("path") and target.has("path") and absf(remaining - best_distance) <= maxf(1.0, absf(remaining)) * 1.0e-10:
 			remaining = exact_distance_remaining(enemy)
 			best_distance = exact_distance_remaining(target)
 			best_score = target.hp if mode == "most_hp" else (best_distance if mode == "last" else -best_distance)

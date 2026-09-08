@@ -8,15 +8,16 @@ const IMAGES = [
 	preload("res://assets/ui/tower-levels/level-4.svg"),
 ]
 
-static func create(level: int) -> VBoxContainer:
+static func create(level: int, show_caption: bool = true) -> VBoxContainer:
 	var current := clampi(level, 1, IMAGES.size())
 	var column := VBoxContainer.new()
 	column.name = "TowerLevelIndicator"
 	column.set_meta("level", current)
 	column.add_theme_constant_override("separation", 4)
-	var caption := UI.label("Max level" if current == 4 else "Level %d / 4" % current, 14)
-	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	column.add_child(caption)
+	if show_caption:
+		var caption := UI.label("Max level" if current == 4 else "Level %d / 4" % current, 14)
+		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		column.add_child(caption)
 	var image := TextureRect.new()
 	image.name = "LevelSquares"
 	image.texture = IMAGES[current - 1]

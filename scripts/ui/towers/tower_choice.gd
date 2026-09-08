@@ -135,7 +135,7 @@ static func show_details(choices: ScrollContainer, tuning: Dictionary, kind: Str
 	choices.get_parent().add_child(build_preview(kind, tuning))
 
 ## Shared compact construction identity; specialization choices belong to level 3.
-static func build_preview(kind: String, tuning: Dictionary, cancel_action: Callable = Callable()) -> VBoxContainer:
+static func build_preview(kind: String, tuning: Dictionary) -> VBoxContainer:
 	var body := VBoxContainer.new()
 	body.name = "TowerDetails"
 	body.set_meta("tower_kind", kind)
@@ -145,32 +145,29 @@ static func build_preview(kind: String, tuning: Dictionary, cancel_action: Calla
 	body.add_child(row)
 	var portrait := Portrait.preview("towers", kind)
 	portrait.name = "BuildPortrait"
-	portrait.custom_minimum_size = Vector2(48, 48)
+	portrait.custom_minimum_size = Vector2(96, 96)
 	row.add_child(portrait)
+	var identity := VBoxContainer.new()
+	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	identity.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	identity.add_theme_constant_override("separation", 4)
+	row.add_child(identity)
 	var definition := Balance.definition("towers", kind, tuning)
 	var title := UI.heading(definition.name, 18)
 	title.name = "BuildTowerName"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(title)
-	var facts := HBoxContainer.new()
-	facts.add_theme_constant_override("separation", UI.CARD_GAP)
-	body.add_child(facts)
-	var cost := UI.stat("Build cost", UI.exact_money(definition.cost) + " gold")
+	identity.add_child(title)
+	var cost := UI.heading(UI.exact_money(definition.cost) + " gold", 18)
 	cost.name = "BuildCost"
 	cost.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cost.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	facts.add_child(cost)
-	var level := preload("res://scripts/ui/shared/tower_level_indicator.gd").create(1)
+	identity.add_child(cost)
+	var level := preload("res://scripts/ui/shared/tower_level_indicator.gd").create(1, false)
 	level.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	facts.add_child(level)
+	level.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	identity.add_child(level)
 	_ignore_mouse(body)
-	if cancel_action.is_valid():
-		var cancel_button := UI.button("Cancel", cancel_action)
-		cancel_button.custom_minimum_size.x = 88
-		cancel_button.size_flags_horizontal = Control.SIZE_SHRINK_END
-		cancel_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		row.add_child(cancel_button)
 	return body
 
 static func clear_details(choices: ScrollContainer) -> void:

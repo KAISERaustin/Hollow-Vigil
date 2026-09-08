@@ -34,18 +34,22 @@ func _init(index: int = 0, overrides: Dictionary = {}, game_mode: String = "surv
 	game.data.automation = true
 	# These regions only anchor tower sockets. Campaign roads are independent of
 	# the expansion grid, seeded geography, and shortest-route reconstruction.
-	for y in range(-2, 1):
-		for x in range(-1, 2):
-			var id := VigilWorld.key(Vector2i(x, y))
-			if id == "0,0":
-				continue
-			game.data.regions[id] = VigilWorld.make_region(id, "0,0", game.data.seed)
+	_prepare_regions(game.data)
 	game.combat.scripted_spawns = true
 	game.combat.authored_roads = mission.routes
 	game.economy.placement_roads = mission.routes
 	game.economy.placement_bounds = preload("res://scripts/content/nodes/ground_placement.gd").campaign_bounds(mission)
 	game.combat.rng.seed = 91000 + index
 	game.combat.enemy_escaped.connect(_escaped)
+
+static func _prepare_regions(data: Dictionary) -> void:
+	# Saving must recognize the same ground regions as live placement, including
+	# regions with no legacy authored sockets.
+	for y in range(-2, 1):
+		for x in range(-1, 2):
+			var id := VigilWorld.key(Vector2i(x, y))
+			if not data.regions.has(id):
+				data.regions[id] = VigilWorld.make_region(id, "0,0", data.seed)
 
 func start_wave() -> bool:
 	if phase != "planning" or wave >= mission.waves.size():
@@ -217,9 +221,7 @@ static func valid_checkpoint(value: Dictionary) -> bool:
 		if not value.state.has(key): return false
 		if key not in ["towers", "relics"] and not Configuration._number(value.state[key]): return false
 	var snapshot := VigilState.new(81000 + index).data
-	for socket in checkpoint_mission.sockets:
-		if not snapshot.regions.has(socket.region):
-			snapshot.regions[socket.region] = {}
+	_prepare_regions(snapshot)
 	snapshot.merge(value.state, true)
 	if not VigilSaveStore.new().valid_loadout(snapshot): return false
 	for tower in snapshot.towers.values():

@@ -4,6 +4,7 @@ const F = preload("res://tests/performance/fixtures.gd")
 const Targeting = preload("res://scripts/gameplay/combat/targeting.gd")
 
 func run() -> void:
+	preload("res://tests/unit/combat_checks.gd").run(self)
 	routes()
 	configuration()
 	pooling()
