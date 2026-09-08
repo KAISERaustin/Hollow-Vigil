@@ -1,0 +1,695 @@
+{
+	"bow/ironspike/1/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/bow/ironspike/1.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"bow/ironspike/2/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/bow/ironspike/2.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"bow/ironspike/3/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/bow/ironspike/3.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"bow/ironspike/4/needle_battery": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/bow/ironspike/4/needle_battery.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"bow/ironspike/4/siegebreaker": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/bow/ironspike/4/siegebreaker.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/basic": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/basic.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/bell_hulk": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/bell_hulk.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/blood_acolyte": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/blood_acolyte.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/briarling": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/briarling.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/cinder_imp": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/cinder_imp.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/coffinbound": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/coffinbound.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/crescent_wisp": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/crescent_wisp.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/drowned_thrall": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/drowned_thrall.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/fast": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/fast.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/heavy": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/heavy.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/lantern": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/lantern.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/mire_wraith": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/mire_wraith.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/ruin_knight": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/ruin_knight.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/sentinel": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/sentinel.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/sepulcher": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/sepulcher.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/shade": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/shade.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/slag_golem": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/slag_golem.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"enemy/veil_widow": {
+		"bounds": [
+			-24.0,
+			-26.0,
+			48.0,
+			48.0
+		],
+		"image": "res://assets/artwork/enemy/veil_widow.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/caltrop_keep/1/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/caltrop_keep/1.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/caltrop_keep/2/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/caltrop_keep/2.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/caltrop_keep/3/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/caltrop_keep/3.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/caltrop_keep/4/dreadjaw": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/caltrop_keep/4/dreadjaw.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/caltrop_keep/4/scatterworks": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/caltrop_keep/4/scatterworks.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/electric/1/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/electric/1.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/electric/2/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/electric/2.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/electric/3/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/electric/3.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/electric/4/tempest_web": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/electric/4/tempest_web.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/electric/4/thunderseal": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/electric/4/thunderseal.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/heavy/1/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/heavy/1.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/heavy/2/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/heavy/2.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/heavy/3/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/heavy/3.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/heavy/4/doomstone": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/heavy/4/doomstone.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/heavy/4/grave_echo": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/heavy/4/grave_echo.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/hex_lantern/1/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/hex_lantern/1.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/hex_lantern/2/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/hex_lantern/2.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/hex_lantern/3/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/hex_lantern/3.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/hex_lantern/4/oathbrand": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/hex_lantern/4/oathbrand.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/hex_lantern/4/witchlight": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/hex_lantern/4/witchlight.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/ironspike/1/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/ironspike/1.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/ironspike/2/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/ironspike/2.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/ironspike/3/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/ironspike/3.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/ironspike/4/needle_battery": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/ironspike/4/needle_battery.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/ironspike/4/siegebreaker": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/ironspike/4/siegebreaker.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/moonwheel/1/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/moonwheel/1.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/moonwheel/2/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/moonwheel/2.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/moonwheel/3/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/moonwheel/3.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/moonwheel/4/orbit_crown": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/moonwheel/4/orbit_crown.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/moonwheel/4/reaper_wheel": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/moonwheel/4/reaper_wheel.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/rapid/1/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/rapid/1.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/rapid/2/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/rapid/2.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/rapid/3/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/rapid/3.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/rapid/4/frostneedle": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/rapid/4/frostneedle.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/rapid/4/thorn_volley": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/rapid/4/thorn_volley.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/splash/1/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/splash/1.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/splash/2/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/splash/2.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/splash/3/": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/splash/3.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/splash/4/cinderfield": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/splash/4/cinderfield.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	},
+	"tower/splash/4/rupture_pyre": {
+		"bounds": [
+			-48.0,
+			-76.0,
+			96.0,
+			96.0
+		],
+		"image": "res://assets/artwork/tower/splash/4/rupture_pyre.png",
+		"native_fallback_above_zoom": 2.0,
+		"pixels_per_unit": 2.0
+	}
+}
