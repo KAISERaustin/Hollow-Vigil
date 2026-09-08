@@ -77,6 +77,20 @@ func exercise(host: Control, select: Callable, prefix: String) -> void:
 				await Harness.capture(host, "tower-management-" + prefix + "-level-" + str(tier))
 				if tier == 3:
 					var branch: String = Balance.BRANCHES[tower.kind].keys()[1]
+					var saved_balance: float = host.game.data.balance
+					var branch_price := Balance.upgrade_cost(tower, host.game.tuning, branch)
+					host.game.data.balance = branch_price - 1.0
+					dialog.refresh()
+					check(dialog.branch_cards.get_child(1).disabled, "Unaffordable branch cannot be selected")
+					await tap(dialog.branch_cards.get_child(1).get_global_rect().get_center())
+					dialog.arm_upgrade(branch)
+					check(not dialog.upgrade_armed and tower.level == 3, "Unaffordable tap and direct selection leave upgrade unarmed")
+					await Harness.capture(host, "tower-branch-unaffordable-" + prefix)
+					host.game.data.balance = branch_price
+					dialog.refresh()
+					check(not dialog.branch_cards.get_child(1).disabled, "Exact gold enables branch without reopening")
+					host.game.data.balance = saved_balance
+					dialog.refresh()
 					await tap(dialog.branch_cards.get_child(0).get_global_rect().get_center())
 					await settle()
 					await tap(dialog.branch_cards.get_child(1).get_global_rect().get_center())

@@ -335,6 +335,10 @@ func open_action(action: String, branch: String = "") -> void:
 func arm_upgrade(branch: String = "") -> void:
 	if tower_level >= Balance.MAX_TOWER_LEVEL:
 		return
+	var selected_branch := branch if tower_level == 3 else tower_branch
+	var tower: Dictionary = app.game.data.towers[tower_id]
+	if app.game.data.balance < Balance.upgrade_cost(tower, app.game.tuning, selected_branch) or tower.get("rebuild_remaining", 0.0) > 0.0:
+		return
 	upgrade_armed = true
 	if tower_level == 3:
 		tower_branch = branch if Balance.valid_branch(tower_kind, branch) else str(Balance.BRANCHES[tower_kind].keys()[0])
@@ -380,7 +384,7 @@ func build_branch_cards() -> void:
 				arm_upgrade(option)
 		)
 		choice.name = "Branch_" + option
-		choice.disabled = tower_level >= 4
+		choice.disabled = tower_level >= 4 or app.game.data.balance < price or app.game.data.towers[tower_id].get("rebuild_remaining", 0.0) > 0.0
 		branch_cards.add_child(choice)
 	confirm.show()
 	confirm.disabled = true
@@ -547,6 +551,10 @@ func refresh() -> void:
 		open_action("equipment")
 		return
 	var remaining: float = tower.get("rebuild_remaining", 0.0)
+	if mode == "info" and is_instance_valid(branch_cards) and tower_level == 3:
+		for choice in branch_cards.get_children():
+			var option := String(choice.name).trim_prefix("Branch_")
+			choice.disabled = remaining > 0.0 or app.game.data.balance < Balance.upgrade_cost(tower, app.game.tuning, option)
 	if mode == "info" and upgrade_armed:
 		if Balance.upgrade_cost(tower, app.game.tuning, tower_branch) != cost:
 			open_action("info")
@@ -556,7 +564,7 @@ func refresh() -> void:
 	var disabled: bool = (mode in ["preview", "upgrade", "move"] and (app.game.data.balance < cost or remaining > 0.0)) or (mode in ["preview", "upgrade"] and tower_level >= Balance.MAX_TOWER_LEVEL)
 	if mode == "info":
 		confirm.queue_redraw()
-		disabled = tower_level >= 3 or remaining > 0.0 or (upgrade_armed and app.game.data.balance < cost)
+		disabled = tower_level >= 3 or remaining > 0.0 or app.game.data.balance < Balance.upgrade_cost(tower, app.game.tuning, tower_branch)
 	if mode in ["equipment", "equipment_detail"]:
 		disabled = relic_choice == relic_original
 	if disabled != confirm.disabled:
