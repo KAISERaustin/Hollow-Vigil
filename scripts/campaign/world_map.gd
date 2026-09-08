@@ -38,8 +38,8 @@ func _ready() -> void:
 	for index in range(Catalog.COUNT):
 		var button := Marker.new()
 		button.number = index + 1
-		button.completed = index < progress.data.completed_levels
-		button.current = not progress.allow_all and progress.unlocked(index) and index == int(progress.data.completed_levels)
+		button.completed = progress.level_completed(index)
+		button.current = progress.unlocked(index) and index == progress.current_level()
 		button.landscape_profile = chapter_presentation(int(index/5.0))
 		var landmarks: Array = button.landscape_profile.get("landmarks",[])
 		if index%5<4 and index%5<landmarks.size(): button.landmark_kind = landmarks[index%5]
@@ -137,11 +137,11 @@ func _draw() -> void:
 		if texture == null: continue
 		var bounds := chapter_rect(chapter)
 		var within := int(progress.data.completed_levels) - chapter * 5
-		if not progress.allow_all and within >= 5:
+		if within >= 5:
 			draw_texture_rect_region(texture, bounds, Rect2(0, CHAPTER_HEIGHT, BAKE_WIDTH, CHAPTER_HEIGHT))
 			continue
 		draw_texture_rect_region(texture, bounds, Rect2(0, 0, BAKE_WIDTH, CHAPTER_HEIGHT))
-		if progress.allow_all or progress.data.completed_levels < chapter * 5: continue
+		if progress.data.completed_levels < chapter * 5: continue
 		# The lower half contains the same artwork with completed roads. Reveal
 		# it through the current marker; scenery and bridge pixels are identical.
 		var height := FIRST_LEVEL_Y + within * LEVEL_SPACING

@@ -8,7 +8,26 @@ var legacy_candidates := {}
 var allow_all := false
 
 func valid_data(value: Dictionary) -> bool:
-	return value.size() == 3 and value.get("version") == 2 and number(value.get("sequence"), 0, 1e15, true) and number(value.get("completed_levels"), 0, Catalog.COUNT, true)
+	return valid_map_progress(value) and value.get("version") == 2 and number(value.get("sequence"), 0, 1e15, true) and number(value.get("completed_levels"), 0, Catalog.COUNT, true)
+
+static func valid_map_progress(value: Dictionary) -> bool:
+	var beaten: Variant = value.get("beaten_levels", [])
+	if not beaten is Array or beaten.size() > Catalog.COUNT: return false
+	var seen := {}
+	for index in beaten:
+		if not (index is int or index is float): return false
+		if index != int(index) or index < 0 or index >= Catalog.COUNT or seen.has(int(index)): return false
+		seen[int(index)] = true
+	var current: Variant = value.get("current_level", -1)
+	return (current is int or current is float) and current == int(current) and current >= -1 and current < Catalog.COUNT
+
+func level_completed(index: int) -> bool:
+	return index < int(data.completed_levels) or (allow_all and index in data.get("beaten_levels", []))
+
+func current_level() -> int:
+	if allow_all and int(data.get("current_level", -1)) >= 0:
+		return int(data.current_level)
+	return int(data.completed_levels)
 
 func read_candidate(candidate_path: String) -> Dictionary:
 	legacy_candidates.erase(candidate_path)
@@ -66,9 +85,19 @@ func unlocked(index: int) -> bool:
 func save_run(run: RefCounted) -> bool:
 	if blocked:
 		return false
+	if allow_all:
+		var index := int(run.mission.index)
+		data.current_level = index
+		if run.phase == "victory":
+			var beaten: Array = data.get("beaten_levels", []).duplicate()
+			if index not in beaten: beaten.append(index)
+			data.beaten_levels = beaten
+			while int(data.completed_levels) < Catalog.COUNT and level_completed(int(data.completed_levels)):
+				data.completed_levels += 1
+			data.current_level = int(data.completed_levels) if int(data.completed_levels) < Catalog.COUNT else -1
+		return flush()
 	if run.phase != "victory":
 		return true
-	if allow_all: return true
 	var completed := int(run.mission.index) + 1
 	if completed > int(data.completed_levels) + 1:
 		last_error = "Complete the preceding level first."

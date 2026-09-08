@@ -22,6 +22,7 @@ func summary(slot: int) -> Dictionary:
 	return storage.latest(path_for(slot)) if slot >= 0 and slot < COUNT else {}
 
 static func valid(value: Dictionary) -> bool:
+	if not preload("res://scripts/campaign/progress.gd").valid_map_progress(value): return false
 	if value.get("version") != 1 or value.get("game_type") != "campaign": return false
 	if not value.get("id") is String or not Codec.valid_uuid(value.id): return false
 	if not value.get("name") is String or value.name.strip_edges().is_empty() or value.name.length() > 80: return false

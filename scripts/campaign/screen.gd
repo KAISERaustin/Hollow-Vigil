@@ -172,6 +172,8 @@ func _ready() -> void:
 		progress = SessionProgress.new()
 		progress.allow_all = can_author()
 		progress.data.completed_levels = int(campaign_save.completed)
+		progress.data.beaten_levels = campaign_save.get("beaten_levels", []).duplicate()
+		progress.data.current_level = int(campaign_save.get("current_level", -1))
 	layout = VBoxContainer.new()
 	layout.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	layout.offset_left = UI.SCREEN_PADDING
@@ -704,6 +706,8 @@ func persist_slot() -> bool:
 	if run != null and page == "battle":
 		if not progress.save_run(run): return false
 		campaign_save.completed = int(progress.data.completed_levels)
+		campaign_save.beaten_levels = progress.data.get("beaten_levels", []).duplicate()
+		campaign_save.current_level = progress.current_level() if progress.current_level() < Catalog.COUNT else -1
 		campaign_save.checkpoint = run.checkpoint()
 	var ok: bool = app.slot_menu.campaign_slots.save_slot(active_campaign_slot, campaign_save)
 	if not ok and is_instance_valid(save_notice):
