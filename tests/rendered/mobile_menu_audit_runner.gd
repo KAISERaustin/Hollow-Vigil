@@ -126,13 +126,6 @@ func capture(key: String) -> void:
 	await super.capture("touch-" + key)
 	await audit_page_once()
 
-func compare_toolbar() -> void:
-	for key in toolbar_rects:
-		var control := button(key)
-		if control != null and not control.get_global_rect().is_equal_approx(toolbar_rects[key]):
-			print("MOBILE_TOOLBAR_GEOMETRY: %s Campaign=%s Infinite=%s" % [key, toolbar_rects[key], control.get_global_rect()])
-	super.compare_toolbar()
-
 func audit_page_once() -> void:
 	if not menu.visible: return
 	var id := "%s/%s/%s" % [menu.screen, menu.game_type, root.size]

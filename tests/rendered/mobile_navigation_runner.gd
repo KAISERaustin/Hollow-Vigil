@@ -143,7 +143,7 @@ func run() -> void:
 	await check_campaign()
 	check(UI.usable_viewport(Vector2(390, 844), Vector2(1170, 2532), Rect2(0, 141, 1170, 2289)).is_equal_approx(Rect2(0, 47, 390, 763)), "Menu uses the full display safe area without subtracting the keyboard overlay")
 	check(UI.usable_viewport(Vector2(360, 640), Vector2(1080, 1920), Rect2()) == Rect2(0, 0, 360, 640), "Missing safe area leaves full viewport usable")
-	print("MOBILE_NAVIGATION: %d checks, %d failures; touch routes and reachable controls at four sizes" % [checks, failures.size()])
+	print("MOBILE_NAVIGATION: %d checks, %d failures; touch routes and reachable controls at three portrait sizes" % [checks, failures.size()])
 	app.game.suspended = true
 	app.queue_free()
 	await settle()

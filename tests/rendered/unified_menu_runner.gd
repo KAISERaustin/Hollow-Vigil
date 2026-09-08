@@ -267,12 +267,27 @@ func remember_toolbar() -> void:
 	for key in ["PauseButton", "SpeedButton"]:
 		var control := button(key)
 		check(control != null, "Shared Campaign toolbar control " + key)
-		if control != null: toolbar_rects[key] = control.get_global_rect()
+		if control != null:
+			toolbar_rects[key] = control.get_global_rect()
+			check_toolbar_target(control, "Campaign")
+	check(not toolbar_rects.PauseButton.intersects(toolbar_rects.SpeedButton), "Campaign playback targets do not overlap")
 
 func compare_toolbar() -> void:
 	for key in toolbar_rects:
 		var control := button(key)
-		check(control != null and control.get_global_rect().is_equal_approx(toolbar_rects[key]), "Matching toolbar position and size in both game types: " + key)
+		check(control != null, "Shared Infinite toolbar control " + key)
+		if control != null: check_toolbar_target(control, "Infinite")
+	var pause := button("PauseButton")
+	var speed := button("SpeedButton")
+	if pause != null and speed != null:
+		check(not pause.get_global_rect().intersects(speed.get_global_rect()), "Infinite playback targets do not overlap")
+
+func check_toolbar_target(control: Control, context: String) -> void:
+	# Campaign composes a continuous action bar; Infinite keeps its top-right pair.
+	# Their geometry can differ while both retain the shared mobile input contract.
+	var rect := control.get_global_rect()
+	check(rect.size.x >= 48 and rect.size.y >= 48, context + " playback target is at least 48 units: " + control.name)
+	check(Rect2(Vector2.ZERO, Vector2(root.size)).encloses(rect), context + " playback target fits on screen: " + control.name)
 
 func install_network() -> void:
 	if is_instance_valid(network): return

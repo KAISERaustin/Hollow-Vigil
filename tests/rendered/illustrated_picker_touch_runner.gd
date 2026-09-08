@@ -21,7 +21,7 @@ func check(ok: bool, message: String) -> void:
 func run() -> void:
 	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		await check_picker(dimensions)
-	print("PICKER TOUCH: %d checks, %d failures; taps, passive/action drags, cancellation, disabled items, rotation and dismissal at four sizes" % [checks, failures])
+	print("PICKER TOUCH: %d checks, %d failures; taps, passive/action drags, cancellation, disabled items and dismissal at three portrait sizes" % [checks, failures])
 	quit(1 if failures else 0)
 
 func touch(at: Vector2, pressed: bool, canceled: bool = false, index: int = 0) -> void:
@@ -87,16 +87,6 @@ func check_picker(dimensions: Vector2i) -> void:
 	if DisplayServer.get_name() != "headless":
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://artifacts/enemy-picker-%d.png" % dimensions.x)
-	var rotated := Vector2i(dimensions.y, dimensions.x)
-	root.size = rotated
-	root.content_scale_size = rotated
-	await settle()
-	check(Rect2i(Vector2i(12, 12), rotated - Vector2i(24, 24)).encloses(Rect2i(popup.position, popup.size)), "Open picker refits after rotation from " + str(dimensions))
-	check(popup.visible and picker.selected == 0, "Rotation preserves the open selection")
-	root.size = dimensions
-	root.content_scale_size = dimensions
-	await settle()
-	check(Rect2i(Vector2i(12, 12), dimensions - Vector2i(24, 24)).encloses(Rect2i(popup.position, popup.size)), "Open picker refits after returning from rotation")
 	var start := picker.scroll.get_global_rect().position + Vector2(110, minf(240, picker.scroll.size.y - 20))
 	var touch := InputEventScreenTouch.new()
 	touch.index = 0

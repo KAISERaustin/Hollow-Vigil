@@ -66,16 +66,6 @@ static func draw(c: CanvasItem, kind: String, rect: Rect2, profile: Dictionary) 
 				A.shape(c,[Vector2(-10,1),Vector2(-10,-21),Vector2(0,-28),Vector2(8,-21),Vector2(8,1)],item,Vector2.ONE,stone_color,1.8)
 				Kit.line(c,item+Vector2(-1,-19),item+Vector2(-1,-4),1.6)
 				Kit.line(c,item+Vector2(-5,-14),item+Vector2(4,-14),1.6)
-		"cart":
-			Kit.line(c,Vector2(-40,-8),Vector2(45,7),3,Kit.WOOD)
-			Kit.block(c,Rect2(-29,-28,51,25),Kit.WOOD)
-			for y in [-20,-11]: Kit.line(c,Vector2(-28,y),Vector2(20,y),1.3)
-			for x in [-18,15]:
-				A.disk(c,Vector2(x,0),11,Kit.IRON,2)
-				A.disk(c,Vector2(x,0),7,stone_color,1.2)
-				for angle in range(4):
-					Kit.line(c,Vector2(x,0),Vector2(x,0)+Vector2.from_angle(angle*PI/2)*7,1.5)
-			for x in [-19,0]: Kit.block(c,Rect2(x,-40,16,12),A.ROAD)
 		"reeds":
 			for at in [Vector2(-24,-19),Vector2(5,-5),Vector2(29,-25)]: reeds(c,at)
 			stone(c,Vector2(-25,5),0.8,stone_color)

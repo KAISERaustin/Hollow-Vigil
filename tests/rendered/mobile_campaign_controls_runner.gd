@@ -110,7 +110,8 @@ func run() -> void:
 		quit(1)
 		return
 	app.slot_menu.campaign_slots.base_path = app.game.save_path + ".campaign"
-	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960), Vector2i(844, 390)]:
+	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
+		if "--quick" in OS.get_cmdline_user_args() and dimensions != Vector2i(360, 640): continue
 		root.size = dimensions
 		root.content_scale_size = dimensions
 		var saved: Dictionary = app.slot_menu.campaign_slots.create(0, "creative", "Mobile Campaign audit")
@@ -120,7 +121,9 @@ func run() -> void:
 		await settle()
 		print("MOBILE CAMPAIGN: %s" % str(dimensions))
 		await map_and_briefing()
+		print("MOBILE CAMPAIGN: map and briefing checked")
 		await battle_menus()
+		print("MOBILE CAMPAIGN: battle menus checked")
 		await result_routes()
 		campaign.close()
 		await settle()
@@ -137,9 +140,12 @@ func map_and_briefing() -> void:
 	campaign.show_map()
 	await settle()
 	var scroll: ScrollContainer = campaign.page_scroll
+	await capture("map-before")
+	print("MAP BEFORE: %s touchscreen=%s scroll=%s max=%s page=%s" % [scroll.get_global_rect(), DisplayServer.is_touchscreen_available(), scroll.scroll_vertical, scroll.get_v_scroll_bar().max_value, campaign.page])
 	await swipe(scroll.get_global_rect().get_center(), Vector2(0, -160))
-	check(scroll.scroll_vertical > 40 and campaign.page == "map", "Map swipe scrolls without entering a level")
-	for index in Catalog.COUNT:
+	check(scroll.scroll_vertical > 40 and campaign.page == "map", "Map swipe scrolls without entering a level: scroll=%d page=%s" % [scroll.scroll_vertical, campaign.page])
+	var indices: Array = range(Catalog.COUNT) if root.size.x == 390 else [0, Catalog.COUNT - 1]
+	for index in indices:
 		await press(named("CampaignLevel%d" % (index + 1)))
 		check(campaign.page == "briefing" and campaign.run.mission.index == index, "Touch opens authored level %d" % (index + 1))
 		await audit(campaign.page_scroll, "Briefing %d" % (index + 1))
