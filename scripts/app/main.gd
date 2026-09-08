@@ -179,7 +179,9 @@ func build_interface() -> void:
 	ground_build = preload("res://scripts/ui/towers/ground_build.gd").new()
 	ground_build.host = self
 	ground_build.field = field
+	ground_build.layout_owner = hud
 	add_child(ground_build)
+	move_child(ground_build, hud.get_index() + 1)
 	build_return_popup()
 	get_viewport().size_changed.connect(fit_display)
 	fit_display()
@@ -473,7 +475,7 @@ func _notification(what: int) -> void:
 		navigate_back()
 
 func navigate_back() -> void:
-	if is_instance_valid(ground_build) and ground_build.visible:
+	if is_instance_valid(ground_build) and not ground_build.kind.is_empty():
 		ground_build.cancel()
 		return
 	preload("res://scripts/ui/shared/back_navigation.gd").invoke(self, route_back)

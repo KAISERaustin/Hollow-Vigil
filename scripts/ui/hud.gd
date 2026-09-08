@@ -105,17 +105,26 @@ func build_footer() -> void:
 	collect_button.custom_minimum_size.x = 128
 	earning_row.add_child(collect_button)
 
+var displayed_values: Dictionary = {}
+
 func update_values(game: VigilState) -> void:
-	gold_label.text = Balance.money(game.data.balance)
+	if displayed_values.get("balance") != game.data.balance:
+		gold_label.text = Balance.money(game.data.balance)
+		displayed_values.balance = game.data.balance
 	# Hold the rounded rate for a full real-time second between updates.
 	var now_msec := Time.get_ticks_msec()
 	if now_msec >= next_income_refresh_msec:
 		rate_label.text = str(roundi(game.combat.income_rate()))
 		next_income_refresh_msec = now_msec + INCOME_REFRESH_MSEC
-	kills_label.text = Balance.money(game.data.kills)
-	unclaimed_label.text = Balance.money(game.economy.unclaimed()) + " gold"
+	if displayed_values.get("kills") != game.data.kills:
+		kills_label.text = Balance.money(game.data.kills)
+		displayed_values.kills = game.data.kills
+	var unclaimed := game.economy.unclaimed()
+	if displayed_values.get("unclaimed") != unclaimed:
+		unclaimed_label.text = Balance.money(unclaimed) + " gold"
+		displayed_values.unclaimed = unclaimed
 	collect_button.text = "Collect all" if not game.data.automation else "Steward active"
-	collect_button.disabled = game.economy.unclaimed() < 0.01
+	collect_button.disabled = unclaimed < 0.01
 	unclaimed_label.accessibility_description = "No earnings yet" if collect_button.disabled else "Gold ready to collect"
 	var caption := unclaimed_label.get_parent().get_child(0) as Label
 	caption.text = "Unclaimed earnings"

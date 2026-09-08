@@ -500,12 +500,14 @@ func draw_core() -> void:
 		return
 	preload("res://scripts/rendering/actors/rift_art.gd").draw_core(self, gate, zoom)
 
+var actor_images := preload("res://scripts/rendering/actors/actor_images.gd").new()
+
 func draw_tower(t: Dictionary) -> void:
 	if construction_effect.conceals(VigilWorld.pad_position(t.region, t.pad)):
 		return
 	var p := screen(VigilWorld.pad_position(t.region, t.pad))
 	var z := zoom
-	VigilTerrainArt.sentinel(self, t.kind, p, z, int(t.level), t.get("branch", ""), float(t.angle))
+	actor_images.tower(self, t.kind, p, z, int(t.level), t.get("branch", ""), float(t.angle))
 	var relic_kind := preload("res://scripts/gameplay/progression/relics.gd").kind(state.data, t)
 	if relic_kind != "":
 		preload("res://scripts/rendering/actors/relic_art.gd").draw(self, relic_kind, p + Vector2(20, -17) * z, z * 0.8)
@@ -549,7 +551,7 @@ func draw_enemy(e: Dictionary) -> void:
 		preload("res://scripts/rendering/actors/boss_art.gd").draw(self, e, p, z)
 		z *= preload("res://scripts/rendering/actors/boss_art.gd").SIZE_SCALE
 	else:
-		VigilTerrainArt.enemy(self, e.kind, p, z)
+		actor_images.enemy(self, e.kind, p, z)
 	preload("res://scripts/rendering/effects/affliction_art.gd").draw(self, e, p, z, state.combat.simulation_time)
 	var charge := 0
 	for amount in e.get("charges", {}).values():

@@ -5,6 +5,7 @@ const CELL_SIZE := 128.0
 var buckets: Dictionary = {}
 var cells: Dictionary = {}
 var order: Dictionary = {}
+var identifiers: Dictionary = {}
 var candidates_checked := 0
 
 func cell_for(pos: Vector2) -> Vector2i:
@@ -14,9 +15,11 @@ func rebuild(enemies: Array[Dictionary]) -> void:
 	buckets.clear()
 	cells.clear()
 	order.clear()
+	identifiers.clear()
 	for i in range(enemies.size()):
 		var enemy := enemies[i]
 		order[enemy.id] = i
+		identifiers[enemy.id] = enemy
 		if not enemy.dead:
 			insert(enemy)
 
@@ -35,6 +38,16 @@ func moved(enemy: Dictionary) -> void:
 	if buckets[old_cell].is_empty():
 		buckets.erase(old_cell)
 	insert(enemy)
+
+func remove(enemy: Dictionary) -> void:
+	# Drop every reference before this record can be recycled under a new ID.
+	if cells.has(enemy.id):
+		var cell: Vector2i = cells[enemy.id]
+		buckets[cell].erase(enemy)
+		if buckets[cell].is_empty(): buckets.erase(cell)
+		cells.erase(enemy.id)
+	identifiers.erase(enemy.id)
+	order.erase(enemy.id)
 
 func query_rect(rect: Rect2) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []

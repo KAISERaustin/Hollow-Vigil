@@ -62,9 +62,7 @@ static func launch_extras(combat, tower: Dictionary, origin: Vector2, target: Di
 			remaining -= 1
 
 static func advance_shots(combat: VigilCombat, delta: float) -> void:
-	var targets := {}
-	for enemy in combat.enemies:
-		targets[enemy.id] = enemy
+	var targets := combat.enemy_identifiers()
 	var flying: Array[Dictionary] = []
 	var arrivals := combat.pending_shots
 	combat.pending_shots = []

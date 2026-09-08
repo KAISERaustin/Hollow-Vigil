@@ -57,6 +57,24 @@ var tower_component_state: Dictionary = {}
 var component_serial := 0
 var line_projectiles: Array[Dictionary] = []
 var traps: Array[Dictionary] = []
+var route_cache := preload("res://scripts/gameplay/combat/route_cache.gd").new()
+var configuration := preload("res://scripts/gameplay/combat/configuration_cache.gd").new()
+var configuration_active := false
+
+func resolved_definition(category: String, kind: String) -> Dictionary:
+	if not configuration_active: configuration.synchronize(tuning, data.relics)
+	return configuration.definition(category, kind)
+
+func tower_stats(tower: Dictionary) -> Dictionary:
+	if not configuration_active: configuration.synchronize(tuning, data.relics)
+	return configuration.tower_stats(tower)
+
+func enemy_identifiers() -> Dictionary:
+	if not ticking: rebuild_enemy_index()
+	return enemy_index.identifiers
+
+func set_enemy_route(enemy: Dictionary, route: Array) -> void:
+	route_cache.assign(enemy, route)
 
 func launch_line_attack(tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary, returning: bool) -> void:
 	LineProjectiles.launch(self, tower, origin, target, stats, returning)
@@ -178,6 +196,7 @@ func _create_enemy(id: String, kind: String, route: Array[Vector2], style: Strin
 	var e: Dictionary = enemy_pool.pop_back() if not enemy_pool.is_empty() else {}
 	var multiplier := rift_health_multiplier({"rift_style": style})
 	Balance.Content.enemy(kind).create_into(e, enemy_serial, id, route, style, tuning, multiplier)
+	set_enemy_route(e, route)
 	enemies.append(e)
 	spatial_ready = false
 	return e
@@ -195,8 +214,8 @@ func advance_effects(delta: float) -> void:
 func enemy_speed(enemy: Dictionary) -> float:
 	if enemy.get("stun_until", 0.0) > simulation_time or enemy.get("root_until", 0.0) > simulation_time or Relics.strength(enemy, "stun", simulation_time) > 0.0:
 		return 0.0
-	var speed: float = Bosses.speed(enemy, simulation_time, tuning) if enemy.get("boss", false) else Balance.tuned_value("enemies", enemy.kind, "speed", tuning)
-	if enemy.get("rift_style", "forest") == "drowned_crypt": speed *= Balance.rift_speed_multiplier("drowned_crypt", tuning)
+	var speed: float = Balance.Content.boss(enemy.kind).movement_speed(enemy, simulation_time, tuning, resolved_definition("bosses", enemy.kind)) if enemy.get("boss", false) else float(resolved_definition("enemies", enemy.kind).speed)
+	if enemy.get("rift_style", "forest") == "drowned_crypt": speed *= 1.0 + resolved_definition("rifts", "drowned_crypt").strength / 100.0
 	var slow := Relics.strength(enemy, "slow", simulation_time)
 	if enemy.get("slow_until", 0.0) > simulation_time: slow = maxf(slow, enemy.get("slow_percent", 25.0))
 	return speed * (1.0 - slow / 100.0)
@@ -205,6 +224,9 @@ func tick(delta: float) -> void:
 	if not is_finite(delta) or delta <= 0.0:
 		return
 	# Age existing effects first so a fresh projectile starts at its muzzle.
+	configuration.synchronize(tuning, data.relics)
+	configuration.prune(data.towers)
+	configuration_active = true
 	advance_effects(delta)
 	simulation_time += delta
 	data.active_seconds += delta
@@ -266,20 +288,17 @@ func tick(delta: float) -> void:
 	TowerComponents.advance(self, delta)
 	advance_shots(delta)
 	advance_fire(delta)
-	var live_targets := {}
-	for enemy in enemies:
-		if not enemy.dead:
-			live_targets[enemy.id] = enemy
+	var live_targets := enemy_index.identifiers
 	for tower_id in target_locks.keys():
 		var locked: Dictionary = live_targets.get(target_locks[tower_id], {})
-		if not data.towers.has(tower_id) or locked.is_empty():
+		if not data.towers.has(tower_id) or locked.is_empty() or locked.dead:
 			target_locks.erase(tower_id)
 			continue
 		var tower: Dictionary = data.towers[tower_id]
 		if not Balance.Content.locks_target(tower.get("target_mode", "first")):
 			target_locks.erase(tower_id)
 			continue
-		var radius: float = Balance.tower_stats(tower, tuning, data.relics).range
+		var radius: float = tower_stats(tower).range
 		if VigilWorld.pad_position(tower.region, tower.pad).distance_squared_to(locked.pos) > radius * radius:
 			target_locks.erase(tower_id)
 	for t in data.towers.values():
@@ -293,7 +312,7 @@ func tick(delta: float) -> void:
 		# Do not turn a 0.40-second attack into a 0.45-second attack.
 		if t.cooldown > 0.000001:
 			continue
-		var stats := Balance.tower_stats(t, tuning, data.relics)
+		var stats := tower_stats(t)
 		var pos := VigilWorld.pad_position(t.region, t.pad)
 		var attack := TowerComponents.attack_entry(self, t, stats)
 		if not attack.is_empty():
@@ -350,6 +369,7 @@ func tick(delta: float) -> void:
 	recycle_dead_enemies()
 	indexed_enemy_count = enemies.size()
 	ticking = false
+	configuration_active = false
 	while not income_events.is_empty() and simulation_time - income_events[0].x > 60.0:
 		income_events.pop_front()
 	if data.automation:
@@ -373,9 +393,7 @@ func select_target(candidates: Array, pos: Vector2, radius: float, mode: String)
 func recycle_dead_enemies() -> void:
 	# Refresh after movement and attacks, before a dead dictionary can be reused.
 	# Rendering uses these same enemy centers, so shots and impacts stay aligned.
-	var targets := {}
-	for e in enemies:
-		targets[e.id] = e
+	var targets := enemy_identifiers()
 	for fx in effects:
 		if fx.kind != "shot" or not fx.has("target_id"):
 			continue
@@ -388,9 +406,14 @@ func recycle_dead_enemies() -> void:
 	for e in enemies:
 		if not e.dead:
 			live.append(e)
-		elif enemy_pool.size() < 128:
-			enemy_pool.append(e)
+		else:
+			enemy_index.remove(e)
+			if enemy_pool.size() < 128:
+				e.erase("_route_geometry")
+				e.path = []
+				enemy_pool.append(e)
 	enemies = live
+	if tick_count % 128 == 0: route_cache.prune()
 
 func income_rate() -> float:
 	# Gold per second, averaged over up to 60 seconds with a 10-second startup floor.
@@ -435,7 +458,7 @@ func prepare_defenses(delta: float) -> void:
 	TowerComponents.sync(self)
 	for tower in data.towers.values():
 		if tower.get("rebuild_remaining", 0.0) > 0.0: continue
-		var stats := Balance.tower_stats(tower, tuning, data.relics)
+		var stats := tower_stats(tower)
 		var entry := TowerComponents.attack_entry(self, tower, stats)
 		if entry.is_empty() or not entry.component.has_method("allows_empty_target"): continue
 		stats = entry.config

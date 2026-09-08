@@ -10,6 +10,8 @@ var title: Label
 var left_value: Label
 var right_value: Label
 var notice: Label
+var fit_signature: Array = []
+var text_widths: Dictionary = {}
 
 func _init() -> void:
 	name = "FloatingGameHUD"
@@ -44,6 +46,11 @@ func _init() -> void:
 	resized.connect(fit)
 	header.minimum_size_changed.connect(fit)
 	notice_card.minimum_size_changed.connect(fit)
+	theme_changed.connect(func():
+		fit_signature.clear()
+		text_widths.clear()
+		fit()
+	)
 
 func _card(content: Control, padding: int = UI.INSET_PADDING) -> PanelContainer:
 	var card := UI.info_card(content, UI.PANEL, padding)
@@ -52,12 +59,22 @@ func _card(content: Control, padding: int = UI.INSET_PADDING) -> PanelContainer:
 	return card
 
 func _text_width(caption: Label, text: String) -> float:
-	return ceilf(caption.get_theme_font("font").get_string_size(TranslationServer.translate(text),
-		HORIZONTAL_ALIGNMENT_LEFT, -1, caption.get_theme_font_size("font_size")).x)
+	var font := caption.get_theme_font("font")
+	var font_size := caption.get_theme_font_size("font_size")
+	var translated := TranslationServer.translate(text)
+	var key := [font.get_instance_id(), font_size, translated]
+	if not text_widths.has(key):
+		if text_widths.size() >= 64: text_widths.clear()
+		text_widths[key] = ceilf(font.get_string_size(translated, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x)
+	return text_widths[key]
 
 func fit() -> void:
 	if not is_inside_tree(): return
 	var safe := UI.safe_rect(self).grow(-UI.SCREEN_PADDING)
+	var signature := [safe, title.text, left_value.text, right_value.text, notice.text, notice_card.visible,
+		header.get_combined_minimum_size(), notice_card.get_combined_minimum_size(), TranslationServer.get_locale()]
+	if signature == fit_signature: return
+	fit_signature = signature
 	var captions: Array[Label] = [title, left_value, right_value]
 	var cards: Array[PanelContainer] = [identity, left_card, right_card]
 	var minimums: Array[float] = []

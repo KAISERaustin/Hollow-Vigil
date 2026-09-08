@@ -134,7 +134,7 @@ def prepare(revision):
     print(f'Prepared {resolved} at {WORK}', flush=True)
 
 
-def run(name, suite, tag):
+def run(name, suite, tag, instrumented=None):
     dest = WORK / name
     shutil.copytree(ROOT / 'tests/performance', dest / 'tests/performance', dirs_exist_ok=True)
     env = os.environ.copy()
@@ -143,8 +143,10 @@ def run(name, suite, tag):
     Path(env['APPDATA']).mkdir(parents=True, exist_ok=True)
     Path(env['LOCALAPPDATA']).mkdir(parents=True, exist_ok=True)
     env['PERF_OUTPUT'] = str(RESULTS/f'{name}_{suite}{tag}.json')
-    env['PERF_CAPTURE'] = str(RESULTS)
-    env['PERF_INSTRUMENTED'] = '0' if name == 'baseline' else '1'
+    capture = RESULTS if instrumented is None else RESULTS / name
+    capture.mkdir(parents=True, exist_ok=True)
+    env['PERF_CAPTURE'] = str(capture)
+    env['PERF_INSTRUMENTED'] = str(int(name != 'baseline' if instrumented is None else instrumented))
     env['PERF_SAVE_INPUT'] = str(WORK / 'vigil.save')
     env['PERF_SURVIVAL_GUARD'] = '1' if tag == '_all_waves' else '0'
     run_manifest = {str(p.relative_to(dest)): hashlib.sha256(p.read_bytes()).hexdigest()

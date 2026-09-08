@@ -128,7 +128,10 @@ static func add_status(enemy: Dictionary, tower_id: String, attribute_id: String
 
 static func strength(enemy: Dictionary, type: String, now: float) -> float:
 	var value := 0.0
-	for status in enemy.get("gear_status", {}).values():
+	if not enemy.has("gear_status"): return value
+	var statuses: Dictionary = enemy.gear_status
+	for key in statuses:
+		var status: Dictionary = statuses[key]
 		if status.type == type and status.until > now:
 			value = maxf(value, status.get("strength", 100.0))
 	return value
@@ -141,6 +144,7 @@ static func push_resistance(combat: VigilCombat, enemy: Dictionary) -> float:
 
 static func advance(combat: VigilCombat, delta: float) -> void:
 	for enemy in combat.enemies:
+		if not enemy.has("gear_status"): continue
 		var statuses: Dictionary = enemy.get("gear_status", {})
 		for key in statuses.keys():
 			var status: Dictionary = statuses[key]

@@ -223,6 +223,7 @@ func fit() -> void:
 		map_navigation.queue_redraw()
 	elif page == "battle":
 		layout.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		if is_instance_valid(ground_build): layout.offset_bottom = -ground_build.palette.size.y
 		# Terrain reaches every side below the bar; only controls respect insets.
 		if is_instance_valid(battle_bar_margin):
 			var play_safe := UI.safe_rect(self)
@@ -598,8 +599,10 @@ func show_battle(start_paused: bool = false) -> void:
 	ground_build = preload("res://scripts/ui/towers/ground_build.gd").new()
 	ground_build.host = self
 	ground_build.field = board
+	ground_build.layout_owner = layout
 	ground_build.allowed_to_build = run.editable
 	add_child(ground_build)
+	move_child(ground_build, layout.get_index() + 1)
 	board.picked.connect(select_ground_tower)
 	board.relocation_picked.connect(tower_move.place)
 	refresh()
@@ -929,7 +932,7 @@ func _notification(what: int) -> void:
 		save_progress()
 
 func go_back() -> void:
-	if is_instance_valid(ground_build) and ground_build.visible:
+	if is_instance_valid(ground_build) and not ground_build.kind.is_empty():
 		ground_build.cancel()
 		return
 	if is_instance_valid(app.slot_menu) and app.slot_menu.visible:

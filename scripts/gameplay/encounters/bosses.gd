@@ -101,6 +101,7 @@ static func create(combat: VigilCombat, id: String, kind: String, authored_path:
 	else:
 		next_leg(combat, e)
 	combat.enemies.append(e)
+	combat.set_enemy_route(e, e.path)
 	combat.sound_requested.emit(Balance.Content.boss(kind).sound_cue("awaken"), e.pos)
 	return e
 
@@ -121,7 +122,7 @@ static func next_leg(combat: VigilCombat, e: Dictionary) -> void:
 	var path := VigilWorld.spoke(combat.data.regions[e.tile], side)
 	path.reverse()
 	path.append_array(VigilWorld.spoke(combat.data.regions[next], (side + 2) % 4).slice(1))
-	e.path = path
+	combat.set_enemy_route(e, path)
 	e.segment = 1
 	e.previous = e.tile
 	e.tile = next
@@ -137,8 +138,9 @@ static func avoid_core(combat: VigilCombat, e: Dictionary) -> void:
 	for direction in VigilWorld.DIRS:
 		var neighbor := VigilWorld.key(VigilWorld.coord(e.previous) + direction)
 		if neighbor != "0,0" and combat.data.regions.has(neighbor):
-			e.path = e.path.duplicate()
-			e.path.reverse()
+			var reversed: Array[Vector2] = e.path.duplicate()
+			reversed.reverse()
+			combat.set_enemy_route(e, reversed)
 			e.segment = e.path.size() - int(e.segment)
 			e.tile = e.previous
 			e.previous = "0,0"
@@ -234,6 +236,7 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 			if not authored:
 				escort.path.append_array(combat.paths[bell.tile].slice(1))
 			escort.segment = 1
+			combat.set_enemy_route(escort, escort.path)
 
 static func capture(combat: VigilCombat, regions: Dictionary, castles: Dictionary = {}) -> void:
 	for e in combat.enemies:
@@ -267,5 +270,6 @@ static func restore(combat: VigilCombat) -> void:
 		e.path = []
 		for point in saved.path:
 			e.path.append(Vector2(point[0], point[1]))
+		combat.set_enemy_route(e, e.path)
 		avoid_core(combat, e)
 	discover_castles(combat)

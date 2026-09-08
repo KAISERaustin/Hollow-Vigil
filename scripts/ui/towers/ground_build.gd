@@ -2,12 +2,12 @@ extends Control
 ## One pointer-owned build interaction, shared by Campaign and Infinite.
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Choice = preload("res://scripts/ui/towers/tower_choice.gd")
+var layout_owner: Control
 var host: Control
 var field: Battlefield
 var palette: PanelContainer
 var prompt: Label
 var banner: PanelContainer
-var build_button: Button
 var preview_body: VBoxContainer
 var kind := ""
 var candidate := ""
@@ -17,18 +17,14 @@ var point := Vector2.ZERO
 var dragging := false
 var valid := false
 var allowed_to_build: Callable
-var drawer_tween: Tween
-var drawer_open := 0.0
-var drawer_closing := false
 
 func _ready() -> void:
 	name = "GroundBuild"
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	z_index = 110
+	z_index = 0
 	palette = PanelContainer.new()
-	var drawer_style := UI.surface(UI.PANEL, UI.OUTLINE, UI.CARD_PADDING)
-	drawer_style.set_corner_radius_all(0)
+	var drawer_style := StyleBoxEmpty.new()
 	palette.add_theme_stylebox_override("panel", drawer_style)
 	add_child(palette)
 	banner = PanelContainer.new()
@@ -52,12 +48,15 @@ func _ready() -> void:
 	resized.connect(fit)
 	palette.minimum_size_changed.connect(func(): fit.call_deferred())
 	banner.minimum_size_changed.connect(func(): fit.call_deferred())
-	cancel()
-	build_button = preload("res://scripts/ui/shared/drawer_caret.gd").create(open)
-	build_button.name = "OpenGroundBuild"
-	field.add_child(build_button)
+	open()
 	field.resized.connect(fit)
 	fit.call_deferred()
+
+func _process(_delta: float) -> void:
+	visible = field.is_visible_in_tree()
+	palette.visible = not allowed_to_build.is_valid() or allowed_to_build.call()
+	for button in palette.find_children("Build_*", "Button", true, false):
+		button.disabled = field.state.data.balance < Balance.definition("towers", button.get_meta("tower_kind"), field.state.tuning).cost
 
 func fit() -> void:
 	var safe := UI.safe_rect(self)
@@ -65,39 +64,20 @@ func fit() -> void:
 	# Scroll clipping belongs to the screen edge, not an inset card gutter.
 	style.content_margin_left = 0
 	style.content_margin_right = 0
-	style.content_margin_top = 24
-	style.content_margin_bottom = 24 + size.y - safe.end.y
-	if is_instance_valid(build_button):
-		var field_safe := UI.safe_rect(field)
-		build_button.position = Vector2(0, field_safe.end.y - 72)
-		build_button.size = Vector2(field.size.x, 72)
+	style.content_margin_top = 0
+	style.content_margin_bottom = size.y - safe.end.y
 	palette.size = Vector2(size.x, 0)
 	banner.size = Vector2(maxf(1, safe.size.x - 24), 0)
-	palette.position = Vector2(0, size.y - palette.size.y * drawer_open)
+	palette.position = Vector2(0, size.y - palette.size.y)
+	if is_instance_valid(layout_owner):
+		layout_owner.offset_bottom = -palette.size.y
 	banner.position = safe.position + Vector2(12, 12)
-
-func slide(value: float) -> void:
-	drawer_open = value
-	fit()
-
-func close_drawer() -> void:
-	if drawer_closing: return
-	if not palette.visible:
-		cancel()
-		return
-	drawer_closing = true
-	candidate = ""
-	if drawer_tween != null and drawer_tween.is_valid(): drawer_tween.kill()
-	drawer_tween = create_tween()
-	drawer_tween.tween_method(slide, drawer_open, 0.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
-	drawer_tween.tween_callback(cancel)
 
 func open() -> void:
 	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
 	cancel()
 	host.clear_selection() if host.has_method("clear_selection") else host.panels.close_sheet()
 	show()
-	build_button.hide()
 	for child in palette.get_children():
 		palette.remove_child(child)
 		child.queue_free()
@@ -114,23 +94,15 @@ func open() -> void:
 		price.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		price.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		button.get_child(0).get_child(0).add_child(price)
-	# Padding travels with the cards; the scroll viewport still reaches the edges.
-	var row := cards.get_node("Cards")
-	cards.remove_child(row)
-	var insets := MarginContainer.new()
-	insets.name = "CardInsets"
-	insets.add_theme_constant_override("margin_left", 8)
-	insets.add_theme_constant_override("margin_right", 8)
-	cards.add_child(insets)
-	insets.add_child(row)
 	palette.show()
 	palette.reset_size()
 	fit.call_deferred()
-	drawer_tween = create_tween()
-	drawer_tween.tween_method(slide, 0.0, 1.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 func arm(value: String) -> void:
-	if drawer_closing: return
+	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
+	var active_pointer := pointer
+	host.clear_selection() if host.has_method("clear_selection") else host.panels.close_sheet()
+	pointer = active_pointer
 	kind = value
 	for child in preview_body.get_children():
 		if child.name == "TowerDetails":
@@ -139,7 +111,6 @@ func arm(value: String) -> void:
 	preview_body.add_child(Choice.build_preview(kind, field.state.tuning))
 	banner.reset_size()
 	candidate = ""
-	palette.hide()
 	banner.show()
 	point = field.world(field.size * 0.5)
 	refresh()
@@ -159,11 +130,8 @@ func card_input(event: InputEvent, value: String, button: Button) -> void:
 
 func _input(event: InputEvent) -> void:
 	if not is_visible_in_tree(): return
-	if event.is_action_pressed("ui_cancel"):
-		close_drawer()
-		get_viewport().set_input_as_handled()
-		return
-	if drawer_closing:
+	if event.is_action_pressed("ui_cancel") and not kind.is_empty():
+		cancel()
 		get_viewport().set_input_as_handled()
 		return
 	var pos := Vector2.ZERO
@@ -202,11 +170,8 @@ func _input(event: InputEvent) -> void:
 			candidate = ""
 		elif up:
 			candidate = ""
-	if kind.is_empty():
-		if down and candidate.is_empty() and not palette.get_global_rect().has_point(pos):
-			close_drawer()
-			get_viewport().set_input_as_handled()
-		return
+	if kind.is_empty(): return
+	if not dragging and palette.get_global_rect().has_point(pos): return
 	# Cancel remains a real button. All other input belongs to placement.
 	if not dragging and banner.get_global_rect().has_point(pos): return
 	if down and not dragging:
@@ -231,6 +196,7 @@ func refresh() -> void:
 	point = VigilWorld.pad_position(location.region, location.pad)
 	var screen_point := field.global_position + field.screen(point)
 	valid = field.get_global_rect().has_point(screen_point) and not banner.get_global_rect().has_point(screen_point)
+	valid = valid and not palette.get_global_rect().has_point(screen_point)
 	valid = valid and field.state.economy.can_place(kind, location.region, location.pad)
 	valid = valid and not field.state.economy.needs_first_property()
 	valid = valid and field.state.data.balance >= Balance.definition("towers", kind, field.state.tuning).cost
@@ -241,9 +207,6 @@ func refresh() -> void:
 	queue_redraw()
 
 func cancel() -> void:
-	drawer_closing = false
-	if drawer_tween != null and drawer_tween.is_valid(): drawer_tween.kill()
-	drawer_open = 0.0
 	kind = ""
 	candidate = ""
 	dragging = false
@@ -252,10 +215,9 @@ func cancel() -> void:
 		field.touches.clear()
 		field.mouse_down = false
 		field.gesture_consumed = true
-	if is_instance_valid(build_button): build_button.show()
-	if is_instance_valid(palette): palette.hide()
+	if is_instance_valid(palette): palette.show()
 	if is_instance_valid(banner): banner.hide()
-	hide()
+	show()
 	queue_redraw()
 
 func _notification(what: int) -> void:

@@ -48,9 +48,18 @@ static func reset(combat) -> void:
 
 static func snapshot(combat, tower: Dictionary, stats: Dictionary) -> Array:
 	var record := ensure(combat, tower)
+	if record.get("snapshot_stats") == stats:
+		return record.snapshot
 	var result := []
 	for entry in record.entries:
-		result.append({"component": entry.component, "slot": entry.slot, "config": stats.merged(entry.config, true), "epoch": record.epoch})
+		var config := stats.merged(entry.config, true)
+		config.make_read_only()
+		var snapshot_entry := {"component": entry.component, "slot": entry.slot, "config": config, "epoch": record.epoch}
+		snapshot_entry.make_read_only()
+		result.append(snapshot_entry)
+	result.make_read_only()
+	record.snapshot_stats = stats.duplicate(true)
+	record.snapshot = result
 	return result
 
 static func valid(combat, id: String, epoch: int) -> bool:

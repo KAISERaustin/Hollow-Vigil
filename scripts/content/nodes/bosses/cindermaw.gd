@@ -1,7 +1,7 @@
 extends "res://scripts/content/nodes/boss_node.gd"
 
-func movement_speed(enemy: Dictionary, now: float, tuning: Dictionary = {}) -> float:
-	var stats := definition(tuning)
+func movement_speed(enemy: Dictionary, now: float, tuning: Dictionary = {}, resolved: Dictionary = {}) -> float:
+	var stats := definition(tuning) if resolved.is_empty() else resolved
 	var value: float = stats.speed
 	if enemy.hp <= enemy.max_hp * stats.rage_threshold / 100.0:
 		var suppression: float = stats.quench / 100.0 if enemy.get("slow_until", 0.0) > now else 0.0
