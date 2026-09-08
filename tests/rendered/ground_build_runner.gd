@@ -45,6 +45,9 @@ func exercise(host: Control, label: String) -> void:
 	check(is_equal_approx(build.palette.position.y + build.palette.size.y, host.size.y), label + " drawer touches bottom edge")
 	check(build.palette.get_child(0).get_child_count() == 1, label + " drawer contains only tower row")
 	var strip: Control = build.palette.find_child("TowerCards", true, false)
+	for card in strip.get_node("Cards").get_children():
+		check(strip.get_global_rect().encloses(card.get_global_rect()), label + " entire card visible " + card.name)
+	check(strip.get_node("Cards").size.x <= strip.size.x, label + " row has no horizontal overflow")
 	check(is_zero_approx(strip.global_position.x) and is_equal_approx(strip.size.x, host.size.x), label + " cards clip at screen edges")
 	var first_card: Control = strip.find_child("Build_rapid", true, false)
 	check(is_zero_approx(first_card.global_position.x), label + " no outer side padding")
@@ -103,7 +106,7 @@ func exercise(host: Control, label: String) -> void:
 		Input.parse_input_event(swipe)
 		await process_frame
 	await touch(swipe_start - Vector2(144, 0), false)
-	check(build.kind.is_empty() and (scroll.scroll_horizontal > 0 or scroll.get_h_scroll_bar().max_value <= scroll.get_h_scroll_bar().page), label + " horizontal swipe browses without arming")
+	check(build.kind.is_empty() and scroll.scroll_horizontal == 0, label + " horizontal swipe neither moves row nor arms a tower")
 	check(scroll.find_child("Build_rapid", true, false).global_position.x < 8, label + " edge padding travels with scrolling cards")
 	build.arm("rapid")
 	await settle()

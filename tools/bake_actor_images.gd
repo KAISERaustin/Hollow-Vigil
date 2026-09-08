@@ -46,7 +46,8 @@ func bake() -> void:
 			if status != OK: break
 		if not catalog.has(entry.key):
 			catalog[entry.key] = {"image": path, "bounds": [entry.bounds.position.x, entry.bounds.position.y,
-				entry.bounds.size.x, entry.bounds.size.y], "pixels_per_unit": Atlas.SCALE}
+				entry.bounds.size.x, entry.bounds.size.y], "pixels_per_unit": Atlas.SCALE,
+				"native_fallback_above_zoom": Atlas.SCALE}
 	var file := FileAccess.open(catalog_path, FileAccess.WRITE)
 	file.store_string(JSON.stringify(catalog, "\t"))
 	file.close()

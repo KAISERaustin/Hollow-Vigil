@@ -6,7 +6,6 @@ var layout_owner: Control
 var host: Control
 var field: Battlefield
 var palette: PanelContainer
-var prompt: Label
 var banner: PanelContainer
 var preview_body: VBoxContainer
 var slide: Tween
@@ -37,17 +36,6 @@ func _ready() -> void:
 	preview_body.add_theme_constant_override("separation", UI.CARD_GAP)
 	banner.add_child(preview_body)
 	preview_body.minimum_size_changed.connect(func(): fit.call_deferred())
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", UI.GAP)
-	preview_body.add_child(row)
-	prompt = UI.paragraph("", 14)
-	prompt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(prompt)
-	var cancel_button := UI.button("Cancel", cancel)
-	cancel_button.custom_minimum_size.x = 88
-	cancel_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	cancel_button.size_flags_horizontal = Control.SIZE_SHRINK_END
-	row.add_child(cancel_button)
 	resized.connect(fit)
 	palette.minimum_size_changed.connect(func(): fit.call_deferred())
 	banner.minimum_size_changed.connect(func(): fit.call_deferred())
@@ -69,9 +57,9 @@ func fit() -> void:
 	style.content_margin_right = 0
 	style.content_margin_top = 0
 	style.content_margin_bottom = size.y - safe.end.y
-	palette.size = Vector2(size.x, 0)
+	palette.size = Vector2(safe.size.x, 0)
 	banner.size = Vector2(maxf(1, safe.size.x - 24), 0)
-	palette.position = Vector2(0, size.y - palette.size.y)
+	palette.position = Vector2(safe.position.x, size.y - palette.size.y)
 	if is_instance_valid(layout_owner):
 		layout_owner.offset_bottom = -palette.size.y
 	banner.position = Vector2(safe.position.x + 12, palette.position.y - banner.size.y * reveal)
@@ -87,7 +75,7 @@ func open() -> void:
 	var body := VBoxContainer.new()
 	body.add_theme_constant_override("separation", UI.GAP)
 	palette.add_child(body)
-	var cards := Choice.build_list(field.state.tuning, arm, "", field.state.data.balance)
+	var cards := Choice.build_list(field.state.tuning, arm, "", field.state.data.balance, "Build_", true)
 	body.add_child(cards)
 	for button in cards.get_node("Cards").get_children():
 		var tower_kind: String = button.get_meta("tower_kind")
@@ -107,7 +95,7 @@ func arm(value: String) -> void:
 		if child.name == "TowerDetails":
 			preview_body.remove_child(child)
 			child.queue_free()
-	preview_body.add_child(Choice.build_preview(kind, field.state.tuning))
+	preview_body.add_child(Choice.build_preview(kind, field.state.tuning, cancel))
 	preview_body.move_child(preview_body.get_child(-1), 0)
 	banner.reset_size()
 	candidate = ""
@@ -208,9 +196,6 @@ func refresh() -> void:
 	valid = valid and not field.state.economy.needs_first_property()
 	valid = valid and field.state.data.balance >= Balance.definition("towers", kind, field.state.tuning).cost
 	if allowed_to_build.is_valid(): valid = valid and allowed_to_build.call()
-	prompt.text = "Release to build" if valid else "Cannot build here. Drag to clear ground."
-	if field.state.economy.needs_first_property(): prompt.text = "Buy your first property before building."
-	elif field.state.data.balance < Balance.definition("towers", kind, field.state.tuning).cost: prompt.text = "Not enough gold."
 	queue_redraw()
 
 func cancel() -> void:

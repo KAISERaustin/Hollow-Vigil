@@ -135,29 +135,42 @@ static func show_details(choices: ScrollContainer, tuning: Dictionary, kind: Str
 	choices.get_parent().add_child(build_preview(kind, tuning))
 
 ## Shared compact construction identity; specialization choices belong to level 3.
-static func build_preview(kind: String, _tuning: Dictionary) -> VBoxContainer:
+static func build_preview(kind: String, tuning: Dictionary, cancel_action: Callable = Callable()) -> VBoxContainer:
 	var body := VBoxContainer.new()
 	body.name = "TowerDetails"
 	body.set_meta("tower_kind", kind)
+	body.add_theme_constant_override("separation", UI.CARD_GAP)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", UI.GAP)
 	body.add_child(row)
 	var portrait := Portrait.preview("towers", kind)
 	portrait.name = "BuildPortrait"
-	portrait.custom_minimum_size = Vector2(64, 64)
+	portrait.custom_minimum_size = Vector2(48, 48)
 	row.add_child(portrait)
-	var identity := VBoxContainer.new()
-	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	identity.add_theme_constant_override("separation", 4)
-	row.add_child(identity)
-	var definition := Balance.definition("towers", kind, _tuning)
-	identity.add_child(UI.heading(definition.name, 18))
-	identity.add_child(UI.label(UI.exact_money(definition.cost) + " gold", 14))
+	var definition := Balance.definition("towers", kind, tuning)
+	var title := UI.heading(definition.name, 18)
+	title.name = "BuildTowerName"
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(title)
+	var facts := HBoxContainer.new()
+	facts.add_theme_constant_override("separation", UI.CARD_GAP)
+	body.add_child(facts)
+	var cost := UI.stat("Build cost", UI.exact_money(definition.cost) + " gold")
+	cost.name = "BuildCost"
+	cost.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cost.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	facts.add_child(cost)
 	var level := preload("res://scripts/ui/shared/tower_level_indicator.gd").create(1)
-	level.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	level.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	identity.add_child(level)
+	facts.add_child(level)
 	_ignore_mouse(body)
+	if cancel_action.is_valid():
+		var cancel_button := UI.button("Cancel", cancel_action)
+		cancel_button.custom_minimum_size.x = 88
+		cancel_button.size_flags_horizontal = Control.SIZE_SHRINK_END
+		cancel_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(cancel_button)
 	return body
 
 static func clear_details(choices: ScrollContainer) -> void:
@@ -177,19 +190,29 @@ static func _ignore_mouse(control: Control) -> void:
 static func first_kind() -> String:
 	return str(Balance.TOWERS.keys()[0])
 
-static func build_list(tuning: Dictionary, action: Callable, selected_kind: String = "", balance: float = INF, prefix: String = "Build_") -> ScrollContainer:
+static func build_list(tuning: Dictionary, action: Callable, selected_kind: String = "", balance: float = INF, prefix: String = "Build_", fit_row: bool = false) -> ScrollContainer:
 	var scroll := ScrollContainer.new()
 	scroll.name = "TowerCards"
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.follow_focus = true
-	UI.keyboard_scroll(scroll, "Tower cards. Swipe left or right to browse", true)
+	if fit_row:
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll.accessibility_name = "Tower cards. All build options visible"
+	else:
+		UI.keyboard_scroll(scroll, "Tower cards. Swipe left or right to browse", true)
 	var choices := HBoxContainer.new()
 	choices.name = "Cards"
 	choices.add_theme_constant_override("separation", 8)
 	scroll.add_child(choices)
 	scroll.resized.connect(func():
 		var edge := maxf(CARD_SIZE.x, (scroll.size.x - 8.0 * (choices.get_child_count() - 1)) / maxf(1, choices.get_child_count()))
+		if fit_row:
+			# Whole layout units prevent container rounding from overflowing the row.
+			edge = maxf(1, floorf((scroll.size.x - 8.0 * (choices.get_child_count() - 1)) / maxf(1, choices.get_child_count())))
 		for card in choices.get_children():
+			if fit_row:
+				card.find_child("TowerPortrait", true, false).custom_minimum_size = Vector2.ONE * maxf(1, edge - 6)
 			card.custom_minimum_size = Vector2(edge, edge)
 	)
 	choices.minimum_size_changed.connect(func():
@@ -198,6 +221,12 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 	for kind in Balance.TOWERS:
 		var definition := Balance.definition("towers", kind, tuning)
 		var button := create(kind, definition.name, definition.cost, action.bind(kind), 1, "", definition.range)
+		if fit_row:
+			var margin: MarginContainer = button.get_child(0)
+			for connection in margin.minimum_size_changed.get_connections():
+				margin.minimum_size_changed.disconnect(connection.callable)
+			button.find_child("TowerPortrait", true, false).custom_minimum_size = Vector2.ZERO
+			button.custom_minimum_size = Vector2.ZERO
 		button.name = prefix + kind
 		button.set_meta("tower_kind", kind)
 		button.disabled = balance < definition.cost

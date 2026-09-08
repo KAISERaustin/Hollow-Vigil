@@ -35,7 +35,7 @@ func run() -> void:
 			await settle()
 			var banner: Control = app.ground_build.banner
 			var details: Control = banner.find_child("TowerDetails", true, false)
-			check(details.size.y <= 72, "Compact construction row")
+			check(details.size.y <= 144, "Compact construction row")
 			check(banner.size.y < 210, "Placement panel stays compact")
 			check(details.find_child("UpgradePaths", true, false) == null, "No premature specializations")
 			var indicator: Control = details.find_child("TowerLevelIndicator", true, false)

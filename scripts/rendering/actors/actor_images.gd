@@ -10,6 +10,7 @@ const ENEMY_BOUNDS := Rect2(-24, -26, 48, 48)
 const TOWER_BOUNDS := Rect2(-48, -76, 96, 96)
 var textures: Dictionary = {}
 var entries: Dictionary = {}
+static var catalog_data: Dictionary = {}
 
 static func for_canvas(canvas: CanvasItem):
 	if not canvas.has_meta("actor_images"):
@@ -37,20 +38,24 @@ static func recipes() -> Array[Dictionary]:
 
 func _init() -> void:
 	# Headless simulation and native portraits need no GPU assets.
-	var path := "res://assets/artwork/catalog.json"
-	if FileAccess.file_exists(path):
-		var catalog = JSON.parse_string(FileAccess.get_file_as_string(path))
-		if catalog is Dictionary: entries = catalog
+	if catalog_data.is_empty():
+		var path := "res://assets/artwork/catalog.json"
+		if FileAccess.file_exists(path):
+			var catalog = JSON.parse_string(FileAccess.get_file_as_string(path))
+			if catalog is Dictionary:
+				VigilContentNode._freeze(catalog)
+				catalog_data = catalog
+	entries = catalog_data
 
 func invalidate() -> void:
 	textures.clear()
-	entries.clear()
+	catalog_data = {}
 	_init()
 
 func draw(canvas: CanvasItem, key: String, at: Vector2, zoom: float) -> bool:
 	if not entries.has(key): return false
 	var entry: Dictionary = entries[key]
-	if zoom > float(entry.get("pixels_per_unit", SCALE)): return false
+	if entry.has("native_fallback_above_zoom") and zoom > float(entry.native_fallback_above_zoom): return false
 	if not textures.has(key): textures[key] = load(entry.image)
 	var texture: Texture2D = textures[key]
 	if texture == null: return false
