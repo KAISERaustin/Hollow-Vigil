@@ -1,6 +1,6 @@
 # Player change log
 
-Main menu → Settings → Change log (immediately below Bug report) reads the live Supabase `public.change_log` table. It needs no sign-in. Each card contains one short change in 18-unit text, without a visible date. Dates remain in the backend for newest-first ordering and publication. Refresh reads the latest rows; Load older changes retrieves the next page without losing existing rows after a connection error. Back returns to Settings.
+Main menu → Settings → Change log (immediately below Bug report) reads the live Supabase `public.change_log` table. It needs no sign-in. Changes are grouped under date headings such as September 8th, with one bullet per change in 18-unit text and no individual cards. Older years include the year in their heading. Dates also control newest-first ordering and publication. Refresh reads the latest rows; Load older changes retrieves the next page without losing existing rows after a connection error. Back returns to Settings.
 
 ## Adding changes
 
@@ -16,4 +16,4 @@ All 69 commits reachable from main at request start (`4296367`) whose commit dat
 
 Validation: `tests/rendered/change_log_runner.gd` covers navigation, three portrait sizes, pagination, empty/error/malformed responses, and refresh. Add `-- --live` to verify the actual production feed. Physical iOS/Android testing remains separate.
 
-Verified September 8: 234 rendered checks passed, including the production feed through Godot at 360×640, 390×844, and 540×960 (live feed at 540×960). Screenshots were visually inspected. Database contract checks passed for anonymous and signed-in read access, hidden/future rows, and denied write permissions; Supabase security advisors returned no findings. The live table contains exactly 46 published rows, all dated September 8. The restricted run could not reach the backend; the network-enabled rerun passed.
+Verified September 8: 282 rendered checks passed across 360×640, 390×844, and 540×960, including date grouping across pages and the production feed through Godot at 540×960. Screenshots were visually inspected. Database contract checks passed for anonymous and signed-in read access, hidden/future rows, and denied write permissions; Supabase security advisors returned no findings. The live table contains exactly 46 published rows, all dated September 8. The restricted run could not reach the backend; the network-enabled rerun passed.

@@ -27,6 +27,10 @@ func run() -> void:
 		await press("SettingsChangeLog")
 		check(menu.screen == "change_log" and app.change_log.entries.size() == 30, "First page displays thirty entries")
 		check(not mock.calls.back().authenticated, "Public reading needs no sign-in")
+		var sections := menu.find_child("ChangeLogSections", true, false)
+		check(sections.get_child_count() == 1, "Same-day changes share one section")
+		check(sections.get_child(0).get_child(0).text.begins_with("September 8th"), "Readable date heading")
+		check(sections.get_child(0).get_child_count() == 31, "Each change has one bullet under its date")
 		await capture("change-log-rows")
 		mock.response = {"ok": false}
 		await press("ChangeLogMore")
@@ -35,6 +39,14 @@ func run() -> void:
 		await press("ChangeLogMore")
 		check(mock.calls.back().body.before_id == "29", "Paging uses last displayed entry")
 		check(app.change_log.entries.size() == 31 and not app.change_log.has_more, "Older page appends and finishes")
+		check(sections.get_child_count() == 1 and sections.get_child(0).get_child_count() == 32, "Same date across pages merges into one list")
+		var older: Dictionary = sample.back().duplicate()
+		older.change_date = "2026-09-07"
+		mock.response = {"ok": true, "data": [sample.front(), older]}
+		await press("ChangeLogRefresh")
+		check(sections.get_child_count() == 2, "Different dates create separate sections")
+		await capture("change-log-dates")
+		mock.response = {"ok": true, "data": [sample.back()]}
 		await press("ChangeLogRefresh")
 		check(app.change_log.entries.size() == 1, "Refresh replaces entries")
 		mock.response = {"ok": false}
