@@ -8,20 +8,38 @@ static func attach(scroll: ScrollContainer) -> void:
 		scroll.child_entered_tree.connect(callback)
 	for child in scroll.get_children():
 		prepare_branch(child, scroll)
+	queue_range_refresh(scroll)
+
+static func queue_range_refresh(scroll: ScrollContainer) -> void:
+	# A whole page can rebuild during one frame. Keep one refresh per owner.
+	if scroll.has_meta("touch_scroll_range_pending"): return
+	scroll.set_meta("touch_scroll_range_pending", true)
+	refresh_range.bind(scroll).call_deferred()
+
+static func refresh_range(scroll: ScrollContainer) -> void:
+	if not is_instance_valid(scroll): return
+	scroll.remove_meta("touch_scroll_range_pending")
+	if not scroll.is_inside_tree(): return
+	# Godot caches the largest child while measuring an empty page. Replacing
+	# it with equal-sized content may not emit another minimum-size change.
+	# Recompute before sorting, after the current branch has finished building.
+	scroll.get_minimum_size()
+	scroll.queue_sort()
 
 static func prepare_branch(node: Node, scroll: ScrollContainer) -> void:
 	# Layouts can move out of a scroll container (for example into a battlefield).
 	# Old observers must never change input routing outside their owning scroll.
 	if not is_instance_valid(scroll) or not scroll.is_ancestor_of(node):
 		return
-	# Nested scroll areas and text editors own their own input and gestures.
-	if node is ScrollContainer or node is LineEdit or node is TextEdit or node is Range:
-		return
 	# Custom previews can set their input filter in _ready(). Apply after that.
 	if not node.is_node_ready():
 		var ready_callback := prepare_branch.bind(node, scroll)
 		if not node.ready.is_connected(ready_callback):
 			node.ready.connect(ready_callback, CONNECT_ONE_SHOT)
+		return
+	queue_range_refresh(scroll)
+	# Nested scroll areas and text editors own their own input and gestures.
+	if node is ScrollContainer or node is LineEdit or node is TextEdit or node is Range:
 		return
 	if node is OptionButton:
 		# Opening on touch-down steals a swipe before the scroll can claim it.

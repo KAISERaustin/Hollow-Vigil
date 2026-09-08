@@ -66,7 +66,8 @@ static func run(app: VigilApp, harness: Script, failures: Array[String]) -> void
 		for index in range(controls.selector.item_count):
 			controls.selector.select(index)
 			controls.selector.item_selected.emit(index)
-			if controls.inputs.size() != Balance.editable_fields_for(category, controls.selected_kind).size():
+			var expected_fields: Dictionary = Balance.editable_fields_for(category, controls.selected_kind) if Balance.definitions(category).has(controls.selected_kind) else {}
+			if controls.inputs.size() != expected_fields.size():
 				failures.append("A unit type is missing balance inputs")
 			for stat in controls.inputs:
 				var input: SpinBox = controls.inputs[stat]

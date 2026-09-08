@@ -209,6 +209,7 @@ func check_biome_portals() -> void:
 		check(restored != null and restored.mission.style == style, "Saved campaign restores its biome portal")
 		if restored != null:
 			restored.tick(0.001)
+			check(restored.game.combat.enemies.size() == mission.routes.size(), "Restored campaign spawns again at every saved entrance")
 			for enemy in restored.game.combat.enemies:
 				check(enemy.rift_style == style, "Restored campaign entrance keeps its portal kind")
 	print("PASS GROUP: six campaign portals, all level entrances, effects and checkpoint identity")

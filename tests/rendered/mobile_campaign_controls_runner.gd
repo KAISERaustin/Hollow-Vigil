@@ -7,6 +7,7 @@ var app: VigilApp
 var campaign: Control
 var checks := 0
 var failures: Array[String] = []
+var viewports_checked := 0
 
 func _initialize() -> void:
 	Input.emulate_mouse_from_touch = true
@@ -111,6 +112,7 @@ func run() -> void:
 		return
 	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		if "--quick" in OS.get_cmdline_user_args() and dimensions != Vector2i(360, 640): continue
+		viewports_checked += 1
 		root.size = dimensions
 		root.content_scale_size = dimensions
 		app.slot_menu.campaign_slots.base_path = app.game.save_path + ".campaign-" + str(dimensions.x)
@@ -133,7 +135,7 @@ func run() -> void:
 	await process_frame
 	for filename in DirAccess.get_files_at("user://"):
 		if filename.begins_with(prefix): DirAccess.remove_absolute("user://" + filename)
-	print("MOBILE CAMPAIGN CONTROLS: %d checks, %d failures; %d map levels, three portrait sizes, touch menus/scroll/pan/pinch/modal shielding/Android Back" % [checks, failures.size(), Catalog.COUNT])
+	print("MOBILE CAMPAIGN CONTROLS: %d checks, %d failures; %d map levels, %d portrait sizes, touch menus/scroll/pan/pinch/modal shielding/Android Back" % [checks, failures.size(), Catalog.COUNT, viewports_checked])
 	quit(0 if failures.is_empty() else 1)
 
 func map_and_briefing() -> void:
@@ -223,9 +225,18 @@ func wave_menus() -> void:
 	check(picker.get_popup().visible, "Touch opens spawn type picker")
 	await back()
 	check(not picker.get_popup().visible and app.slot_menu.visible, "Back dismisses only the spawn picker")
+	await press(picker)
+	await press(named("Choice_1"))
+	check(picker.selected == 1 and not picker.get_popup().visible, "Touch chooses a wave spawn type")
+	var chosen_kind: String = picker.get_item_metadata(1)
+	var reward: SpinBox = app.slot_menu.find_child("CampaignWaveReward", true, false)
+	var old_reward := reward.value
+	await press(reward.get_parent().get_child(1).get_child(1))
+	check(reward.value == old_reward + reward.step, "Touch changes wave reward exactly once")
 	await audit(app.slot_menu.card, "Wave editor")
 	await press(named("ApplyRules"))
 	check(not app.slot_menu.visible and campaign.dialog.visible and campaign.waves_dialog, "Apply wave returns to Waves")
+	check(campaign.run.mission.waves[0][0][0] == chosen_kind and campaign.run.mission.wave_rules[0].reward == old_reward + 1, "Touch applies selected spawn type and reward to gameplay")
 
 func tower_menus(socket: Dictionary, id: String) -> void:
 	var tower: Dictionary = campaign.game.data.towers[id]

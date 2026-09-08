@@ -17,7 +17,10 @@ func input_touch(at: Vector2, down: bool) -> void:
 	event.index = 0
 	event.position = at
 	event.pressed = down
+	var started := Time.get_ticks_msec()
 	Input.parse_input_event(event)
+	if Time.get_ticks_msec() - started >= 100:
+		print("MOBILE_INPUT_STALL: %d ms while dispatching touch %s on %s" % [Time.get_ticks_msec() - started, "down" if down else "up", menu.screen])
 	await process_frame
 
 func swipe_control(scroll: ScrollContainer, upward: bool = true, travel: float = 120) -> void:
@@ -74,11 +77,31 @@ func reveal(target: Control) -> void:
 	await frames()
 
 func run() -> void:
-	if "--library-touch-only" in OS.get_cmdline_user_args():
+	if "--build-cost-only" in OS.get_cmdline_user_args():
+		build_cost_probe()
+		return
+	if "--library-touch-only" in OS.get_cmdline_user_args() or "--level-picker-only" in OS.get_cmdline_user_args():
 		await library_touch_probe()
 		return
 	await super.run()
 	print("MOBILE_MENU_AUDIT_FINAL: %d checks, %d failures; %d touch actions and %d touch picker choices across three portrait sizes" % [checks, failures.size(), touch_actions, touch_choices])
+
+func build_cost_probe() -> void:
+	var source := VigilState.new()
+	var started := Time.get_ticks_msec()
+	var build := Build.capture("campaign", source, {}, "all", -1, Build.all_contents("campaign"), "Mobile save timing", "")
+	print("BUILD_COST: capture all Campaign rules %d ms" % [Time.get_ticks_msec() - started])
+	started = Time.get_ticks_msec()
+	var composed := Build.compose_campaign(build, {})
+	print("BUILD_COST: compose Campaign %d ms" % [Time.get_ticks_msec() - started])
+	started = Time.get_ticks_msec()
+	var encoded := Build.encode(build)
+	print("BUILD_COST: encode Campaign %d ms; %d bytes" % [Time.get_ticks_msec() - started, encoded.length()])
+	started = Time.get_ticks_msec()
+	var decoded := Build.decode(encoded)
+	print("BUILD_COST: decode Campaign %d ms" % [Time.get_ticks_msec() - started])
+	check(composed.get("ok", false) and not decoded.is_empty(), "Timed Campaign build round trip remains valid")
+	quit(0 if failures.is_empty() else 1)
 
 func library_touch_probe() -> void:
 	app = VigilApp.new()
@@ -97,6 +120,9 @@ func library_touch_probe() -> void:
 	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = dimensions
 		root.content_scale_size = dimensions
+		if "--level-picker-only" in OS.get_cmdline_user_args():
+			await portrait_pages()
+			continue
 		menu.show_home("infinite")
 		await press("MyBuilds")
 		await press("BuildDetails")
@@ -105,7 +131,7 @@ func library_touch_probe() -> void:
 		await press("DeleteBuild")
 		await press("CancelConfirmation")
 		check(menu.screen == "library", "Finger cancels library deletion at " + str(dimensions))
-	print("MOBILE_LIBRARY_TOUCH: %d checks, %d failures" % [checks, failures.size()])
+	print("%s: %d checks, %d failures" % ["MOBILE_LEVEL_PICKER" if "--level-picker-only" in OS.get_cmdline_user_args() else "MOBILE_LIBRARY_TOUCH", checks, failures.size()])
 	app.game.suspended = true
 	app.queue_free()
 	await frames()
@@ -273,37 +299,11 @@ func extra_routes() -> void:
 	menu.show_main_menu()
 
 func portrait_pages() -> void:
-	for type in ["campaign", "infinite"]:
-		menu.show_main_menu()
-		await audit_controls(menu, "portrait main")
-		await press("OpenCampaign" if type == "campaign" else "OpenInfinite")
-		await audit_controls(menu, type + " portrait slots")
-		await press("BackButton")
-		menu.show_home(type)
-		await audit_controls(menu, type + " portrait home")
-		await press("NewGame")
-		await press("ChooseCreative")
-		await press("NextPlayStyle")
-		await press("ReviewNewGame")
-		await choose("SaveSlotChoice", 1)
-		menu.show_home(type)
-		await press("MyBuilds")
-		await press("BuildDetails")
-		await press("SharePrivateBuild")
-		await audit_controls(menu, type + " portrait save form")
-		if menu.form.game_type == "campaign":
-			await choose("BuildScope", 1)
-			await choose("BuildLevel", 20)
-		menu.show_backups(menu.show_home)
-		await audit_controls(menu, type + " portrait backups")
-		await press("RestoreBackup")
-		await press("RestoreIntoSlot1")
-		await audit_controls(menu, type + " portrait restore comparison")
-		menu.show_settings(menu.show_home)
-		await press("SettingsSound")
-		await audit_controls(menu, type + " portrait sound")
-		await press("BackButton")
-		await press("SettingsAccount")
-		await audit_controls(menu, type + " portrait account")
-		await press("AccountDone")
+	# All page routes run above at each supported portrait size. Exercise the
+	# long explicit level picker without repeating an entire session workflow.
+	menu.show_export(app.game, {"levels": {}, "index": -1}, menu.show_main_menu)
+	await audit_controls(menu, "Campaign save scope")
+	await choose("BuildScope", 1)
+	await choose("BuildLevel", 20)
+	check(menu.form.scope == "level" and menu.form.level == 19, "Finger reaches and selects the final Campaign level")
 	menu.show_main_menu()

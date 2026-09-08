@@ -35,7 +35,7 @@ func run() -> void:
 			for stat in controls.inputs:
 				var numeric := controls.fields.find_child(stat + "Value", true, false) as SpinBox
 				numeric.value = numeric.min_value + numeric.step * 2
-				if not is_equal_approx(app.game.tuning.towers[key][stat], numeric.value):
+				if not is_equal_approx(Balance.configuration_value("towers", key, stat, app.game.tuning), numeric.value):
 					failures.append("Numeric input failed for " + key + "/" + stat)
 	controls.show_category("towers")
 	controls.tier_selector.select(3)

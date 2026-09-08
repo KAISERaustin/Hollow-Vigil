@@ -34,6 +34,7 @@ func run() -> void:
 	check(picker.action_mode == BaseButton.ACTION_MODE_BUTTON_RELEASE, "Dropdown can reattach without stale popup callbacks")
 	scroll.queue_free()
 	await process_frame
+	await check_rebuilt_range()
 	await check_gestures()
 	print("TOUCH SCROLL SCOPE: %d checks, %d failures" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
@@ -65,6 +66,43 @@ func swipe(at: Vector2) -> void:
 		Input.parse_input_event(event)
 		await process_frame
 	await touch(at - Vector2(0, 96), false)
+	await settle()
+
+func check_rebuilt_range() -> void:
+	var scroll := ScrollContainer.new()
+	scroll.size = Vector2(320, 240)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	root.add_child(scroll)
+	TouchScroll.attach(scroll)
+	var content := VBoxContainer.new()
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(content)
+	var page := Control.new()
+	page.custom_minimum_size = Vector2(280, 1200)
+	content.add_child(page)
+	await settle()
+	check(scroll.get_v_scroll_bar().max_value == 1200, "Initial tall page exposes its complete scroll range")
+	for revision in 3:
+		content.remove_child(page)
+		page.queue_free()
+		# Page fitting can measure the container between removal and replacement.
+		# The replacement's identical minimum must still refresh the native range.
+		scroll.get_minimum_size()
+		page = Control.new()
+		page.custom_minimum_size = Vector2(280, 1200)
+		content.add_child(page)
+		var last := Button.new()
+		last.position = Vector2(12, 1140)
+		last.size = Vector2(120, 48)
+		page.add_child(last)
+		await settle()
+		check(scroll.get_v_scroll_bar().max_value == 1200, "Same-size rebuilt page retains its full range: " + str(revision))
+		scroll.ensure_control_visible(last)
+		await settle()
+		check(scroll.get_global_rect().encloses(last.get_global_rect()), "Last control stays reachable after equal-size page replacement: " + str(revision))
+	# A queued refresh must be harmless when its owning page closes immediately.
+	page.add_child(Control.new())
+	scroll.queue_free()
 	await settle()
 
 func check_gestures() -> void:
