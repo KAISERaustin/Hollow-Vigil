@@ -42,7 +42,7 @@ func exercise(host: Control, label: String) -> void:
 	check(build.build_button.size.y >= 48, label + " caret retains touch target")
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://artifacts/ground-caret-%s-%d.png" % [label, root.size.x])
-	var caret: Vector2 = build.build_button.get_global_rect().get_center()
+	var caret: Vector2 = build.build_button.global_position + Vector2(36, 24)
 	await touch(caret, true)
 	await touch(caret, false)
 	await settle()
@@ -50,6 +50,18 @@ func exercise(host: Control, label: String) -> void:
 	check(is_equal_approx(build.palette.position.y + build.palette.size.y, host.size.y), label + " drawer touches bottom edge")
 	check(build.palette.get_child(0).get_child_count() == 1, label + " drawer contains only tower row")
 	check(is_equal_approx(build.drawer_open, 1.0), label + " slide completes")
+	var strip: Control = build.palette.find_child("TowerCards", true, false)
+	check(is_zero_approx(strip.global_position.x) and is_equal_approx(strip.size.x, host.size.x), label + " cards clip at screen edges")
+	var outside := Vector2(host.size.x * 0.5, build.palette.position.y - 20)
+	await touch(outside, true)
+	check(build.visible and build.drawer_closing, label + " outside tap begins animated close")
+	await create_timer(0.07).timeout
+	check(build.drawer_open > 0.0 and build.drawer_open < 1.0, label + " drawer moves down before hiding")
+	await touch(outside, false)
+	await settle()
+	check(not build.visible and build.build_button.visible, label + " close completes and restores handle")
+	build.open()
+	await settle()
 	check(build.palette.get_global_rect().grow(1).encloses(build.palette.find_child("TowerCards", true, false).get_global_rect()), label + " cards fit")
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://artifacts/ground-palette-%s-%d.png" % [label, root.size.x])

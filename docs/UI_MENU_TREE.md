@@ -39,7 +39,8 @@ Campaign map top-right Menu / Infinite Menu → shared game menu
     ├── Top-left back arrow → held live session, same prior pause state
     ├── Edit rules [Creative] → isolated draft → Apply changes / Cancel
     │   ├── Infinite → registered rule categories and types
-    │   └── Campaign → Enemies / Bosses / Towers / Gear / Rifts → campaign-wide stat edits
+    │   └── Campaign → Enemies / Bosses / Towers / Gear / Portals → campaign-wide stat edits
+    │       └── Levels → all catalog levels → starting gold, level lives, default gold per cleared wave
     ├── Creative tools [Infinite Creative only]
     │   ├── Unrestricted zoom and pan
     │   ├── Show enemy and boss health

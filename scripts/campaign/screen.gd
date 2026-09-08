@@ -985,10 +985,14 @@ func show_level_balance(index: int, wave_index: int = -1) -> void:
 	if wave_index >= 0: editor.saved.connect(show_waves)
 	dialog_body.add_child(editor)
 
-func save_campaign_tuning(changes: Dictionary) -> bool:
+func save_campaign_tuning(changes: Dictionary, level_changes: Dictionary = {}) -> bool:
 	if not can_author() or not Balance.valid_tuning(changes) or changes.has("session"): return false
-	if changes.is_empty(): return true
+	for key in level_changes:
+		if not str(key).is_valid_int() or not Configuration.valid_level(int(key), level_changes[key]): return false
+	if changes.is_empty() and level_changes.is_empty(): return true
 	var levels := Configuration.with_campaign_tuning(session_levels(), changes)
+	for key in level_changes:
+		levels[str(key)].overrides.merge(level_changes[key], true)
 	if active_campaign_slot >= 0:
 		var next := campaign_save.duplicate(true)
 		next.levels = levels

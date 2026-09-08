@@ -9,12 +9,12 @@ static func create(action: Callable) -> Button:
 		button.add_theme_stylebox_override(state, UI.plain())
 	var lip := UI.surface(UI.PANEL, UI.OUTLINE, 0)
 	lip.set_corner_radius_all(0)
+	var tab := UI.surface(UI.PANEL, UI.OUTLINE, 0)
 	button.draw.connect(func():
 		var y := button.size.y - 12.0
 		button.draw_style_box(lip, Rect2(0, y, button.size.x, 12))
-		var center := button.size.x * 0.5
-		var points := PackedVector2Array([Vector2(center - 14, y), Vector2(center, y - 12), Vector2(center + 14, y)])
-		button.draw_colored_polygon(points, UI.PANEL)
+		button.draw_style_box(tab, Rect2(12, 0, 48, 48))
+		var points := PackedVector2Array([Vector2(27, 28), Vector2(36, 19), Vector2(45, 28)])
 		button.draw_polyline(points, UI.BORDER, UI.OUTLINE, true)
 	)
 	return button

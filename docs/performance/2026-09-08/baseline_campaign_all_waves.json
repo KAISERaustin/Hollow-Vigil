@@ -1,0 +1,1114 @@
+{
+	"rows": [
+		{
+			"counts": {
+				"earnings": 182.0,
+				"effects": 3,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 34.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 34,
+				"towers": 2,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 1,
+			"name": "A Single Ember",
+			"peak_enemies": 10,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 0.63,
+				"mean": 0.0720411826821541,
+				"n": 1894,
+				"p50": 0.066,
+				"p95": 0.142,
+				"p99": 0.228
+			},
+			"ticks": 1894,
+			"waves_completed": 3,
+			"waves_total": 3
+		},
+		{
+			"counts": {
+				"earnings": 364.0,
+				"effects": 2,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 53.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 53,
+				"towers": 3,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 2,
+			"name": "Briar Bend",
+			"peak_enemies": 18,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 0.809,
+				"mean": 0.093234805587014,
+				"n": 2649,
+				"p50": 0.076,
+				"p95": 0.187,
+				"p99": 0.347
+			},
+			"ticks": 2649,
+			"waves_completed": 4,
+			"waves_total": 4
+		},
+		{
+			"counts": {
+				"earnings": 383.0,
+				"effects": 2,
+				"enemies": 0,
+				"escapes": 3.0,
+				"fields": 0,
+				"kills": 55.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 58,
+				"towers": 3,
+				"traps": 0
+			},
+			"health": 999997,
+			"level": 3,
+			"name": "Pilgrim's Fork",
+			"peak_enemies": 17,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.209,
+				"mean": 0.09661154855643,
+				"n": 1905,
+				"p50": 0.069,
+				"p95": 0.235,
+				"p99": 0.577
+			},
+			"ticks": 1905,
+			"waves_completed": 4,
+			"waves_total": 4
+		},
+		{
+			"counts": {
+				"earnings": 544.0,
+				"effects": 3,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 58.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 58,
+				"towers": 4,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 4,
+			"name": "The Old Watch",
+			"peak_enemies": 11,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 0.668,
+				"mean": 0.0825346574787192,
+				"n": 2467,
+				"p50": 0.073,
+				"p95": 0.15,
+				"p99": 0.273
+			},
+			"ticks": 2467,
+			"waves_completed": 4,
+			"waves_total": 4
+		},
+		{
+			"counts": {
+				"earnings": 1034.0,
+				"effects": 8,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 70.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 70,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 5,
+			"name": "Rootbound Gate",
+			"peak_enemies": 12,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 0.814,
+				"mean": 0.160207440355843,
+				"n": 2473,
+				"p50": 0.139,
+				"p95": 0.289,
+				"p99": 0.471
+			},
+			"ticks": 2473,
+			"waves_completed": 4,
+			"waves_total": 4
+		},
+		{
+			"counts": {
+				"earnings": 754.0,
+				"effects": 4,
+				"enemies": 0,
+				"escapes": 1.0,
+				"fields": 0,
+				"kills": 65.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 66,
+				"towers": 4,
+				"traps": 0
+			},
+			"health": 999998,
+			"level": 6,
+			"name": "Cinder Causeway",
+			"peak_enemies": 14,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.343,
+				"mean": 0.10196218487395,
+				"n": 3570,
+				"p50": 0.086,
+				"p95": 0.217,
+				"p99": 0.402
+			},
+			"ticks": 3570,
+			"waves_completed": 4,
+			"waves_total": 4
+		},
+		{
+			"counts": {
+				"earnings": 695.0,
+				"effects": 3,
+				"enemies": 0,
+				"escapes": 6.0,
+				"fields": 0,
+				"kills": 69.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 75,
+				"towers": 5,
+				"traps": 0
+			},
+			"health": 999994,
+			"level": 7,
+			"name": "Twin Furnaces",
+			"peak_enemies": 19,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.368,
+				"mean": 0.118186158401184,
+				"n": 2702,
+				"p50": 0.102,
+				"p95": 0.252,
+				"p99": 0.415
+			},
+			"ticks": 2702,
+			"waves_completed": 4,
+			"waves_total": 4
+		},
+		{
+			"counts": {
+				"earnings": 1349.0,
+				"effects": 4,
+				"enemies": 0,
+				"escapes": 1.0,
+				"fields": 0,
+				"kills": 147.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 148,
+				"towers": 7,
+				"traps": 0
+			},
+			"health": 999999,
+			"level": 8,
+			"name": "Ashen Switchback",
+			"peak_enemies": 32,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.355,
+				"mean": 0.166538442881397,
+				"n": 4123,
+				"p50": 0.132,
+				"p95": 0.388,
+				"p99": 0.663
+			},
+			"ticks": 4123,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 1168.0,
+				"effects": 4,
+				"enemies": 0,
+				"escapes": 7.0,
+				"fields": 0,
+				"kills": 103.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 110,
+				"towers": 7,
+				"traps": 0
+			},
+			"health": 999993,
+			"level": 9,
+			"name": "The Breach",
+			"peak_enemies": 28,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 0.628,
+				"mean": 0.135073286052009,
+				"n": 4653,
+				"p50": 0.121,
+				"p95": 0.258,
+				"p99": 0.398
+			},
+			"ticks": 4653,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 1662.0,
+				"effects": 5,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 117.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 117,
+				"towers": 3,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 10,
+			"name": "The Living Furnace",
+			"peak_enemies": 30,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 41.924,
+				"mean": 0.126061709168775,
+				"n": 5137,
+				"p50": 0.101,
+				"p95": 0.223,
+				"p99": 0.362
+			},
+			"ticks": 5137,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 1624.0,
+				"effects": 2,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 104.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 104,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 11,
+			"name": "Sunken Steps",
+			"peak_enemies": 13,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 0.864,
+				"mean": 0.143702338766832,
+				"n": 2822,
+				"p50": 0.124,
+				"p95": 0.301,
+				"p99": 0.428
+			},
+			"ticks": 2822,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 2116.0,
+				"effects": 5,
+				"enemies": 0,
+				"escapes": 10.0,
+				"fields": 0,
+				"kills": 146.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 156,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 999984,
+			"level": 12,
+			"name": "Tombwater Crossing",
+			"peak_enemies": 24,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 0.819,
+				"mean": 0.187767614338689,
+				"n": 3236,
+				"p50": 0.168,
+				"p95": 0.346,
+				"p99": 0.503
+			},
+			"ticks": 3236,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 2800.0,
+				"effects": 2,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 114.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 114,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 13,
+			"name": "The Long Descent",
+			"peak_enemies": 22,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.281,
+				"mean": 0.181109247311828,
+				"n": 4650,
+				"p50": 0.155,
+				"p95": 0.384,
+				"p99": 0.599
+			},
+			"ticks": 4650,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 2361.0,
+				"effects": 2,
+				"enemies": 0,
+				"escapes": 4.0,
+				"fields": 0,
+				"kills": 151.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 155,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 999992,
+			"level": 14,
+			"name": "Three Tollgates",
+			"peak_enemies": 26,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 0.701,
+				"mean": 0.189719669421487,
+				"n": 3025,
+				"p50": 0.169,
+				"p95": 0.355,
+				"p99": 0.485
+			},
+			"ticks": 3025,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 3110.0,
+				"effects": 3,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 158.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 158,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 15,
+			"name": "The Bell Below",
+			"peak_enemies": 35,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.285,
+				"mean": 0.217161214403389,
+				"n": 4249,
+				"p50": 0.185,
+				"p95": 0.412,
+				"p99": 0.586
+			},
+			"ticks": 4249,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 2796.0,
+				"effects": 4,
+				"enemies": 0,
+				"escapes": 4.0,
+				"fields": 0,
+				"kills": 112.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 116,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 999988,
+			"level": 16,
+			"name": "Bloodmoon Avenue",
+			"peak_enemies": 16,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.115,
+				"mean": 0.197645139513951,
+				"n": 4444,
+				"p50": 0.165,
+				"p95": 0.411,
+				"p99": 0.607
+			},
+			"ticks": 4444,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 3116.0,
+				"effects": 3,
+				"enemies": 0,
+				"escapes": 5.0,
+				"fields": 0,
+				"kills": 147.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 152,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 999990,
+			"level": 17,
+			"name": "Broken Crown",
+			"peak_enemies": 25,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.064,
+				"mean": 0.20882838573687,
+				"n": 5693,
+				"p50": 0.177,
+				"p95": 0.413,
+				"p99": 0.588
+			},
+			"ticks": 5693,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 3692.0,
+				"effects": 3,
+				"enemies": 0,
+				"escapes": 4.0,
+				"fields": 0,
+				"kills": 188.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 192,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 999988,
+			"level": 18,
+			"name": "The Silent Court",
+			"peak_enemies": 29,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 19.93,
+				"mean": 0.239331392640894,
+				"n": 4294,
+				"p50": 0.199,
+				"p95": 0.455,
+				"p99": 0.661
+			},
+			"ticks": 4294,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 4740.0,
+				"effects": 4,
+				"enemies": 0,
+				"escapes": 6.0,
+				"fields": 0,
+				"kills": 220.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 226,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 999984,
+			"level": 19,
+			"name": "Nightfall Bastion",
+			"peak_enemies": 50,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.344,
+				"mean": 0.272390358880779,
+				"n": 6576,
+				"p50": 0.232,
+				"p95": 0.536,
+				"p99": 0.756
+			},
+			"ticks": 6576,
+			"waves_completed": 6,
+			"waves_total": 6
+		},
+		{
+			"counts": {
+				"earnings": 5818.0,
+				"effects": 6,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 233.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 233,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 20,
+			"name": "The Last Vigil",
+			"peak_enemies": 27,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.337,
+				"mean": 0.255153195020747,
+				"n": 6025,
+				"p50": 0.223,
+				"p95": 0.48,
+				"p99": 0.662
+			},
+			"ticks": 6025,
+			"waves_completed": 6,
+			"waves_total": 6
+		},
+		{
+			"counts": {
+				"earnings": 3790.0,
+				"effects": 3,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 94.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 94,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 21,
+			"name": "The Fallen Portcullis",
+			"peak_enemies": 18,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.131,
+				"mean": 0.203339760999457,
+				"n": 3682,
+				"p50": 0.169,
+				"p95": 0.396,
+				"p99": 0.542
+			},
+			"ticks": 3682,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 4200.0,
+				"effects": 5,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 106.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 106,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 22,
+			"name": "Courtyard of Echoes",
+			"peak_enemies": 18,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 13.826,
+				"mean": 0.245132792037716,
+				"n": 3818,
+				"p50": 0.19,
+				"p95": 0.493,
+				"p99": 0.692
+			},
+			"ticks": 3818,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 4585.0,
+				"effects": 5,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 93.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 93,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 23,
+			"name": "Shattered Ramparts",
+			"peak_enemies": 20,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 0.913,
+				"mean": 0.204596653456627,
+				"n": 4542,
+				"p50": 0.181,
+				"p95": 0.368,
+				"p99": 0.503
+			},
+			"ticks": 4542,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 4735.0,
+				"effects": 3,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 103.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 103,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 24,
+			"name": "The Empty Throne",
+			"peak_enemies": 27,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.226,
+				"mean": 0.224890384980087,
+				"n": 5273,
+				"p50": 0.18,
+				"p95": 0.456,
+				"p99": 0.656
+			},
+			"ticks": 5273,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 5120.0,
+				"effects": 5,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 107.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 107,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 25,
+			"name": "The Ruined King",
+			"peak_enemies": 16,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.467,
+				"mean": 0.242804335204179,
+				"n": 5167,
+				"p50": 0.197,
+				"p95": 0.483,
+				"p99": 0.717
+			},
+			"ticks": 5167,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 3134.0,
+				"effects": 3,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 116.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 116,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 26,
+			"name": "Pale Boughs",
+			"peak_enemies": 20,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.288,
+				"mean": 0.223202590420333,
+				"n": 4092,
+				"p50": 0.192,
+				"p95": 0.42,
+				"p99": 0.653
+			},
+			"ticks": 4092,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 3776.0,
+				"effects": 5,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 128.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 128,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 27,
+			"name": "The Divided Wake",
+			"peak_enemies": 27,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 3.618,
+				"mean": 0.230332408575031,
+				"n": 3965,
+				"p50": 0.189,
+				"p95": 0.46,
+				"p99": 0.739
+			},
+			"ticks": 3965,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 4702.0,
+				"effects": 6,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 148.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 148,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 28,
+			"name": "Roots of Remembrance",
+			"peak_enemies": 26,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 11.227,
+				"mean": 0.230859777180176,
+				"n": 5206,
+				"p50": 0.194,
+				"p95": 0.431,
+				"p99": 0.66
+			},
+			"ticks": 5206,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 4700.0,
+				"effects": 3,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 188.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 188,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 29,
+			"name": "The Last Lanterns",
+			"peak_enemies": 24,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.073,
+				"mean": 0.2285457970332,
+				"n": 4247,
+				"p50": 0.196,
+				"p95": 0.425,
+				"p99": 0.597
+			},
+			"ticks": 4247,
+			"waves_completed": 5,
+			"waves_total": 5
+		},
+		{
+			"counts": {
+				"earnings": 5946.0,
+				"effects": 3,
+				"enemies": 0,
+				"escapes": 0.0,
+				"fields": 0,
+				"kills": 191.0,
+				"line_projectiles": 0,
+				"regions": 9,
+				"shots": 0,
+				"spawned": 191,
+				"towers": 8,
+				"traps": 0
+			},
+			"health": 1000000,
+			"level": 30,
+			"name": "The Mourning Matriarch",
+			"peak_enemies": 30,
+			"phase": "victory",
+			"profile": {
+				"calls": {},
+				"inclusive_usec": {}
+			},
+			"survival_guard": true,
+			"tick_ms": {
+				"max": 1.616,
+				"mean": 0.240164429045763,
+				"n": 6927,
+				"p50": 0.205,
+				"p95": 0.443,
+				"p99": 0.678
+			},
+			"ticks": 6927,
+			"waves_completed": 5,
+			"waves_total": 5
+		}
+	]
+}

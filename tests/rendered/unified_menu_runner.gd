@@ -142,6 +142,7 @@ func run() -> void:
 				app.campaign.set_process(false)
 				await press("CampaignLevel1")
 				await press("BeginCampaignMission")
+				await press("BeginCampaignMission")
 				await press("StartCampaignWave")
 				remember_toolbar()
 				app.campaign.run.tick(0.25)
@@ -237,6 +238,17 @@ func check_rules(type: String) -> void:
 	check(menu.screen == "rules", "Shared rules page opens in " + type)
 	await capture(type + "-rules")
 	var prior: Dictionary = app.campaign.level_setup(0).overrides.duplicate(true) if type == "campaign" else app.game.tuning.duplicate(true)
+	if type == "campaign":
+		await press("LevelsCategory")
+		await capture("campaign-levels")
+		for index in Build.Configuration.Catalog.COUNT:
+			await press("EditLevel%d" % index)
+			check(menu.level_rules.selected == index, "Every campaign level opens independently")
+			await press("BackButton")
+		await press("EditLevel0")
+		menu.level_rules.find_child("LevelRule_gold", true, false).value = 456
+		await press("BackButton")
+		await press("BackButton")
 	await press("EnemiesCategory")
 	menu.rules_editor.find_child("hpValue", true, false).value = 777
 	await press("BackButton")
@@ -250,7 +262,19 @@ func check_rules(type: String) -> void:
 	await press("EditRules")
 	await press("EnemiesCategory")
 	menu.rules_editor.find_child("hpValue", true, false).value = 888
+	if type == "campaign":
+		await press("BackButton")
+		await press("LevelsCategory")
+		await press("EditLevel0")
+		menu.level_rules.find_child("LevelRule_gold", true, false).value = 654
+		menu.level_rules.find_child("LevelRule_flame", true, false).value = 17
+		menu.level_rules.find_child("LevelRule_reward", true, false).value = 91
+		await capture("campaign-level-details")
 	await press("ApplyRules")
+	if type == "campaign":
+		var mission := Build.Configuration.resolve(0, app.campaign.level_setup(0).overrides)
+		check(mission.gold == 654 and mission.flame == 17 and mission.reward == 91, "Level settings persist and resolve into gameplay")
+		check(not app.campaign.level_setup(1).overrides.has("flame"), "Other levels retain their own lives")
 	check(app.campaign.level_setup(0).overrides.tuning.enemies.basic.hp == 888 if type == "campaign" else app.game.tuning.enemies.basic.hp == 888, "Apply commits rules to only the selected session")
 	check(menu.screen == "game_menu", "Rules return to held game menu")
 

@@ -19,6 +19,7 @@ var valid := false
 var allowed_to_build: Callable
 var drawer_tween: Tween
 var drawer_open := 0.0
+var drawer_closing := false
 
 func _ready() -> void:
 	name = "GroundBuild"
@@ -61,8 +62,9 @@ func _ready() -> void:
 func fit() -> void:
 	var safe := UI.safe_rect(self)
 	var style := palette.get_theme_stylebox("panel")
-	style.content_margin_left = UI.CARD_PADDING + safe.position.x
-	style.content_margin_right = UI.CARD_PADDING + size.x - safe.end.x
+	# Scroll clipping belongs to the screen edge, not an inset card gutter.
+	style.content_margin_left = 0
+	style.content_margin_right = 0
 	style.content_margin_bottom = UI.CARD_PADDING + size.y - safe.end.y
 	if is_instance_valid(build_button):
 		var field_safe := UI.safe_rect(field)
@@ -76,6 +78,18 @@ func fit() -> void:
 func slide(value: float) -> void:
 	drawer_open = value
 	fit()
+
+func close_drawer() -> void:
+	if drawer_closing: return
+	if not palette.visible:
+		cancel()
+		return
+	drawer_closing = true
+	candidate = ""
+	if drawer_tween != null and drawer_tween.is_valid(): drawer_tween.kill()
+	drawer_tween = create_tween()
+	drawer_tween.tween_method(slide, drawer_open, 0.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	drawer_tween.tween_callback(cancel)
 
 func open() -> void:
 	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
@@ -106,6 +120,7 @@ func open() -> void:
 	drawer_tween.tween_method(slide, 0.0, 1.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 func arm(value: String) -> void:
+	if drawer_closing: return
 	kind = value
 	for child in preview_body.get_children():
 		if child.name == "TowerDetails":
@@ -135,7 +150,10 @@ func card_input(event: InputEvent, value: String, button: Button) -> void:
 func _input(event: InputEvent) -> void:
 	if not is_visible_in_tree(): return
 	if event.is_action_pressed("ui_cancel"):
-		cancel()
+		close_drawer()
+		get_viewport().set_input_as_handled()
+		return
+	if drawer_closing:
 		get_viewport().set_input_as_handled()
 		return
 	var pos := Vector2.ZERO
@@ -175,7 +193,9 @@ func _input(event: InputEvent) -> void:
 		elif up:
 			candidate = ""
 	if kind.is_empty():
-		if down and candidate.is_empty() and not palette.get_global_rect().has_point(pos): cancel()
+		if down and candidate.is_empty() and not palette.get_global_rect().has_point(pos):
+			close_drawer()
+			get_viewport().set_input_as_handled()
 		return
 	# Cancel remains a real button. All other input belongs to placement.
 	if not dragging and banner.get_global_rect().has_point(pos): return
@@ -211,6 +231,7 @@ func refresh() -> void:
 	queue_redraw()
 
 func cancel() -> void:
+	drawer_closing = false
 	if drawer_tween != null and drawer_tween.is_valid(): drawer_tween.kill()
 	drawer_open = 0.0
 	kind = ""

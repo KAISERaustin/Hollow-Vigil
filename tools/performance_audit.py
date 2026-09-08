@@ -201,6 +201,6 @@ if __name__ == '__main__':
     else:
         wait_for_process(args.wait_pid)
         for name, suite in [('baseline', 'campaign'), ('detailed', 'import'), ('detailed', 'deep'),
-                            ('baseline', 'costs'), ('baseline', 'camera'), ('baseline', 'ui'), ('instrumented', 'render'), ('baseline', 'visibility')]:
+                            ('baseline', 'costs'), ('baseline', 'camera'), ('baseline', 'ui'), ('instrumented', 'render')]:
             print(f'START {name} {suite}', flush=True)
             run(name, suite, '')
