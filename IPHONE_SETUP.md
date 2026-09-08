@@ -4,6 +4,14 @@
 
 The app is locked to upright portrait through `display/window/handheld/orientation.ios=1` in `project.godot`. Godot generates both `UISupportedInterfaceOrientations` and `UISupportedInterfaceOrientations~ipad` with only `UIInterfaceOrientationPortrait`; its native template retains `UIRequiresFullScreen=true`. Verify those values in the newly exported Xcode project's Info.plist, and confirm turning an iPhone leaves gameplay and menus upright before releasing. Use a fresh export/archive to apply the settings; existing TestFlight installations are unchanged until a new build is installed. Historical build reports below retain their original test coverage.
 
+## TestFlight build 1.0.9 — September 7, 2026
+
+Version **0.1.0 (1.0.9)** contains source from `f0753573a8bce7b5a895651d250c3214b661e873`, with the iOS build number increased from `1.0.8` to `1.0.9`. Xcode Organizer confirmed **Uploaded to Apple** at 7:41 PM CDT through **Distribute App → App Store Connect → Distribute**. Apple processing and Just for Testing assignment are pending verification.
+
+Validation: all 1,139 unchanged snapshot files matched the source commit; fresh Godot import and structure checks passed. Gameplay tests passed **56,466 checks with zero failures**. Rendered mobile navigation passed **3,140 checks with zero failures** at 360×640, 390×844 and 540×960. The Release archive and deep, strict signature verification passed. The archived app contains build `1.0.9`, portrait-only iPhone/iPad orientation arrays and `UIRequiresFullScreen=true`. Xcode reported existing generated-header, empty privacy usage description and skipped App Intents extraction warnings. Physical-device testing remains for TestFlight testers.
+
+Archive: `~/Library/Developer/Xcode/Archives/2026-09-07/HollowVigil-1.0.9.xcarchive`. Isolated source: `/private/tmp/hollow-vigil-release-1.0.9-source`. Logs: ignored `artifacts/testflight-1.0.9/`. Exported PCK SHA-256: `77b96dfc09b1d3b2ab0d753b479d0b64a1be43f49edf3777e343964607fd99b5`.
+
 ## TestFlight build 1.0.8 — September 7, 2026
 
 Version **0.1.0 (1.0.8)** contains the latest source from `6696e3ffad2a92b349f35d8053246aea29e2d957`, with the iOS build number updated to `1.0.8`. Xcode Organizer confirmed **Uploaded to Apple** at 2:39 PM CDT through **Distribute App → App Store Connect → Distribute** using the signed-in developer account. App Store Connect subsequently confirmed **Testing** in the internal **Just for Testing** group, with seven testers and eight available builds.
