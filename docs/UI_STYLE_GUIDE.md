@@ -162,7 +162,7 @@ and all destinations retain at least 48-unit touch targets. Cleared rubble/beaco
 current pointers, locked labels and fixed Back/Menu controls keep their meaning.
 See `ART_DIRECTION.md` for the drawing and rendered validation contract.
 
-The September 7 campaign-map revision is an explicit exception to parchment page backgrounds. Fill the scrolling map edge to edge with the six native Infinite biome colors and scenery. Adjoining chapters share one 3-unit black divider, drawn over trail crossings; omit card frames, rounded chapter corners, parchment gutters and mode availability subtitles. Keep the title and 48-unit Back control in a fixed, safe-area-aware header. Use winding trails that avoid readable level labels and preserve completed, current and locked states. `biome_map_art.gd` owns reusable trail and scenery drawing; `world_map.gd` supplies the authored Level catalog and progression. Validate return navigation, scrolling and label clearance at phone and landscape sizes with `tests/rendered/campaign_map_runner.gd`.
+The September 7 campaign-map revision is an explicit exception to parchment page backgrounds. Fill the scrolling map edge to edge with the six native Infinite biome colors and scenery. Adjoining chapters share one 3-unit black divider, drawn over trail crossings; omit card frames, rounded chapter corners, parchment gutters and mode availability subtitles. Keep the title and 48-unit Back control in a fixed, safe-area-aware header. Use winding trails that avoid readable level labels and preserve completed, current and locked states. `biome_map_art.gd` owns reusable trail and scenery drawing; `world_map.gd` supplies the authored Level catalog and progression. Validate return navigation, scrolling and label clearance at upright portrait phone sizes with `tests/rendered/campaign_map_runner.gd`.
 
 ### Persistent HUD
 
@@ -218,7 +218,7 @@ Hover produces no response anywhere in the app; every action must work by tap an
 
 Centralize UI colors, type roles, spacing, and surface variants in `scripts/ui/shared/interface.gd` or a dedicated theme resource owned by it. Continue reusing `hud.gd`, `panels.gd`, `tower_actions.gd`, and `tower_dialog.gd`. The shared theme provides structural, content, badge, chrome, and borderless surface helpers. Keep gameplay statistics in `scripts/gameplay/balance.gd`.
 
-Preserve the implemented shared fonts and tokens, readable HUD, responsive comparisons, focus rules, and standard text size and normal motion. Use `./launch.ps1 -StyleTests` for the rendered UI suite, including sixteen style-audit screens at three viewport sizes and Waves in portrait and landscape. Keep this guide and the UI paragraph in `ART_DIRECTION.md` consistent with intentional changes. After editing this Markdown guide, run `./tools/render_ui_style_guide.ps1` in PowerShell 7 to regenerate its HTML companion.
+Preserve the implemented shared fonts and tokens, readable HUD, responsive comparisons, focus rules, and standard text size and normal motion. Use `./launch.ps1 -StyleTests` for the rendered UI suite, including sixteen style-audit screens at three viewport sizes and Waves at the same upright portrait sizes. Keep this guide and the UI paragraph in `ART_DIRECTION.md` consistent with intentional changes. After editing this Markdown guide, run `./tools/render_ui_style_guide.ps1` in PowerShell 7 to regenerate its HTML companion.
 
 Before accepting a new screen, confirm:
 

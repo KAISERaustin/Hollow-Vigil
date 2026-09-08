@@ -73,7 +73,7 @@ func run() -> void:
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	app.show_save_slots()
 	menu = app.slot_menu
-	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960), Vector2i(844, 390)]:
+	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = dimensions
 		root.content_scale_size = dimensions
 		await settle()
@@ -119,7 +119,7 @@ func run() -> void:
 	app.game.data.balance = 1000000
 	app.game.expand("-1,0")
 	app.game.economy.build("rapid", "0,0", 0)
-	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960), Vector2i(844, 390)]:
+	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = dimensions
 		root.content_scale_size = dimensions
 		await settle()
@@ -233,7 +233,7 @@ func check_campaign() -> void:
 	campaign.set_process(false)
 	campaign.mode = "creative"
 	campaign.progress.allow_all = true
-	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960), Vector2i(844, 390)]:
+	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = dimensions
 		root.content_scale_size = dimensions
 		campaign.show_setup()

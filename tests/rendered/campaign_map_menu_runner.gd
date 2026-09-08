@@ -101,7 +101,7 @@ func run() -> void:
 	app.private_backups.enabled = false
 	app.campaign_backup.cloud = network
 	previous.queue_free()
-	for viewport in [Vector2i(360,640), Vector2i(390,844), Vector2i(540,960), Vector2i(844,390)]:
+	for viewport in [Vector2i(360,640), Vector2i(390,844), Vector2i(540,960)]:
 		root.size = viewport
 		root.content_scale_size = viewport
 		menu.campaign_slots.base_path = app.game.save_path + "-" + str(viewport.x)

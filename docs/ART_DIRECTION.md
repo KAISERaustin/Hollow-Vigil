@@ -88,7 +88,7 @@ All thirty level IDs, unlocks, saves, waves and rewards remain unchanged.
 `tests/rendered/campaign_landscape_runner.gd` verifies component isolation and
 artwork bounds, and exports every full chapter at 360, 390 and 540 units plus
 `artifacts/campaign-landscape-gallery.png`. The map runner also checks landscape
-clearance, phone/landscape navigation and both ends of every chapter.
+clearance, portrait-phone navigation and both ends of every chapter.
 
 The campaign world map uses six edge-to-edge biome sections with native scenery, winding ink-bordered trails and one shared 3-unit divider between sections. This user-requested map exception removes the parchment page background and chapter cards. Keep title/Back navigation fixed above the scroll viewport. See the Campaign world map recipe in `UI_STYLE_GUIDE.md`; ordinary dialogs still use the shared parchment system.
 

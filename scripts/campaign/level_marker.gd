@@ -28,7 +28,7 @@ func _draw() -> void:
 	if current:
 		# A persistent pointer distinguishes progress from transient keyboard focus.
 		var center := size.x * 0.5
-		var pointer := PackedVector2Array([Vector2(center-8,-14), Vector2(center+8,-14), Vector2(center,-4), Vector2(center-8,-14)])
+		var pointer := PackedVector2Array([Vector2(center-8,0), Vector2(center+8,0), Vector2(center,10), Vector2(center-8,0)])
 		draw_colored_polygon(pointer, UI.GOLD)
 		draw_polyline(pointer, Color.BLACK, 2, true)
 	if completed:
@@ -38,7 +38,7 @@ func _draw() -> void:
 		ClearedArt.draw(self, offset+rubble_offset, is_gate())
 		if is_gate():
 			var plaque := Rect2(size.x * 0.5 - 18, size.y - 21, 36, 22)
-			draw_style_box(UI.surface(paper, UI.OUTLINE, 2), plaque)
+			draw_style_box(UI.surface(paper, UI.OUTLINE, 4), plaque)
 			draw_string(UI.font(600), plaque.position + Vector2(6, 16), str(number), HORIZONTAL_ALIGNMENT_CENTER, 24, 14, UI.TEXT)
 		else:
 			draw_string(UI.font(600), Vector2(9,40)+offset+rubble_offset, str(number), HORIZONTAL_ALIGNMENT_CENTER, 26, 16, UI.TEXT)
@@ -53,7 +53,7 @@ func _draw() -> void:
 		elif gate != null:
 			draw_texture_rect(gate, Rect2(Vector2.ZERO, size), false)
 		var plaque := Rect2(size.x * 0.5 - 18, size.y - 21, 36, 22)
-		draw_style_box(UI.surface(paper, UI.OUTLINE, 2), plaque)
+		draw_style_box(UI.surface(paper, UI.OUTLINE, 4), plaque)
 		draw_string(UI.font(600), plaque.position + Vector2(6, 16), str(number), HORIZONTAL_ALIGNMENT_CENTER, 24, 14, UI.TEXT)
 		return
 	if not landmark_kind.is_empty():

@@ -127,7 +127,7 @@ func run() -> void:
 	await check_number_rows()
 	await check_menu_pages()
 	for failure in failures: push_error(failure)
-	print("MOBILE_SCROLL: ", failures.size(), " failures; touch scrolling, safe actions and numeric controls; full-screen menus at 3 portrait sizes and short landscape")
+	print("MOBILE_SCROLL: ", failures.size(), " failures; touch scrolling, safe actions and numeric controls; full-screen menus at 3 upright portrait sizes")
 	quit(0 if failures.is_empty() else 1)
 
 func check_menu_pages() -> void:
@@ -140,7 +140,7 @@ func check_menu_pages() -> void:
 	app.show_save_slots()
 	var menu: Control = app.slot_menu
 	menu.slots.base_path = "user://menu-scroll-empty-" + str(Time.get_ticks_usec())
-	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960), Vector2i(844, 390)]:
+	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = viewport
 		root.content_scale_size = viewport
 		menu.show_main_menu()

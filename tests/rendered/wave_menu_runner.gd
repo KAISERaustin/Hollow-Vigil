@@ -43,7 +43,7 @@ func run() -> void:
 	var screen: Control = app.campaign
 	screen.set_process(false)
 	screen.progress.data.completed_levels = 20
-	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960), Vector2i(640, 360)]:
+	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = viewport
 		root.content_scale_size = viewport
 		for mode in ["creative", "survival"]:
@@ -74,7 +74,7 @@ func run() -> void:
 						check(is_equal_approx(details.global_position.y, edit.global_position.y) and edit.global_position.x - details.get_global_rect().end.x >= 12, "Wave actions share a spaced row " + context)
 						check(details.size.y >= 48 and edit.size.y >= 48, "Action touch targets stay usable " + context)
 				check(screen.run.game.data == before, "Reading waves leaves gameplay unchanged " + context)
-				if mode == "creative" and level in [0, 19] and viewport.y > viewport.x:
+				if mode == "creative" and level in [0, 19]:
 					await RenderingServer.frame_post_draw
 					root.get_texture().get_image().save_png("res://artifacts/wave-menu-%d-level-%d.png" % [viewport.x, level + 1])
 				scroll.scroll_vertical = 100000
@@ -90,7 +90,7 @@ func run() -> void:
 				await settle()
 				check(screen.waves_dialog and screen.dialog_title.text == "Waves", "Details return to the wave list " + context)
 	# Opening and second-wave reports cover the small card and scrolling comparison.
-	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960), Vector2i(640, 360)]:
+	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = viewport
 		root.content_scale_size = viewport
 		screen.start_mission(15)

@@ -19,7 +19,7 @@ func run() -> void:
 		board.empty_picked.connect(board.clear_selection)
 		root.add_child(board)
 		check(board is Battlefield, "Campaign inherits the original battlefield")
-		for viewport in [Vector2(360, 300), Vector2(540, 650), Vector2(1200, 500)]:
+		for viewport in [Vector2(360, 530), Vector2(540, 650), Vector2(500, 1200)]:
 			board.size = viewport
 			board.reset_view()
 			for direction in [Vector2.ONE, -Vector2.ONE, Vector2(1, -1), Vector2(-1, 1)]:

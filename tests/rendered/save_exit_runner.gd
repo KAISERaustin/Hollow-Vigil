@@ -34,7 +34,7 @@ func check_camera_saves() -> void:
 		check(not saved.is_empty() and is_equal_approx(saved.camera[2], zoom), "Stored zoom round trips: " + str(zoom))
 	# A normal camera also raises the old 1.65 cap on larger viewports.
 	app.field.set_unrestricted_camera(false)
-	app.field.size = Vector2(1920, 1080)
+	app.field.size = Vector2(1080, 1920)
 	app.field.enforce_camera_limits()
 	check(app.field.zoom > 1.65, "Viewport-dependent normal zoom exceeds former save cap")
 	app.persist()

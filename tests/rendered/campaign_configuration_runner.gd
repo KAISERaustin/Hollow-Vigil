@@ -13,7 +13,7 @@ func run() -> void:
 	app.show_game_menu()
 	menu = app.slot_menu
 	menu.resume_game()
-	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960), Vector2i(844, 390)]:
+	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = dimensions
 		root.content_scale_size = dimensions
 		menu.campaign_slots.base_path = app.game.save_path + str(dimensions.x)

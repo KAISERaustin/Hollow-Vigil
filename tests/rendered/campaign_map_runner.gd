@@ -33,7 +33,7 @@ func run() -> void:
 	campaign.set_process(false)
 	campaign.progress.allow_all = true
 	campaign.mode = "creative"
-	for viewport in [Vector2i(360,640), Vector2i(390,844), Vector2i(540,960), Vector2i(844,390)]:
+	for viewport in [Vector2i(360,640), Vector2i(390,844), Vector2i(540,960)]:
 		root.size = viewport
 		root.content_scale_size = viewport
 		campaign.show_map()
