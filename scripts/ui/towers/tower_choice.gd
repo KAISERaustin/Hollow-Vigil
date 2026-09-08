@@ -135,7 +135,51 @@ static func show_details(choices: ScrollContainer, tuning: Dictionary, kind: Str
 	clear_details(choices)
 	select(choices, kind)
 	choices.hide()
-	choices.get_parent().add_child(details(kind, tuning))
+	choices.get_parent().add_child(build_preview(kind, tuning))
+
+## A compact visual roadmap, separate from the full inspection/upgrade statistics.
+static func build_preview(kind: String, tuning: Dictionary) -> VBoxContainer:
+	var body := VBoxContainer.new()
+	body.name = "TowerDetails"
+	body.set_meta("tower_kind", kind)
+	body.add_theme_constant_override("separation", UI.CARD_GAP)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", UI.GAP)
+	body.add_child(row)
+	var identity := VBoxContainer.new()
+	identity.add_theme_constant_override("separation", 4)
+	var portrait := Portrait.preview("towers", kind)
+	portrait.name = "BuildPortrait"
+	portrait.custom_minimum_size = Vector2(80, 80)
+	identity.add_child(portrait)
+	var level := UI.label("Level 1", 14)
+	level.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	identity.add_child(level)
+	var identity_card := UI.info_card(identity, UI.SURFACE, UI.INSET_PADDING)
+	identity_card.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	row.add_child(identity_card)
+	var paths := VBoxContainer.new()
+	paths.name = "UpgradePaths"
+	paths.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	paths.add_theme_constant_override("separation", UI.CARD_GAP)
+	row.add_child(paths)
+	paths.add_child(UI.label("Choose at level 4", 14, UI.MUTED))
+	for branch in Balance.BRANCHES[kind]:
+		var stats := Balance.stats(kind, 4, tuning, branch)
+		var path := HBoxContainer.new()
+		path.add_theme_constant_override("separation", UI.CARD_GAP)
+		var art := Portrait.preview("towers", kind, 4, branch)
+		art.custom_minimum_size = Vector2(48, 48)
+		path.add_child(art)
+		var title := UI.paragraph(stats.name, 14)
+		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		path.add_child(title)
+		var card := UI.info_card(path, UI.SURFACE, 8)
+		card.name = "Path_" + branch
+		paths.add_child(card)
+	_ignore_mouse(body)
+	return body
 
 static func clear_details(choices: ScrollContainer) -> void:
 	var previous := choices.get_parent().get_node_or_null("TowerDetails")

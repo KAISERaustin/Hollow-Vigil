@@ -38,9 +38,7 @@ func verify_selection(host: Control, campaign: bool, kind: String, label: String
 	if details:
 		var title: Label = host.dialog_title if campaign else menu.find_child("SheetTitle", true, false)
 		check(title.text == Balance.TOWERS[kind].name and confirm(host, campaign).text.contains(Balance.TOWERS[kind].name), label + " restores the tower heading and Build action")
-		var stats := Balance.stats(kind, 1, host.game.tuning)
-		var damage: Label = menu.find_child("Stat_damage", true, false)
-		check(damage.text == VigilInterface.exact_money(stats.damage), label + " restores the correct tower stats")
+		check(menu.find_child("TowerDetails", true, false).get_meta("tower_kind") == kind, label + " restores correct roadmap")
 	var portrait: Node2D = host.field.build_preview.portrait
 	var position := VigilWorld.pad_position(host.field.selected_region, host.field.selected_pad)
 	check(portrait.is_visible_in_tree() and portrait.position.is_equal_approx(host.field.screen(position)), label + " moves the highlighted tower to the selected socket")

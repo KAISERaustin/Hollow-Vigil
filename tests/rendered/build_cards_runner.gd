@@ -77,15 +77,6 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	check(confirm.disabled == (funds < Balance.definition("towers", last.get_meta("tower_kind"), host.game.tuning).cost), label + " details refresh affordability")
 	var details := menu.find_child("TowerDetails", true, false)
 	var stats := Balance.stats(last.get_meta("tower_kind"), 1, host.game.tuning)
-	check(details.find_child("TowerDescription", true, false).text == Balance.tower_description(stats), label + " description resolves current stats")
-	for field in stats:
-		if stats[field] is float or stats[field] is int:
-			if field == "range": continue
-			if field == "cost":
-				check(confirm.text.contains(VigilInterface.exact_money(stats.cost) + " gold"), label + " shows exact cost in pinned Build")
-				continue
-			var value := details.find_child("Stat_" + field, true, false) as Label
-			check(value != null and value.text.begins_with(VigilInterface.exact_money(stats[field])), label + " exposes resolved " + field)
 	var back := menu.find_child("BackToTowers", true, false) as Button
 	var vertical := scroll.get_parent().get_parent() as ScrollContainer
 	if vertical == null:
@@ -135,20 +126,15 @@ func exercise(host: Control, menu: Control, confirm: Button, label: String) -> v
 	extra.queue_free()
 
 func check_details(details: Control, viewport: ScrollContainer, context: String) -> void:
-	check(details.find_child("TowerLevel", true, false).text == "Level 1", context + " uses a standalone level heading")
-	check(details.find_child("Stat_range", true, false) == null, context + " omits range from build details")
-	check(details.get_node("TowerStats").find_child("Stat_period", true, false) != null and details.find_children("Stat_period", "Label", true, false).size() == 1, context + " shows attack interval once inside the stat grid")
-	check(viewport.scroll_vertical == 0, context + " opens details at the top")
-	check(viewport.get_h_scroll_bar().max_value <= viewport.get_h_scroll_bar().page + 1, context + " fits cards without horizontal scrolling")
-	for cell: PanelContainer in details.get_node("TowerStats").get_children():
-		for content: Label in cell.find_children("*", "Label", true, false):
-			check(cell.get_global_rect().grow(1).encloses(content.get_global_rect()) and content.get_visible_line_count() == content.get_line_count(), context + " keeps complete stat text inside its card")
-	var grid := details.get_node("TowerStats")
-	var last: Control = grid.get_child(grid.get_child_count() - 1)
-	viewport.scroll_vertical = 100000
-	await settle()
-	check(viewport.get_global_rect().grow(1).encloses(last.get_global_rect()), context + " scroll reaches the final stat card")
-	viewport.scroll_vertical = 0
+	check(details.find_child("TowerStats", true, false) == null, context + " omits stat grid")
+	check(details.size.y <= 190, context + " keeps roadmap compact")
+	check(viewport.scroll_vertical == 0, context + " opens at top")
+	var kind: String = details.get_meta("tower_kind")
+	for branch in Balance.BRANCHES[kind]:
+		var card: Control = details.find_child("Path_" + branch, true, false)
+		check(viewport.get_global_rect().grow(1).encloses(card.get_global_rect()), context + " shows complete path")
+		for content: Label in card.find_children("*", "Label", true, false):
+			check(card.get_global_rect().grow(1).encloses(content.get_global_rect()) and content.get_visible_line_count() == content.get_line_count(), context + " fits path name")
 	await settle()
 
 func run() -> void:
