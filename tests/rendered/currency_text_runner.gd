@@ -8,6 +8,7 @@ func _initialize() -> void:
 func run() -> void:
 	var panel := PanelContainer.new()
 	panel.theme = UI.theme()
+	panel.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 12))
 	root.add_child(panel)
 	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var column := VBoxContainer.new()
@@ -31,4 +32,4 @@ func run() -> void:
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://artifacts/currency-%dx%d.png" % [dimensions.x, dimensions.y])
 	print("CURRENCY_TEXT_PASS: replacements, word boundaries, dynamic text and three portrait renders")
-	quit()
+	quit(0)
