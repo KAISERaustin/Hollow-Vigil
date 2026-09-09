@@ -31,7 +31,7 @@ func show_levels() -> void:
 		var title := "Level %d · %s" % [index + 1, Configuration.Catalog.level(index).name]
 		var open := UI.button("Open", show_level.bind(index))
 		open.name = "EditLevel%d" % index
-		add_child(UI.action_row(title, open, "Open", level_preview(index)))
+		add_child(UI.action_row(title, open, "Open"))
 
 func level_preview(index: int) -> Control:
 	var chapter: Dictionary = Configuration.Catalog.CHAPTERS[index / Configuration.Catalog.LEVELS_PER_CHAPTER]
