@@ -19,8 +19,10 @@ func run() -> void:
 		for kind in Stats.Frozen.VALUES[category]:
 			var node = Balance.Content.catalog().find(category, kind)
 			check(node.is_a("stats"), category + "/" + kind + " inherits Stats")
+			var actual: Dictionary = node.stats() if category == "towers" else node.definition()
 			for field in Stats.Frozen.VALUES[category][kind]:
 				check(is_equal_approx(Balance.configuration_value(category, kind, field), Stats.Frozen.VALUES[category][kind][field]), "Frozen default " + category + "/" + kind + "/" + field)
+				check(is_equal_approx(float(actual[field]), Stats.Frozen.VALUES[category][kind][field]), "Runtime matches frozen default " + kind + "/" + field)
 			check(Balance.valid_tuning(Stats.reset({}, category, kind)), "Reset is valid " + category + "/" + kind)
 			for ability in Stats.capabilities(category):
 				var candidate := Stats.attach({}, category, kind, ability)
@@ -58,6 +60,12 @@ func run() -> void:
 	resistances()
 	transferred_attacks()
 	summons_and_defenses()
+	direct_attributes()
+	var migrated := Migration.tuning({"towers": {"rapid": {"damage": 12.0, "cost": 120.0}}})
+	check(migrated.towers["rapid:2"].damage == 20 and migrated.towers["rapid:2"].cost == 120, "Legacy inherited tier values migrate to absolute values")
+	check(not Balance.valid_tuning({"towers": {"rapid": {"use_road_traps": 1, "use_returning_attack": 1}}}), "Imports reject conflicting primary attacks")
+	var disabled := Stats.compact({"enemies": {"basic": {"poison_resistance": 65, "enabled_poison_resistance": 0}}})
+	check(not Stats.enabled("enemies", "basic", "poison_resistance", disabled) and Stats.value("enemies", "basic", "poison_resistance", disabled) == 65, "Save compaction retains disabled custom values")
 	var warden_health := []
 	for index in range(30):
 		var run := Run.new(index, {}, "creative")
@@ -79,6 +87,14 @@ func run() -> void:
 	check(slots.summary(1).levels["0"].overrides.tuning.is_empty(), "Other slot remains unchanged")
 	var code := preload("res://scripts/persistence/stat_configuration.gd").encode(game.tuning, "Stats")
 	check(not code.is_empty() and preload("res://scripts/persistence/stat_configuration.gd").decode(code).tuning == game.tuning, "Portable stats roundtrip")
+	var exported := preload("res://scripts/persistence/reusable_build.gd").selected_stats(game.tuning, {"enemies": ["basic"], "towers": ["rapid"]})
+	check(exported.enemies.basic.enabled_poison_resistance == 0, "Selective build exports preserve disabled membership")
+	var all_defaults := {}
+	for category in Stats.CATEGORIES:
+		for kind in Stats.Frozen.VALUES[category]: all_defaults = Stats.reset(all_defaults, category, kind)
+	var all_levels := Migration.levels({"0": {"overrides": {"tuning": all_defaults}}})
+	var full_code := preload("res://scripts/persistence/campaign_playthrough.gd").encode(all_levels, "All defaults", "")
+	check(not full_code.is_empty(), "Full reset of all 64 definitions remains exportable")
 	print("STATS SYSTEM: %d checks, %d failures" % [checks, failures.size()])
 	quit(1 if not failures.is_empty() else 0)
 
@@ -139,3 +155,33 @@ func summons_and_defenses() -> void:
 		if escort.has("summoner"): escort.toll = 0
 	game.combat.EnemyCapabilities.advance(game.combat, 0.05)
 	check(game.combat.enemies.size() == 5, "Escorts cannot recursively summon")
+
+func direct_attributes() -> void:
+	for kind in Stats.Gear.GEAR:
+		var game := VigilState.new(980)
+		var tower := unit(game)
+		var enemy := spawn(game, "sepulcher")
+		check(game.apply_balance(Stats.attach(game.tuning, "towers", "rapid", "gear_" + kind)), "Attach equipment capability directly " + kind)
+		for attack in range(8):
+			var stats := game.combat.TowerComponents.prepare_attributes(game.combat, tower, enemy, game.combat.tower_stats(tower))
+			var shot := game.combat.Projectiles.make_shot(game.combat, tower, Vector2.ZERO, enemy, stats)
+			game.combat.resolve_shot(shot, enemy)
+			game.combat.simulation_time += 0.1
+			game.combat.Relics.advance(game.combat, 0.1)
+			game.combat.EffectFields.advance(game.combat, 0.1)
+		check(enemy.hp < enemy.max_hp, "Assigned effect participates in real attacks " + kind)
+		check(game.apply_balance(Stats.attach(game.tuning, "towers", "rapid", "gear_" + kind, false)), "Remove assigned effect " + kind)
+		game.combat.Relics.advance(game.combat, 0.05)
+		check(enemy.get("gear_status", {}).is_empty() and enemy.get("root_until", 0) == 0, "Removed effect cleans recipient " + kind)
+	var game := VigilState.new(981)
+	var tower := unit(game)
+	var enemy := spawn(game, "sepulcher")
+	game.apply_balance(Stats.attach(game.tuning, "towers", "rapid", "thorn_volley"))
+	var shot := game.combat.Projectiles.make_shot(game.combat, tower, Vector2.ZERO, enemy, game.combat.tower_stats(tower))
+	game.combat.resolve_shot(shot, enemy)
+	game.set_balance_stat("enemies", "sepulcher", "poison_resistance", 50)
+	check(not enemy.get("gear_status", {}).is_empty(), "Changing enemy resistance preserves tower-owned active poison")
+	game.combat.simulation_time = 1
+	var before: float = enemy.hp
+	game.combat.Relics.advance(game.combat, 1)
+	check(is_equal_approx(before - enemy.hp, 1), "Existing poison reevaluates live resistance")

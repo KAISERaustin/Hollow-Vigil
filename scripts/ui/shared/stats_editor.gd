@@ -76,8 +76,12 @@ func rebuild() -> void:
 		body.add_child(add)
 		body.add_child(UI.paragraph("Changes stay in this draft until you press Save. Each tier and branch is independent.", 14))
 	if relayout.is_valid(): relayout.call()
+	if is_node_ready(): call_deferred("reveal_editor")
 
 func reveal_editor() -> void:
+	if not is_inside_tree(): return
+	await get_tree().process_frame
+	if not is_inside_tree(): return
 	var ancestor := get_parent()
 	while ancestor != null and not ancestor is ScrollContainer: ancestor = ancestor.get_parent()
 	if ancestor != null: ancestor.scroll_vertical += int(global_position.y - ancestor.global_position.y)

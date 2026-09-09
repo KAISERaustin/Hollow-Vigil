@@ -189,6 +189,11 @@ static func valid_tuning(value: Variant) -> bool:
 			if not catalog.has(kind) or not value[category][kind] is Dictionary:
 				return false
 			var defaults: Dictionary = catalog[kind]
+			if category == "towers":
+				var primary_count := 0
+				for ability in Stats.Capabilities.TOWER:
+					if Stats.Capabilities.TOWER[ability].get("primary", false) and Stats.ability_enabled(category, kind, ability, value): primary_count += 1
+				if primary_count > 1: return false
 			for stat in value[category][kind]:
 				if not schema.has(stat) or (category not in Stats.CATEGORIES and not defaults.has(stat)):
 					return false

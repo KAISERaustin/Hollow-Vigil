@@ -33,6 +33,16 @@ Menu → Edit rules uses an isolated draft for content rules and level resources
 
 Wave groups retain their five legacy columns (enemy, count, portal, delay, spacing). An optional sixth column sets gold per defeated enemy for that group. The Wave node puts it on scheduled spawns, the Campaign run assigns it to each enemy instance, and combat credits it on death. This is independent of global entity Stats. Counts edited on summary cards are distributed proportionally across existing groups without changing portals or timing. Campaign builds, full playthroughs, checkpoints and reusable builds preserve the custom wave count and optional group rewards.
 
+## Stats and assignable capabilities
+
+Stats → Entity → Tower / Enemy → Boss supplies common save-local stat ownership. The frozen September 9 baseline lives in `scripts/content/catalogs/stats_defaults.gd`; new content can register its own baseline through the registry. `stat_capabilities.gd` declares reusable abilities and their parameter dependencies. `stats.gd` resolves enabled values, independent tier overrides, catalog compatibility, and reset membership. Keep mutable shields, wards, timers, stacks, and effect progress on individual recipients.
+
+Edit rules uses `ui/shared/stats_editor.gd` for searchable Stats, Abilities and Attributes. The Campaign save applies one entity rule set across all levels; level/wave entity tuning cannot change a boss's base values between encounters. Slot migration flattens legacy tier scaling, retains configured values, and removes the retired early-Warden reduction. World portal modifiers remain separate.
+
+Enemy capability nodes provide reusable shields, wards, regrowth, rage and summoning. Resistance nodes handle poison, ice, hex and knockback. Tower composition reuses attack and equipment components; one primary attack may be assigned at a time. Save updates live recipients while preserving health/cooldown proportions and cleaning up removed capabilities. Reset restores the frozen entity values and attachments, without resetting the save's progression.
+
+Run `tests/stats_system_runner.gd` for defaults, composition, removal, runtime isolation, live edits, save slots and exports; `tests/rendered/stats_editor_runner.gd` exercises the editor at the three portrait phone sizes.
+
 ## Ownership and verification
 
 Content nodes provide definitions; gameplay services own transactions and simulation; persistence validates and serializes; rendering owns artwork; UI owns navigation and input. Keep imports in that direction. Campaign saves, builds, editor controls, descriptions, artwork and tests must agree when content changes.

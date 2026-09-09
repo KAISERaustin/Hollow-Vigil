@@ -77,28 +77,9 @@ func set_balance_stat(category: String, kind: String, stat: String, value: float
 			candidate.erase(category)
 	return apply_balance(candidate)
 
-# The tier editor writes absolute values. Keep legacy base-scaling saves readable,
-# but freeze sibling tiers before changing tier one through the new editor.
+# Every tier writes independent absolute values; migration handles old saves.
 func set_tower_tier_stat(key: String, stat: String, value: float) -> bool:
 	return set_balance_stat("towers", key, stat, value)
-
-func _legacy_set_tower_tier_stat(key: String, stat: String, value: float) -> bool:
-	var candidate := tuning.duplicate(true)
-	if not candidate.has("towers"):
-		candidate.towers = {}
-	if Balance.TOWERS.has(key):
-		for level in range(2, 5):
-			var branches: Array = Balance.BRANCHES[key].keys() if level == 4 else [""]
-			for branch in branches:
-				var sibling := Balance.tier_key(key, level, branch)
-				if not candidate.towers.has(sibling):
-					candidate.towers[sibling] = {}
-				var current := Balance.stats(key, level, tuning, branch)
-				candidate.towers[sibling][stat] = Balance.upgrade_cost({"kind": key, "level": level - 1}, tuning, branch) if stat == "cost" else float(current.get(stat, value))
-	if not candidate.towers.has(key):
-		candidate.towers[key] = {}
-	candidate.towers[key][stat] = value
-	return apply_balance(candidate)
 
 func reset_developer_balance(category: String = "", kind: String = "") -> bool:
 	if category in Balance.Stats.CATEGORIES: return apply_balance(Balance.Stats.reset(tuning, category, kind))

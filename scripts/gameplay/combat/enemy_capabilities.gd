@@ -34,7 +34,7 @@ static func advance(combat, delta: float) -> void:
 	for enemy in combat.enemies.duplicate():
 		if enemy.dead: continue
 		var stats: Dictionary = combat.resolved_definition(category(enemy), enemy.kind)
-		for ability in ["regrowth", "summon"]:
+		for ability in ["rage", "regrowth", "summon"]:
 			if has(enemy, ability, combat.tuning): Balance.Content.catalog().get_node("enemy_ability/" + ability).advance(combat, enemy, delta, stats)
 
 static func summon(combat, enemy: Dictionary, stats: Dictionary) -> void:

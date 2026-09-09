@@ -101,7 +101,12 @@ static func apply_root(combat: VigilCombat, shot: Dictionary, enemy: Dictionary,
 	enemy.root_until = maxf(enemy.get("root_until", 0.0), until)
 	enemy.root_immune_until = combat.simulation_time + config.root_immunity
 	if shot.has("tower_id"):
-		add_status(enemy, shot.tower_id, "attribute/root", {"type": "root", "until": until})
+		var status := {"type": "root", "until": until}
+		if config.has("direct_assignment"):
+			status.tower_epoch = config.tower_epoch
+			status.component = config.gear_component
+			enemy.direct_root_owner = shot.tower_id
+		add_status(enemy, shot.tower_id, "attribute/root", status)
 
 static func apply_balance(combat: VigilCombat, previous: Dictionary, tuning: Dictionary) -> void:
 	for id in combat.relic_progress:

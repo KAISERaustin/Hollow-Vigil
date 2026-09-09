@@ -36,13 +36,14 @@ static func levels(source: Dictionary, migrate: bool = false) -> Dictionary:
 			if not global.has(category): global[category] = {}
 			for kind in candidate.get(category, {}):
 				if not global[category].has(kind): global[category][kind] = candidate[category][kind].duplicate(true)
+	global = Stats.compact(global)
 	for index in range(30):
 		var key := str(index)
 		if not result.has(key): result[key] = {"overrides": {}}
 		var rules: Dictionary = result[key].overrides
 		if not rules.has("tuning"): rules.tuning = {}
 		for category in Stats.CATEGORIES:
-			if global[category].is_empty(): rules.tuning.erase(category)
+			if global.get(category, {}).is_empty(): rules.tuning.erase(category)
 			else: rules.tuning[category] = global[category].duplicate(true)
 		for wave in rules.get("waves", {}).values():
 			for category in Stats.CATEGORIES: wave.get("tuning", {}).erase(category)

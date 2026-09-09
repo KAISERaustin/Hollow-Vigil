@@ -36,7 +36,7 @@ static func ensure(combat, tower: Dictionary) -> Dictionary:
 	var old: Dictionary = combat.tower_component_state.get(tower.id, {})
 	if old.get("signature", "") == signature and old.get("node") == node:
 		return old
-	clear(combat, tower.id)
+	clear(combat, tower.id, old.get("signature", "") == signature and old.get("node") != node)
 	combat.component_serial += 1
 	var record := {"signature": signature, "node": node, "epoch": combat.component_serial, "states": {}, "entries": node.rule("components", [])}
 	combat.tower_component_state[tower.id] = record
@@ -50,11 +50,11 @@ static func set_definition(combat, id: String, node) -> bool:
 	ensure(combat, combat.data.towers[id])
 	return true
 
-static func clear(combat, id: String) -> void:
+static func clear(combat, id: String, changed_configuration: bool = false) -> void:
 	combat.tower_component_state.erase(id)
 	combat.line_projectiles = combat.line_projectiles.filter(func(p): return p.tower_id != id)
 	combat.traps = combat.traps.filter(func(p): return p.tower_id != id)
-	combat.pending_shots = combat.pending_shots.filter(func(p): return p.tower_id != id)
+	if changed_configuration: combat.pending_shots = combat.pending_shots.filter(func(p): return p.tower_id != id)
 	combat.burning_ground = combat.burning_ground.filter(func(p): return p.tower_id != id)
 	combat.curses.erase(id)
 	combat.effect_fields = combat.effect_fields.filter(func(p): return p.tower_id != id or not p.config.has("direct_assignment"))
@@ -67,8 +67,16 @@ static func clear(combat, id: String) -> void:
 			enemy.erase("stun_owner")
 		enemy.get("charges", {}).erase(id)
 		var statuses: Dictionary = enemy.get("gear_status", {})
+		var removed_root: bool = enemy.get("direct_root_owner", "") == id
+		if removed_root: enemy.erase("direct_root_owner")
 		for key in statuses.keys():
-			if statuses[key].owner == id and statuses[key].has("tower_epoch"): statuses.erase(key)
+			if statuses[key].owner == id and statuses[key].has("tower_epoch"):
+				removed_root = removed_root or statuses[key].type == "root"
+				statuses.erase(key)
+		if removed_root:
+			enemy.root_until = 0.0
+			for status in statuses.values():
+				if status.type == "root": enemy.root_until = maxf(enemy.root_until, status.until)
 	if not combat.data.towers.has(id): combat.tower_overrides.erase(id)
 
 static func prepare_attributes(combat, tower: Dictionary, target: Dictionary, stats: Dictionary) -> Dictionary:

@@ -22,5 +22,9 @@ func apply(combat, shot: Dictionary, enemy: Dictionary, config: Dictionary) -> v
 	if enemy.dead or enemy.get("gear_stun_immune_until", 0.0) > combat.simulation_time:
 		return
 	var duration: float = config.boss_duration if enemy.get("boss", false) else config.duration
-	combat.Relics.add_status(enemy, shot.tower_id, id, {"type": "stun", "until": combat.simulation_time + duration})
+	var status := {"type": "stun", "until": combat.simulation_time + duration}
+	if config.has("direct_assignment"):
+		status.tower_epoch = config.tower_epoch
+		status.component = self
+	combat.Relics.add_status(enemy, shot.tower_id, id, status)
 	enemy.gear_stun_immune_until = combat.simulation_time + config.stun_immunity

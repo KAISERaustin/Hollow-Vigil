@@ -1,6 +1,19 @@
 # Stats system: scope, baseline, and compatibility review
 
-September 9, 2026. Planning document; no Stats runtime or editor implementation yet.
+September 9, 2026. The planning record below is retained for context. The implemented decisions in this section supersede earlier open questions.
+
+## Implemented decisions
+
+- Stats is the shared content ancestor for enemies, bosses and towers. Every shipped definition has independent frozen defaults, including all 40 tower tier/branch entries.
+- Edit rules separates Stats, Abilities and Attributes. Search the existing catalog, add a compatible entry, type a value, disable optional entries, Save, or Reset to Default. Dependent stats enable their reusable capability. A primary attack replacement is explicit; disabling it restores normal shots.
+- Save applies across all 30 levels of the selected slot and updates live enemies and towers. Other slots remain unchanged. Health and attack cooldowns preserve their remaining proportion. Changing a tower configuration clears that tower's obsolete attacks/effects; changing enemy resistance preserves ongoing effects and reevaluates their strength.
+- Bosses have identical base stats in every level. The former early-Warden reductions and wave-specific entity overrides no longer apply. Portal health/speed/regeneration modifiers remain separately owned world effects; boss base values are not scaled by those portal effects.
+- Poison resistance reduces non-fire damage over time; ice resistance reduces slow strength; hex resistance reduces damage-taken exposure (including equipment exposure), and knockback resistance reduces push distance. All use 0–100%. Doomstone's focused curse is a separate damage bonus. No additional resistance families were added.
+- Shields, wards, defense regrowth, wounded haste/armor, and escort summoning can be assigned independently to ordinary enemies or bosses. Wards absorb hits before shields absorb remaining damage. Counter interactions follow the attacking capability. Summoned escorts do not recursively summon or pay defeat rewards.
+- Tower abilities can be reassigned between tiers and families. Existing equipment capabilities can also be assigned directly; an identical equipped item does not double the assigned effect. Runtime progress remains per tower/enemy and is cleared when its attachment is removed.
+- Reset restores both values and membership from the frozen catalog, removing added entries without changing progression, earned currency, placements, or other entity edits. Disabled custom values remain available for re-enabling. Compact save data retains that distinction.
+- Legacy tier scaling is flattened during slot migration. Conflicting historical entity rules are consolidated deterministically from the first configured level for that type. Saved levels, checkpoints and portable build captures preserve the selected slot's resulting global rules.
+- Validation includes `tests/stats_system_runner.gd`, `tests/rendered/stats_editor_runner.gd`, the content-node and tuning-schema runners, Campaign tests, and the structure check. Rendered phone checks are desktop simulations; physical iOS/Android acceptance remains separate.
 
 ## Confirmed requirements
 

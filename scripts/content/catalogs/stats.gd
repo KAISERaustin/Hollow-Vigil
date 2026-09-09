@@ -98,6 +98,11 @@ static func resolve(category: String, kind: String, identity: Dictionary, tuning
 	for field in values:
 		if control(field): continue
 		result[field] = values[field] if edits.get("enabled_" + field, 1) > 0 else neutral(field)
+	if edits.keys().any(func(field): return str(field).begins_with("use_")):
+		var names: PackedStringArray = []
+		for ability in capabilities(category):
+			if ability_enabled(category, kind, ability, tuning): names.append(capabilities(category)[ability].name)
+		result.description = "Assigned capabilities: " + ", ".join(names) + "." if not names.is_empty() else ("Standard shots with this tier's configured stats." if category == "towers" else "Uses its configured stats without additional abilities.")
 	return result
 
 static func neutral(field: String) -> float:
@@ -127,4 +132,24 @@ static func reset(tuning: Dictionary, category: String, kind: String) -> Diction
 	if not result.has(category): result[category] = {}
 	result[category][kind] = {}
 	for field in schema(category): result[category][kind][field] = default_value(category, kind, field)
+	return result
+
+static func compact(tuning: Dictionary) -> Dictionary:
+	var result := tuning.duplicate(true)
+	for category in CATEGORIES:
+		if not result.has(category): continue
+		for kind in result[category].keys():
+			var values: Dictionary = result[category][kind]
+			for field in values.keys():
+				if control(field): continue
+				# Explicitly added neutral stats still need their enabled marker.
+				if not baseline(category, kind).has(field) and not values.has("enabled_" + field):
+					values["enabled_" + field] = 1
+				if is_equal_approx(float(values[field]), default_value(category, kind, field)): values.erase(field)
+			for field in values.keys():
+				if not control(field): continue
+				if field.begins_with("enabled_") and values[field] == 0 and values.has(field.trim_prefix("enabled_")): continue
+				if is_equal_approx(float(values[field]), default_value(category, kind, field)): values.erase(field)
+			if values.is_empty(): result[category].erase(kind)
+		if result[category].is_empty(): result.erase(category)
 	return result

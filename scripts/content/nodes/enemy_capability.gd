@@ -34,6 +34,10 @@ func speed(enemy: Dictionary, now: float, stats: Dictionary, slow: float) -> flo
 
 func advance(combat, enemy: Dictionary, delta: float, stats: Dictionary) -> void:
 	match rule("behavior"):
+		"rage":
+			var raging: bool = enemy.hp <= enemy.max_hp * stats.rage_threshold / 100.0
+			if raging and not enemy.get("audio_raging", false): combat.sound_requested.emit("boss_cindermaw_ability", enemy.pos)
+			enemy.audio_raging = raging
 		"regrowth":
 			var blocked := false
 			for id in combat.curses:
@@ -47,6 +51,7 @@ func advance(combat, enemy: Dictionary, delta: float, stats: Dictionary) -> void
 				enemy.shield = stats.get("shield", 0.0) if combat.EnemyCapabilities.has(enemy, "shield", combat.tuning) else 0.0
 				enemy.wards = int(stats.get("wards", 0)) if combat.EnemyCapabilities.has(enemy, "wards", combat.tuning) else 0
 				enemy.regen = stats.regen_period
+				combat.sound_requested.emit("boss_prior_ability", enemy.pos)
 		"summon":
 			# Summoned escorts never summon recursively, regardless of their type.
 			if enemy.has("summoner"): return
@@ -54,4 +59,5 @@ func advance(combat, enemy: Dictionary, delta: float, stats: Dictionary) -> void
 			if enemy.toll > 0.0: return
 			enemy.toll = stats.toll_period
 			enemy.toll_delayed = false
+			combat.sound_requested.emit("boss_bell_ability", enemy.pos)
 			combat.EnemyCapabilities.summon(combat, enemy, stats)
