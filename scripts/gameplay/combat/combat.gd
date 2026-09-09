@@ -71,6 +71,10 @@ func tower_stats(tower: Dictionary) -> Dictionary:
 	TowerComponents.apply_auras(self, tower, stats)
 	return stats
 
+func tower_aura_bonus(tower: Dictionary) -> float:
+	if not configuration_active: configuration.synchronize(tuning, data.relics)
+	return TowerComponents.aura_bonus(self, tower)
+
 func enemy_identifiers() -> Dictionary:
 	if not ticking: rebuild_enemy_index()
 	return enemy_index.identifiers

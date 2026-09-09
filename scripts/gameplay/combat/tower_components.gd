@@ -7,16 +7,22 @@ static func definition(combat, tower: Dictionary):
 	return Balance.Content.catalog().find("towers", Balance.tier_key(tower.kind, tower.level, tower.get("branch", "")))
 
 static func apply_auras(combat, recipient: Dictionary, stats: Dictionary) -> void:
+	stats.damage *= 1.0 + aura_bonus(combat, recipient) / 100.0
+
+## Shared live query for gameplay and recipient presentation; never changes stats.
+static func aura_bonus(combat, recipient: Dictionary) -> float:
 	var bonus := 0.0
 	var position := VigilWorld.pad_position(recipient.region, recipient.pad)
 	for source in combat.data.towers.values():
 		if source.id == recipient.id or source.get("rebuild_remaining", 0.0) > 0.0: continue
-		for entry in definition(combat, source).rule("components", []):
+		var node = definition(combat, source)
+		if node == null: continue
+		for entry in node.rule("components", []):
 			if not entry.component.has_method("aura_bonus"): continue
 			# Read unmodified source stats so mutually supporting towers cannot recurse.
 			var config: Dictionary = combat.configuration.tower_stats(source).merged(entry.config, true)
 			bonus = maxf(bonus, entry.component.aura_bonus(VigilWorld.pad_position(source.region, source.pad), position, config))
-	stats.damage *= 1.0 + bonus / 100.0
+	return bonus
 
 static func sync(combat) -> void:
 	for id in combat.tower_component_state.keys():

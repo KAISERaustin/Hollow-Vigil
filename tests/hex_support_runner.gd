@@ -54,5 +54,15 @@ func run() -> void:
 		check(resolved.aura_damage_percent == 17.0 and resolved.vulnerability_percent == 123.0 and resolved.mark_duration == 11.0 and resolved.period == 7.0 and resolved.damage == 2.0, "Every tier applies edited support values")
 	g.data.settings.developer_balance = {"towers": {"hex_lantern": {"aura_damage_percent": 20.0}}}
 	check(is_equal_approx(g.combat.tower_stats(ally).damage, 7.2), "Live rules edit updates aura immediately")
+	check(g.combat.tower_aura_bonus(ally) == 20.0, "Presentation reads the same live bonus")
+	hex.rebuild_remaining = 1.0
+	check(g.combat.tower_aura_bonus(ally) == 0.0, "Rebuilding source has no boost cue")
+	hex.rebuild_remaining = 0.0
+	g.data.settings.developer_balance.towers.hex_lantern.aura_damage_percent = 0.0
+	check(g.combat.tower_aura_bonus(ally) == 0.0, "Zero strength removes boost cue")
+	const HexArt = preload("res://scripts/rendering/effects/hex_art.gd")
+	check(HexArt.active(enemy, 0.0) and not HexArt.active(enemy, 6.01), "Hex presentation follows actual application and expiry")
+	enemy.gear_status.clear()
+	check(not HexArt.active(enemy, 0.0), "Cleared or recycled status has no leftover hex cue")
 	print("HEX SUPPORT: %d checks, %d failures" % [checks, failures.size()])
 	quit(1 if not failures.is_empty() else 0)
