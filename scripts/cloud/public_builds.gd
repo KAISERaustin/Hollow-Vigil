@@ -52,6 +52,7 @@ func flush() -> void:
 	cloud.expires_at = 0.0
 	var account_id: String = cloud.player_id
 	for item in outbox.duplicate():
+		if VigilSaveSlots.new().shared_entry(JSON.stringify(item.get("configuration", {}))).is_empty(): continue
 		if item.owner != "" and item.owner != account_id:
 			continue
 		# Bind an offline export before the first request, so account changes cannot republish it.

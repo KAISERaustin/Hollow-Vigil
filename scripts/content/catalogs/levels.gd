@@ -1,6 +1,6 @@
 extends RefCounted
 
-const STARTING_GOLD := 280.0 # First property and an opening defense.
+const STARTING_GOLD := 280.0 # Shared preview default; authored levels supply their starting gold.
 const SESSION := {"name": "Starting resources", "starting_gold": STARTING_GOLD}
 const CONFIGURATION_FIELDS := {
 	"gold": {"label": "Starting gold", "min": 0.0, "max": 1000000000000.0, "step": 1.0},

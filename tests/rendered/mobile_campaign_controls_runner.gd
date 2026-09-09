@@ -106,7 +106,8 @@ func run() -> void:
 	app.audio.set_suspended(true)
 	Engine.max_fps = 240
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
-	check(app.show_save_slots(), "Open isolated save menu: " + app.game.save_error)
+	app.slot_menu.show_slots()
+	check(app.slot_menu.visible, "Open isolated Campaign save menu")
 	if not is_instance_valid(app.slot_menu):
 		quit(1)
 		return

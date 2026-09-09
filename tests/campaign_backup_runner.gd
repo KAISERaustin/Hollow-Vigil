@@ -27,7 +27,6 @@ func run() -> void:
 	check(cloud.sent.is_empty(), "Signed-out upload cannot create a cloud backup")
 	cloud.player_id = Codec.uuid()
 	cloud.refresh_token = "fake"
-	for tick in range(5): cloud._process(3600.0)
 	await process_frame
 	check(cloud.sent.is_empty(), "Signing in and elapsed time never create a campaign backup")
 	cloud.response = {"ok": false}
@@ -35,7 +34,6 @@ func run() -> void:
 	var first: Dictionary = cloud.sent[-1].body
 	check(first.payload == {"format": 1, "catalog_version": 1, "completed_levels": 4}, "Upload contains only campaign completion and format fields")
 	progress.data.completed_levels = 5
-	for tick in range(5): cloud._process(3600.0)
 	check(cloud.sent.size() == 1, "Failed upload is never retried in the background")
 	var restored := Backup.new()
 	restored.progress = progress
@@ -65,7 +63,7 @@ func run() -> void:
 	progress.data.completed_levels = 6
 	await restored.restore()
 	check(progress.data.completed_levels == 6, "Failed refresh cannot restore stale cached cloud progress")
-	cloud.response = {"ok": true, "data": {"format": 1, "catalog_version": 1, "completed_levels": 21, "revision": 5}}
+	cloud.response = {"ok": true, "data": {"format": 1, "catalog_version": 1, "completed_levels": Progress.Catalog.COUNT + 1, "revision": 5}}
 	await restored.restore()
 	check(progress.data.completed_levels == 6, "Invalid cloud completion is rejected")
 	cloud.player_id = Codec.uuid()

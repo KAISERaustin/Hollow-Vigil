@@ -16,8 +16,4 @@ scale with battlefield zoom. They add no particles, nodes, random gameplay
 state, or damage events. Flight and impact durations are unchanged by this
 visual upgrade. Pyre's ring uses the shot's existing splash radius.
 
-Run `tests/previews/attack_effect_preview.gd` with Godot after importing the
-project. It renders `artifacts/attack-effects-comparison.png`, exercises 75
-animation frames, and captures flight and impact on the actual battlefield at
-360 and 540 pixel viewport widths. The regular `./launch.ps1 -Tests` suite
-covers shot timing, target tracking, recycling, expiration, and effect limits.
+Campaign combat and rendered terrain checks run with `./launch.ps1 -Check`.

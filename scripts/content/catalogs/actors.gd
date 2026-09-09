@@ -32,11 +32,8 @@ const BOSSES := {
 	"prior": {"name": "The Eclipse Prior", "push_resistance": 0.0, "hp": 3000.0, "speed": 30.0, "payout": 500.0, "color": "b49dcc", "weakness": "Doomstone: bypasses wards; curses regrowth", "wards": 3, "regen_period": 10.0, "doom_bypass": 1, "curse_threshold": 5, "regrowth_suppression": 100.0}
 }
 
-const UNLOCK_COSTS := {"fast": 90.0, "heavy": 180.0}
 
-const DUNGEON_UNLOCK_COSTS := {"sentinel": 550.0, "sepulcher": 2000.0}
 
-const ENEMY_SHARES := {"fast": 0.30, "heavy": 0.18}
 
 const NORMAL_KINDS := ["basic", "fast", "heavy"]
 

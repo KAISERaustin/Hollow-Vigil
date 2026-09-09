@@ -8,6 +8,4 @@ Forest uses moss, leaves and bark; Forge uses coal, iron and embers; Crypt uses 
 
 Developer controls read the same definition as combat. Optional future capabilities belong to attachable components; these drawings add no hidden buffs or timed status effects.
 
-`./launch.ps1 -ArtSmoke` regenerates transparent 256 x 256 reference PNGs in `assets/enemies/`. The grouped six-biome lineup is written to `artifacts/enemy-lineup.png`, with enlarged portraits and four gameplay zoom samples. The rendered checks cover visible distinct drawings, portrait bounds and transparent frame padding. Gameplay draws the shapes directly.
-
-`tests/rendered/portal_roster_checks.gd` exercises the real six portal menus, mouse/touch selection, each attunement purchase, traffic upgrades and scroll reachability at three phone resolutions. `tests/portal_roster_runner.gd` verifies spawn eligibility, per-instance state and save compatibility.
+The transparent reference PNGs in `assets/enemies/` show the native artwork. Gameplay draws the shapes directly. Campaign terrain and illustrated-picker tests cover their current rendering and portrait integration.

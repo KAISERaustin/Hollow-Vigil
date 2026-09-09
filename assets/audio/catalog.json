@@ -49,36 +49,6 @@
     "cooldown": 0.12,
     "description": "chime; 610 Hz; 0.3s; pitch sweep 0.5"
   },
-  "menu_expand": {
-    "category": "menu",
-    "cooldown": 0.12,
-    "description": "orb; 260 Hz; 0.65s; pitch sweep 0.8"
-  },
-  "menu_traffic": {
-    "category": "menu",
-    "cooldown": 0.12,
-    "description": "orb; 330 Hz; 0.3s; pitch sweep 0.4"
-  },
-  "menu_unlock": {
-    "category": "menu",
-    "cooldown": 0.12,
-    "description": "chime; 740 Hz; 0.4s; pitch sweep 0.35"
-  },
-  "menu_automation": {
-    "category": "menu",
-    "cooldown": 0.12,
-    "description": "arc; 960 Hz; 0.25s; pitch sweep 0.2"
-  },
-  "menu_reset": {
-    "category": "menu",
-    "cooldown": 0.12,
-    "description": "chime; 310 Hz; 0.55s; pitch sweep 0.6"
-  },
-  "menu_return": {
-    "category": "menu",
-    "cooldown": 0.12,
-    "description": "chime; 550 Hz; 0.6s; pitch sweep 0.3"
-  },
   "menu_notice": {
     "category": "menu",
     "cooldown": 0.12,

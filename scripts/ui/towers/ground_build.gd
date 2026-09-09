@@ -1,5 +1,5 @@
 extends Control
-## One pointer-owned build interaction, shared by Campaign and Infinite.
+## One pointer-owned build interaction, shared by Campaign.
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Choice = preload("res://scripts/ui/towers/tower_choice.gd")
 var layout_owner: Control
@@ -88,8 +88,6 @@ func open() -> void:
 
 func arm(value: String) -> void:
 	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
-	if field.state.economy.needs_first_property():
-		host.toast("Claim your first territory before placing towers.")
 	var active_pointer := pointer
 	host.clear_selection() if host.has_method("clear_selection") else host.panels.close_sheet()
 	pointer = active_pointer
@@ -205,7 +203,6 @@ func refresh() -> void:
 	valid = field.get_global_rect().has_point(screen_point) and not banner.get_global_rect().has_point(screen_point)
 	valid = valid and not palette.get_global_rect().has_point(screen_point)
 	valid = valid and field.state.economy.can_place(kind, location.region, location.pad)
-	valid = valid and not field.state.economy.needs_first_property()
 	valid = valid and field.state.data.balance >= Balance.definition("towers", kind, field.state.tuning).cost
 	if allowed_to_build.is_valid(): valid = valid and allowed_to_build.call()
 	queue_redraw()

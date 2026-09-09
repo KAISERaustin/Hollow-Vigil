@@ -10,7 +10,7 @@ var subtitle: Label
 var caption: Label
 var footer_rule: Control
 
-func configure(campaign: Callable, infinite: Callable, settings: Callable = Callable()) -> void:
+func configure(campaign: Callable, settings: Callable = Callable()) -> void:
 	name = "WelcomeMenu"
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -44,10 +44,6 @@ func configure(campaign: Callable, infinite: Callable, settings: Callable = Call
 	campaign_button.name = "OpenCampaign"
 	campaign_button.accessibility_description = "Follow the campaign through the world of Hollow Vigil."
 	modes.add_child(campaign_button)
-	var infinite_button := UI.gold_button("Infinite", infinite, 56)
-	infinite_button.name = "OpenInfinite"
-	infinite_button.accessibility_description = "Open your saved worlds or begin a new one."
-	modes.add_child(infinite_button)
 	if settings.is_valid():
 		var settings_button := UI.gold_button("Settings", settings, 56)
 		settings_button.name = "MainSettings"

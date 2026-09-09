@@ -12,8 +12,6 @@ Only backend administrators can write rows. Anonymous and signed-in players have
 
 All 69 commits reachable from main at request start (`4296367`) whose commit date falls on September 8, 2026 in America/Chicago were reviewed. `supabase/change_log_20260908.json` contains only the 46 commits with player-visible changes, each with its own row and unique source hash. The 23 testing, release-record, and upkeep commits are omitted entirely. Historical intermediate UI changes remain individual rows as requested. No earlier day's commits are imported.
 
-`tools/seed_change_log_20260908.py` reproduces the reviewed seed, without uploading it. The unique `source_commit` prevents duplicate imports. This is a one-time reviewed import, not automatic publication of future Git commits.
 
-Validation: `tests/rendered/change_log_runner.gd` covers navigation, three portrait sizes, pagination, empty/error/malformed responses, and refresh. Add `-- --live` to verify the actual production feed. Physical iOS/Android testing remains separate.
 
 Verified September 8: 282 rendered checks passed across 360×640, 390×844, and 540×960, including date grouping across pages and the production feed through Godot at 540×960. Screenshots were visually inspected. Database contract checks passed for anonymous and signed-in read access, hidden/future rows, and denied write permissions; Supabase security advisors returned no findings. The live table contains exactly 46 published rows, all dated September 8. The restricted run could not reach the backend; the network-enabled rerun passed.

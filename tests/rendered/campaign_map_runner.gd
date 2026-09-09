@@ -24,11 +24,11 @@ func frame() -> void:
 func run() -> void:
 	var app := VigilApp.new()
 	app.load_saved_progress = false
-	app.game.save_path = "user://biome-map-test.save"
+	app.game.save_path = "user://biome-map-%d.save" % Time.get_ticks_usec()
 	root.add_child(app)
 	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	app.set_process(false)
-	app.show_campaign()
+	app.open_campaign_slot(0, app.slot_menu.campaign_slots.create(0, "creative", "Map test"))
 	var campaign: Control = app.campaign
 	campaign.set_process(false)
 	campaign.progress.allow_all = true

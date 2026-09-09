@@ -1,6 +1,6 @@
 # Tower levels and specializations
 
-All eight tower families are available in Infinite Worlds and Campaign. Each starts at level 1, upgrades through levels 2 and 3, then chooses one permanent level-4 branch. The shared construction, upgrade, targeting, equipment, sale, relocation, rules editor and save systems use the same catalog.
+All eight tower families are available in Campaign. Each starts at level 1, upgrades through levels 2 and 3, then chooses one permanent level-4 branch. The shared construction, upgrade, targeting, equipment, sale, relocation, rules editor and save systems use the same catalog.
 
 The tables below are generated from resolved catalog values, including recent range adjustments. `scripts/content/catalogs/towers.gd` is authoritative. Save-specific rules and equipment can change these values. Regenerate the source data with `tests/previews/tower_catalog_export.gd`.
 
@@ -79,15 +79,11 @@ The new families attach `piercing_attack`, `returning_attack`, `orbit_attack`, `
 
 Only the strongest active vulnerability applies. Each source retains its own expiry, so removing a stronger lantern restores any weaker valid mark. Witchlight spreads directly applied marks once; propagated marks cannot spread recursively. Boss defenses still resolve through the shared damage owner.
 
-A shared spatial road index deduplicates overlapping routes and refreshes when Infinite routes or authored Campaign roads change. Trap placement queries nearby segments instead of rescanning every road for each tower. Traps occupy actual road positions inside the tower's reach, have finite capacity and lifetime, and never block movement. They prepare during Campaign planning without spawning enemies, advancing waves or earning gold. Selling, moving, changing branches or replacing components clears their owned effects. Save files and portable builds preserve tower identity, level, branch, target mode, gear and investment. Transient blades, marks and traps are not restored as an offline stockpile. Campaign resumes its existing wave checkpoint rules.
+A shared spatial road index deduplicates overlapping routes and refreshes when authored Campaign roads change. Trap placement queries nearby segments instead of rescanning every road for each tower. Traps occupy actual road positions inside the tower's reach, have finite capacity and lifetime, and never block movement. They prepare during Campaign planning without spawning enemies, advancing waves or earning gold. Selling, moving, changing branches or replacing components clears their owned effects. Save files and portable builds preserve tower identity, level, branch, target mode, gear and investment. Transient blades, marks and traps reset between attempts. Campaign progress and configuration persistence follow `CAMPAIGN.md`.
 
 ## Validation
 
-- `tests/tower_expansion_runner.gd`: real attack cadence, moving targets, all five stages per family, all eighteen gear types, attach/remove behavior, saves and portable builds, and every authored Campaign mission.
-- `tests/tower_expansion_balance_runner.gd`: three seeds and four approaches, basic openings, mixed traffic, every branch and Hex Lantern paired with the same allied defense. Initial marks can improve damage without crossing a kill threshold; upgraded support is checked against that allied income baseline.
-- `tests/tower_expansion_stress_runner.gd`: forty offscreen towers across forty active rifts, every new stage, exact income accounting and bounded traps. The indexed placement pass measured 7.29 ms per simulation tick versus 45.48 ms before indexing on this Windows test host.
-- `tests/test_runner.gd`: shared economy, old tower balance, movement, combat, tuning, gear, persistence and crowded-world regressions. The established solo balance thresholds remain assigned to the original four towers.
-- `tests/rendered/tower_upgrade_preview_runner.gd`: every tower, tier and branch in both modes at 360, 390 and 540 UI-unit phone widths, including touch, bounds, scrolling and pinned purchase controls.
-- Build selection, developer layout, equipment, framing, audio, Campaign export and unified persistence runners cover the connected menus and services.
-
-September 7 delivery checks passed: 56,466 shared gameplay checks; 4,818 tower integration checks including all 30 authored missions; 21,333 upgrade-preview checks; 1,416 construction-card checks; 1,983 shared-menu checks; and 2,390 unified persistence checks. The rendered checks use the supported 360x640, 390x844 and 540x960 portrait sizes. The structural dependency check passes. These are Windows Godot results with injected mobile input; no physical phone build or installation is claimed.
+- `tests/campaign_runner.gd`: authored encounters, economy, progression and gameplay integration.
+- `tests/campaign_expansion_runner.gd`: legal strategies for the final ten authored levels.
+- `tests/content_node_runner.gd`: shared content definitions and isolated instances.
+- `tests/rendered/mobile_campaign_controls_runner.gd`: Campaign placement, upgrades, equipment and wave controls at three portrait sizes.

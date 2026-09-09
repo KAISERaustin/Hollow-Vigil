@@ -9,7 +9,8 @@ func run() -> void:
 	app.set_process(false)
 	app.private_backups.enabled = false
 	app.audio.set_suspended(true)
-	check(app.show_save_slots(), "Open isolated slots: " + app.game.save_error)
+	app.slot_menu.show_slots()
+	check(app.slot_menu.visible, "Open isolated Campaign slots")
 	app.slot_menu.campaign_slots.base_path = app.game.save_path + ".campaign"
 	for mode in ["creative", "survival"]:
 		for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:

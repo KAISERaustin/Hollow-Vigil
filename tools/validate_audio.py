@@ -9,7 +9,12 @@ import wave
 root = Path(__file__).resolve().parents[1] / 'assets/audio'
 catalog = json.loads((root / 'catalog.json').read_text())
 hashes = set()
-for name in catalog:
+for name, entry in catalog.items():
+    if 'source' in entry:
+        source = entry['source']
+        assert source in catalog and 'source' not in catalog[source], f'Invalid audio source: {name}'
+        assert (root / (source + '.wav')).is_file(), f'Missing shared audio: {name}'
+        continue
     with wave.open(str(root / (name + '.wav'))) as stream:
         assert stream.getnchannels() == 1 and stream.getsampwidth() == 2, name
         pcm = stream.readframes(stream.getnframes())

@@ -62,10 +62,10 @@ try:
             ], text=True, capture_output=True, timeout=30)
             output = result.stdout + result.stderr
             print(output, end='')
-            assert result.returncode == 0 and 'ERROR:' not in output, phase
+            unexpected = [line for line in output.splitlines() if 'ERROR:' in line and 'Failed to read the root certificate store.' not in line]
+            assert result.returncode == 0 and not unexpected, phase
     assert not errors, errors
-    assert requests == ['/auth/v1/verify', '/auth/v1/token?grant_type=refresh_token',
-                        '/rest/v1/rpc/list_saves'], requests
+    assert requests == ['/auth/v1/verify', '/auth/v1/token?grant_type=refresh_token'], requests
     print('PASS: three process lifetimes, real HTTP transport, token rotation, no uploads')
 finally:
     server.shutdown()

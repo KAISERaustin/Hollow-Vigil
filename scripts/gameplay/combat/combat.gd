@@ -46,7 +46,7 @@ var spatial_ready := false
 var indexed_enemy_count := -1
 var ticking := false
 # Authored missions own their spawn schedule; ordinary worlds keep rift timers.
-var scripted_spawns := false
+var scripted_spawns := true
 var road_geometry := preload("res://scripts/gameplay/combat/road_geometry.gd").new()
 var authored_roads: Array = []:
 	set(value):
@@ -110,14 +110,10 @@ func _init(shared_data: Dictionary, transactions: VigilEconomy, shared_paths: Di
 	rng.randomize()
 
 func rebuild_routes() -> void:
-	route_exits = VigilWorld.shortest_exits(data.regions)
 	paths.clear()
 	branching_routes.clear()
-	for id in route_exits:
-		paths[id] = VigilWorld.route(data.regions, id, route_exits)
-		var choices: Array = route_exits[id]
-		branching_routes[id] = choices.size() > 1 or (not choices.is_empty() and branching_routes[choices[0]])
-	road_geometry.rebuild(authored_roads if scripted_spawns else paths.values())
+	route_exits.clear()
+	road_geometry.rebuild(authored_roads)
 
 func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = "", fire: bool = false, pierce: bool = false) -> bool:
 	if enemy.dead or not is_finite(damage) or damage <= 0.0 or not data.towers.has(tower_id):
@@ -149,7 +145,7 @@ func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = ""
 			add_effect({"kind": "relic_drop", "relic_kind": gear_kind, "pos": enemy.pos + Vector2((index - 1) * 28, 0), "life": 2.0, "max_life": 2.0, "color": Relics.DEFINITIONS[gear_kind].color})
 	economy.credit(tower_id, reward)
 	data.kills += 1.0
-	# One-time encounters must not inflate recurring offline income.
+	# Encounter rewards remain separate from ordinary enemy earnings.
 	if not is_boss and not enemy.has("summoner"):
 		var r: Dictionary = data.regions[enemy.source]
 		r.history[tower_id] = r.history.get(tower_id, 0.0) + reward
@@ -160,30 +156,6 @@ func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = ""
 func add_effect(fx: Dictionary) -> void:
 	if effects.size() < 100:
 		effects.append(fx)
-
-func spawn(id: String, forced_kind: String = "", escort: bool = false) -> Dictionary:
-	if not VigilWorld.has_rift(id, data.regions, int(data.seed)) or not data.regions.has(id):
-		return {}
-	var r: Dictionary = data.regions[id]
-	var kind := forced_kind
-	var style: String = r.get("style", "forest")
-	var portal := Balance.Content.portal(style)
-	if portal == null:
-		return {}
-	if kind == "":
-		kind = portal.choose_kind(r.unlocks, rng.randf())
-	var enemy_type := Balance.Content.enemy(kind)
-	if enemy_type == null:
-		return {}
-	if escort:
-		if not portal.rule("allow_escorts", true) or not enemy_type.rule("escort", false):
-			return {}
-	elif not portal.accepts(kind):
-		return {}
-	if not paths.has(id) or paths[id].size() < 2:
-		return {}
-	var route: Array[Vector2] = VigilWorld.route(data.regions, id, route_exits, rng) if branching_routes[id] else paths[id]
-	return _create_enemy(id, kind, route, style)
 
 func spawn_on_path(kind: String, route: Array[Vector2], style: String = "forest") -> Dictionary:
 	var enemy_type := Balance.Content.enemy(kind)
@@ -232,21 +204,6 @@ func tick(delta: float) -> void:
 	data.active_seconds += delta
 	tick_count += 1
 	TowerComponents.sync(self)
-	# Every rift advances on the same clock. Camera visibility only affects drawing.
-	for r in data.regions.values():
-		if scripted_spawns:
-			break
-		if not VigilWorld.has_rift(r.id, data.regions, int(data.seed)):
-			continue
-		r.history_time = minf(Balance.HISTORY_SECONDS, r.history_time + delta)
-		# Offline estimates include time with escapes / no kills across the whole world.
-		if r.history_time >= Balance.HISTORY_SECONDS:
-			for tid in r.history:
-				r.history[tid] *= exp(-delta / Balance.HISTORY_SECONDS)
-		r.timer -= delta
-		while r.timer <= 0.0:
-			spawn(r.id)
-			r.timer += economy.spawn_period(r.id) * rng.randf_range(0.9, 1.1)
 	Bosses.advance(self, delta)
 	Relics.advance(self, delta)
 	for e in enemies:
@@ -263,10 +220,6 @@ func tick(delta: float) -> void:
 				e.segment += 1
 				move -= dist
 				if e.segment >= p.size():
-					if e.get("boss", false) and e.tile != "0,0":
-						Bosses.next_leg(self, e)
-						p = e.path
-						continue
 					e.dead = true
 					sound_requested.emit(Balance.Content.boss(e.kind).sound_cue("escape") if e.get("boss", false) else "escape", e.pos)
 					if e.get("boss", false):

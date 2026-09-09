@@ -1,5 +1,9 @@
 # Repository instructions
 
+## Product scope
+
+- Hollow Vigil is a Campaign game with 30 authored levels in six chapters. Creative and Survival share three Campaign save slots. Build future work around authored levels, waves and Campaign progression.
+
 ## Portrait-only mobile app
 
 - Hollow Vigil supports iOS and Android in fixed upright portrait only. Turning the phone sideways or upside down must not rotate gameplay or menus. Keep separate `display/window/handheld/orientation.android` and `.ios` overrides set to `1` (`SCREEN_PORTRAIT`) in `project.godot`; never use sensor orientation modes or enable rotation at runtime.

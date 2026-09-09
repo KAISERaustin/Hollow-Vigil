@@ -30,7 +30,6 @@ func _ready() -> void:
 	clear_selection()
 	# The original cached terrain renderer accepts authored geometry. Only the
 	# roads and sockets differ; all ground, scenery and actor art stays shared.
-	terrain_layer.hide()
 	landscape = Node2D.new()
 	landscape.show_behind_parent = true
 	add_child(landscape)

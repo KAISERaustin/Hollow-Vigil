@@ -72,7 +72,7 @@ The proposal follows the existing progression: **level 1 → level 2 → level 3
 | Level 4 A — **Dreadjaw** | Replace caltrops with powerful single-victim jaw traps; at most 3 active. Each takes longer to arm, rewarding a prepared ambush against durable enemies. | A large toothed jaw replaces the small chute. |
 | Level 4 B — **Scatterworks** | Deploy 3 weaker caltrops per cycle across separate road positions; at most 9 active. Covers longer traffic streams with smaller hits. | Three upward-facing hoppers and an ochre magazine. |
 
-**Rule to preserve:** traps never block the road or require new build sockets. Automatically choose valid road positions within tower range and follow the selected targeting mode when traffic is present; use the nearest incoming segment when it is absent. Stop placing at capacity rather than building an infinite reserve. Trap timers use active simulation time, and no offline stockpile is accumulated. Sell, relocation, branch replacement, and session teardown remove owned traps. Traps cannot trigger before their arming delay or hit more than one victim.
+**Rule to preserve:** traps never block the road or require new build sockets. Automatically choose valid road positions within tower range and follow the selected targeting mode when traffic is present; use the nearest incoming segment when it is absent. Trap timers use active simulation time. Sell, relocation, branch replacement, and session teardown remove owned traps. Traps cannot trigger before their arming delay or hit more than one victim.
 
 ## Suggested level-one starting values
 
@@ -108,7 +108,7 @@ Compose the new capabilities as reusable attribute/component objects, with confi
 
 Attach, replace, or remove these capabilities through their owning services. Never put type-specific combat conditionals in the Tower parent or shared mutable timers in a content definition. Reuse damage resolution, projectile lifetime management, targeting, equipment modifiers, cleanup, and save validation. Rendering consumes effect state, while transactions stay with the economy owner.
 
-Before shipping, cover every family's construction, levels 2–3, both level-4 purchases, branch permanence, sale, relocation, equipment, tuning, catalog descriptions, portraits, developer controls, campaign and Infinite Worlds availability, portable loadouts, and save roundtrips. Existing stable tower IDs must remain unchanged. Verify component reuse on multiple assigned types, unchanged behavior on unassigned types, independent instances, and cleanup after removal or pooling. Saving should preserve tower identity, level, branch, and normal investment; transient blades, curses, and traps should clear on load, consistent with existing transient combat effects.
+Existing stable tower IDs must remain unchanged. Verify component reuse on multiple assigned types, unchanged behavior on unassigned types, independent instances, and cleanup after removal or pooling. Saving should preserve tower identity, level, branch, and normal investment; transient blades, curses, and traps should clear on load, consistent with existing transient combat effects.
 
 ## Preview files
 

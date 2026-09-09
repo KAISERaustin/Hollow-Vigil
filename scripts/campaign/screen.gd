@@ -1177,7 +1177,7 @@ func confirm_progress_reset() -> void:
 	var popup := preload("res://scripts/ui/shared/confirmation_popup.gd").new()
 	popup.name = "CampaignResetConfirmation"
 	add_child(popup)
-	popup.configure("Reset campaign progress?", "Return to level 1 on this device. Your account, cloud backups, Infinite Worlds, equipment and balancing settings are kept.", "Reset progress", func():
+	popup.configure("Reset campaign progress?", "Return to level 1 on this device. Your account, cloud backups, equipment and balancing settings are kept.", "Reset progress", func():
 		if not progress.reset_progress():
 			popup.show_error(progress.last_error)
 			return

@@ -39,7 +39,7 @@ func run() -> void:
 	root.add_child(app)
 	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	app.set_process(false)
-	app.show_campaign()
+	app.open_campaign_slot(0, app.slot_menu.campaign_slots.create(0, "creative", "Wave menu test"))
 	var screen: Control = app.campaign
 	screen.set_process(false)
 	screen.progress.data.completed_levels = 20
@@ -109,7 +109,8 @@ func run() -> void:
 	await settle()
 	screen.find_child("EditCampaignWave2", true, false).pressed.emit()
 	await settle()
-	check(screen.dialog_title.text == "Edit wave 2" and screen.dialog_body.get_child(0).initial_scope == 1, "Edit wave 2 selects the second wave")
+	check(app.slot_menu.screen == "rules" and app.slot_menu.rules_editor.initial_scope == 1, "Edit wave 2 selects the second wave")
+	app.slot_menu.rules_return.call()
 	screen.start_mission(0)
 	screen.run.wave = 1
 	screen.run.phase = "wave"

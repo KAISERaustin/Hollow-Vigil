@@ -19,10 +19,14 @@ func settle() -> void:
 	await RenderingServer.frame_post_draw
 
 func run() -> void:
-	var app := VigilApp.new()
-	app.load_saved_progress = false
-	root.add_child(app)
-	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var host := VigilApp.new()
+	host.load_saved_progress = false
+	host.game.save_path = "user://tower-indicator-%d.save" % Time.get_ticks_usec()
+	root.add_child(host)
+	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	host.open_campaign_slot(0, host.slot_menu.campaign_slots.create(0, "creative", "Tower indicator test"))
+	var app: Control = host.campaign
+	app.start_mission(0)
 	app.set_process(false)
 	app.game.data.balance = 100000
 	await settle()
@@ -43,8 +47,7 @@ func run() -> void:
 			if kind == "rapid":
 				root.get_texture().get_image().save_png("res://artifacts/compact-level-%d.png" % viewport.x)
 		app.ground_build.cancel()
-	app.game.data.first_property_required = false
-	var id := app.game.economy.build("rapid", "0,0", 1)
+	var id: String = app.game.economy.build("rapid", app.run.mission.sockets[0].region, int(app.run.mission.sockets[0].pad))
 	app.field.selected_tower = id
 	for level in range(1, 5):
 		app.game.data.towers[id].level = level
@@ -74,6 +77,6 @@ func run() -> void:
 			check(bubble.name == "Level%d" % (4 - position), "Vertical levels ordered four to one from top to bottom")
 			check(bubble.get_meta("earned") == (4 - position <= level), "Earned vertical bubbles fill from the bottom upward")
 		vertical_indicator.free()
-	app.free()
+	host.free()
 	print("TOWER LEVEL INDICATOR: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

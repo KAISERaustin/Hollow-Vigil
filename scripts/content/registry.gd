@@ -222,13 +222,10 @@ func _populate_world(root: ContentNode) -> void:
 
 func _populate_levels(root: ContentNode) -> void:
 	var level_root := _add(LevelNode.new("level", root))
-	var open_world := _add(LevelNode.new("level/open_world", level_root, {}, {"finite_waves": false, "expansion": true, "starter_radius": 2, "starter_style": "forest"}))
-	_add(LevelNode.new("level/session", open_world, Levels.SESSION, {"kind": "start", "tuning_category": "session"}), "session", "start")
-	_add(LevelNode.new("level/creative", open_world, {}, {"developer_controls": true}))
-	_add(LevelNode.new("level/survival", open_world, {}, {"developer_controls": false}))
 	var campaign := _add(LevelNode.new("level/campaign", level_root, {}, {"finite_waves": true, "expansion": false, "max_health": Levels.MAX_HEALTH, "components": [{"slot": "setup_refund", "component": get_node("attribute/investment_refund"), "config": {"ratio": 1.0}}]}))
+	_add(LevelNode.new("level/session", campaign, Levels.SESSION, {"kind": "start", "tuning_category": "session"}), "session", "start")
 	for mode in ["creative", "survival"]:
-		_add(LevelNode.new("level/campaign/" + mode, campaign, {}, {"developer_controls": get_node("level/" + mode).rule("developer_controls", false)}))
+		_add(LevelNode.new("level/campaign/" + mode, campaign, {}, {"developer_controls": mode == "creative"}))
 	var wave_root := _add(WaveNode.new("wave", root))
 	var landscape := _add(MapLandscapeNode.new("presentation/map_landscape", root))
 	for chapter in range(Levels.CHAPTERS.size()):

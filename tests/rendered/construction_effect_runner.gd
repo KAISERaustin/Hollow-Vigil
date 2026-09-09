@@ -58,7 +58,6 @@ func run() -> void:
 	first.advance(0.5)
 	check(first.instances.is_empty() and not first.conceals(Vector2.ZERO), "Effect and concealment end within half a second")
 	var game := VigilState.new(123)
-	game.data.erase("first_property_required")
 	game.data.balance = 10000
 	var field := Battlefield.new()
 	field.state = game
@@ -142,7 +141,6 @@ func phone_previews() -> void:
 		root.size = Vector2i(width,640 if width == 360 else 960)
 		root.content_scale_size = root.size
 		var game := VigilState.new(125)
-		game.data.erase("first_property_required")
 		game.data.balance = 10000
 		var field := Battlefield.new()
 		field.state = game

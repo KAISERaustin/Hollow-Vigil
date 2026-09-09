@@ -1,5 +1,5 @@
 extends HBoxContainer
-## Shared gameplay control geometry for Campaign and Infinite.
+## Shared gameplay control geometry for Campaign.
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const SPEEDS := [1.0, 2.0, 4.0]
 var pause_button: Button

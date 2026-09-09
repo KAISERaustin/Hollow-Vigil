@@ -6,7 +6,7 @@ const CheckList = preload("res://scripts/ui/shared/contents_checklist.gd")
 const Confirm = preload("res://scripts/ui/shared/confirmation_popup.gd")
 const SavedGameCard = preload("res://scripts/ui/shared/saved_game_card.gd")
 var campaign_slots := CampaignSlots.new()
-var game_type := "infinite"
+var game_type := "campaign"
 var screen := "main"
 var new_game := {}
 var library_return: Callable
@@ -106,15 +106,13 @@ func show_main_menu() -> void:
 	header.hide()
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var welcome := preload("res://scripts/ui/welcome_menu.gd").new()
-	welcome.configure(open_mode.bind("campaign"), open_mode.bind("infinite"), func(): show_settings(show_main_menu))
+	welcome.configure(open_mode.bind("campaign"), func(): show_settings(show_main_menu))
 	content.add_child(welcome)
 
 func open_mode(type: String) -> void:
-	game_type = type
+	if type != "campaign": return
+	game_type = "campaign"
 	held = false
-	if game_type == "infinite":
-		show_slots()
-		return
 	for slot in 3:
 		if slot_occupied(slot):
 			show_slots()
@@ -122,7 +120,7 @@ func open_mode(type: String) -> void:
 	show_home()
 
 func show_home(type: String = "") -> void:
-	if not type.is_empty(): game_type = type
+	if not type.is_empty() and type != "campaign": return
 	held = false
 	page_view("home", game_type.capitalize(), show_main_menu)
 	for entry in [["Continue", show_slots, "Continue"], ["New game", func(): begin_new(), "NewGame"],
@@ -132,22 +130,21 @@ func show_home(type: String = "") -> void:
 	footer.add_child(action("Settings", func(): show_settings(show_home), "Settings"))
 
 func slot_summary(slot: int) -> Dictionary:
-	return campaign_slots.summary(slot) if game_type == "campaign" else slots.summary(slot)
+	return campaign_slots.summary(slot)
 
 func slot_occupied(slot: int) -> bool:
-	return campaign_slots.occupied(slot) if game_type == "campaign" else slots.occupied(slot)
+	return campaign_slots.occupied(slot)
 
 func game_name(value: Dictionary, slot: int = -1) -> String:
 	return value.get("name", value.get("setup", {}).get("name", "Game %d" % (slot + 1)))
 
 func progress_text(value: Dictionary, type: String = "") -> String:
 	if type.is_empty(): type = game_type
-	if type == "campaign":
-		var checkpoint: Dictionary = value.get("checkpoint", {})
-		var text := "%d of %d levels completed" % [value.get("completed", 0), Build.Configuration.Catalog.COUNT]
-		if not checkpoint.is_empty() and checkpoint.phase != "victory":
-			text += "\nLevel %d · Start of wave %d" % [int(checkpoint.level) + 1, int(checkpoint.wave) + 1]
-		return text
+	var checkpoint: Dictionary = value.get("checkpoint", {})
+	var text := "%d of %d levels completed" % [value.get("completed", 0), Build.Configuration.Catalog.COUNT]
+	if not checkpoint.is_empty() and checkpoint.phase != "victory":
+		text += "\nLevel %d · Start of wave %d" % [int(checkpoint.level) + 1, int(checkpoint.wave) + 1]
+	return text
 	return "%d explored tiles · %d towers" % [value.get("regions", {}).size(), value.get("towers", {}).size()]
 
 func show_slots() -> void:
@@ -180,11 +177,6 @@ func show_slots() -> void:
 		content.add_child(SavedGameCard.card(slot, title, mode, description, stats, buttons))
 
 func slot_progress(value: Dictionary) -> Array:
-	if game_type != "campaign":
-		return [
-			{"key": "ExploredTiles", "label": "Explored tiles", "value": str(value.get("regions", {}).size())},
-			{"key": "PlacedTowers", "label": "Towers", "value": str(value.get("towers", {}).size())},
-		]
 	var completed := int(value.get("completed", 0))
 	var checkpoint: Dictionary = value.get("checkpoint", {})
 	var current := {"key": "CurrentLevel", "label": "Current level", "value": "—",
@@ -202,21 +194,17 @@ func leave_saved_games() -> void:
 	show_main_menu()
 
 func confirm_slot_deletion(type: String, slot: int) -> void:
-	var value: Dictionary = campaign_slots.summary(slot) if type == "campaign" else slots.summary(slot)
+	var value: Dictionary = campaign_slots.summary(slot)
 	confirm("Delete saved game?", "Delete “%s” from %s slot %d on this device? This frees the slot and cannot be undone. Existing cloud backups and recovery copies remain in Backups." % [game_name(value, slot), type.capitalize(), slot + 1], "Delete game", delete_saved_slot.bind(type, slot))
 
 func delete_saved_slot(type: String, slot: int) -> void:
-	var ok: bool = campaign_slots.delete_slot(slot) if type == "campaign" else slots.delete_slot(slot)
+	var ok: bool = campaign_slots.delete_slot(slot)
 	if not ok:
-		notice(campaign_slots.error if type == "campaign" else slots.error)
+		notice(campaign_slots.error)
 		return
 	# A live owner must not autosave the deleted session back into its slot.
 	if type == "campaign" and live_campaign() and app.campaign.active_campaign_slot == slot:
 		app.campaign.close(false)
-		held = false
-	elif type == "infinite" and app.slot_active and app.active_slot == slot:
-		app.slot_active = false
-		app.game.suspended = true
 		held = false
 	show_slots()
 	notice("Saved game deleted. Slot %d is now empty." % (slot + 1))
@@ -295,16 +283,15 @@ func show_review() -> void:
 		if not dependency.is_empty(): content.add_child(UI.paragraph(dependency))
 		if build.game_type != game_type:
 			content.add_child(UI.paragraph("Only compatible starting stats will be used. Layouts, resources and waves from the other game type are unused."))
-			if game_type == "campaign":
-				var scope := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
-				scope.name = "ApplyStatsTo"
-				scope.menu_title = "Apply stats to"
-				scope.custom_minimum_size.y = UI.TARGET
-				for text in ["Choose where to apply stats", "Whole campaign", "One level"]: scope.add_item(text)
-				scope.select(["", "all", "level"].find(new_game.choices.get("apply_to", "")))
-				scope.item_selected.connect(func(index: int): new_game.choices.apply_to = ["", "all", "level"][index]; show_review())
-				content.add_child(UI.form_field("Apply to", scope))
-				if new_game.choices.get("apply_to") == "level": level_choice("Level", "target_level")
+			var scope := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
+			scope.name = "ApplyStatsTo"
+			scope.menu_title = "Apply stats to"
+			scope.custom_minimum_size.y = UI.TARGET
+			for text in ["Choose where to apply stats", "Whole campaign", "One level"]: scope.add_item(text)
+			scope.select(["", "all", "level"].find(new_game.choices.get("apply_to", "")))
+			scope.item_selected.connect(func(index: int): new_game.choices.apply_to = ["", "all", "level"][index]; show_review())
+			content.add_child(UI.form_field("Apply to", scope))
+			if new_game.choices.get("apply_to") == "level": level_choice("Level", "target_level")
 			elif build.scope == "all": level_choice("Use stats from", "source_level")
 		if game_type == "campaign": content.add_child(UI.paragraph("Using this build does not unlock levels in Survival. New games open the World map."))
 	else: content.add_child(UI.paragraph("Original rules and a fresh starting layout."))
@@ -340,56 +327,29 @@ func request_start() -> void:
 
 func prepare_new() -> Dictionary:
 	if new_game.entry.is_empty():
-		return {"ok": true, "levels": {}} if game_type == "campaign" else {"ok": true, "snapshot": VigilState.new(0, new_game.mode).data}
-	return Build.compose_campaign(new_game.entry.build, new_game.choices) if game_type == "campaign" else Build.infinite_snapshot(new_game.entry.build, new_game.choices, new_game.mode)
+		return {"ok": true, "levels": {}}
+	return Build.compose_campaign(new_game.entry.build, new_game.choices)
 
 func start_prepared(prepared: Dictionary) -> void:
 	if not release_session(): return
 	var slot := int(new_game.slot)
-	if game_type == "campaign":
-		var value := {"version": 1, "sequence": 0, "game_type": "campaign", "id": preload("res://scripts/cloud/cloud_codec.gd").uuid(), "name": str(new_game.name).strip_edges(),
-			"mode": new_game.mode, "saved_at": Time.get_unix_time_from_system(), "completed": 0, "levels": prepared.levels, "checkpoint": {}}
-		if not campaign_slots.replace(slot, value): notice(campaign_slots.error); return
-	else:
-		var snapshot: Dictionary = prepared.snapshot.duplicate(true)
-		snapshot.setup = {"name": str(new_game.name).strip_edges(), "description": ""}
-		snapshot.session_id = preload("res://scripts/cloud/cloud_codec.gd").uuid()
-		if not replace_infinite(slot, snapshot): return
+	var value := {"version": 1, "sequence": 0, "game_type": "campaign", "id": preload("res://scripts/cloud/cloud_codec.gd").uuid(), "name": str(new_game.name).strip_edges(),
+		"mode": new_game.mode, "saved_at": Time.get_unix_time_from_system(), "completed": 0, "levels": prepared.levels, "checkpoint": {}}
+	if not campaign_slots.replace(slot, value): notice(campaign_slots.error); return
 	continue_game(slot)
 
-func replace_infinite(slot: int, snapshot: Dictionary) -> bool:
-	if slot < 0 or slot >= 3 or not slots.storage.valid_data(snapshot): notice("This game could not be restored. Your current games are safe."); return false
-	var current := slots.summary(slot)
-	if slots.occupied(slot):
-		if current.is_empty(): notice("Recover the existing game before replacing this slot."); return false
-		var recovery_path := slots.path_for(slot) + ".recovery-" + preload("res://scripts/cloud/cloud_codec.gd").uuid()
-		if not slots.storage.write(recovery_path, current): notice(slots.storage.last_error); return false
-	snapshot.sequence = maxi(int(snapshot.sequence), int(current.get("sequence", 0))) + 1
-	if not slots.storage.write(slots.path_for(slot), snapshot): notice(slots.storage.last_error); return false
-	return true
-
 func release_session() -> bool:
-	# A restore browser can be entered from a held session. Save that session
-	# before opening another slot; the selected destination is never inferred.
-	var target_type := game_type
 	if live_campaign():
 		if not app.campaign.persist_slot(): notice("Couldn't save the open game. Please try again."); return false
 		app.campaign.close()
-	elif app.slot_active:
-		app.persist()
-		if not app.game.save_error.is_empty(): notice("Couldn't save the open game. Please try again."); return false
-		app.slot_active = false
-	game_type = target_type
 	held = false
 	return true
 
 func continue_game(slot: int) -> void:
 	if not release_session(): return
-	if game_type == "campaign":
-		var value := campaign_slots.summary(slot)
-		if value.is_empty(): notice("This Campaign needs recovery before it can continue."); return
-		app.open_campaign_slot(slot, value)
-	else: app.open_slot(slot)
+	var value := campaign_slots.summary(slot)
+	if value.is_empty(): notice("This Campaign needs recovery before it can continue."); return
+	app.open_campaign_slot(slot, value)
 
 func confirm(title: String, text: String, confirm_text: String, callback: Callable) -> void:
 	var popup := Confirm.new()
@@ -427,7 +387,16 @@ func show_library() -> void:
 		notice("Community is unavailable right now. Check your connection and try again.")
 		footer.add_child(action("Retry", show_library, "RetryCommunity"))
 		return
-	for entry in result.data: library_entries.append(entry)
+	# The server catalog contains older formats; show only validated Campaign content.
+	for entry in result.data:
+		var loaded: Dictionary = await app.public_builds.read_build(entry.id)
+		if revision != view_revision: return
+		var converted: Dictionary = slots.reusable_entry(loaded)
+		if converted.is_empty() or not Build.compatible(converted.build, "campaign"): continue
+		converted.id = entry.id
+		converted.author_name = entry.get("author_name", "Player")
+		converted.author_id = entry.get("author_id", "")
+		library_entries.append(converted)
 	notice("")
 	show_library_entries()
 	var paging := HBoxContainer.new()
@@ -439,7 +408,7 @@ func show_library() -> void:
 	paging.add_child(previous)
 	var next := action("Next", func(): library_page += 1; show_library(), "NextBuilds")
 	next.autowrap_mode = TextServer.AUTOWRAP_OFF
-	next.disabled = library_entries.size() < 20
+	next.disabled = result.data.size() < 20
 	paging.add_child(next)
 
 func show_library_entries() -> void:
@@ -490,7 +459,7 @@ func show_detail() -> void:
 	content.add_child(UI.heading("Contents", 18))
 	content.add_child(UI.paragraph(Build.summary(build)))
 	content.add_child(UI.paragraph(Build.dependencies(build)))
-	content.add_child(UI.paragraph("Compatible starting stats can be used in Campaign and Infinite." if Build.has_stats(build) else "Content for " + build.game_type.capitalize() + "."))
+	content.add_child(UI.paragraph("Starting stats can be reused across Campaign levels." if Build.has_stats(build) else "Content for " + build.game_type.capitalize() + "."))
 	if not library_community: content.add_child(UI.paragraph("Saved privately on this device. " + library_backup_status()))
 	var use := action("Use build", use_detail, "UseBuild", true)
 	use.disabled = not Build.compatible(build, game_type)
@@ -528,26 +497,16 @@ func open_saved_games() -> void:
 	if release_session(): show_slots()
 
 func open_game_menu() -> void:
+	if not live_campaign(): show_home(); return
 	if not held:
-		game_type = "campaign" if live_campaign() else "infinite"
-		held_paused = app.campaign.paused if live_campaign() else app.simulation_paused
+		held_paused = app.campaign.paused
 		held = true
-		if live_campaign():
-			app.campaign.paused = true
-			app.campaign.clear_selection()
-			if app.campaign.page == "battle": app.campaign.update_time_controls()
-		else:
-			app.persist()
-			app.game.suspended = true
-			app.panels.close_sheet()
-			app.tower_dialog.dismiss()
-			if app.tower_move.visible: app.tower_move.cancel()
+		app.campaign.paused = true
+		app.campaign.clear_selection()
+		if app.campaign.page == "battle": app.campaign.update_time_controls()
 	page_view("game_menu", "Menu", resume_game)
-	content.add_child(UI.paragraph(game_type.capitalize()))
-	var creative: bool = app.campaign.can_author() if live_campaign() else app.game.is_creative()
-	if creative: content.add_child(action("Edit rules", open_rules, "EditRules"))
-	if creative and not live_campaign():
-		content.add_child(action("Creative tools", show_creative_tools, "CreativeTools"))
+	content.add_child(UI.paragraph("Campaign"))
+	if app.campaign.can_author(): content.add_child(action("Edit rules", open_rules, "EditRules"))
 	content.add_child(action("Save build", open_build_form, "SaveBuild"))
 	content.add_child(action("Backups", func(): show_backups(open_game_menu), "GameBackups"))
 	content.add_child(action("Settings", func(): show_settings(open_game_menu), "GameSettings"))
@@ -555,23 +514,15 @@ func open_game_menu() -> void:
 
 func resume_game() -> void:
 	hide()
-	if held:
-		if live_campaign():
-			app.campaign.paused = held_paused
-			if app.campaign.page == "battle": app.campaign.update_time_controls()
-		else:
-			app.simulation_paused = held_paused
-			app.game.suspended = false
-			app.refresh_time_controls()
+	if held and live_campaign():
+		app.campaign.paused = held_paused
+		if app.campaign.page == "battle": app.campaign.update_time_controls()
 	held = false
 
 func exit_game() -> void:
 	var saved := true
 	if live_campaign():
 		saved = app.campaign.persist_slot()
-	else:
-		app.persist()
-		saved = app.game.save_error.is_empty()
 	if not saved:
 		confirm("Exit without saving?", "We couldn't save your latest progress. If you exit now, changes since your last successful save may be lost. Any earlier save will be kept.\n\nCancel to keep playing or try saving again.", "Exit anyway", finish_exit.bind(false))
 		return
@@ -581,15 +532,9 @@ func finish_exit(saved: bool) -> void:
 	if live_campaign():
 		# The exit attempt already saved, or the player explicitly chose to leave.
 		app.campaign.close(false)
-	else:
-		app.slot_active = false
-		app.game.suspended = true
 	if saved: mark_backup_pending()
 	held = false
-	if game_type == "infinite":
-		show_slots()
-	else:
-		show_home()
+	show_home()
 
 func open_build_form() -> void:
 	var source: VigilState = app.campaign.game if live_campaign() else app.game
@@ -605,17 +550,11 @@ func open_saved_build_form(entry: Dictionary) -> void:
 	var build: Dictionary = entry.build
 	var source: VigilState
 	var levels := {}
-	if build.game_type == "infinite":
-		var composed := Build.infinite_snapshot(build, {}, "creative")
-		if not composed.ok: notice("This build's layout needs compatible placement tiles."); return
-		source = VigilState.new()
-		source.data = composed.snapshot
-	else:
-		var composed := Build.compose_campaign(build, {})
-		if not composed.ok: notice(composed.get("error", "This build has incompatible contents.")); return
-		levels = composed.levels
+	var composed := Build.compose_campaign(build, {})
+	if not composed.ok: notice(composed.get("error", "This build has incompatible contents.")); return
+	levels = composed.levels
 	form = {"game_type": build.game_type, "game": source, "levels": levels, "scope": build.scope, "level": int(build.level),
-		"contents": Build.all_contents("campaign") if build.game_type == "campaign" else build.contents.duplicate(true), "name": build.setup.name, "description": build.setup.description, "return": show_detail}
+		"contents": Build.all_contents("campaign"), "name": build.setup.name, "description": build.setup.description, "return": show_detail}
 	form_saved_code = entry.code
 	pending_publish = ""
 	show_build_form()
@@ -626,18 +565,17 @@ func prepared_form() -> Dictionary:
 
 func show_build_form() -> void:
 	page_view("save_build", "Save build", form.get("return", open_game_menu))
-	if form.game_type == "campaign":
-		var scope := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
-		scope.name = "BuildScope"
-		scope.menu_title = "Choose build scope"
-		scope.custom_minimum_size.y = UI.TARGET
-		scope.add_item("Whole campaign")
-		scope.add_item("One level")
-		scope.select(1 if form.scope == "level" else 0)
-		scope.item_selected.connect(func(index: int): form.scope = "level" if index == 1 else "all"; show_build_form())
-		content.add_child(UI.form_field("Scope", scope))
-		if form.scope == "level":
-			add_level_choice("Level", "BuildLevel", int(form.level), func(index: int): form.level = index)
+	var scope := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
+	scope.name = "BuildScope"
+	scope.menu_title = "Choose build scope"
+	scope.custom_minimum_size.y = UI.TARGET
+	scope.add_item("Whole campaign")
+	scope.add_item("One level")
+	scope.select(1 if form.scope == "level" else 0)
+	scope.item_selected.connect(func(index: int): form.scope = "level" if index == 1 else "all"; show_build_form())
+	content.add_child(UI.form_field("Scope", scope))
+	if form.scope == "level":
+		add_level_choice("Level", "BuildLevel", int(form.level), func(index: int): form.level = index)
 	content.add_child(UI.heading("Contents", 18))
 	var checklist := CheckList.new()
 	checklist.game_type = form.game_type
@@ -699,7 +637,7 @@ func submit_build(publish: bool) -> void:
 func submit_prepared_build(publish: bool) -> void:
 	var build := prepared_form()
 	if build.is_empty(): notice("These contents could not be saved. Check the selected contents and try again."); return
-	var compatible_content := Build.compose_campaign(build, {}) if build.game_type == "campaign" else Build.infinite_snapshot(build, {}, "creative")
+	var compatible_content := Build.compose_campaign(build, {})
 	if not compatible_content.ok: notice(compatible_content.get("error", "This layout needs compatible placement tiles.")); return
 	var code := Build.encode(build)
 	if not slots.save_shared(code): notice("Couldn't save the private copy. Please try again."); return
@@ -741,7 +679,7 @@ func retry_share() -> void:
 
 func show_export(source: VigilState = null, campaign: Dictionary = {}, return_to: Callable = Callable()) -> void:
 	if source == null: source = app.game
-	form = {"game_type": "campaign" if not campaign.is_empty() else "infinite", "game": source, "levels": campaign.get("levels", {}),
+	form = {"game_type": "campaign", "game": source, "levels": campaign.get("levels", {}),
 		"scope": "all", "level": int(campaign.get("index", -1)), "name": "", "description": "", "return": return_to if return_to.is_valid() else open_game_menu}
 	form.contents = Build.all_contents(form.game_type)
 	form_saved_code = ""
@@ -782,26 +720,6 @@ func show_sound() -> void:
 	controls.app = app
 	controls.return_to = show_sound
 	content.add_child(controls)
-
-func show_creative_tools() -> void:
-	if not held or game_type != "infinite" or is_instance_valid(app.campaign) or not app.game.is_creative():
-		return
-	page_view("creative_tools", "Creative tools", open_game_menu)
-	var field: Battlefield = app.field
-	var game: VigilState = app.game
-	if field != null:
-		var camera := CheckList.check_box("Unrestricted zoom and pan", field.unrestricted_camera, field.set_unrestricted_camera)
-		camera.name = "UnrestrictedCamera"
-		content.add_child(camera)
-		var health := CheckList.check_box("Show enemy and boss health", field.show_health_numbers, func(enabled: bool): field.show_health_numbers = enabled; field.queue_redraw())
-		health.name = "ShowHealthNumbers"
-		content.add_child(health)
-	if game != null:
-		content.add_child(action("Add 1,000,000 gold", func():
-			game.add_developer_gold()
-			app.persist()
-			notice("Gold added to this Creative game.")
-		, "AddMillionGold"))
 
 func show_account(return_to: Callable = Callable()) -> void:
 	if return_to.is_valid(): account_return = return_to
@@ -852,7 +770,6 @@ func show_account(return_to: Callable = Callable()) -> void:
 
 func open_rules() -> void:
 	if live_campaign(): show_campaign_content_rules()
-	else: show_infinite_rules()
 
 var level_rules: VBoxContainer
 
@@ -895,24 +812,6 @@ func show_campaign_content_rules(return_to: Callable = Callable()) -> void:
 	, "ApplyRules", true))
 	footer.add_child(action("Cancel", cancel_rules, "CancelRules"))
 
-func show_infinite_rules() -> void:
-	wave_rules = false
-	rules_return = open_game_menu
-	page_view("rules", "Edit rules", rules_back)
-	editor_game = VigilState.new(42, "creative", app.game.tuning)
-	content.add_child(UI.paragraph("Changes stay in this draft until you choose Apply changes."))
-	rules_editor = preload("res://scripts/ui/developer/developer_controls.gd").new()
-	rules_editor.game = editor_game
-	rules_editor.configuration_only = true
-	rules_editor.categories.assign(Build.STAT_GROUPS + ["session"])
-	content.add_child(rules_editor)
-	footer.add_child(action("Apply changes", func():
-		rules_editor.commit_fields()
-		if app.game.apply_balance(editor_game.tuning): app.persist(); open_game_menu()
-		else: notice("These changes could not be applied.")
-	, "ApplyRules", true))
-	footer.add_child(action("Cancel", cancel_rules, "CancelRules"))
-
 func show_campaign_rules(index: int, wave: int, return_to: Callable) -> void:
 	if not live_campaign() or not app.campaign.can_author() or wave < 0: return
 	wave_rules = true
@@ -950,7 +849,7 @@ func cancel_rules() -> void:
 func show_backups(return_to: Callable = Callable()) -> void:
 	if return_to.is_valid(): backup_return = return_to
 	page_view("backups", "Backups", backup_return)
-	content.add_child(UI.paragraph("Private protection for all six saved-game slots and My builds. Campaign battles recover at the start of the current wave."))
+	content.add_child(UI.paragraph("Private protection for all three saved-game slots and My builds. Campaign progress and saved rules are protected."))
 	content.add_child(action("Account", func(): show_account(show_backups), "BackupAccount"))
 	if not is_instance_valid(app.private_backups): return
 	var backups: Node = app.private_backups
@@ -962,11 +861,11 @@ func show_backups(return_to: Callable = Callable()) -> void:
 	, "BackUpNow", true)
 	backup.disabled = not app.cloud.signed_in() or backups.busy
 	footer.add_child(backup)
-	content.add_child(UI.paragraph("Back up now protects all six slots and every private build. Automatic backups retry when connected; differing versions wait for your choice."))
+	content.add_child(UI.paragraph("Back up now protects all three slots and every private build. Automatic backups retry when connected; differing versions wait for your choice."))
 	content.add_child(UI.heading("Saved games", 18))
-	for type in ["campaign", "infinite"]:
+	for type in ["campaign"]:
 		for slot in 3:
-			var value: Dictionary = campaign_slots.summary(slot) if type == "campaign" else slots.summary(slot)
+			var value: Dictionary = campaign_slots.summary(slot)
 			if value.is_empty(): continue
 			content.add_child(UI.paragraph("%s · %s\n%s" % [type.capitalize(), game_name(value, slot), backups.game_status(type, slot)]))
 	for remote in backups.remote_games:
@@ -991,7 +890,7 @@ func show_backups(return_to: Callable = Callable()) -> void:
 		if revision == view_revision: show_backups()
 	, "RecoverMyBuilds"))
 	content.add_child(UI.heading("Recovery copies on this device", 18))
-	content.add_child(UI.paragraph("Replaced games stay here until you choose to restore them. Restoring uses one of the matching game type's three slots."))
+	content.add_child(UI.paragraph("Replaced games stay here until you choose to restore them. Restoring uses one of the three Campaign slots."))
 	var recoveries: Array = backups.recovery_games()
 	if recoveries.is_empty(): content.add_child(UI.paragraph("No recovery copies yet."))
 	for recovery in recoveries:
@@ -1030,30 +929,29 @@ func show_restore_destination() -> void:
 	content.add_child(UI.paragraph(type.capitalize() + "\n" + progress_text(snapshot, type)))
 	content.add_child(UI.paragraph("Choose a destination. Restoring recovers the complete saved game, including its rules, towers and equipment."))
 	for slot in 3:
-		var local: Dictionary = campaign_slots.summary(slot) if type == "campaign" else slots.summary(slot)
-		var exists: bool = campaign_slots.occupied(slot) if type == "campaign" else slots.occupied(slot)
+		var local: Dictionary = campaign_slots.summary(slot)
+		var exists: bool = campaign_slots.occupied(slot)
 		var slot_name := "Empty" if not exists else ("Recovery needed" if local.is_empty() else game_name(local, slot))
 		var choose := action("Slot %d · %s" % [slot + 1, slot_name], func(): restore_choice.destination = slot; review_restore(), "RestoreIntoSlot" + str(slot + 1))
 		choose.disabled = exists and local.is_empty()
 		content.add_child(choose)
 
-func session_identity(value: Dictionary, type: String) -> String:
-	if type == "campaign": return value.get("id", "")
-	return value.get("session_id", value.get("cloud", {}).get("world_id", "legacy-" + str(value.get("seed", 0))))
+func session_identity(value: Dictionary, _type: String) -> String:
+	return value.get("id", "")
 
 func version_summary(value: Dictionary, type: String) -> String:
 	var checkpoint: Dictionary = value.get("checkpoint", {})
-	var state: Dictionary = checkpoint.get("state", {}) if type == "campaign" else value
+	var state: Dictionary = checkpoint.get("state", {})
 	var saved := float(value.get("saved_at", value.get("last_accounted", 0)))
 	var timestamp := Time.get_datetime_string_from_unix_time(int(saved)).replace("T", " ") + " UTC" if saved > 0 else "Time unavailable"
-	var rules: Dictionary = value.get("levels", {}) if type == "campaign" else value.get("settings", {}).get("developer_balance", {})
+	var rules: Dictionary = value.get("levels", {})
 	return progress_text(value, type) + "\nSaved " + timestamp + "\n%s gold · %d towers · %d gear items\n%s" % [UI.exact_money(float(state.get("balance", 0))), state.get("towers", {}).size(), state.get("relics", {}).size(), "Custom rules included" if not rules.is_empty() else "Original rules"]
 
 func review_restore() -> void:
 	page_view("restore_review", "Restore backup", show_restore_destination)
 	var type: String = restore_choice.game_type
 	var destination := int(restore_choice.destination)
-	var local: Dictionary = campaign_slots.summary(destination) if type == "campaign" else slots.summary(destination)
+	var local: Dictionary = campaign_slots.summary(destination)
 	var remote: Dictionary = restore_choice.snapshot
 	content.add_child(UI.heading("Backup · " + game_name(remote), 18))
 	content.add_child(UI.paragraph(version_summary(remote, type)))
@@ -1085,7 +983,7 @@ func keep_device_version() -> void:
 	if destination == int(restore_choice.slot_number):
 		await app.private_backups.keep_local(type, destination, int(restore_choice.revision))
 	if revision != view_revision: return
-	game_type = type
+	game_type = "campaign"
 	show_slots()
 
 func apply_restore() -> void:
@@ -1094,12 +992,9 @@ func apply_restore() -> void:
 	if live_campaign() and type == "campaign" and app.campaign.active_campaign_slot == destination:
 		notice("Exit the current game before restoring over its slot.")
 		return
-	if app.slot_active and type == "infinite" and app.active_slot == destination and held:
-		notice("Exit the current game before restoring over its slot.")
-		return
-	var ok: bool = campaign_slots.replace(destination, restore_choice.snapshot) if type == "campaign" else replace_infinite(destination, restore_choice.snapshot)
+	var ok: bool = campaign_slots.replace(destination, restore_choice.snapshot)
 	if not ok: notice("Couldn't restore the backup. Your current game is preserved."); return
 	if restore_choice.source == "cloud": app.private_backups.accept_restored(type, destination, int(restore_choice.slot_number), int(restore_choice.revision))
-	game_type = type
+	game_type = "campaign"
 	show_slots()
 	notice("Backup restored. Choose Continue game when you're ready.")

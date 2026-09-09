@@ -52,14 +52,9 @@ func _ready() -> void:
 		music.stream = loop
 	music.bus = bus_name
 	add_child(music)
-	bind_game()
 	apply_mix()
 	if music.stream != null:
 		music.play()
-	app.field.picked.connect(func(_region, _pad): play("menu_select"))
-	app.field.core_picked.connect(func(): play("menu_open"))
-	app.field.entrance_picked.connect(func(_region): play("menu_open"))
-	app.field.expansion_picked.connect(func(_region): play("menu_open"))
 	get_tree().node_added.connect(observe_control)
 	for node in app.find_children("*", "BaseButton", true, false):
 		observe_control(node)
@@ -70,25 +65,6 @@ func load_stream(cue: String) -> AudioStream:
 	var source: String = CATALOG.get(cue, {}).get("source", cue)
 	var path := "res://assets/audio/" + source + ".wav"
 	return load(path) as AudioStream if ResourceLoader.exists(path) else null
-
-func bind_game() -> void:
-	if combat != null and combat.sound_requested.is_connected(play_game_sound):
-		combat.sound_requested.disconnect(play_game_sound)
-	if economy != null and economy.sound_requested.is_connected(play_game_sound):
-		economy.sound_requested.disconnect(play_game_sound)
-	combat = app.game.combat
-	economy = app.game.economy
-	combat.sound_requested.connect(play_game_sound)
-	economy.sound_requested.connect(play_game_sound)
-	stop_effects()
-	last_cue.clear()
-	last_category.clear()
-	apply_mix()
-
-func play_game_sound(cue: String, position: Vector2) -> void:
-	# Transactions use INF but still belong to the world that produced them.
-	# Direct UI cues and settings previews intentionally have no world owner.
-	play(cue, position, app.field)
 
 func preferences() -> Dictionary:
 	return app.game.data.settings.get("audio", {})
@@ -160,7 +136,7 @@ func _process(delta: float) -> void:
 func audible_at(source: Control, position: Vector2) -> bool:
 	if not is_instance_valid(source) or not source.is_visible_in_tree():
 		return false
-	if source == app.field and (not app.slot_active or (is_instance_valid(app.slot_menu) and app.slot_menu.visible)):
+	if is_instance_valid(app.slot_menu) and app.slot_menu.visible:
 		return false
 	return not position.is_finite() or Rect2(Vector2.ZERO, source.size).has_point(source.screen(position))
 
@@ -175,7 +151,7 @@ func play(cue: String, position: Vector2 = Vector2.INF, source_field: Control = 
 		return
 	var distance_gain := 1.0
 	if position.is_finite() and source_field == null:
-		source_field = app.field
+		source_field = app.campaign.board if is_instance_valid(app.campaign) else null
 	if source_field != null:
 		if not audible_at(source_field, position):
 			return

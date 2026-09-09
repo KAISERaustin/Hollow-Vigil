@@ -30,7 +30,6 @@ func _init(index: int = 0, overrides: Dictionary = {}, game_mode: String = "surv
 	game.economy.set_sale_rules(Balance.Content.level(index))
 	game.data.balance = float(mission.gold)
 	game.data.settings.developer_balance = mission.tuning.duplicate(true)
-	game.data.first_property_required = false
 	game.data.automation = true
 	# These regions only anchor tower sockets. Campaign roads are independent of
 	# the expansion grid, seeded geography, and shortest-route reconstruction.

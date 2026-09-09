@@ -65,10 +65,6 @@ func tower_at(region: String, pad: int) -> String:
 	ensure_tower_index()
 	return tower_cells.get(region, {}).get(pad, "")
 
-func needs_first_property() -> bool:
-	# Saves created before onboarding was introduced remain unrestricted.
-	return data.get("first_property_required", false)
-
 func can_place(kind: String, region: String, pad: int) -> bool:
 	var node := Balance.Content.tower(kind)
 	if node == null or pad < 0 or pad > VigilWorld.MAX_GROUND_PAD:
@@ -79,8 +75,6 @@ func ground_allowed(point: Vector2, ignore_id: String = "") -> bool:
 	return preload("res://scripts/content/nodes/ground_placement.gd").allowed(data, point, placement_roads, placement_bounds, ignore_id)
 
 func build(kind: String, region: String, pad: int) -> String:
-	if needs_first_property():
-		return ""
 	if not can_place(kind, region, pad):
 		return ""
 	if not spend(Balance.tuned_value("towers", kind, "cost", tuning)):
@@ -129,9 +123,6 @@ func relocate(id: String, region: String, pad: int, expected_level: int = -1) ->
 	clear_tower_history(id)
 	return true
 
-func traffic_cost(id: String) -> float:
-	return ceil(Balance.TRAFFIC_BASE_COST * pow(Balance.TRAFFIC_COST_GROWTH, data.regions[id].traffic))
-
 func set_sale_rules(definition: VigilContentNode) -> void:
 	# Run-local attachment/replacement/removal; shared content stays immutable.
 	sale_rules = definition
@@ -160,38 +151,6 @@ func sell(id: String, expected_level: int = -1) -> Dictionary:
 	data.balance = minf(Balance.MAX_MONEY, data.balance + refund + earnings)
 	sound_requested.emit("menu_sell", Vector2.INF)
 	return {"refund": refund, "earnings": earnings, "total": refund + earnings}
-
-func spawn_period(id: String) -> float:
-	return Balance.traffic_period(data.regions[id].traffic)
-
-func buy_traffic(id: String, expected_level: int = -1) -> bool:
-	if not VigilWorld.has_rift(id, data.regions, int(data.seed)) or not data.regions.has(id):
-		return false
-	var r: Dictionary = data.regions[id]
-	if (expected_level != -1 and r.traffic != expected_level) or r.traffic >= Balance.MAX_TRAFFIC_LEVEL or not spend(traffic_cost(id)):
-		return false
-	r.traffic += 1
-	sound_requested.emit("menu_traffic", Vector2.INF)
-	return true
-
-func unlock(id: String, kind: String) -> bool:
-	if not VigilWorld.has_rift(id, data.regions, int(data.seed)) or not data.regions.has(id) or kind in data.regions[id].unlocks:
-		return false
-	var costs := Balance.portal_unlock_costs(data.regions[id].get("style", "forest"))
-	if not costs.has(kind):
-		return false
-	if not spend(costs[kind]):
-		return false
-	data.regions[id].unlocks.append(kind)
-	sound_requested.emit("menu_unlock", Vector2.INF)
-	return true
-
-func buy_automation() -> bool:
-	if data.automation or not spend(Balance.AUTOMATION_COST):
-		return false
-	data.automation = true
-	sound_requested.emit("menu_automation", Vector2.INF)
-	return true
 
 func collect(id: String = "") -> float:
 	var amount := 0.0
