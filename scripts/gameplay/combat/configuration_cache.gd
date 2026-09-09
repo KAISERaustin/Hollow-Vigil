@@ -6,6 +6,7 @@ var tuning_snapshot: Dictionary = {}
 var inventory_snapshot: Dictionary = {}
 var definitions: Dictionary = {}
 var towers: Dictionary = {}
+var component_nodes: Dictionary = {}
 var revision := 0
 
 func synchronize(tuning: Dictionary, inventory: Dictionary) -> void:
@@ -41,3 +42,9 @@ func tower_stats(tower: Dictionary) -> Dictionary:
 func prune(live_towers: Dictionary) -> void:
 	for id in towers.keys():
 		if not live_towers.has(id): towers.erase(id)
+
+func component_node(key: String):
+	var edits: Dictionary = tuning_snapshot.get("towers", {}).get(key, {})
+	if not component_nodes.has(key) or component_nodes[key].edits != edits:
+		component_nodes[key] = {"edits": edits.duplicate(true), "node": preload("res://scripts/gameplay/combat/stat_composition.gd").tower_node(Balance.Content.catalog().find("towers", key), key, tuning_snapshot)}
+	return component_nodes[key].node

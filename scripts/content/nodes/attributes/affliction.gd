@@ -21,4 +21,7 @@ func impact(combat, shot: Dictionary, enemy: Dictionary, config: Dictionary) -> 
 		status.component_slot = config.component_slot
 		status.component = config.component
 		status.component_config = config.component_config
+	if config.has("direct_assignment"):
+		status.tower_epoch = config.tower_epoch
+		status.component = self
 	combat.Relics.add_status(enemy, shot.tower_id, config.get("status_id", id), status)

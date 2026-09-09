@@ -223,6 +223,8 @@ func wave_menus() -> void:
 	check(not picker.get_popup().visible and app.slot_menu.visible, "Back dismisses only the spawn picker")
 	await press(picker)
 	await press(named("Choice_1"))
+	# The immediate-save editor rebuilds identity and per-enemy reward controls.
+	picker = app.slot_menu.find_child("CampaignGroupKind0", true, false)
 	check(picker.selected == 1 and not picker.get_popup().visible, "Touch chooses a wave spawn type")
 	var chosen_kind: String = picker.get_item_metadata(1)
 	var reward: SpinBox = app.slot_menu.find_child("CampaignWaveReward", true, false)
@@ -230,8 +232,8 @@ func wave_menus() -> void:
 	await press(reward.get_parent().get_child(1).get_child(1))
 	check(reward.value == old_reward + reward.step, "Touch changes wave reward exactly once")
 	await audit(app.slot_menu.card, "Wave editor")
-	await press(named("ApplyRules"))
-	check(not app.slot_menu.visible and campaign.dialog.visible and campaign.waves_dialog, "Apply wave returns to Waves")
+	await press(named("DoneWaveRules"))
+	check(not app.slot_menu.visible and campaign.dialog.visible and campaign.waves_dialog, "Done returns to Waves after immediate saves")
 	check(campaign.run.mission.waves[0][0][0] == chosen_kind and campaign.run.mission.wave_rules[0].reward == old_reward + 1, "Touch applies selected spawn type and reward to gameplay")
 
 func tower_menus(socket: Dictionary, id: String) -> void:

@@ -27,7 +27,11 @@ Level and Wave nodes own authored roads, spawn groups, resources, rewards and po
 
 Campaign Level nodes attach `investment_refund` in the `setup_refund` slot during initial planning. Starting the first wave removes that attachment for the rest of the attempt. The economy resolves both sale previews and payouts. This exception does not change later-wave refunds.
 
-Menu → Edit rules uses an isolated draft for content rules and level resources. Waves → Edit wave owns groups, timing, entrance lanes and completion gold. Apply and Cancel keep draft edits separate from live settings. The campaign owner applies approved changes and preserves unrelated authored values.
+Menu → Edit rules uses an isolated draft for content rules and level resources. Waves → Edit wave saves each completed field or selection immediately through the campaign owner. Wave editing is Creative-only and locked during active combat, even when paused. Survival plays the saved composition. Reset wave restores authored defaults; Reset all waves restores the level's original sequence.
+
+`campaign/wave_editor.gd` composes proposed wave changes without mutating shared nodes. Optional `wave_count` overrides the authored count; old sparse saves retain their original interpretation. New waves start empty with the first configured wave's settings. Empty waves are saved placeholders and skipped during play without rewards; a level must retain at least one enemy. Validation retains 32 groups, 1,000 enemies per group, 5,000 enemies per wave, and a 10,000-wave safety ceiling.
+
+Wave groups retain their five legacy columns (enemy, count, portal, delay, spacing). An optional sixth column sets gold per defeated enemy for that group. The Wave node puts it on scheduled spawns, the Campaign run assigns it to each enemy instance, and combat credits it on death. This is independent of global entity Stats. Counts edited on summary cards are distributed proportionally across existing groups without changing portals or timing. Campaign builds, full playthroughs, checkpoints and reusable builds preserve the custom wave count and optional group rewards.
 
 ## Ownership and verification
 

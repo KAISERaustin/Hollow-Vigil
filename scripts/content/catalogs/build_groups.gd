@@ -14,7 +14,7 @@ const DEFINITIONS := {
 	"layout": {"name": "Tower layout and equipment", "description": "Placed towers, upgrades and equipment. Requires their authored level.", "selection_group": "layout", "export_game_type": "legacy"},
 	"timing": {"name": "Wave timing and counts", "description": "Counts, delays and spawn intervals for each wave's groups.", "game_type": "campaign"},
 	"composition": {"name": "Enemy types and entrances", "description": "Which enemies appear in each wave and which entrances they use.", "game_type": "campaign"},
-	"rewards": {"name": "Wave rewards", "description": "Gold awarded when each wave is cleared.", "game_type": "campaign"}
+	"rewards": {"name": "Wave rewards", "description": "Gold awarded for clearing waves and custom gold per defeated enemy group.", "game_type": "campaign"}
 }
 
 static func populate(registry: RefCounted, parent: VigilContentNode) -> void:

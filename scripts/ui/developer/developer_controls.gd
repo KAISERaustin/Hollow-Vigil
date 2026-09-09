@@ -30,6 +30,7 @@ var detail: Label
 var portrait: Control
 var identity_title: Label
 var description: Label
+var stats_editor: VBoxContainer
 
 func _ready() -> void:
 	name = "DeveloperControls"
@@ -79,20 +80,23 @@ func _ready() -> void:
 	identity.name = "BalanceIdentity"
 	identity.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, UI.OUTLINE, 12))
 	editor.add_child(identity)
-	var identity_stack := VBoxContainer.new()
+	var identity_stack := HBoxContainer.new()
 	identity_stack.add_theme_constant_override("separation", 8)
 	identity.add_child(identity_stack)
 	identity_title = UI.fitted_heading("")
 	identity_title.name = "BalanceTitle"
 	identity_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	identity_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	identity_title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	identity_stack.add_child(identity_title)
 	portrait = Control.new()
 	portrait.name = "BalancePortrait"
-	portrait.custom_minimum_size = Vector2(0, 96)
+	portrait.custom_minimum_size = Vector2(96, 96)
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	portrait.draw.connect(draw_portrait)
 	portrait.resized.connect(portrait.queue_redraw)
 	identity_stack.add_child(portrait)
+	identity_stack.move_child(portrait, 0)
 	description = UI.paragraph("", UI.CAPTION)
 	description.name = "BalanceDescription"
 	editor.add_child(description)
@@ -130,21 +134,22 @@ func _ready() -> void:
 	editor.add_child(fields)
 	detail = UI.paragraph("", 12)
 	editor.add_child(detail)
-	var reset_selected := UI.button("Reset selected type / tier", func():
+	var reset_selected := UI.button("Reset to Default", func():
 		commit_fields()
 		game.reset_developer_balance(category, editing_kind())
-		rules_edited.emit(category, editing_kind(), selected_fields().keys())
+		rules_edited.emit(category, editing_kind(), Balance.Stats.schema(category).keys() if category in Balance.Stats.CATEGORIES else selected_fields().keys())
 		show_fields()
 		changed.emit()
 	)
 	reset_selected.name = "ResetSelectedBalance"
 	editor.add_child(UI.action_row(reset_selected.text, reset_selected, "Reset"))
+	editor.move_child(reset_selected.get_parent(), fields.get_index())
 	var reset_all := UI.button("Reset all balance values", func():
 		commit_fields()
 		game.reset_developer_balance()
 		for section in categories:
 			for kind in Balance.definitions(section):
-				rules_edited.emit(section, kind, Balance.editable_fields_for(section, kind).keys())
+				rules_edited.emit(section, kind, Balance.Stats.schema(section).keys() if section in Balance.Stats.CATEGORIES else Balance.editable_fields_for(section, kind).keys())
 		show_fields()
 		changed.emit()
 	)
@@ -153,6 +158,7 @@ func _ready() -> void:
 	show_categories()
 
 func commit_fields() -> void:
+	if is_instance_valid(stats_editor): stats_editor.commit_fields()
 	for number in inputs.values():
 		if is_instance_valid(number) and number.is_inside_tree():
 			number.apply()
@@ -248,14 +254,28 @@ func show_fields() -> void:
 	for child in fields.get_children():
 		fields.remove_child(child)
 		child.queue_free()
-	for stat in selected_fields():
-		add_number(stat)
+	stats_editor = null
+	if category in Balance.Stats.CATEGORIES:
+		stats_editor = preload("res://scripts/ui/shared/stats_editor.gd").new()
+		stats_editor.game = game
+		stats_editor.category = category
+		stats_editor.kind = editing_kind()
+		stats_editor.edited = func(section: String, kind: String, stats: Array):
+			rules_edited.emit(section, kind, stats)
+			changed.emit()
+		stats_editor.relayout = refresh_focus
+		fields.add_child(stats_editor)
+		hint.hide()
+		detail.text = "Saving updates existing enemies and towers. Health changes preserve remaining health percentage."
+	else:
+		for stat in selected_fields(): add_number(stat)
 	var reset_selected := find_child("ResetSelectedBalance", true, false) as Button
-	reset_selected.disabled = inputs.is_empty()
+	reset_selected.disabled = inputs.is_empty() and stats_editor == null
 	# Scrolling follows focus as players move between exact-value fields.
 	call_deferred("refresh_focus")
 
 func refresh_identity() -> void:
+	description.visible = category not in Balance.Stats.CATEGORIES
 	var definition: Dictionary = editor_definitions()[editing_kind()]
 	portrait.visible = category != "session"
 	identity_title.text = definition.name

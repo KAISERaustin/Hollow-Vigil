@@ -22,7 +22,7 @@ func run() -> void:
 	check(battle.game.data.balance == 999.0 and battle.health == 30 and battle.game.tuning.towers.rapid.cost == 120.0, "Mission applies starting level stats")
 	check(Run.new(5).game.data.balance == Configuration.Catalog.level(5).gold, "Unassigned level unchanged")
 	check(battle.start_wave() and battle.schedule.size() == 3 and battle.schedule[0].at == 2.0 and battle.schedule[-1].at == 3.0 and battle.schedule[0].lane == 1, "Wave uses authored-node schedule with overrides")
-	check(battle.game.tuning.enemies.basic.hp == 222.0 and Balance.upgrade_cost({"kind": "rapid", "level": 1}, battle.game.tuning) == 33.0, "Wave stats use shared enemy and upgrade calculations")
+	check(not battle.game.tuning.has("enemies") and Balance.upgrade_cost({"kind": "rapid", "level": 1}, battle.game.tuning) == 60.0, "Wave overrides cannot change global entity stats")
 	battle.next_spawn = battle.schedule.size()
 	var balance: float = battle.game.data.balance
 	battle.tick(Balance.STEP)
@@ -30,10 +30,10 @@ func run() -> void:
 	battle.tick(Balance.STEP)
 	check(battle.game.data.balance == balance + 77.0, "Reward cannot repeat")
 	battle.start_wave()
-	check(not battle.game.tuning.has("enemies") and Balance.upgrade_cost({"kind": "rapid", "level": 1}, battle.game.tuning) == 120.0, "Next wave restores level rules without leaking prior overrides")
+	check(not battle.game.tuning.has("enemies") and Balance.upgrade_cost({"kind": "rapid", "level": 1}, battle.game.tuning) == 60.0, "Every wave retains independent tier costs")
 	var difference := Configuration.tuning_difference({"towers": {"rapid": {"cost": 120.0}}}, {"towers": {"rapid": {"cost": 120.0}, "rapid:2": {"cost": 60.0}}})
-	check(difference.towers["rapid:2"].cost == 60.0, "Override comparison uses scaled upgrade prices")
-	for bad in [{"gold": -1}, {"flame": 0}, {"reward": INF}, {"tuning": {"session": {"start": {"starting_gold": 1}}}}, {"waves": {"99": {}}}, {"waves": {"0": {"groups": []}}}, {"waves": {"0": {"groups": [["bad", 1, 0, 0, 1]]}}}, {"waves": {"0": {"groups": [["basic", 1, 9, 0, 1]]}}}, {"towers": {}}]:
+	check(difference.is_empty(), "An unchanged independent tier needs no override")
+	for bad in [{"gold": -1}, {"flame": 0}, {"reward": INF}, {"tuning": {"session": {"start": {"starting_gold": 1}}}}, {"waves": {"99": {}}}, {"wave_count": 1, "waves": {"0": {"groups": []}}}, {"waves": {"0": {"groups": [["bad", 1, 0, 0, 1]]}}}, {"waves": {"0": {"groups": [["basic", 1, 9, 0, 1]]}}}, {"towers": {}}]:
 		check(not Configuration.valid_level(6, bad), "Malformed campaign configuration rejected")
 		check(Run.new(6, bad).game.data.balance == Configuration.Catalog.level(6).gold, "Malformed overrides safely retain defaults")
 	check(store.save_level(6, {}) and store.overrides(6).is_empty(), "Reset configuration restores authored values only")

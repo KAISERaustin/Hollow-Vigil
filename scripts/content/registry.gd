@@ -59,6 +59,7 @@ func register_node(entry: ContentNode, category: String = "", kind: String = "")
 		if not _definitions.has(category):
 			_definitions[category] = {}
 		_definitions[category][kind] = entry
+		StatsNode.Stats.register_baseline(category, kind, entry.attributes())
 		_tables.erase(category)
 	return true
 
@@ -147,6 +148,10 @@ func _populate() -> void:
 	_add(BossNode.new("boss", get_node("enemy"), {}, {"tuning_category": "bosses", "escape_damage": 20, "movement": "patrol"}, {"boss": true, "path": [], "previous": "", "steps": 0, "toll_delayed": false}))
 	_add(GearNode.new("gear", entity, {}, {"tuning_category": "gear", "slot": "relic", "equipped_on": "tower"}, {"attacks": 0, "target": -1, "last": -100.0, "components": {}}))
 	_add(AttributeNode.new("attribute", root))
+	for capability in StatsNode.Stats.Capabilities.ENEMY:
+		_add(preload("res://scripts/content/nodes/enemy_capability.gd").new("enemy_ability/" + capability, get_node("attribute"), {}, {"behavior": capability}), "enemy_abilities", capability)
+	for field in StatsNode.Stats.Capabilities.RESISTANCES:
+		_add(preload("res://scripts/content/nodes/resistance_node.gd").new("resistance/" + field, get_node("attribute"), {}, {"stat": field}), "resistances", field)
 	for kind in Attributes.TYPES:
 		_add(Attributes.TYPES[kind].new("attribute/" + kind, get_node("attribute"), {}, Attributes.RULES.get(kind, {})), "attributes", kind)
 	_add(ProjectileNode.new("projectile", root, {}, {}, {"kind": "shot"}))

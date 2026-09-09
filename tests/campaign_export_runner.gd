@@ -15,11 +15,12 @@ func run() -> void:
 		var mission := Configuration.resolve(index)
 		for wave in range(report.waves.size()):
 			check(report.waves[wave].spawn_count == Configuration.schedule(mission, wave).size(), "Exported wave count matches scheduling")
-	var overrides := {"tuning": {"towers": {"rapid": {"cost": 120.0}}}, "waves": {"1": {"tuning": {"enemies": {"basic": {"hp": 100.0}}, "towers": {"rapid:2": {"cost": 37.0}}}, "groups": [["basic", 3, 0, 2, 0.5]], "reward": 71.0}}}
+	var overrides := {"tuning": {"enemies": {"basic": {"hp": 100.0}}, "towers": {"rapid": {"cost": 120.0}, "rapid:2": {"cost": 37.0}}}, "waves": {"1": {"tuning": {"enemies": {"basic": {"hp": 999.0}}, "towers": {"rapid:2": {"cost": 999.0}}}, "groups": [["basic", 3, 0, 2, 0.5, 19.0]], "reward": 71.0}}}
 	var configured := Configuration.resolve(6, overrides)
 	var waves := Configuration.wave_reports(configured)
 	check(waves[1].effective_stats.towers["rapid:2"].cost == 37.0, "Exported upgrade price uses transaction calculation")
-	check(waves[1].changes_from_previous_wave.effective_stats.towers["rapid:2"].cost == {"before": 120.0, "after": 37.0, "delta": -83.0}, "Per-wave changes expose upgrade cost differences")
+	check(not waves[1].changes_from_previous_wave.has("effective_stats"), "Wave overrides cannot alter the shared entity Stats")
+	check(waves[1].groups[0].gold_per_defeat == 19.0 and waves[1].total_defeat_gold == 57.0, "Wave export includes independent group rewards")
 	var battle := Run.new(6, overrides)
 	battle.wave = 1
 	battle.start_wave()

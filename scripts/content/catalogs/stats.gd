@@ -10,6 +10,7 @@ const CATEGORIES := ["towers", "enemies", "bosses"]
 const REQUIRED := ["hp", "speed", "cost", "period", "range", "damage", "targets", "escape_damage", "projectile_speed"]
 static var schemas := {}
 static var libraries := {}
+static var extensions := {}
 
 static func capabilities(category: String) -> Dictionary:
 	if libraries.has(category): return libraries[category]
@@ -31,11 +32,9 @@ static func schema(category: String) -> Dictionary:
 	if schemas.has(category): return schemas[category]
 	var result: Dictionary = Tuning.TUNING_FIELDS[category].duplicate(true)
 	if category == "towers":
-		result.erase("arrow_count")
-		result.erase("fan_angle")
 		result.projectile_speed = {"label": "Projectile speed", "suffix": " units/s", "min": 1.0, "max": 10000.0, "step": 1.0}
 	else:
-		result.merge(Tuning.TUNING_FIELDS.bosses, true)
+		result.merge(Tuning.TUNING_FIELDS.bosses.duplicate(true), true)
 		result.escape_damage = {"label": "Core damage on escape", "suffix": "", "min": 0.0, "max": 10000.0, "step": 1.0, "integer": true}
 		for field in Capabilities.RESISTANCES:
 			result[field] = {"label": Capabilities.RESISTANCES[field], "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0, "group": "Attributes"}
@@ -54,10 +53,19 @@ static func schema(category: String) -> Dictionary:
 	return result
 
 static func baseline(category: String, kind: String) -> Dictionary:
+	if extensions.get(category, {}).has(kind): return extensions[category][kind].duplicate(true)
 	var result: Dictionary = Frozen.VALUES[category][kind].duplicate(true)
 	if category == "towers": result.projectile_speed = Towers.PROJECTILES[kind.get_slice(":", 0)].speed
 	else: result.escape_damage = 20 if category == "bosses" else Actors.ENEMY_RULES.get(kind, {}).get("escape_damage", 1)
 	return result
+
+static func register_baseline(category: String, kind: String, values: Dictionary) -> void:
+	if category not in CATEGORIES or Frozen.VALUES[category].has(kind): return
+	if not extensions.has(category): extensions[category] = {}
+	var stats := {}
+	for field in values:
+		if schema(category).has(field) and not control(field): stats[field] = values[field]
+	extensions[category][kind] = stats
 
 static func ability_enabled(category: String, kind: String, ability: String, tuning: Dictionary) -> bool:
 	return tuning.get(category, {}).get(kind, {}).get("use_" + ability, 1 if ability in Capabilities.defaults(category, kind) else 0) > 0
@@ -69,6 +77,7 @@ static func default_value(category: String, kind: String, field: String) -> floa
 	if values.has(field): return float(values[field])
 	for ability in capabilities(category).values():
 		if ability.fields.has(field): return float(ability.fields[field])
+	if field == "arrow_count": return 5.0
 	return 0.0
 
 static func enabled(category: String, kind: String, field: String, tuning: Dictionary) -> bool:

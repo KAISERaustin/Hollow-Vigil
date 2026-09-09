@@ -47,6 +47,8 @@ static func card(report: Dictionary, status: String, details: Callable, edit: Ca
 			badge.queue_free()
 			var quantity := UI.button("×%d" % int(report.enemy_counts[kind]), authoring.quantity.bind(kind))
 			quantity.name = "WaveEnemyCount_" + kind
+			quantity.custom_minimum_size = Vector2(72, UI.TARGET)
+			quantity.add_theme_font_size_override("font_size", UI.type_size(UI.CAPTION))
 			quantity.accessibility_name = "Edit " + str(report.enemy_counts[kind]) + " " + str(Balance.definition("bosses" if Balance.BOSSES.has(kind) else "enemies", kind).name)
 			quantity.size_flags_horizontal = Control.SIZE_SHRINK_END
 			quantity.size_flags_vertical = Control.SIZE_SHRINK_CENTER

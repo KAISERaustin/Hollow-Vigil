@@ -63,7 +63,7 @@ static func award(data: Dictionary, source: String, boss_kind: String) -> bool:
 
 static func prepare(combat: VigilCombat, tower: Dictionary, target: Dictionary, stats: Dictionary) -> Dictionary:
 	var relic_kind := kind(combat.data, tower)
-	if relic_kind == "":
+	if relic_kind == "" or combat.StatComposition.has(tower, "gear_" + relic_kind, combat.tuning):
 		return stats
 	var node := Balance.Content.gear(relic_kind)
 	var progress: Dictionary = combat.relic_progress.get(tower.id, node.make_record())
@@ -86,6 +86,7 @@ static func arrive(combat: VigilCombat, shot: Dictionary) -> void:
 	if not combat.data.towers.has(shot.tower_id) or shot.get("gear_epoch", -1) != combat.relic_epochs.get(shot.tower_id, 0):
 		return
 	for entry in shot.get("gear_effects", []):
+		if entry.config.has("direct_assignment") and not combat.TowerComponents.valid(combat, shot.tower_id, entry.config.tower_epoch): continue
 		entry.attribute.arrive(combat, shot, entry.config)
 
 static func root_target(combat: VigilCombat, shot: Dictionary, enemy: Dictionary) -> void:
@@ -118,6 +119,7 @@ static func impact(combat: VigilCombat, shot: Dictionary, enemy: Dictionary) -> 
 	if shot.get("gear_epoch", -1) != combat.relic_epochs.get(shot.tower_id, 0):
 		return
 	for entry in shot.gear_effects:
+		if entry.config.has("direct_assignment") and not combat.TowerComponents.valid(combat, shot.tower_id, entry.config.tower_epoch): continue
 		entry.attribute.impact(combat, shot, enemy, entry.config)
 
 static func add_status(enemy: Dictionary, tower_id: String, attribute_id: String, status: Dictionary) -> void:
@@ -154,12 +156,13 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 			if status.has("ability"):
 				var tower: Dictionary = combat.data.towers.get(status.owner, {})
 				var ability := Balance.Content.ability(status.ability)
-				if tower.get("branch", "") != status.ability or ability == null or not ability.owns_effect(status):
+				if tower.is_empty() or not combat.StatComposition.has(tower, status.ability, combat.tuning) or ability == null or not ability.owns_effect(status):
 					statuses.erase(key)
 					continue
 			if not enemy.dead and status.type == "dot" and combat.data.towers.has(status.owner):
 				var elapsed := clampf(status.until - (combat.simulation_time - delta), 0.0, delta)
-				combat.hit(enemy, status.damage * elapsed, status.owner, "", status.fire)
+				var resistance: float = 1.0 if status.fire else combat.EnemyCapabilities.resistance(enemy, "poison_resistance", combat.tuning)
+				combat.hit(enemy, status.damage * elapsed * resistance, status.owner, "", status.fire)
 			if status.until <= combat.simulation_time or enemy.dead or not combat.data.towers.has(status.owner):
 				statuses.erase(key)
 

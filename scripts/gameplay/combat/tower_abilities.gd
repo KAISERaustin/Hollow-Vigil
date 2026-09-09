@@ -1,67 +1,54 @@
 extends RefCounted
 
-# Stateless operations; VigilCombat owns the runtime data and simulation clock.
-
+# Capabilities are selected by immutable definitions; state belongs to recipients.
 static func branch_hit(combat: VigilCombat, shot: Dictionary, enemy: Dictionary) -> void:
-	if not combat.data.towers.has(shot.tower_id):
-		return
-	# Each splash victim resolves its own conditions without changing the launch.
+	if not combat.data.towers.has(shot.tower_id): return
 	shot = shot.duplicate()
 	combat.Relics.impact(combat, shot, enemy)
 	combat.TowerComponents.before_hit(combat, shot, enemy)
-	var pierce: bool = shot.get("relic_pierce", false)
-	var branch: String = shot.get("branch", "")
-	if branch == "":
-		combat.hit(enemy, shot.damage, shot.tower_id, "", false, pierce)
-		combat.TowerComponents.after_hit(combat, shot, enemy)
-		return
+	var tower: Dictionary = combat.data.towers[shot.tower_id]
+	var capabilities: Array = shot.get("capabilities", [shot.get("branch", "")])
+	var ability := Balance.tower_stats(tower, combat.tuning)
 	var damage: float = shot.damage
-	# The launched branch can differ from the owner's current form (including
-	# scripted attacks). Its defaults still come from the shared catalog.
-	var node := Balance.Content.ability(branch)
-	var ability := Balance.tower_stats(combat.data.towers[shot.tower_id], combat.tuning)
-	if node != null:
-		ability = node.resolve(ability)
-	if branch == "doomstone":
+	if "doomstone" in capabilities:
 		var curse: Dictionary = combat.curses.get(shot.tower_id, {"target": -1, "stacks": 0})
 		curse.stacks = mini(int(ability.curse_limit), int(curse.stacks) + 1) if curse.target == enemy.id else 0
 		curse.target = enemy.id
 		combat.curses[shot.tower_id] = curse
 		damage *= 1.0 + curse.stacks * ability.curse_multiplier
 		enemy.curse_stacks = curse.stacks
-	combat.hit(enemy, damage, shot.tower_id, branch, false, pierce)
+	combat.hit(enemy, damage, shot.tower_id, shot.get("branch", ""), false, shot.get("relic_pierce", false))
 	combat.TowerComponents.after_hit(combat, shot, enemy)
-	if enemy.dead:
-		return
+	if enemy.dead: return
 	for entry in shot.get("ability_effects", []):
-		if combat.data.towers[shot.tower_id].get("branch", "") == branch and node != null and node.owns_effect(entry.config):
+		var node := Balance.Content.ability(entry.config.ability)
+		if combat.StatComposition.has(tower, entry.config.ability, combat.tuning) and node != null and node.owns_effect(entry.config):
 			entry.attribute.impact(combat, shot, enemy, entry.config)
-	match branch:
-		"frostneedle":
-			enemy.slow_until = combat.simulation_time + ability.slow_duration
-			enemy.slow_percent = ability.slow_percent
-		"rupture_pyre":
-			if enemy.get("push_until", 0.0) <= combat.simulation_time:
-				var resistance: float = Balance.tuned_value("bosses" if enemy.get("boss", false) else "enemies", enemy.kind, "push_resistance", combat.tuning)
-				combat.push_back(enemy, ability.push_distance * (1.0 - resistance / 100.0))
-				enemy.push_until = combat.simulation_time + ability.push_immunity
-		"thunderseal":
-			var charges: Dictionary = enemy.get("charges", {})
-			charges[shot.tower_id] = int(charges.get(shot.tower_id, 0)) + 1
-			if charges[shot.tower_id] >= ability.seal_hits:
-				combat.sound_requested.emit("power_seal", enemy.pos)
-				charges[shot.tower_id] = 0
-				var bell: bool = enemy.get("boss", false) and enemy.kind == "bell"
-				combat.hit(enemy, damage * (Balance.tuned_value("bosses", "bell", "seal_multiplier", combat.tuning) if bell else ability.seal_damage), shot.tower_id, branch)
-				if bell and not enemy.toll_delayed:
-					enemy.toll += Balance.tuned_value("bosses", "bell", "toll_delay", combat.tuning)
-					enemy.toll_delayed = true
-				combat.add_effect({"kind": "seal", "pos": enemy.pos, "life": 0.4, "max_life": 0.4, "color": "b3b5f1"})
-				if enemy.get("stun_immune_until", 0.0) <= combat.simulation_time:
-					enemy.stun_until = combat.simulation_time + ability.stun_duration
-					enemy.stun_immune_until = combat.simulation_time + ability.stun_immunity
-			enemy.charges = charges
-
+	if "frostneedle" in capabilities:
+		enemy.slow_until = combat.simulation_time + ability.slow_duration
+		enemy.slow_percent = ability.slow_percent
+		enemy.slow_owner = shot.tower_id
+	if "rupture_pyre" in capabilities and enemy.get("push_until", 0.0) <= combat.simulation_time:
+		combat.push_back(enemy, ability.push_distance * combat.EnemyCapabilities.resistance(enemy, "push_resistance", combat.tuning))
+		enemy.push_until = combat.simulation_time + ability.push_immunity
+	if "thunderseal" in capabilities:
+		var charges: Dictionary = enemy.get("charges", {})
+		charges[shot.tower_id] = int(charges.get(shot.tower_id, 0)) + 1
+		if charges[shot.tower_id] >= ability.seal_hits:
+			combat.sound_requested.emit("power_seal", enemy.pos)
+			charges[shot.tower_id] = 0
+			var summoner: bool = combat.EnemyCapabilities.has(enemy, "summon", combat.tuning)
+			var stats := Balance.definition(combat.EnemyCapabilities.category(enemy), enemy.kind, combat.tuning)
+			combat.hit(enemy, damage * (stats.seal_multiplier if summoner else ability.seal_damage), shot.tower_id, "thunderseal")
+			if summoner and not enemy.get("toll_delayed", false):
+				enemy.toll += stats.toll_delay
+				enemy.toll_delayed = true
+			combat.add_effect({"kind": "seal", "pos": enemy.pos, "life": 0.4, "max_life": 0.4, "color": "b3b5f1"})
+			if enemy.get("stun_immune_until", 0.0) <= combat.simulation_time:
+				enemy.stun_until = combat.simulation_time + ability.stun_duration
+				enemy.stun_owner = shot.tower_id
+				enemy.stun_immune_until = combat.simulation_time + ability.stun_immunity
+		enemy.charges = charges
 static func push_back(combat: VigilCombat, enemy: Dictionary, distance: float) -> void:
 	while distance > 0.0:
 		var previous: Vector2 = enemy.path[enemy.segment - 1]

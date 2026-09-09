@@ -50,7 +50,8 @@ static func valid_wave(value: Variant, lanes: int) -> bool:
 				if not value.groups is Array or value.groups.size() > 32: return false
 				var total := 0
 				for group in value.groups:
-					if not group is Array or group.size() != 5: return false
+					if not group is Array or group.size() not in [5, 6]: return false
+					if group.size() == 6 and not _number(group[5], 0, Fields.CONFIGURATION_FIELDS.reward.max): return false
 					if not group[0] is String or group[0] not in spawn_kinds(): return false
 					for column in Fields.GROUP_FIELDS:
 						var limits: Dictionary = Fields.GROUP_FIELDS[column]
@@ -142,7 +143,9 @@ static func resolve(index: int, level_overrides: Dictionary = {}) -> Dictionary:
 	for wave in range(attributes.waves.size()):
 		var custom: Dictionary = level_overrides.get("waves", {}).get(str(wave), {})
 		if custom.has("groups"): attributes.waves[wave] = custom.groups.duplicate(true)
-		wave_rules.append({"tuning": Balance.merge_tuning(attributes.tuning, custom.get("tuning", {})), "reward": custom.get("reward", attributes.reward)})
+		var wave_tuning: Dictionary = custom.get("tuning", {}).duplicate(true)
+		for category in Balance.Stats.CATEGORIES: wave_tuning.erase(category)
+		wave_rules.append({"tuning": Balance.merge_tuning(attributes.tuning, wave_tuning), "reward": custom.get("reward", attributes.reward)})
 	var node = Balance.Content.level(index).derive("level/configured/" + str(index), attributes)
 	var mission: Dictionary = node.layout()
 	mission.sockets = defaults.sockets
@@ -188,6 +191,8 @@ static func gameplay_values(tuning: Dictionary) -> Dictionary:
 			var stats := {}
 			for stat in Balance.editable_fields_for(category, kind):
 				stats[stat] = Balance.configuration_value(category, kind, stat, tuning)
+			if category in Balance.Stats.CATEGORIES:
+				stats.merge(tuning.get(category, {}).get(kind, {}), true)
 			result[category][kind] = stats
 	return result
 
@@ -207,8 +212,9 @@ static func wave_report(mission: Dictionary, wave: int) -> Dictionary:
 			speed *= Balance.rift_speed_multiplier(mission.style, tuning)
 		counts[group[0]] = int(counts.get(group[0], 0)) + int(group[1])
 		health += hp * group[1]
-		reward += stats.payout * group[1]
-		groups.append({"kind": group[0], "name": stats.name, "count": int(group[1]), "lane": int(group[2]), "delay_seconds": group[3], "interval_seconds": group[4], "spawn_health": hp, "move_speed": speed, "gold_per_defeat": stats.payout})
+		var payout: float = group[5] if group.size() == 6 else stats.payout
+		reward += payout * group[1]
+		groups.append({"kind": group[0], "name": stats.name, "count": int(group[1]), "lane": int(group[2]), "delay_seconds": group[3], "interval_seconds": group[4], "spawn_health": hp, "move_speed": speed, "gold_per_defeat": payout})
 	var spawn_schedule := schedule(mission, wave)
 	return {"wave": wave + 1, "completion_gold": mission.wave_rules[wave].reward, "groups": groups, "schedule": spawn_schedule,
 		"enemy_counts": counts, "spawn_count": spawn_schedule.size(), "last_spawn_seconds": spawn_schedule[-1].at if not spawn_schedule.is_empty() else 0.0,
@@ -250,6 +256,6 @@ static func export_level(index: int, level_overrides: Dictionary = {}) -> String
 	var baseline := {"gold": defaults.gold, "flame": defaults.flame, "reward": defaults.reward, "tuning": defaults.tuning, "waves": defaults.waves}
 	var report := {"version": 1, "level": index + 1, "name": mission.name, "style": mission.style, "defaults": baseline,
 		"overrides": level_overrides.duplicate(true), "effective": {"gold": mission.gold, "flame": mission.flame, "reward": mission.reward, "stats": gameplay_values(mission.tuning)},
-		"wave_group_columns": ["kind", "count", "lane", "delay_seconds", "interval_seconds"], "lanes": mission.roads, "waves": wave_reports(mission)}
+		"wave_group_columns": ["kind", "count", "lane", "delay_seconds", "interval_seconds", "optional_gold_per_defeat"], "lanes": mission.roads, "waves": wave_reports(mission)}
 	var payload := JSON.stringify(report, "", true, true)
 	return JSON.stringify({"format": FORMAT, "payload": payload, "checksum": payload.sha256_text()}, "", true, true)

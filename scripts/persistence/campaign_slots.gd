@@ -19,9 +19,15 @@ func occupied(slot: int) -> bool:
 	return slot >= 0 and slot < COUNT and storage.exists(path_for(slot))
 
 func summary(slot: int) -> Dictionary:
-	return storage.latest(path_for(slot)) if slot >= 0 and slot < COUNT else {}
+	var value: Dictionary = storage.latest(path_for(slot)) if slot >= 0 and slot < COUNT else {}
+	if not value.is_empty() and value.get("stats_version", 0) != 1:
+		value.levels = preload("res://scripts/persistence/stats_migration.gd").levels(value.levels, true)
+		value.stats_version = 1
+		if not value.checkpoint.is_empty(): value.checkpoint.rules = value.levels[str(int(value.checkpoint.level))].overrides.duplicate(true)
+	return value
 
 static func valid(value: Dictionary) -> bool:
+	if value.has("stats_version") and value.stats_version != 1: return false
 	if not preload("res://scripts/campaign/progress.gd").valid_map_progress(value): return false
 	if value.get("version") != 1 or value.get("game_type") != "campaign": return false
 	if not value.get("id") is String or not Codec.valid_uuid(value.id): return false
@@ -46,7 +52,7 @@ func create(slot: int, mode: String, title: String, levels: Dictionary = {}) -> 
 		error = "Choose an empty Campaign slot or confirm which game to replace."
 		return {}
 	var value := {"version": 1, "sequence": 0, "game_type": "campaign", "id": Codec.uuid(), "name": title.strip_edges(), "mode": mode,
-		"saved_at": Time.get_unix_time_from_system(), "completed": 0, "levels": levels.duplicate(true), "checkpoint": {}}
+		"saved_at": Time.get_unix_time_from_system(), "completed": 0, "stats_version": 1, "levels": preload("res://scripts/persistence/stats_migration.gd").levels(levels), "checkpoint": {}}
 	return value if save_slot(slot, value) else {}
 
 func save_slot(slot: int, value: Dictionary) -> bool:

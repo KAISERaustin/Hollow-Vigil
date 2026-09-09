@@ -57,7 +57,12 @@ static func tower_stats(tower: Dictionary, tuning: Dictionary = {}, inventory: D
 
 static func equipment_stats(base: Dictionary, tower: Dictionary, tuning: Dictionary, inventory: Dictionary) -> Dictionary:
 	var gear := Content.gear(inventory.get(tower.get("relic", ""), ""))
-	return gear.modify_stats(base, tuning) if gear != null else base
+	var result := base
+	var equipped: String = inventory.get(tower.get("relic", ""), "")
+	var key := tier_key(tower.kind, tower.level, tower.get("branch", ""))
+	if gear != null and not Stats.ability_enabled("towers", key, "gear_" + equipped, tuning): result = gear.modify_stats(result, tuning)
+	for assignment in preload("res://scripts/gameplay/combat/stat_composition.gd").direct_gear(tower, tuning, inventory): result = assignment.node.modify_stats(result)
+	return result
 
 # One schema drives the editor and save validation. Overrides belong to a save,
 # never to these shared defaults. Tower keys may identify a tier or branch.
@@ -105,8 +110,12 @@ const TUNING_FIELDS = preload("res://scripts/content/catalogs/tuning.gd").TUNING
 static func fields_for(category: String, kind: String) -> Dictionary:
 	if category in Stats.CATEGORIES:
 		var fields := {}
-		for field in Stats.baseline(category, kind):
-			fields[field] = Stats.schema(category)[field]
+		var base := Stats.baseline(category, kind)
+		var order: Array = ["hp", "speed", "payout", "cost", "damage", "period", "range", "splash", "targets"]
+		for field in base:
+			if field not in order: order.append(field)
+		for field in order:
+			if base.has(field): fields[field] = field_limits(category, kind, field)
 		return fields
 	var result := {}
 	var schema: Dictionary = TUNING_FIELDS[category]
@@ -133,8 +142,7 @@ static func field_limits(category: String, kind: String, stat: String) -> Dictio
 	return _resolved_field_limits(category, kind, stat)
 
 static func _resolved_field_limits(category: String, kind: String, stat: String, defaults: Dictionary = {}) -> Dictionary:
-	if category in Stats.CATEGORIES: return Stats.schema(category)[stat].duplicate(true)
-	var limits: Dictionary = TUNING_FIELDS[category][stat].duplicate()
+	var limits: Dictionary = (Stats.schema(category) if category in Stats.CATEGORIES else TUNING_FIELDS[category])[stat].duplicate()
 	if category == "towers" and kind.contains(":") and stat in ["cost", "damage", "range", "splash"]:
 		var base: float = TOWERS[kind.get_slice(":", 0)][stat]
 		if base > 0.0:
@@ -244,8 +252,7 @@ static func upgrade_cost(tower: Dictionary, tuning: Dictionary = {}, branch: Str
 	var key := tier_key(tower.kind, level + 1, selected)
 	if tuning.get("towers", {}).get(key, {}).has("cost"):
 		return tuning.towers[key].cost
-	var price: float = tower_definitions()[key].cost
-	return ceil(price * (tuned_value("towers", tower.kind, "cost", tuning) / TOWERS[tower.kind].cost))
+	return Stats.default_value("towers", key, "cost")
 
 static func invested_cost(tower: Dictionary, tuning: Dictionary = {}) -> float:
 	var invested := tuned_value("towers", tower.kind, "cost", tuning)

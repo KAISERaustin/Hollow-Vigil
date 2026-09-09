@@ -12,8 +12,11 @@ static func make_shot(combat, tower: Dictionary, origin: Vector2, target: Dictio
 		"tower_id": tower.id, "branch": tower.get("branch", ""), "damage": stats.damage, "radius": stats.splash}
 	shot.base_damage = stats.damage
 	shot.tower_effects = combat.TowerComponents.snapshot(combat, tower, stats)
-	var ability := Balance.Content.ability(shot.branch)
-	shot.ability_effects = ability.impact_effects(stats) if primary and ability != null else []
+	shot.capabilities = combat.StatComposition.abilities(tower, combat.tuning)
+	shot.ability_effects = []
+	for ability_id in shot.capabilities:
+		var ability := Balance.Content.ability(ability_id)
+		if primary and ability != null: shot.ability_effects.append_array(ability.impact_effects(stats))
 	shot.relic_pierce = primary and stats.get("relic_pierce", false)
 	if primary:
 		shot.damage *= stats.get("relic_damage_multiplier", 1.0)
@@ -98,9 +101,9 @@ static func resolve_shot(combat: VigilCombat, shot: Dictionary, target: Dictiona
 	elif not target.is_empty() and not target.dead:
 		combat.branch_hit(shot, target)
 	if combat.data.towers.has(shot.tower_id):
-		if shot.get("branch", "") == "cinderfield":
+		if "cinderfield" in shot.get("capabilities", [shot.get("branch", "")]):
 			combat.ignite(shot)
-		elif shot.get("branch", "") == "grave_echo":
+		if "grave_echo" in shot.get("capabilities", [shot.get("branch", "")]):
 			combat.launch_fragments(shot)
 	# Traveling impacts stay at the arrival point instead of following survivors.
 	if shot.fx.flight > 0.0:

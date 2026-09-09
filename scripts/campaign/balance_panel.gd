@@ -30,8 +30,7 @@ func _ready() -> void:
 	scope = initial_scope
 	add_child(UI.paragraph("Level %d · %s" % [index + 1, Configuration.Catalog.level(index).name], 16))
 	add_child(UI.paragraph("Changes save when you finish entering a value or choose an option. Empty waves are skipped during play. Reset wave restores its defaults."))
-	message = UI.paragraph("")
-	message.hide()
+	message = UI.paragraph("Changes save automatically.")
 	add_child(message)
 	body = VBoxContainer.new()
 	body.add_theme_constant_override("separation", UI.GAP)
@@ -105,7 +104,13 @@ func build_groups(mission: Dictionary) -> void:
 			save_changes()
 			build_scope.call_deferred()
 		)
-		body.add_child(selector)
+		var identity := HBoxContainer.new()
+		identity.add_theme_constant_override("separation", UI.CARD_GAP)
+		var portrait := Portrait.preview("bosses" if Balance.BOSSES.has(group[0]) else "enemies", group[0])
+		portrait.custom_minimum_size = Vector2(48, 48)
+		identity.add_child(portrait)
+		identity.add_child(selector)
+		body.add_child(identity)
 		var limits: Dictionary = Fields.GROUP_FIELDS[1].duplicate()
 		limits.min = 0
 		var count := number_row("Enemy count · 0 removes", group[1], limits, func(value: float):
@@ -127,13 +132,10 @@ func build_groups(mission: Dictionary) -> void:
 			input.name = "CampaignGroup%d_%d" % [group_index, column]
 		var category := "bosses" if Balance.BOSSES.has(group[0]) else "enemies"
 		var kind: String = group[0]
-		var payout := number_row("Gold per defeated enemy", Balance.definition(category, kind, mission.wave_rules[scope].tuning).payout,
-			Balance.editable_fields_for(category, kind).payout, func(value: float):
-				var entry: Dictionary = draft.waves[str(scope)]
-				if not entry.has("tuning"): entry.tuning = {}
-				if not entry.tuning.has(category): entry.tuning[category] = {}
-				if not entry.tuning[category].has(kind): entry.tuning[category][kind] = {}
-				entry.tuning[category][kind].payout = value
+		var payout := number_row("Gold per defeated enemy", group[5] if group.size() == 6 else Balance.definition(category, kind, mission.wave_rules[scope].tuning).payout,
+			Fields.CONFIGURATION_FIELDS.reward, func(value: float):
+				if group.size() == 5: group.append(value)
+				else: group[5] = value
 		)
 		payout.name = "CampaignGroupGold%d" % group_index
 		body.add_child(UI.button("Remove this enemy group", func():
@@ -151,10 +153,14 @@ func build_groups(mission: Dictionary) -> void:
 		build_scope.call_deferred()
 	)
 	body.add_child(add)
-	body.add_child(UI.paragraph("Add the same enemy again to use another portal or spawn time. Gold per defeat applies to that enemy type throughout this wave. Up to 32 groups, 1,000 enemies per group and 5,000 per wave."))
+	body.add_child(UI.paragraph("Add the same enemy again to use another portal, spawn time or gold reward. Up to 32 groups, 1,000 enemies per group and 5,000 per wave."))
 
 func commit_scope() -> void:
 	draft.waves[str(scope)].groups = groups.duplicate(true)
+
+func finish_editing() -> void:
+	for number in numbers.duplicate():
+		if is_instance_valid(number): number.apply()
 
 func show_message(text: String) -> void:
 	message.text = text

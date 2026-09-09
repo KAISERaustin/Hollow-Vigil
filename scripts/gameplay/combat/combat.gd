@@ -1,5 +1,7 @@
 class_name VigilCombat
 extends RefCounted
+const EnemyCapabilities = preload("res://scripts/gameplay/combat/enemy_capabilities.gd")
+const StatComposition = preload("res://scripts/gameplay/combat/stat_composition.gd")
 
 const ShotFactory = preload("res://scripts/gameplay/combat/shot_factory.gd")
 
@@ -124,10 +126,14 @@ func rebuild_routes() -> void:
 func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = "", fire: bool = false, pierce: bool = false) -> bool:
 	if enemy.dead or not is_finite(damage) or damage <= 0.0 or not data.towers.has(tower_id):
 		return false
-	damage *= 1.0 + Relics.strength(enemy, "expose", simulation_time) / 100.0
+	damage *= 1.0 + Relics.strength(enemy, "expose", simulation_time) * EnemyCapabilities.resistance(enemy, "hex_resistance", tuning) / 100.0
+	var tags: Array = [branch]
+	var owner: Dictionary = data.towers[tower_id]
+	for ability in ["frostneedle", "doomstone", "thunderseal"]:
+		if Balance.Stats.ability_enabled("towers", Balance.tier_key(owner.kind, owner.level, owner.get("branch", "")), ability, tuning): tags.append(ability)
+	var protection: float = enemy.get("shield", 0.0) + enemy.get("wards", 0)
+	damage = EnemyCapabilities.damage(enemy, damage, tags, fire, tuning, pierce)
 	if enemy.get("boss", false):
-		var protection: float = enemy.get("shield", 0.0) + enemy.get("wards", 0)
-		damage = Bosses.damage(enemy, damage, branch, fire, tuning, pierce)
 		if protection > 0.0 and enemy.get("shield", 0.0) + enemy.get("wards", 0) <= 0.0:
 			sound_requested.emit("boss_" + enemy.kind + "_break", enemy.pos)
 	enemy.hp -= damage
@@ -137,9 +143,11 @@ func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = ""
 	enemy.dead = true
 	TowerComponents.killed(self, enemy)
 	Relics.credited_kill(self, tower_id)
+	TowerComponents.credited_kill(self, tower_id)
 	sound_requested.emit(Balance.Content.boss(enemy.kind).sound_cue("death") if enemy.get("boss", false) else Balance.Content.enemy(enemy.kind).rule("death_cue"), enemy.pos)
 	var is_boss: bool = enemy.get("boss", false)
 	var reward: float = Balance.tuned_value("bosses", enemy.kind, "payout", tuning) if is_boss else Balance.tuned_value("enemies", enemy.kind, "payout", tuning)
+	reward = float(enemy.get("campaign_payout", reward))
 	if enemy.has("summoner"):
 		reward = 0.0
 	if is_boss:
@@ -174,6 +182,7 @@ func _create_enemy(id: String, kind: String, route: Array[Vector2], style: Strin
 	var e: Dictionary = enemy_pool.pop_back() if not enemy_pool.is_empty() else {}
 	var multiplier := rift_health_multiplier({"rift_style": style})
 	Balance.Content.enemy(kind).create_into(e, enemy_serial, id, route, style, tuning, multiplier)
+	EnemyCapabilities.initialize(e, tuning)
 	set_enemy_route(e, route)
 	enemies.append(e)
 	spatial_ready = false
@@ -192,10 +201,12 @@ func advance_effects(delta: float) -> void:
 func enemy_speed(enemy: Dictionary) -> float:
 	if enemy.get("stun_until", 0.0) > simulation_time or enemy.get("root_until", 0.0) > simulation_time or Relics.strength(enemy, "stun", simulation_time) > 0.0:
 		return 0.0
-	var speed: float = Balance.Content.boss(enemy.kind).movement_speed(enemy, simulation_time, tuning, resolved_definition("bosses", enemy.kind)) if enemy.get("boss", false) else float(resolved_definition("enemies", enemy.kind).speed)
+	var speed: float = resolved_definition(EnemyCapabilities.category(enemy), enemy.kind).speed
 	if enemy.get("rift_style", "forest") == "drowned_crypt": speed *= 1.0 + resolved_definition("rifts", "drowned_crypt").strength / 100.0
 	var slow := Relics.strength(enemy, "slow", simulation_time)
 	if enemy.get("slow_until", 0.0) > simulation_time: slow = maxf(slow, enemy.get("slow_percent", 25.0))
+	slow *= EnemyCapabilities.resistance(enemy, "ice_resistance", tuning)
+	speed *= EnemyCapabilities.speed(enemy, simulation_time, tuning, slow)
 	return speed * (1.0 - slow / 100.0)
 
 func tick(delta: float) -> void:
@@ -211,6 +222,7 @@ func tick(delta: float) -> void:
 	tick_count += 1
 	TowerComponents.sync(self)
 	Bosses.advance(self, delta)
+	EnemyCapabilities.advance(self, delta)
 	Relics.advance(self, delta)
 	for e in enemies:
 		if e.dead:
@@ -292,6 +304,7 @@ func tick(delta: float) -> void:
 		if target.id >= 0 and Balance.Content.locks_target(t.get("target_mode", "first")):
 			target_locks[t.id] = target.id
 		stats = Relics.prepare(self, t, target, stats)
+		stats = TowerComponents.prepare_attributes(self, t, target, stats)
 		t.cooldown = stats.period
 		t.angle = pos.angle_to_point(target.pos)
 		if not attack.is_empty():
@@ -301,7 +314,7 @@ func tick(delta: float) -> void:
 			# A new pulse replaces this tower's previous connections, even when
 			# developer tuning makes attacks faster than the lightning fade.
 			effects = effects.filter(func(fx): return not (fx.kind == "shot" and fx.get("tower_id", "") == t.id and fx.tower_kind == "electric"))
-		if stats.get("targets", 1) > 1 or t.get("branch", "") == "tempest_web":
+		if stats.get("targets", 1) > 1 or StatComposition.has(t, "tempest_web", tuning):
 			# Pick distinct enemies in priority order before damage changes HP scores.
 			var victims: Array[Dictionary] = [target]
 			candidates.erase(target)
@@ -314,7 +327,7 @@ func tick(delta: float) -> void:
 			var used: Array = victims.map(func(e): return e.id)
 			for victim in victims:
 				launch_shot(t, pos, victim, stats, victim.id == target.id)
-				if t.get("branch", "") == "tempest_web":
+				if StatComposition.has(t, "tempest_web", tuning):
 					for other in nearby_enemies(victim.pos, stats.arc_range):
 						if not other.dead and other.id not in used and victim.pos.distance_to(other.pos) <= stats.arc_range:
 							used.append(other.id)
@@ -428,6 +441,7 @@ func prepare_defenses(delta: float) -> void:
 		var origin := VigilWorld.pad_position(tower.region, tower.pad)
 		if tower.cooldown <= 0.000001 and entry.component.ready(self, tower, origin, stats):
 			stats = Relics.prepare(self, tower, {"id": -1}, stats)
+			stats = TowerComponents.prepare_attributes(self, tower, {"id": -1}, stats)
 			entry.component.attack(self, tower, origin, {}, stats)
 			tower.cooldown = stats.period
 	preload("res://scripts/gameplay/combat/road_traps.gd").advance(self)

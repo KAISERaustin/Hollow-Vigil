@@ -105,7 +105,11 @@ static func capture(game_type: String, _source: VigilState, levels: Dictionary, 
 			if contents.get("composition", false):
 				part.composition = []
 				for group in mission.waves[wave]: part.composition.append([group[0], group[2]])
-			if contents.get("rewards", false): part.reward = mission.wave_rules[wave].reward
+			if contents.get("rewards", false):
+				part.reward = mission.wave_rules[wave].reward
+				if mission.waves[wave].any(func(group: Array): return group.size() == 6):
+					part.defeat_gold = []
+					for group in mission.waves[wave]: part.defeat_gold.append(group[5] if group.size() == 6 else null)
 			entry.waves[str(wave)] = part
 		value.data.levels[str(index)] = entry
 	return value if valid(value) else {}
@@ -189,7 +193,11 @@ static func _valid_stats(tuning: Variant, contents: Dictionary, required: Dictio
 
 static func _valid_wave_part(part: Dictionary, contents: Dictionary, lanes: int) -> bool:
 	for key in part:
-		if key not in ["stats", "timing", "composition", "reward"]: return false
+		if key not in ["stats", "timing", "composition", "reward", "defeat_gold"]: return false
+	if part.has("defeat_gold"):
+		if not contents.get("rewards", false) or not part.defeat_gold is Array or part.defeat_gold.size() > 32: return false
+		for gold in part.defeat_gold:
+			if gold != null and not Configuration._number(gold, 0, Configuration.Fields.CONFIGURATION_FIELDS.reward.max): return false
 	if part.has("reward") != contents.get("rewards", false) or part.has("timing") != contents.get("timing", false) or part.has("composition") != contents.get("composition", false): return false
 	if part.has("reward") and not Configuration._number(part.reward, 0, Configuration.Fields.CONFIGURATION_FIELDS.reward.max): return false
 	for key in ["timing", "composition"]:
@@ -238,6 +246,12 @@ static func campaign_level(value: Dictionary, index: int) -> Dictionary:
 					spawn_groups[group][0] = part.composition[group][0]
 					spawn_groups[group][2] = part.composition[group][1]
 		var custom := {"tuning": part.stats.duplicate(true)}
+		if part.has("defeat_gold"):
+			if part.defeat_gold.size() != spawn_groups.size():
+				return {"ok": false, "dependency": true, "error": "Save both wave groups with gold rewards to preserve each enemy group's reward."}
+			for group in spawn_groups.size():
+				if part.defeat_gold[group] != null: spawn_groups[group].append(part.defeat_gold[group])
+			custom.groups = spawn_groups
 		if part.has("timing") or part.has("composition"): custom.groups = spawn_groups
 		if part.has("reward"): custom.reward = part.reward
 		overrides.waves[str(wave)] = custom

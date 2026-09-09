@@ -88,10 +88,12 @@ func tick(delta: float) -> void:
 		var route: Array[Vector2] = mission.routes[spawn.lane]
 		if Balance.BOSSES.has(spawn.kind):
 			var boss: Dictionary = game.combat.Bosses.create(game.combat, "0,0", spawn.kind, route)
+			if spawn.has("payout"): boss.campaign_payout = spawn.payout
 			# Stable encounter identity keeps later levels' drops distinct and replay rewards idempotent.
 			boss.drop_source = "%d,%d" % [(int(mission.index) + 1) * 1000 + wave, group_id * 100000 + int(spawn.member)]
 		else:
-			game.combat.spawn_on_path(spawn.kind, route, mission.style)
+			var enemy: Dictionary = game.combat.spawn_on_path(spawn.kind, route, mission.style)
+			if spawn.has("payout"): enemy.campaign_payout = spawn.payout
 		next_spawn += 1
 	game.combat.tick(delta)
 	if health <= 0:
@@ -128,7 +130,7 @@ func _finish_when_effects_end() -> void:
 		finished.emit()
 
 func _escaped(enemy: Dictionary) -> void:
-	var damage := Balance.Content.enemy(enemy.kind, enemy.get("boss", false)).escape_damage()
+	var damage := int(Balance.tuned_value("bosses" if enemy.get("boss", false) else "enemies", enemy.kind, "escape_damage", game.tuning))
 	health = maxi(0, health - damage)
 
 func editable() -> bool:
@@ -141,7 +143,7 @@ func apply_configuration(overrides: Dictionary, removed_wave: int = -1) -> bool:
 	if not can_author() or not editable() or not Configuration.valid_level(mission.index, overrides): return false
 	var next := Configuration.resolve(mission.index, overrides)
 	# Live content-rule edits may still update stats, but wave composition is locked.
-	if phase == "wave" and (next.waves != mission.waves or next.wave_rules != mission.wave_rules): return false
+	if phase == "wave" and next.waves != mission.waves: return false
 	# Already spawned enemies keep their health/effects. Only outstanding group members change.
 	if phase == "wave":
 		var pending: Array[Dictionary] = []
@@ -164,7 +166,7 @@ func apply_configuration(overrides: Dictionary, removed_wave: int = -1) -> bool:
 	game.economy.placement_roads = mission.routes
 	game.economy.placement_bounds = preload("res://scripts/content/nodes/ground_placement.gd").campaign_bounds(mission)
 	rules = overrides.duplicate(true)
-	game.data.settings.developer_balance = (mission.wave_rules[wave].tuning if phase == "wave" else mission.tuning).duplicate(true)
+	game.apply_balance((mission.wave_rules[wave].tuning if phase == "wave" else mission.tuning).duplicate(true))
 	changed.emit()
 	return true
 

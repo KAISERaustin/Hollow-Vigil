@@ -10,6 +10,7 @@ static func freeze_level(index: int, overrides: Dictionary) -> Dictionary:
 	var mission := Configuration.resolve(index, overrides)
 	var result := {"gold": mission.gold, "flame": mission.flame, "reward": mission.reward,
 		"tuning": Configuration.gameplay_values(mission.tuning), "waves": {}}
+	if overrides.has("wave_count"): result.wave_count = mission.waves.size()
 	for wave in mission.waves.size():
 		result.waves[str(wave)] = {"groups": mission.waves[wave].duplicate(true),
 			"reward": mission.wave_rules[wave].reward, "tuning": Configuration.tuning_difference(result.tuning, mission.wave_rules[wave].tuning)}
@@ -38,8 +39,8 @@ static func valid(value: Variant) -> bool:
 		var level := {"version": 1, "setup": value.setup, "level": index, "overrides": entry.get("overrides")}
 		if entry.has("loadout"): level.loadout = entry.loadout
 		if not LevelBuild.valid(level): return false
-		if level.overrides.size() != 5 or not level.overrides.has_all(["gold", "flame", "reward", "tuning", "waves"]): return false
-		if level.overrides.waves.size() != Configuration.Catalog.level(index).waves.size(): return false
+		if level.overrides.size() != (6 if level.overrides.has("wave_count") else 5) or not level.overrides.has_all(["gold", "flame", "reward", "tuning", "waves"]): return false
+		if level.overrides.waves.size() != int(level.overrides.get("wave_count", Configuration.Catalog.level(index).waves.size())): return false
 		for wave in level.overrides.waves.values():
 			if wave.size() != 3 or not wave.has_all(["groups", "reward", "tuning"]): return false
 	return true

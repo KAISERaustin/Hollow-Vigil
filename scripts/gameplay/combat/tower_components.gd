@@ -4,7 +4,8 @@ extends RefCounted
 static func definition(combat, tower: Dictionary):
 	if combat.tower_overrides.has(tower.id):
 		return combat.tower_overrides[tower.id]
-	return Balance.Content.catalog().find("towers", Balance.tier_key(tower.kind, tower.level, tower.get("branch", "")))
+	combat.configuration.synchronize(combat.tuning, combat.data.relics)
+	return combat.configuration.component_node(Balance.tier_key(tower.kind, tower.level, tower.get("branch", "")))
 
 static func apply_auras(combat, recipient: Dictionary, stats: Dictionary) -> void:
 	stats.damage *= 1.0 + aura_bonus(combat, recipient) / 100.0
@@ -53,11 +54,55 @@ static func clear(combat, id: String) -> void:
 	combat.tower_component_state.erase(id)
 	combat.line_projectiles = combat.line_projectiles.filter(func(p): return p.tower_id != id)
 	combat.traps = combat.traps.filter(func(p): return p.tower_id != id)
+	combat.pending_shots = combat.pending_shots.filter(func(p): return p.tower_id != id)
+	combat.burning_ground = combat.burning_ground.filter(func(p): return p.tower_id != id)
+	combat.curses.erase(id)
+	combat.effect_fields = combat.effect_fields.filter(func(p): return p.tower_id != id or not p.config.has("direct_assignment"))
 	for enemy in combat.enemies:
+		if enemy.get("slow_owner", "") == id:
+			enemy.erase("slow_until")
+			enemy.erase("slow_owner")
+		if enemy.get("stun_owner", "") == id:
+			enemy.erase("stun_until")
+			enemy.erase("stun_owner")
+		enemy.get("charges", {}).erase(id)
 		var statuses: Dictionary = enemy.get("gear_status", {})
 		for key in statuses.keys():
 			if statuses[key].owner == id and statuses[key].has("tower_epoch"): statuses.erase(key)
 	if not combat.data.towers.has(id): combat.tower_overrides.erase(id)
+
+static func prepare_attributes(combat, tower: Dictionary, target: Dictionary, stats: Dictionary) -> Dictionary:
+	var record := ensure(combat, tower)
+	var result := stats.duplicate(true)
+	for assignment in preload("res://scripts/gameplay/combat/stat_composition.gd").direct_gear(tower, combat.tuning, combat.data.relics):
+		var key: String = "gear_" + assignment.kind
+		var progress: Dictionary = record.states.get(key, assignment.node.make_record())
+		var prepared: Dictionary = assignment.node.prepare(progress, target.id, combat.simulation_time, result)
+		record.states[key] = progress
+		for list in ["gear_effects", "gear_echoes", "gear_forks"]:
+			var combined: Array = result.get(list, []).duplicate()
+			for effect in prepared.get(list, []):
+				if list == "gear_effects":
+					effect.config.direct_assignment = assignment.kind
+					effect.config.tower_epoch = record.epoch
+				combined.append(effect)
+			prepared[list] = combined
+		prepared.relic_damage_multiplier *= result.get("relic_damage_multiplier", 1.0)
+		prepared.relic_radius = maxf(prepared.relic_radius, result.get("relic_radius", 0.0))
+		prepared.relic_pierce = prepared.relic_pierce or result.get("relic_pierce", false)
+		result = prepared
+	result.gear_epoch = combat.relic_epochs.get(tower.id, 0)
+	return result
+
+static func credited_kill(combat, tower_id: String) -> void:
+	if not combat.data.towers.has(tower_id): return
+	var tower: Dictionary = combat.data.towers[tower_id]
+	var record := ensure(combat, tower)
+	for assignment in preload("res://scripts/gameplay/combat/stat_composition.gd").direct_gear(tower, combat.tuning, combat.data.relics):
+		var key: String = "gear_" + assignment.kind
+		var progress: Dictionary = record.states.get(key, assignment.node.make_record())
+		assignment.node.credited_kill(progress, combat.simulation_time)
+		record.states[key] = progress
 
 static func reset(combat) -> void:
 	for id in combat.tower_component_state.keys(): clear(combat, id)

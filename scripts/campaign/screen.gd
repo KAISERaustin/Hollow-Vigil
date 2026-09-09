@@ -753,6 +753,9 @@ func show_waves() -> void:
 		var add := UI.button("New wave", confirm_new_wave)
 		add.name = "NewCampaignWave"
 		dialog_body.add_child(add)
+		var reset := UI.button("Reset all waves to default", confirm_reset_waves)
+		reset.name = "ResetLevelWaves"
+		dialog_body.add_child(reset)
 	elif can_author():
 		dialog_body.add_child(UI.paragraph("Wave editing unlocks when the active wave ends."))
 	if can_author() and active_campaign_slot < 0:
@@ -763,9 +766,26 @@ func show_waves() -> void:
 func can_edit_waves() -> bool:
 	return can_author() and run != null and run.phase != "wave"
 
+func confirm_reset_waves() -> void:
+	if not can_edit_waves(): return
+	open_dialog("Reset all waves?")
+	dialog_actions.show()
+	dialog_body.add_child(UI.paragraph("Restore this level's original waves, enemies, timing and wave rewards? This also removes added waves."))
+	var reset := UI.button("Reset waves", func():
+		var rules: Dictionary = level_setup(run.mission.index).overrides.duplicate(true)
+		rules.erase("waves")
+		rules.erase("wave_count")
+		if save_configuration(run.mission.index, rules): show_waves()
+		else: toast("Couldn't save the reset. Your existing waves are preserved.")
+	)
+	reset.name = "ConfirmResetWaves"
+	dialog_actions.add_child(reset)
+	dialog_actions.add_child(UI.button("Cancel", show_waves))
+
 func confirm_new_wave() -> void:
 	if not can_edit_waves(): return
 	open_dialog("New wave")
+	dialog_actions.show()
 	dialog_body.add_child(UI.paragraph("Are you sure you want to make a new wave? It starts empty, using this level's first-wave settings."))
 	var yes := UI.button("Yes", func():
 		var rules: Dictionary = level_setup(run.mission.index).overrides
@@ -780,6 +800,7 @@ func confirm_new_wave() -> void:
 func confirm_remove_wave(wave: int) -> void:
 	if not can_edit_waves(): return
 	open_dialog("Remove wave %d?" % (wave + 1))
+	dialog_actions.show()
 	dialog_body.add_child(UI.paragraph("Remove this wave and its enemies? The remaining waves will be renumbered. The level must keep at least one enemy."))
 	var remove := UI.button("Remove wave", func():
 		var next := preload("res://scripts/campaign/wave_editor.gd").remove_wave(run.mission.index, level_setup(run.mission.index).overrides, wave)
@@ -794,6 +815,7 @@ func show_enemy_quantity(wave: int, kind: String) -> void:
 	if not can_edit_waves(): return
 	var report := Configuration.wave_report(run.mission, wave)
 	open_dialog("Enemy count")
+	dialog_actions.show()
 	dialog_body.add_child(WaveSummary.enemy_row(kind, int(report.enemy_counts[kind])))
 	dialog_body.add_child(UI.paragraph("Enter 0 to remove this enemy. Existing portal and timing settings are preserved; totals are shared proportionally across its groups."))
 	var number := SpinBox.new()
@@ -1117,7 +1139,7 @@ func show_level_balance(index: int, wave_index: int = -1) -> void:
 	if run != null and run.mission.index == index and page == "battle" and run.editable(): editor.live_run = run
 	editor.apply_changes = save_configuration
 	dialog_body.add_child(editor)
-	add_dialog_back("Back to Waves", show_waves)
+	add_dialog_back("Back to Waves", func(): editor.finish_editing(); show_waves())
 
 func save_campaign_tuning(changes: Dictionary, level_changes: Dictionary = {}) -> bool:
 	if not can_author() or not Balance.valid_tuning(changes) or changes.has("session"): return false
@@ -1125,6 +1147,7 @@ func save_campaign_tuning(changes: Dictionary, level_changes: Dictionary = {}) -
 		if not str(key).is_valid_int() or not Configuration.valid_level(int(key), level_changes[key]): return false
 	if changes.is_empty() and level_changes.is_empty(): return true
 	var levels := Configuration.with_campaign_tuning(session_levels(), changes)
+	levels = preload("res://scripts/persistence/stats_migration.gd").levels(levels)
 	for key in level_changes:
 		levels[str(key)].overrides.merge(level_changes[key], true)
 	if active_campaign_slot >= 0:
@@ -1159,7 +1182,6 @@ func configured_run(index: int) -> RefCounted:
 
 func save_configuration(index: int, rules: Dictionary, removed_wave: int = -1) -> bool:
 	if not can_author() or not Configuration.valid_level(index, rules): return false
-	var live: bool = run != null and run.mission.index == index and page == "battle" and run.editable()
 	if run != null and run.phase == "wave": return false
 	if active_campaign_slot >= 0:
 		var previous: Dictionary = campaign_save.levels.get(str(index), {"overrides": {}}).duplicate(true)

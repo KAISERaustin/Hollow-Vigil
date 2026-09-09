@@ -58,6 +58,8 @@ func set_tower_target(id: String, mode: String) -> bool:
 	return true
 
 func set_balance_stat(category: String, kind: String, stat: String, value: float) -> bool:
+	if category in Balance.Stats.CATEGORIES:
+		return apply_balance(Balance.Stats.edit(tuning, category, kind, stat, value))
 	var candidate := tuning.duplicate(true)
 	if not candidate.has(category):
 		candidate[category] = {}
@@ -78,6 +80,9 @@ func set_balance_stat(category: String, kind: String, stat: String, value: float
 # The tier editor writes absolute values. Keep legacy base-scaling saves readable,
 # but freeze sibling tiers before changing tier one through the new editor.
 func set_tower_tier_stat(key: String, stat: String, value: float) -> bool:
+	return set_balance_stat("towers", key, stat, value)
+
+func _legacy_set_tower_tier_stat(key: String, stat: String, value: float) -> bool:
 	var candidate := tuning.duplicate(true)
 	if not candidate.has("towers"):
 		candidate.towers = {}
@@ -96,6 +101,7 @@ func set_tower_tier_stat(key: String, stat: String, value: float) -> bool:
 	return apply_balance(candidate)
 
 func reset_developer_balance(category: String = "", kind: String = "") -> bool:
+	if category in Balance.Stats.CATEGORIES: return apply_balance(Balance.Stats.reset(tuning, category, kind))
 	var candidate := tuning.duplicate(true)
 	if category == "":
 		candidate.clear()
@@ -127,9 +133,8 @@ func apply_balance(candidate: Dictionary) -> bool:
 		var boss: bool = enemy.get("boss", false)
 		var category := "bosses" if boss else "enemies"
 		var health := Balance.tuned_value(category, enemy.kind, "hp", tuning)
-		if boss:
-			combat.Bosses.apply_balance(enemy, previous, tuning)
-		else:
+		combat.EnemyCapabilities.retune(enemy, previous, tuning)
+		if not boss:
 			health *= combat.rift_health_multiplier(enemy)
 		enemy.hp = health * clampf(enemy.hp / enemy.max_hp, 0.0, 1.0)
 		enemy.max_hp = health
@@ -137,6 +142,7 @@ func apply_balance(candidate: Dictionary) -> bool:
 		var before := Balance.tower_stats(tower, previous, data.relics)
 		var after := Balance.tower_stats(tower, tuning, data.relics)
 		tower.cooldown = after.period * clampf(tower.cooldown / before.period, 0.0, 1.0)
+	combat.TowerComponents.sync(combat)
 	# Relearn production under this balance; already earned gold stays owned.
 	for region in data.regions.values():
 		region.history.clear()

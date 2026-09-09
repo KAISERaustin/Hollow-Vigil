@@ -779,7 +779,7 @@ func show_campaign_content_rules(return_to: Callable = Callable()) -> void:
 	campaign_rule_changes = {}
 	page_view("rules", "Edit rules", rules_back)
 	editor_game = VigilState.new(42, "creative", Build.Configuration.resolve(0, app.campaign.level_setup(0).overrides).tuning)
-	content.add_child(UI.paragraph("Content rules apply across the campaign. Use Levels to change each level's starting resources and rewards. Edit wave rewards and spawns in Waves. Choose Apply changes to save this draft."))
+	content.add_child(UI.paragraph("Changes apply to every level in this save."))
 	rules_editor = preload("res://scripts/ui/developer/developer_controls.gd").new()
 	rules_editor.game = editor_game
 	rules_editor.configuration_only = true
@@ -803,7 +803,7 @@ func show_campaign_content_rules(return_to: Callable = Callable()) -> void:
 	)
 	levels_button.name = "LevelsCategory"
 	rules_editor.category_list.add_child(UI.action_row("Levels", levels_button, "Open"))
-	footer.add_child(action("Apply changes", func():
+	footer.add_child(action("Save", func():
 		rules_editor.commit_fields()
 		level_rules.commit_fields()
 		if app.campaign.save_campaign_tuning(campaign_rule_changes, level_rules.changes): rules_return.call()
@@ -827,10 +827,11 @@ func show_campaign_rules(index: int, wave: int, return_to: Callable) -> void:
 	if app.campaign.run != null and app.campaign.run.mission.index == index and app.campaign.page == "battle" and app.campaign.run.editable(): rules_editor.live_run = app.campaign.run
 	rules_editor.apply_changes = app.campaign.save_configuration
 	content.add_child(rules_editor)
-	footer.add_child(action("Done", rules_return, "DoneWaveRules", true))
+	footer.add_child(action("Done", rules_back, "DoneWaveRules", true))
 
 func rules_back() -> void:
 	if wave_rules:
+		rules_editor.finish_editing()
 		rules_return.call()
 	elif is_instance_valid(level_rules) and level_rules.is_visible_in_tree():
 		if level_rules.selected >= 0: level_rules.show_levels()
