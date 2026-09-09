@@ -233,14 +233,18 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.follow_focus = true
 	UI.keyboard_scroll(scroll, "Tower cards" if fit_row else "Tower cards. Swipe left or right to browse", true)
-	var choices := HBoxContainer.new()
+	var choices: Container = GridContainer.new() if fit_row else HBoxContainer.new()
+	if fit_row:
+		choices.columns = 4
+		choices.add_theme_constant_override("h_separation", UI.CARD_GAP)
+		choices.add_theme_constant_override("v_separation", UI.CARD_GAP)
 	choices.name = "Cards"
 	if fit_row:
 		choices.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	choices.add_theme_constant_override("separation", 8)
 	scroll.add_child(choices)
 	var fit_cards := func():
-		var count := maxi(1, choices.get_child_count())
+		var count := 4 if fit_row else maxi(1, choices.get_child_count())
 		var edge := maxf(1, floorf((scroll.size.x - UI.CARD_GAP * (count - 1)) / count))
 		for card in choices.get_children():
 			if fit_row:
