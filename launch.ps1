@@ -86,6 +86,7 @@ try {
         }
         if ($MobileTests -or $Check) {
             Invoke-Godot -Name 'stats-editor' -EngineArguments @('--script', 'res://tests/rendered/stats_editor_runner.gd')
+            Invoke-Godot -Name 'rules-navigation' -EngineArguments @('--script', 'res://tests/rendered/rules_navigation_runner.gd')
             Invoke-Godot -Name 'wave-editor-touch' -EngineArguments @('--script', 'res://tests/rendered/wave_editor_runner.gd')
             Invoke-Godot -Name 'campaign-touch' -EngineArguments @('--script', 'res://tests/rendered/mobile_campaign_controls_runner.gd')
             Invoke-Godot -Name 'picker-touch' -EngineArguments @('--script', 'res://tests/rendered/illustrated_picker_touch_runner.gd')

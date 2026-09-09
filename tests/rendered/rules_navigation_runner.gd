@@ -19,6 +19,11 @@ func run() -> void:
 		var browser = menu.rules_editor
 		for category in browser.categories:
 			browser.show_category(category)
+			for frame in range(6): await process_frame
+			menu.fit()
+			for frame in range(3): await process_frame
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png("res://artifacts/rules-%d-%s-list.png" % [dimensions.x, category])
 			check(browser.listing.visible and not browser.editor.visible, category + " opens list")
 			var definitions: Dictionary = Balance.TOWERS if category == "towers" else browser.editor_definitions()
 			check(browser.listing.get_child_count() == definitions.size(), category + " lists all items")

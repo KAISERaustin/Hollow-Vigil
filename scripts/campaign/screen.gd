@@ -572,9 +572,8 @@ func show_battle(start_paused: bool = false) -> void:
 	pause_button = game_toolbar.pause_button
 	speed_button = game_toolbar.speed_button
 	update_time_controls()
-	var waves := UI.toolbar_action("Waves", show_waves)
+	var waves := UI.info_button(show_waves, "Wave information")
 	waves.name = "CampaignWaves"
-	waves.custom_minimum_size.x = 60
 	waves.size_flags_horizontal = Control.SIZE_FILL
 	wave_button = UI.toolbar_action("Start wave", begin_wave, true)
 	wave_button.custom_minimum_size.x = 96

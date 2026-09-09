@@ -11,14 +11,13 @@ static func total_time_card(reports: Array[Dictionary]) -> PanelContainer:
 		seconds += float(report.last_spawn_seconds)
 	var rounded := ceili(seconds)
 	var duration := "%d min %02d sec" % [rounded / 60, rounded % 60] if rounded >= 60 else "%d sec" % rounded
-	var panel := UI.stat_card("Total Wave Time", duration, 28)
+	var body := UI.stat("Total wait time", duration, 28)
+	body.move_child(body.get_child(1), 0)
+	for entry: Label in body.get_children():
+		entry.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var panel := UI.info_card(body, UI.GOLD, UI.CARD_PADDING)
 	panel.name = "TotalWaveTime"
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var body: VBoxContainer = panel.get_child(0)
-	body.add_child(UI.rule())
-	var note := UI.paragraph("No pauses between rounds. Based on spawn timing; defeating the final enemies adds time.", UI.META)
-	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	body.add_child(note)
 	return panel
 
 static func card(report: Dictionary, status: String, details: Callable, edit: Callable = Callable(), authoring: Dictionary = {}) -> PanelContainer:
