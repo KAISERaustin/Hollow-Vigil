@@ -46,9 +46,7 @@ func exercise(host: Control, label: String) -> void:
 	check(build.palette.get_child(0).get_child_count() == 1, label + " drawer contains only tower row")
 	var strip: ScrollContainer = build.palette.find_child("TowerCards", true, false)
 	for card in strip.get_node("Cards").get_children():
-		check(card.size.x >= 48 and card.size.y >= 48, label + " phone-sized tower target " + card.name)
-		strip.ensure_control_visible(card)
-		await settle()
+		check(card.size.y >= 48, label + " tower touch height " + card.name)
 		check(strip.get_global_rect().grow(1).encloses(card.get_global_rect()), label + " entire card reachable " + card.name)
 	strip.scroll_horizontal = 0
 	await settle()
@@ -56,8 +54,7 @@ func exercise(host: Control, label: String) -> void:
 	var first_card: Control = strip.find_child("Build_rapid", true, false)
 	check(is_equal_approx(first_card.global_position.x, 8), label + " left gutter matches card spacing")
 	var last_card: Control = strip.get_node("Cards").get_child(-1)
-	strip.ensure_control_visible(last_card)
-	await settle()
+	check(strip.scroll_horizontal == 0, label + " complete catalog visible without scrolling")
 	check(is_equal_approx(host.size.x - last_card.get_global_rect().end.x, 8), label + " right gutter matches card spacing")
 	strip.scroll_horizontal = 0
 	await settle()

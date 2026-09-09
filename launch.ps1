@@ -105,6 +105,8 @@ try {
         if ($MobileTests -or $Check) {
             Invoke-Godot -Name 'change-log' -EngineArguments @('--script', 'res://tests/rendered/change_log_runner.gd')
             Invoke-Godot -Name 'ground-build-touch' -EngineArguments @('--script', 'res://tests/rendered/ground_build_runner.gd')
+            Invoke-Godot -Name 'tower-palette-retry' -EngineArguments @('--script', 'res://tests/rendered/tower_palette_retry_runner.gd')
+            Invoke-Godot -Name 'infinite-placement' -EngineArguments @('--script', 'res://tests/rendered/infinite_placement_runner.gd')
             Invoke-Godot -Name 'tower-management' -EngineArguments @('--script', 'res://tests/rendered/tower_management_runner.gd')
             Invoke-Godot -Name 'touch-scroll-scope' -EngineArguments @('--headless', '--script', 'res://tests/touch_scroll_scope_runner.gd')
             Invoke-Godot -Name 'mobile-navigation' -EngineArguments @('--script', 'res://tests/rendered/mobile_navigation_runner.gd')
@@ -134,6 +136,7 @@ try {
             Invoke-Godot -Name 'tower-upgrade-preview' -EngineArguments @('--script', 'res://tests/rendered/tower_upgrade_preview_runner.gd')
             Invoke-Godot -Name 'tower-expansion-art' -EngineArguments @('--script', 'res://tests/rendered/tower_expansion_art_runner.gd')
             Invoke-Godot -Name 'ground-build' -EngineArguments @('--script', 'res://tests/rendered/ground_build_runner.gd')
+            Invoke-Godot -Name 'infinite-placement' -EngineArguments @('--script', 'res://tests/rendered/infinite_placement_runner.gd')
             Invoke-Godot -Name 'tower-framing' -EngineArguments @('--script', 'res://tests/rendered/tower_framing_runner.gd')
             Invoke-Godot -Name 'welcome-menu' -EngineArguments @('--script', 'res://tests/rendered/welcome_menu_checks.gd')
             Invoke-Godot -Name 'welcome-startup' -EngineArguments @('--script', 'res://tests/rendered/welcome_layout_runner.gd')

@@ -88,6 +88,8 @@ func open() -> void:
 
 func arm(value: String) -> void:
 	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
+	if field.state.economy.needs_first_property():
+		host.toast("Claim your first territory before placing towers.")
 	var active_pointer := pointer
 	host.clear_selection() if host.has_method("clear_selection") else host.panels.close_sheet()
 	pointer = active_pointer
@@ -128,7 +130,9 @@ func card_input(event: InputEvent, value: String, button: Control) -> void:
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed and event.device != InputEvent.DEVICE_ID_EMULATION:
 		candidate = value
 		pointer = -1
-		origin = get_global_mouse_position()
+		# Use the press in the same coordinate space as subsequent motion events.
+		# Polling the cursor can return a newer/stale position during GUI dispatch.
+		origin = button.global_position + event.position
 
 func _input(event: InputEvent) -> void:
 	if not is_visible_in_tree(): return

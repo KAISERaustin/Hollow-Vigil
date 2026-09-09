@@ -232,23 +232,27 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 	scroll.name = "TowerCards"
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.follow_focus = true
-	UI.keyboard_scroll(scroll, "Tower cards. Swipe left or right to browse", true)
+	UI.keyboard_scroll(scroll, "Tower cards" if fit_row else "Tower cards. Swipe left or right to browse", true)
 	var choices := HBoxContainer.new()
 	choices.name = "Cards"
 	if fit_row:
 		choices.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	choices.add_theme_constant_override("separation", 8)
 	scroll.add_child(choices)
-	scroll.resized.connect(func():
-		var edge := maxf(CARD_SIZE.x, (scroll.size.x - 8.0 * (choices.get_child_count() - 1)) / maxf(1, choices.get_child_count()))
-		if fit_row:
-			# Grow to fill wide rows, but scroll instead of shrinking phone targets.
-			edge = maxf(UI.TARGET, floorf((scroll.size.x - 8.0 * (choices.get_child_count() - 1)) / maxf(1, choices.get_child_count())))
+	var fit_cards := func():
+		var count := maxi(1, choices.get_child_count())
+		var edge := maxf(1, floorf((scroll.size.x - UI.CARD_GAP * (count - 1)) / count))
 		for card in choices.get_children():
 			if fit_row:
-				card.find_child("TowerPortrait", true, false).custom_minimum_size = Vector2.ONE * maxf(1, edge - 6)
-			card.custom_minimum_size = Vector2(edge, edge)
-	)
+				# The display owns the width, never the catalog's minimum width.
+				# Portraits draw proportionally inside each card; keep touch height.
+				card.custom_minimum_size = Vector2(edge, maxf(UI.TARGET, edge))
+			else:
+				card.custom_minimum_size = Vector2.ONE * maxf(CARD_SIZE.x, edge)
+		if fit_row:
+			scroll.scroll_horizontal = 0
+	scroll.resized.connect(fit_cards)
+	scroll.ready.connect(fit_cards)
 	choices.minimum_size_changed.connect(func():
 		scroll.custom_minimum_size.y = choices.get_combined_minimum_size().y
 	)
@@ -261,7 +265,7 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 			for connection in margin.minimum_size_changed.get_connections():
 				margin.minimum_size_changed.disconnect(connection.callable)
 			button.find_child("TowerPortrait", true, false).custom_minimum_size = Vector2.ZERO
-			button.custom_minimum_size = Vector2.ONE * UI.TARGET
+			button.custom_minimum_size = Vector2(1, UI.TARGET)
 		button.name = prefix + kind
 		button.set_meta("tower_kind", kind)
 		button.disabled = balance < definition.cost

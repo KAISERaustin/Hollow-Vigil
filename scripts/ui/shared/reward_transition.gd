@@ -61,13 +61,16 @@ func dismiss() -> void:
 
 func _input(event: InputEvent) -> void:
 	if not (event is InputEventMouseButton or event is InputEventScreenTouch): return
-	# Godot can synthesize a mouse event from the same touch after it is dismissed.
-	if event.device == InputEvent.DEVICE_ID_EMULATION and (not dismissed_pointers.is_empty() or dismissed_frame == Engine.get_process_frames()):
-		get_viewport().set_input_as_handled()
-		return
 	var pointer := "touch_%d" % event.index if event is InputEventScreenTouch else "mouse_%d" % event.button_index
 	if not event.pressed and dismissed_pointers.has(pointer):
 		dismissed_pointers.erase(pointer)
+		get_viewport().set_input_as_handled()
+		return
+	# Release the captured pointer before suppressing its synthetic duplicate.
+	# Phones can deliver the emulated mouse press first; suppressing its release
+	# before cleanup leaves mouse_1 captured and blocks later map gestures.
+	# Godot can synthesize a mouse event from the same touch after it is dismissed.
+	if event.device == InputEvent.DEVICE_ID_EMULATION and (not dismissed_pointers.is_empty() or dismissed_frame == Engine.get_process_frames()):
 		get_viewport().set_input_as_handled()
 		return
 	if not active or not is_visible_in_tree(): return
