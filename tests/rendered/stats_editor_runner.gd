@@ -45,6 +45,24 @@ func run() -> void:
 					check(child.size.y >= 48, "Touch height " + category + "/" + child.name)
 					check(child.get_global_rect().position.x >= menu.scroll.global_position.x - 1 and child.get_global_rect().end.x <= menu.scroll.get_global_rect().end.x + 1, "Horizontal fit " + category + "/" + child.name)
 			await capture(category)
+		for category in ["enemies", "bosses", "towers"]:
+			menu.rules_editor.open_item(category, Balance.definitions(category).keys()[0])
+			for group in ["Stats", "Abilities", "Attributes"]:
+				menu.rules_editor.open_group(group)
+				var editor = menu.rules_editor.stats_editor
+				editor.choosing = true
+				editor.rebuild()
+				await settle()
+				for entry in editor.rows:
+					var row: Control = entry.control
+					var action := row.get_child(row.get_child_count() - 1) as Button
+					check(row.get_meta("scroll_action_row", false), "Passive scroll row")
+					check(action != null and action.text in ["Select", "Enabled"], "Separate selection action")
+					check(row.get_child(0).get_child_count() == 2, "Every choice has visible description")
+					if row.get_child(0).get_child_count() == 2:
+						check(row.get_child(0).get_child(1).text.length() > 30, "Detailed choice description")
+					check(action.size.y >= 48 and row.get_global_rect().end.x <= menu.scroll.get_global_rect().end.x + 1, "Catalog mobile fit")
+				await capture(category + "-" + group.to_lower() + "-choices")
 		menu.rules_editor.open_item("enemies", "basic")
 		menu.rules_editor.open_group("Stats")
 		menu.rules_editor.open_group("Attributes")

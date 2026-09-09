@@ -2,6 +2,7 @@ extends VBoxContainer
 
 ## Reusable save-draft editor for any Stats-owning content node.
 const UI = preload("res://scripts/ui/shared/interface.gd")
+const Descriptions = preload("res://scripts/content/catalogs/stat_descriptions.gd")
 const Stats = preload("res://scripts/content/catalogs/stats.gd")
 var game: VigilState
 var category := "enemies"
@@ -95,7 +96,6 @@ func build_stat_catalog() -> void:
 		var enabled := Stats.enabled(category, kind, field, game.tuning)
 		var label: String = descriptor.label
 		var requirement: String = descriptor.get("requires", "")
-		if not requirement.is_empty(): label += "\nUses " + Stats.capabilities(category)[requirement].name
 		var button := UI.button(label + (" · Enabled" if enabled else " · Add"), func():
 			var candidate := game.tuning
 			if not requirement.is_empty(): candidate = Stats.attach(candidate, category, kind, requirement)
@@ -107,8 +107,7 @@ func build_stat_catalog() -> void:
 		)
 		button.name = "AddStat_" + field
 		button.disabled = enabled
-		body.add_child(button)
-		rows.append({"control": button, "label": label})
+		add_choice(label, Descriptions.field(Stats, category, kind, field, game.tuning), button)
 
 func build_capabilities(catalog: bool) -> void:
 	if group == "Attributes" and category != "towers":
@@ -124,15 +123,13 @@ func build_capabilities(catalog: bool) -> void:
 				)
 				add.name = "AddStat_" + field
 				add.disabled = enabled
-				body.add_child(add)
-				rows.append({"control": add, "label": label})
+				add_choice(label, Descriptions.field(Stats, category, kind, field, game.tuning), add)
 	for ability in Stats.capabilities(category):
 		var descriptor: Dictionary = Stats.capabilities(category)[ability]
 		if descriptor.group != group: continue
 		var enabled := Stats.ability_enabled(category, kind, ability, game.tuning)
 		if not catalog and not enabled: continue
 		var label: String = descriptor.name
-		if catalog and descriptor.get("primary", false): label += "\nReplaces the current primary attack"
 		var button := UI.button(label + (" · Enabled" if catalog and enabled else (" · Add" if catalog else " · Disable")), func():
 			commit_fields()
 			changed(Stats.attach(game.tuning, category, kind, ability, catalog))
@@ -141,8 +138,10 @@ func build_capabilities(catalog: bool) -> void:
 		)
 		button.name = ("AddAbility_" if catalog else "DisableAbility_") + ability
 		button.disabled = catalog and enabled
-		body.add_child(button)
-		rows.append({"control": button, "label": label})
+		if catalog:
+			add_choice(label, Descriptions.ability(Stats, category, kind, ability, game.tuning), button)
+		else:
+			body.add_child(button)
 		if not catalog:
 			for field in descriptor.fields:
 				if Stats.enabled(category, kind, field, game.tuning) or not game.tuning.get(category, {}).get(kind, {}).has("enabled_" + field): add_stat(field)
@@ -168,3 +167,16 @@ func add_stat(field: String) -> void:
 		)
 		disable.name = "DisableStat_" + field
 		body.add_child(disable)
+
+func add_choice(title: String, description: String, button: Button) -> void:
+	var row := UI.action_row(title, button, "Enabled" if button.disabled else "Select", null, description)
+	row.name = button.name + "Row"
+	button.accessibility_name = ("Enabled: " if button.disabled else "Select: ") + title + ". " + description
+	var copy := row.get_child(0) as VBoxContainer
+	copy.add_theme_constant_override("separation", 8)
+	copy.get_child(0).add_theme_font_override("font", UI.font(700))
+	var detail := copy.get_child(1) as Label
+	detail.add_theme_font_size_override("font_size", 14)
+	copy.minimum_size_changed.connect(func(): row.custom_minimum_size.y = maxf(64, copy.get_combined_minimum_size().y + 16))
+	body.add_child(row)
+	rows.append({"control": row, "label": title + " " + description})
