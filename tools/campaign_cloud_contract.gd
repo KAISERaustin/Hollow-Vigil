@@ -8,7 +8,9 @@ func _initialize() -> void:
 	call_deferred("run")
 
 func run() -> void:
-	var catalog := {"stats": {}, "levels": [], "spawn_kinds": Build.Configuration.spawn_kinds()}
+	var catalog := {"stats": {}, "attribute_fields": {}, "levels": [], "spawn_kinds": Build.Configuration.spawn_kinds()}
+	for category in Balance.Stats.CATEGORIES:
+		catalog.attribute_fields[category] = Balance.Stats.schema(category)
 	for category in Build.STAT_GROUPS:
 		catalog.stats[category] = {}
 		for kind in Balance.definitions(category):
