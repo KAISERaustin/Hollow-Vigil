@@ -82,7 +82,7 @@ func show_stats(index: int) -> void:
 			changes[str(index)][key] = value
 		)
 		numbers.append(number)
-		add_child(UI.number_row("Level lives" if key == "flame" else limits.label, number))
+		add_child(UI.rule_card(UI.number_row("Level lives" if key == "flame" else limits.label, number)))
 
 func commit_fields() -> void:
 	for number in numbers: number.apply()

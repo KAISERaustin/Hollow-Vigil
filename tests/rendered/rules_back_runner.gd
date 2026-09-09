@@ -35,20 +35,16 @@ func run() -> void:
 							check(editor.choosing, context + " Add opens")
 							if back_kind == "inline": editor.body.get_child(0).pressed.emit()
 							elif back_kind == "header": menu.header.get_node("BackButton").pressed.emit()
-							else:
-								print("DEBUG ", menu.visible, " ", menu.header.get_node("BackButton").visible, " ", browser.route, " ", editor.choosing)
-								menu.go_back()
-								print("AFTER ", browser.route, " ", editor.choosing)
-								quit()
-								return
+							else: menu.go_back()
 							check(not editor.choosing and browser.route == group and browser.editor.visible and not browser.item_menu.visible, context + " " + back_kind + " returns to group")
 							check(browser.selected_kind == kind and editor.group == group, context + " preserves selection")
-							await process_frame
+							for frame in range(3): await process_frame
 					menu.header.get_node("BackButton").pressed.emit()
 					check(browser.route == "item" and browser.item_menu.visible, context + " group Back returns to item")
-					await process_frame
+					for frame in range(3): await process_frame
 				menu.go_back()
 				check(browser.route == "list", category + "/" + kind + " item Back returns to list")
+				for frame in range(3): await process_frame
 		browser.hide()
 		menu.level_rules.show_levels()
 		for index in menu.level_rules.Configuration.Catalog.COUNT:
@@ -57,10 +53,11 @@ func run() -> void:
 			check(menu.level_rules.group == "Stats", "Level Stats opens")
 			menu.header.get_node("BackButton").pressed.emit()
 			check(menu.level_rules.group.is_empty() and menu.level_rules.selected == index, "Level Stats Back returns to same level")
+			for frame in range(3): await process_frame
 			menu.go_back()
 			check(menu.level_rules.selected == -1, "Level Back returns to levels")
-			await process_frame
+			for frame in range(3): await process_frame
 	app.queue_free()
-	await process_frame
+	for frame in range(3): await process_frame
 	print("RULES BACK: %d checks, %d failures" % [checks, failures.size()])
 	quit(1 if not failures.is_empty() else 0)

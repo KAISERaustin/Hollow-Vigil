@@ -319,7 +319,7 @@ func add_number(stat: String) -> void:
 	inputs[stat] = number
 	var baseline: float = Balance.definitions(category)[editing_kind()][stat]
 	var title: String = descriptor.label + "\nDefault: " + format_value(baseline, descriptor)
-	fields.add_child(UI.number_row(title, number))
+	fields.add_child(UI.rule_card(UI.number_row(title, number)) if category in ["gear", "rifts"] else UI.number_row(title, number))
 	# Capture this row's identity so a removed control cannot edit a different type.
 	var section := category
 	var kind := editing_kind()

@@ -156,12 +156,22 @@ func build_capabilities(catalog: bool) -> void:
 		if catalog:
 			add_choice(label, Descriptions.ability(Stats, category, kind, ability, game.tuning), button)
 		else:
-			section_body.add_child(button)
-		if not catalog:
+			var target := added_rule_body(ability) if added_section else section_body
+			target.add_child(button)
 			for field in descriptor.fields:
-				if Stats.enabled(category, kind, field, game.tuning) or not game.tuning.get(category, {}).get(kind, {}).has("enabled_" + field): add_stat(field)
+				if Stats.enabled(category, kind, field, game.tuning) or not game.tuning.get(category, {}).get(kind, {}).has("enabled_" + field): add_stat(field, target)
 
-func add_stat(field: String) -> void:
+func added_rule_body(key: String) -> VBoxContainer:
+	var content := VBoxContainer.new()
+	content.add_theme_constant_override("separation", UI.GAP)
+	var card := UI.rule_card(content)
+	card.name = "AddedRule_" + key
+	section_body.add_child(card)
+	return content
+
+func add_stat(field: String, target: VBoxContainer = null) -> void:
+	if target == null:
+		target = added_rule_body(field) if added_section else section_body
 	var descriptor: Dictionary = Stats.schema(category)[field]
 	var number := SpinBox.new()
 	number.name = field + "Value"
@@ -171,7 +181,7 @@ func add_stat(field: String) -> void:
 	number.value = Stats.value(category, kind, field, game.tuning)
 	number.accessibility_name = descriptor.label
 	var label: String = descriptor.label + "\nDefault: " + String.num(Stats.default_value(category, kind, field), 2).trim_suffix(".0") + descriptor.suffix
-	section_body.add_child(UI.number_row(label, number))
+	target.add_child(UI.number_row(label, number))
 	numbers.append(number)
 	number.value_changed.connect(func(value: float): changed(Stats.edit(game.tuning, category, kind, field, value)))
 	if field not in Stats.REQUIRED:
@@ -181,7 +191,7 @@ func add_stat(field: String) -> void:
 			rebuild()
 		)
 		disable.name = "DisableStat_" + field
-		section_body.add_child(disable)
+		target.add_child(disable)
 
 func add_choice(title: String, description: String, button: Button) -> void:
 	var row := UI.action_row(title, button, "Enabled" if button.disabled else "Select", null, description)

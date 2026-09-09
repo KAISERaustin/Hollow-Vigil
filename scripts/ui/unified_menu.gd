@@ -264,15 +264,15 @@ func show_review() -> void:
 	destination.name = "SaveSlotChoice"
 	destination.menu_title = "Choose save slot"
 	destination.illustration = "slots"
+	destination.direct_choices = true
 	destination.custom_minimum_size.y = UI.TARGET
-	destination.add_item("Choose a save slot")
 	for slot in 3:
 		var value := slot_summary(slot)
 		var description := "Empty" if not slot_occupied(slot) else ("Recovery needed" if value.is_empty() else game_name(value, slot))
 		destination.add_item("Slot %d · %s" % [slot + 1, description])
-		destination.set_item_disabled(slot + 1, slot_occupied(slot) and value.is_empty())
-	destination.select(int(new_game.slot) + 1)
-	destination.item_selected.connect(func(index: int): new_game.slot = index - 1)
+		destination.set_item_disabled(slot, slot_occupied(slot) and value.is_empty())
+	destination.select(int(new_game.slot))
+	destination.item_selected.connect(func(index: int): new_game.slot = index)
 	content.add_child(UI.form_field("Save slot", destination))
 	if not new_game.entry.is_empty():
 		var build: Dictionary = new_game.entry.build

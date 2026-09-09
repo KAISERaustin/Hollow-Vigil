@@ -27,6 +27,10 @@ func run() -> void:
 		check(Balance.Content.portal(other).incoming_damage(8.0, tuning) == 8.0, "Unassigned portal unchanged")
 		check(Balance.Content.portal(style).incoming_damage(8.0, {}) == 8.0, "Removing attributes restores damage")
 		check(Balance.Content.portal(style).attribute("armor_percent") == 0.0, "Shared defaults unchanged")
+		var detached = Balance.Content.portal(style).without_component("portal/test", "enemy_effects")
+		check(detached.incoming_damage(8.0, tuning) == 8.0, "Removing component removes its behavior")
+		var replaced = detached.with_component("portal/test", "enemy_effects", Balance.Content.catalog().get_node("attribute/portal_enemy_effects"), {"armor_percent": 50.0})
+		check(replaced.incoming_damage(8.0, tuning) == 4.0 and Balance.Content.portal(style).incoming_damage(8.0, tuning) == 6.0, "Replacing component leaves source unchanged")
 		var recipient := {"hp": 99.0, "max_hp": 100.0, "dead": false}
 		Balance.Content.portal(style).advance_enemy(recipient, 2.0, tuning)
 		check(recipient.hp == 100.0, "Regeneration capped at maximum health")

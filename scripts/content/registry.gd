@@ -213,6 +213,7 @@ func _populate_world(root: ContentNode) -> void:
 	var world := _add(ContentNode.new("world", root))
 	var presentation := _add(ContentNode.new("presentation", root))
 	var portal_visual := _add(PortalVisualNode.new("presentation/portal", presentation, {}, {"rate_parts": PortalVisuals.RATE_PARTS, "max_level": 12}))
+	var portal_effects := _add(preload("res://scripts/content/nodes/attributes/portal_enemy_effects.gd").new("attribute/portal_enemy_effects", get_node("attribute")))
 	_add(RegionNode.new("region", world, {}, {}, World.REGION_DEFAULTS))
 	_add(PortalNode.new("portal", world, {}, {"tuning_category": "rifts", "exclusive": true, "allow_escorts": true}))
 	var socket := _add(ContentNode.new("socket", world, {}, {"occupants": ["tower"], "capacity": 1}))
@@ -230,7 +231,7 @@ func _populate_world(root: ContentNode) -> void:
 		for kind in Actors.FAMILIES[style]:
 			ornaments[kind] = PortalVisuals.ORNAMENTS[kind]
 		rules["components"] = [{"slot": "appearance", "component": portal_visual, "config": {"order": Actors.FAMILIES[style], "ornaments": ornaments, "mounts": PortalVisuals.PIT_MOUNTS if style == "castle_ruin" else PortalVisuals.MOUNTS}}]
-		rules["enemy_effects"] = preload("res://scripts/content/nodes/attributes/portal_enemy_effects.gd").new("attribute/portal_enemy_effects")
+		rules.components.append({"slot": "enemy_effects", "component": portal_effects, "config": {}})
 		_add(PortalNode.new("portal/" + style, get_node("portal"), attributes, rules), "rifts", style)
 
 func _populate_levels(root: ContentNode) -> void:

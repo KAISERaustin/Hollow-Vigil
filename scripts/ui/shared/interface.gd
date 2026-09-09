@@ -6,6 +6,7 @@ const PANEL := VigilTerrainArt.PAPER
 const MAIN_MENU_BACKGROUND := Color("283b36")
 const SURFACE := VigilTerrainArt.ROAD
 const ADDED_RULES := Color("95AA83")
+const ADDED_RULE := Color("B49DCC")
 const SAVED_GAMES_PAPER := Color("#B8C4C6")
 const BORDER := VigilTerrainArt.INK
 const GOLD := VigilTerrainArt.GOLD
@@ -68,6 +69,9 @@ static func info_card(content: Control, background: Color = PANEL, padding: int 
 	panel.add_theme_stylebox_override("panel", surface(background, outline, padding))
 	panel.add_child(content)
 	return panel
+
+static func rule_card(content: Control) -> PanelContainer:
+	return info_card(content, ADDED_RULE, CARD_PADDING)
 
 static func fullscreen_parchment() -> TextureRect:
 	var paper := TextureRect.new()

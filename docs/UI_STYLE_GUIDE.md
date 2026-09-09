@@ -246,3 +246,5 @@ Default to **Parchment cards**, based on the user-approved Waves layout. Use the
 ### Currency icon
 
 Currency text uses the shared colored coin glyph in place of every visible whole word gold (any capitalization). Keep source and accessible wording readable; the shared presentation translation replaces it when drawing. Coin fonts match the surrounding Noto Sans/Serif line center, scale with the text, and retain ochre fill and black detail. Measure translated text for responsive fitting.
+
+Added stats, abilities and attributes each use a separate purple card (VigilInterface.ADDED_RULE, #B49DCC) inside the green Added section. Keep all fields and disable controls for one ability together in that card. Gear, portal and level rule fields use the same shared rule card. Retain 3-unit black borders, 4-unit corners and 12-unit padding.

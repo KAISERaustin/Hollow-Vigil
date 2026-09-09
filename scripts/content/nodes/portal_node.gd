@@ -17,9 +17,12 @@ func accepts(kind: String) -> bool:
 	return kind in _rules.get("enemy_kinds", [])
 
 func incoming_damage(amount: float, tuning: Dictionary) -> float:
-	var effect = rule("enemy_effects")
-	return effect.incoming_damage(amount, definition(tuning)) if effect != null else amount
+	for attachment in rule("components", []):
+		if attachment.slot == "enemy_effects":
+			amount = attachment.component.incoming_damage(amount, definition(tuning).merged(attachment.config, true))
+	return amount
 
 func advance_enemy(enemy: Dictionary, delta: float, tuning: Dictionary) -> void:
-	var effect = rule("enemy_effects")
-	if effect != null: effect.advance(enemy, delta, definition(tuning))
+	for attachment in rule("components", []):
+		if attachment.slot == "enemy_effects":
+			attachment.component.advance(enemy, delta, definition(tuning).merged(attachment.config, true))
