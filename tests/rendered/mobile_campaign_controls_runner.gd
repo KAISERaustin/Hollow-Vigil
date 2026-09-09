@@ -343,7 +343,11 @@ func result_routes() -> void:
 		if button.text == "Restart level":
 			await press(button)
 			break
-	check(campaign.run.phase == "planning" and not campaign.dialog.visible, "Touch restarts defeated level")
+	check(campaign.page == "briefing" and campaign.run.phase == "planning" and not campaign.dialog.visible, "Restart returns defeated level to setup")
+	await audit(campaign.layout, "Restart setup")
+	await capture("restart-setup")
+	await press(named("BeginCampaignMission"))
+	check(campaign.page == "battle" and campaign.run.wave == 0 and campaign.run.game.data.towers.is_empty(), "Begin after restart enters a fresh battlefield")
 	campaign.run.phase = "victory"
 	campaign.run.wave = campaign.run.mission.waves.size()
 	campaign.show_result()

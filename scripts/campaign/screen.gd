@@ -470,11 +470,11 @@ func show_map() -> void:
 	if cleared == Catalog.COUNT:
 		footer.add_child(UI.paragraph("Every sanctuary burns again. Replay any level to perfect your vigil.", 15))
 
-func show_briefing(index: int) -> void:
+func show_briefing(index: int, include_loadout: bool = true) -> void:
 	if not progress.unlocked(index):
 		return
 	clear_page("briefing")
-	run = configured_run(index)
+	run = configured_run(index, include_loadout)
 	header("%02d · %s" % [index+1, run.mission.name], show_map)
 	add_board(false)
 	var stats := HBoxContainer.new()
@@ -497,14 +497,14 @@ func show_briefing(index: int) -> void:
 	var details := UI.button("Preview waves", show_waves, 52)
 	details.name = "PreviewCampaignWaves"
 	actions.add_child(details)
-	var start := UI.gold_button("Begin level", start_mission.bind(index), 52)
+	var start := UI.gold_button("Begin level", start_mission.bind(index, include_loadout), 52)
 	start.name = "BeginCampaignMission"
 	actions.add_child(start)
 
-func start_mission(index: int) -> void:
+func start_mission(index: int, include_loadout: bool = true) -> void:
 	if not progress.unlocked(index):
 		return
-	run = configured_run(index)
+	run = configured_run(index, include_loadout)
 	connect_run()
 	show_battle()
 	save_progress()
@@ -513,11 +513,7 @@ func restart_mission(index: int) -> void:
 	if not progress.unlocked(index):
 		return
 	# Restart uses the level rules, never its checkpoint or imported tower loadout.
-	active_overrides = level_setup(index).overrides.duplicate(true)
-	run = Run.new(index, active_overrides, mode)
-	progress.apply_equipment(run)
-	connect_run()
-	show_battle()
+	show_briefing(index, false)
 	save_progress()
 
 func connect_run() -> void:
@@ -1172,11 +1168,12 @@ func save_campaign_tuning(changes: Dictionary, level_changes: Dictionary = {}) -
 func index_for_run() -> int:
 	return int(run.mission.index)
 
-func configured_run(index: int) -> RefCounted:
+func configured_run(index: int, include_loadout: bool = true) -> RefCounted:
 	var setup := level_setup(index)
 	active_overrides = setup.overrides.duplicate(true)
 	var next := Run.new(index, active_overrides, mode)
-	VigilSaveSlots.CampaignBuild.apply_loadout(next, setup)
+	if include_loadout:
+		VigilSaveSlots.CampaignBuild.apply_loadout(next, setup)
 	progress.apply_equipment(next)
 	return next
 

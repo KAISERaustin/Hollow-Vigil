@@ -67,6 +67,21 @@ func run() -> void:
 			check(campaign.page == "briefing", "Reopening level never skips information")
 			await press(named("BeginCampaignMission"))
 			check(campaign.run.game.data.towers.is_empty() and campaign.run.wave == 0, "Map round trip starts fresh")
+			campaign.run.phase = "defeat"
+			campaign.show_result()
+			for button in campaign.dialog_body.find_children("*", "Button", true, false):
+				if button.text == "Restart level":
+					await press(button)
+					break
+			check(campaign.page == "briefing" and not campaign.dialog.visible, "Restart opens level setup")
+			check(campaign.run.game.data.towers.is_empty() and campaign.run.wave == 0, "Restart setup clears the attempt")
+			check(campaign.run.health == campaign.run.mission.flame and campaign.run.game.data.balance == campaign.run.mission.gold, "Restart setup restores starting values")
+			await capture("restart-setup-" + mode)
+			await press(named("PreviewCampaignWaves"))
+			check(campaign.dialog.visible, "Restart setup offers wave preview")
+			await back()
+			await press(named("BeginCampaignMission"))
+			check(campaign.page == "battle" and campaign.run.phase == "planning", "Restart waits for Begin level")
 			campaign.close()
 			await settle()
 	print("CAMPAIGN_NAVIGATION: %d checks, %d failures" % [checks, failures.size()])
