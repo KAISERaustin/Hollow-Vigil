@@ -1,5 +1,17 @@
 # Hollow Vigil on iPhone
 
+## TestFlight build 1.1.2 — September 8, 2026
+
+Version **0.1.0 (1.1.2)** contains GitHub main `d2ee2cd` with the export build number advanced by one. Xcode Organizer confirmed **App upload complete** through **Distribute App → App Store Connect → Distribute**. Apple records the upload at **7:11 PM CDT**. App Store Connect subsequently showed **Testing** in **Just for Testing**, with 10 testers and 12 builds.
+
+Validation passed: fresh Godot import, structure checks, 56,466 gameplay checks, 3,185 rendered mobile navigation checks and 326 Campaign equipment checks. The broad mobile menu audit stopped at `Reachable touch action: EditLevel9`; it did not pass and its cause remains unresolved. The navigation runner reported two ObjectDB instances at shutdown. The 360×640 confirmation screenshot was visually inspected. No physical iPhone installation or rotation check was performed.
+
+The Release archive and deep, strict signature verification passed. Both iPhone/iPad supported-orientation arrays contain only `UIInterfaceOrientationPortrait`, and `UIRequiresFullScreen=true`. The separate in-game `application/config/version` remains 1.1.1, so bug reports retain that label even though the native/TestFlight build is 1.1.2.
+
+Archive: `~/Library/Developer/Xcode/Archives/2026-09-08/HollowVigil-1.1.2.xcarchive`. Source: `/private/tmp/hollow-vigil-release-1.1.2-source`. Logs: ignored `artifacts/release-1.1.2/`. Exported PCK SHA-256: `978cadf8e2423368cd923ad265926e9310196698ebbb5dfb050dd708be1c8d93`.
+
+[Build 1.1.2 in App Store Connect](https://appstoreconnect.apple.com/teams/9e8e8295-c906-4d21-8e40-988d2e1a8075/apps/6809097281/testflight/ios/a235723a-bc47-44b9-a2e8-e90d6b08deda).
+
 ## TestFlight build 1.1.1 — September 8, 2026
 
 Version **0.1.0 (1.1.1)** adds the main-menu Settings → Bug report form and private uploads to the new Supabase `bug_reports` table. Xcode Organizer confirmed **App upload complete** through **Distribute App → App Store Connect → Distribute**. App Store Connect processed the build and confirmed **Testing** in **Just for Testing**, with 10 testers and 11 builds. The tester list already showed an installation of 1.1.1. Testing notes were saved.

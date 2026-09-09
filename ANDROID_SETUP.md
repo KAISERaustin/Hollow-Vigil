@@ -1,8 +1,8 @@
 # Android invited testing
 
 The Android preset builds a signed Google Play Android App Bundle at
-`exports/hollow-vigil-1.1.1.aab` with package ID `com.kaiser.hollowvigil`,
-version name `1.1.1`, and version code `11`. It targets ARM64 Android phones.
+`exports/hollow-vigil-1.1.2.aab` with package ID `com.kaiser.hollowvigil`,
+version name `1.1.2`, and version code `12`. It targets ARM64 Android phones.
 
 ## Upload to Google Play
 
@@ -15,6 +15,16 @@ version name `1.1.1`, and version code `11`. It targets ARM64 Android phones.
 Internal testing supports up to 100 testers. Use a closed testing track for a larger invited group. The package ID becomes fixed after the first upload.
 
 Official instructions: https://support.google.com/googleplay/android-developer/answer/9845334?hl=en
+
+## Published build 1.1.2 — September 8, 2026
+
+Google Play confirmed **Available to internal testers** for **1.1.2 (12)** at **7:13 PM CDT**, using the existing internal track and tester list. Source: GitHub main `d2ee2cd`, with only export build metadata and the Windows output filename changed. The existing upload key signed the bundle.
+
+Validation passed: fresh Godot import, structure checks, 56,466 gameplay checks, 3,185 rendered mobile navigation checks and 326 Campaign equipment checks. The broad mobile menu audit stopped at `Reachable touch action: EditLevel9`; that audit did not pass, and its cause remains unresolved. Navigation reported two ObjectDB instances at shutdown. No physical-device installation or rotation check was performed.
+
+Bundletool validation and JAR signature verification passed. The manifest confirms version code 12, version name 1.1.2, portrait orientation and a non-resizable activity. Google Play reported the existing absent deobfuscation and native debug-symbol warnings. The game's separate `application/config/version` remains 1.1.1 in this source, so in-game bug reports retain that label even though the native/store build is 1.1.2.
+
+Bundle: `exports/android/hollow-vigil-1.1.2.aab`. SHA-256: `a6b31f18a11bcc33c0de18812f4d91642196ef256c5a187b8de778f780969f7d`. Isolated source: `/private/tmp/hollow-vigil-release-1.1.2-source`. Logs: ignored `artifacts/release-1.1.2/`.
 
 ## Published build 1.1.1 — September 8, 2026
 
