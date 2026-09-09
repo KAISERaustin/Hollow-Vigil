@@ -30,21 +30,24 @@ func run() -> void:
 		root.content_scale_size = dimensions
 		var menu: Control = app.slot_menu
 		menu.show_campaign_content_rules()
-		menu.rules_editor.show_category("enemies")
+		menu.rules_editor.open_item("enemies", "basic")
+		menu.rules_editor.open_group("Stats")
 		await settle()
 		check(menu.find_child("ApplyRules", true, false).text == "Save", "Explicit Save action")
 		for category in ["enemies", "bosses", "towers"]:
-			menu.rules_editor.show_category(category)
+			menu.rules_editor.open_item(category, Balance.definitions(category).keys()[0])
+			menu.rules_editor.open_group("Stats")
 			await settle()
 			var fields: Control = menu.rules_editor.stats_editor
 			check(fields != null, "Shared Stats editor for " + category)
 			for child: Control in fields.find_children("*", "Control", true, false):
-				if child is Button or child is SpinBox:
+				if child.is_visible_in_tree() and (child is Button or child is SpinBox):
 					check(child.size.y >= 48, "Touch height " + category + "/" + child.name)
 					check(child.get_global_rect().position.x >= menu.scroll.global_position.x - 1 and child.get_global_rect().end.x <= menu.scroll.get_global_rect().end.x + 1, "Horizontal fit " + category + "/" + child.name)
 			await capture(category)
-		menu.rules_editor.show_category("enemies")
-		press(menu, "AttributesTab")
+		menu.rules_editor.open_item("enemies", "basic")
+		menu.rules_editor.open_group("Stats")
+		menu.rules_editor.open_group("Attributes")
 		press(menu, "AddAttribute")
 		await capture("resistance-catalog")
 		press(menu, "AddStat_poison_resistance")
@@ -54,7 +57,7 @@ func run() -> void:
 		number.value = 65
 		check(Balance.tuned_value("enemies", "basic", "poison_resistance", app.campaign.run.game.tuning) == 0, "Draft does not change live game")
 		await capture("resistance-enabled")
-		press(menu, "AbilitiesTab")
+		menu.rules_editor.open_group("Abilities")
 		press(menu, "AddAbility")
 		await capture("enemy-abilities")
 		press(menu, "AddAbility_shield")
@@ -64,13 +67,15 @@ func run() -> void:
 		for level in range(30):
 			check(app.campaign.level_setup(level).overrides.tuning.enemies.basic.poison_resistance == 65, "Save reaches level " + str(level))
 		menu.show_campaign_content_rules()
-		menu.rules_editor.show_category("enemies")
+		menu.rules_editor.open_item("enemies", "basic")
+		menu.rules_editor.open_group("Stats")
 		press(menu, "ResetSelectedBalance")
 		press(menu, "ApplyRules")
 		check(Balance.tuned_value("enemies", "basic", "poison_resistance", app.campaign.run.game.tuning) == 0, "Reset removes added resistance")
 		check(not Balance.Stats.ability_enabled("enemies", "basic", "shield", app.campaign.run.game.tuning), "Reset removes added ability")
 		menu.show_campaign_content_rules()
-		menu.rules_editor.show_category("towers")
+		menu.rules_editor.open_item("towers", "rapid")
+		menu.rules_editor.open_group("Stats")
 		press(menu, "AddStat")
 		await capture("stat-catalog")
 		var search: LineEdit = menu.find_child("StatSearch", true, false)
@@ -80,10 +85,11 @@ func run() -> void:
 		check(Balance.Stats.ability_enabled("towers", "rapid", "frostneedle", menu.editor_game.tuning), "Adding dependent stat attaches its ability")
 		press(menu, "CancelRules")
 		await settle()
-		press(menu, "ConfirmAction")
+		check(menu.rules_editor.route == "list", "Cancel returns to item list")
 		await settle()
 		check(not Balance.Stats.ability_enabled("towers", "rapid", "frostneedle", app.campaign.run.game.tuning), "Cancel discards attachment draft")
 	app.queue_free()
 	await process_frame
 	print("STATS EDITOR: %d checks, %d failures" % [checks, failures.size()])
 	quit(1 if not failures.is_empty() else 0)
+

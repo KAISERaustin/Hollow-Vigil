@@ -10,6 +10,7 @@ var edited: Callable
 var relayout: Callable
 var group := "Stats"
 var choosing := false
+var full_page := false
 var numbers: Array[SpinBox] = []
 var body: VBoxContainer
 var filter: LineEdit
@@ -79,6 +80,7 @@ func rebuild() -> void:
 	if is_node_ready(): call_deferred("reveal_editor")
 
 func reveal_editor() -> void:
+	if full_page: return
 	if not is_inside_tree(): return
 	await get_tree().process_frame
 	if not is_inside_tree(): return

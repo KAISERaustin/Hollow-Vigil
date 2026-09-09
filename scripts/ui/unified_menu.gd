@@ -771,6 +771,7 @@ func open_rules() -> void:
 	if live_campaign(): show_campaign_content_rules()
 
 var level_rules: VBoxContainer
+var item_rule_snapshot := {}
 
 func show_campaign_content_rules(return_to: Callable = Callable()) -> void:
 	if not live_campaign() or not app.campaign.can_author(): return
@@ -780,7 +781,7 @@ func show_campaign_content_rules(return_to: Callable = Callable()) -> void:
 	page_view("rules", "Edit rules", rules_back)
 	editor_game = VigilState.new(42, "creative", Build.Configuration.resolve(0, app.campaign.level_setup(0).overrides).tuning)
 	content.add_child(UI.paragraph("Changes apply to every level in this save."))
-	rules_editor = preload("res://scripts/ui/developer/developer_controls.gd").new()
+	rules_editor = preload("res://scripts/ui/shared/rules_browser.gd").new()
 	rules_editor.game = editor_game
 	rules_editor.configuration_only = true
 	rules_editor.authored_spawns = true
@@ -791,9 +792,13 @@ func show_campaign_content_rules(return_to: Callable = Callable()) -> void:
 		for stat in stats:
 			campaign_rule_changes[category][kind][stat] = Balance.configuration_value(category, kind, stat, editor_game.tuning)
 	)
+	rules_editor.item_started.connect(func(): item_rule_snapshot = campaign_rule_changes.duplicate(true))
+	rules_editor.item_cancelled.connect(func(): campaign_rule_changes = item_rule_snapshot.duplicate(true))
+	rules_editor.route_changed.connect(update_rules_route)
 	content.add_child(rules_editor)
 	level_rules = preload("res://scripts/ui/shared/campaign_level_rules.gd").new()
 	level_rules.setup = app.campaign.level_setup
+	level_rules.route_changed.connect(update_rules_route)
 	content.add_child(level_rules)
 	level_rules.hide()
 	var levels_button := UI.button("Open", func():
@@ -804,12 +809,25 @@ func show_campaign_content_rules(return_to: Callable = Callable()) -> void:
 	levels_button.name = "LevelsCategory"
 	rules_editor.category_list.add_child(UI.action_row("Levels", levels_button, "Open"))
 	footer.add_child(action("Save", func():
+		if rules_editor.visible and rules_editor.route not in ["categories", "list"]:
+			rules_editor.save_item()
+		if level_rules.visible and level_rules.selected >= 0:
+			level_rules.show_levels()
 		rules_editor.commit_fields()
 		level_rules.commit_fields()
 		if app.campaign.save_campaign_tuning(campaign_rule_changes, level_rules.changes): rules_return.call()
 		else: notice("These campaign changes could not be saved. Your draft is still open.")
 	, "ApplyRules", true))
-	footer.add_child(action("Cancel", cancel_rules, "CancelRules"))
+	footer.add_child(action("Cancel", func():
+		if rules_editor.visible and rules_editor.route not in ["categories", "list"]: rules_editor.cancel_item()
+		elif level_rules.visible and level_rules.selected >= 0: level_rules.cancel_item()
+		else: cancel_rules()
+	, "CancelRules"))
+
+func update_rules_route(title: String, _item_open: bool) -> void:
+	var headings := header.find_children("*", "Label", true, false)
+	if not headings.is_empty(): headings[0].text = title
+	scroll.scroll_vertical = 0
 
 func show_campaign_rules(index: int, wave: int, return_to: Callable) -> void:
 	if not live_campaign() or not app.campaign.can_author() or wave < 0: return
@@ -834,13 +852,14 @@ func rules_back() -> void:
 		rules_editor.finish_editing()
 		rules_return.call()
 	elif is_instance_valid(level_rules) and level_rules.is_visible_in_tree():
-		if level_rules.selected >= 0: level_rules.show_levels()
+		if level_rules.selected >= 0: level_rules.navigate_back()
 		else:
 			level_rules.hide()
 			rules_editor.show()
+			rules_editor.show_categories()
 		scroll.scroll_vertical = 0
-	elif not wave_rules and rules_editor.editor.visible:
-		rules_editor.show_categories()
+	elif not wave_rules and rules_editor.route != "categories":
+		rules_editor.navigate_back()
 		scroll.scroll_vertical = 0
 	else: cancel_rules()
 

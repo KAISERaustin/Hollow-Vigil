@@ -5,6 +5,22 @@ extends RefCounted
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Portrait = preload("res://scripts/ui/shared/content_portrait.gd")
 
+static func total_time_card(reports: Array[Dictionary]) -> PanelContainer:
+	var seconds := 0.0
+	for report in reports:
+		seconds += float(report.last_spawn_seconds)
+	var rounded := ceili(seconds)
+	var duration := "%d min %02d sec" % [rounded / 60, rounded % 60] if rounded >= 60 else "%d sec" % rounded
+	var panel := UI.stat_card("Total Wave Time", duration, 28)
+	panel.name = "TotalWaveTime"
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var body: VBoxContainer = panel.get_child(0)
+	body.add_child(UI.rule())
+	var note := UI.paragraph("No pauses between rounds. Based on spawn timing; defeating the final enemies adds time.", UI.META)
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	body.add_child(note)
+	return panel
+
 static func card(report: Dictionary, status: String, details: Callable, edit: Callable = Callable(), authoring: Dictionary = {}) -> PanelContainer:
 	var body := VBoxContainer.new()
 	var panel := UI.info_card(body, UI.SURFACE, UI.CARD_PADDING)

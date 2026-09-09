@@ -3,6 +3,9 @@ extends VBoxContainer
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Configuration = preload("res://scripts/campaign/configuration.gd")
 const Fields = preload("res://scripts/content/catalogs/levels.gd")
+signal route_changed(title: String, item_open: bool)
+var group := ""
+var snapshot := {}
 var setup: Callable
 var changes := {}
 var selected := -1
@@ -21,15 +24,65 @@ func clear_body() -> void:
 func show_levels() -> void:
 	clear_body()
 	selected = -1
+	route_changed.emit("Levels", false)
 	show()
 	add_child(UI.heading("Levels", 24))
 	for index in Configuration.Catalog.COUNT:
 		var title := "Level %d · %s" % [index + 1, Configuration.Catalog.level(index).name]
 		var open := UI.button("Open", show_level.bind(index))
 		open.name = "EditLevel%d" % index
-		add_child(UI.action_row(title, open, "Open"))
+		add_child(UI.action_row(title, open, "Open", level_preview(index)))
+
+func level_preview(index: int) -> Control:
+	var chapter: Dictionary = Configuration.Catalog.CHAPTERS[index / Configuration.Catalog.LEVELS_PER_CHAPTER]
+	if chapter.has("map_art"):
+		var picture := TextureRect.new()
+		picture.texture = chapter.map_art
+		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		picture.custom_minimum_size = Vector2(64, 64)
+		picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		return picture
+	return preload("res://scripts/ui/shared/content_portrait.gd").preview("rifts", chapter.style)
 
 func show_level(index: int) -> void:
+	snapshot = changes.duplicate(true)
+	selected = index
+	show_item()
+
+func cancel_item() -> void:
+	clear_body()
+	changes = snapshot.duplicate(true)
+	show_levels()
+
+func navigate_back() -> void:
+	if group.is_empty(): cancel_item()
+	else: show_item()
+
+func show_item() -> void:
+	clear_body()
+	group = ""
+	var title := "Level %d · %s" % [selected + 1, Configuration.Catalog.level(selected).name]
+	add_child(UI.heading(title, 24))
+	add_child(level_preview(selected))
+	add_child(UI.button("Reset", func():
+		var defaults := Configuration.resolve(selected, {})
+		changes[str(selected)] = {}
+		for key in Fields.CONFIGURATION_FIELDS: changes[str(selected)][key] = defaults[key]
+	))
+	for label in ["Stats", "Abilities", "Attributes"]:
+		add_child(UI.button(label, open_group.bind(label)))
+	route_changed.emit(title, true)
+
+func open_group(label: String) -> void:
+	group = label
+	if label == "Stats": show_stats(selected)
+	else:
+		clear_body()
+		add_child(UI.paragraph("No editable " + label.to_lower() + " for this level."))
+	route_changed.emit(label + " · Level " + str(selected + 1), true)
+
+func show_stats(index: int) -> void:
 	clear_body()
 	selected = index
 	var rules: Dictionary = setup.call(index).overrides.duplicate(true)

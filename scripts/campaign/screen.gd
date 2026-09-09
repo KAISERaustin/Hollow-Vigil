@@ -725,6 +725,8 @@ func show_waves() -> void:
 	waves_dialog = true
 	dialog.z_index = 101
 	fit()
+	var reports := Configuration.wave_reports(run.mission)
+	dialog_body.add_child(WaveSummary.total_time_card(reports))
 	if can_author():
 		var rules := UI.button("Edit rules", show_campaign_rules)
 		rules.name = "WavesEditRules"
@@ -733,7 +735,6 @@ func show_waves() -> void:
 	preview.name = "WaveSummaries"
 	preview.add_theme_constant_override("separation", 8)
 	dialog_body.add_child(preview)
-	var reports := Configuration.wave_reports(run.mission)
 	for index in range(run.mission.waves.size()):
 		var report: Dictionary = reports[index]
 		var state := "Cleared" if index < run.wave else ""
