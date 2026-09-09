@@ -71,7 +71,7 @@ try {
         # Registers script classes and imports assets on a completely clean checkout.
         Invoke-Godot -Name 'import' -EngineArguments @('--headless', '--editor', '--import')
         if ($Tests -or $Check) {
-            foreach ($runner in @('source_load_runner', 'stats_system_runner', 'hex_support_runner', 'campaign_runner', 'campaign_configuration_runner', 'wave_editor_runner', 'campaign_export_runner', 'campaign_expansion_runner', 'campaign_ground_save_runner', 'tuning_schema_runner')) {
+            foreach ($runner in @('source_load_runner', 'stats_system_runner', 'hex_support_runner', 'portal_attributes_runner', 'campaign_runner', 'campaign_configuration_runner', 'wave_editor_runner', 'campaign_export_runner', 'campaign_expansion_runner', 'campaign_ground_save_runner', 'tuning_schema_runner')) {
                 Invoke-Godot -Name $runner -EngineArguments @('--headless', '--script', "res://tests/$runner.gd")
             }
         }
@@ -87,6 +87,7 @@ try {
         if ($MobileTests -or $Check) {
             Invoke-Godot -Name 'stats-editor' -EngineArguments @('--script', 'res://tests/rendered/stats_editor_runner.gd')
             Invoke-Godot -Name 'rules-navigation' -EngineArguments @('--script', 'res://tests/rendered/rules_navigation_runner.gd')
+            Invoke-Godot -Name 'portal-attributes' -EngineArguments @('--script', 'res://tests/rendered/portal_attributes_runner.gd')
             Invoke-Godot -Name 'wave-editor-touch' -EngineArguments @('--script', 'res://tests/rendered/wave_editor_runner.gd')
             Invoke-Godot -Name 'campaign-touch' -EngineArguments @('--script', 'res://tests/rendered/mobile_campaign_controls_runner.gd')
             Invoke-Godot -Name 'picker-touch' -EngineArguments @('--script', 'res://tests/rendered/illustrated_picker_touch_runner.gd')

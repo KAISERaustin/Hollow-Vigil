@@ -11,7 +11,7 @@ func run() -> void:
 		game.combat.scripted_spawns = true
 		game.data.towers["test"] = {"kind": "rapid", "level": 1}
 		var path: Array[Vector2] = [Vector2(-10000, 0), Vector2(10000, 0)]
-		for kind in ["basic", "wraith"]:
+		for kind in ["basic", "lantern"]:
 			var enemy := game.combat.spawn_on_path(kind, path, style)
 			enemy.hp = enemy.max_hp * 0.5
 			var before: float = enemy.hp
@@ -33,5 +33,20 @@ func run() -> void:
 		var checkpoint_run = preload("res://scripts/campaign/run.gd").new(0, {"tuning": tuning}, "creative")
 		var restored = preload("res://scripts/campaign/run.gd").from_checkpoint(checkpoint_run.checkpoint())
 		check(restored != null and restored.game.tuning.rifts[style].armor_percent == 25.0, "Checkpoint retains portal rules")
+		var index: int = Balance.portal_definitions().keys().find(style) * 5
+		var boss_run = preload("res://scripts/campaign/run.gd").new(index, {"tuning": tuning, "waves": {"0": {"groups": [["ruined_king", 1, 0, 0.0, 1.0]]}}}, "creative")
+		boss_run.start_wave()
+		boss_run.tick(0.05)
+		var boss: Dictionary = boss_run.game.combat.enemies[0]
+		check(boss.get("portal_effect_style") == style, "Authored boss inherits source portal")
+		boss.hp = boss.max_hp * 0.5
+		boss_run.game.data.towers["test"] = {"kind": "rapid", "level": 1}
+		var boss_before: float = boss.hp
+		boss_run.game.combat.hit(boss, 8.0, "test")
+		check(is_equal_approx(boss.hp, boss_before - 6.0), "Boss receives portal armor")
+		boss_run.game.data.towers.clear()
+		boss_before = boss.hp
+		boss_run.game.combat.tick(0.1)
+		check(is_equal_approx(boss.hp, boss_before + boss.max_hp * 0.01), "Boss receives portal regeneration")
 	print("PORTAL ATTRIBUTES: %d checks, %d failures" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)

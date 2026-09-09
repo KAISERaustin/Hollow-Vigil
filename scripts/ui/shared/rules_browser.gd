@@ -99,7 +99,7 @@ func open_group(group: String) -> void:
 			child.queue_free()
 		inputs.clear()
 		if group == "Attributes":
-			fields.add_child(UI.paragraph("Applies to every enemy and boss from this portal type. Armor reduces incoming damage; regeneration restores a percentage of maximum health each second. Set 0 to remove an effect. Regeneration adds to the built-in portal effect."))
+			fields.add_child(UI.paragraph("Applies to enemies and bosses. Set 0 to disable. Armor-piercing damage bypasses armor. Regeneration adds to the portal's built-in effect."))
 			add_number("armor_percent")
 			add_number("health_regen_percent")
 		elif group == "Stats" and selected_fields().has("strength"):
