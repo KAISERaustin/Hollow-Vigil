@@ -11,6 +11,7 @@ static func make_shot(combat, tower: Dictionary, origin: Vector2, target: Dictio
 	var shot := {"fx": fx, "remaining": fx.flight, "target_id": target.id,
 		"tower_id": tower.id, "branch": tower.get("branch", ""), "damage": stats.damage, "radius": stats.splash}
 	shot.base_damage = stats.damage
+	shot.damage_type = Balance.Content.tower(tower.kind).rule("damage_type", "physical")
 	shot.tower_effects = combat.TowerComponents.snapshot(combat, tower, stats)
 	shot.capabilities = combat.StatComposition.abilities(tower, combat.tuning)
 	shot.ability_effects = []

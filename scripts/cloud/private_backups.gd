@@ -85,9 +85,18 @@ func game_status(type: String, slot: int) -> String:
 func library_status() -> String:
 	if not cloud.signed_in(): return "Sign in for automatic private backup."
 	var pending := 0
-	for entry in slots.shared_configurations("all"):
+	for entry in cloud_entries():
 		if not _account().builds.has(entry.code.sha256_text()): pending += 1
 	return "Private library backup up to date." if pending == 0 else "%d private build backups pending." % pending
+
+func cloud_entries() -> Array:
+	var entries := []
+	for source in slots.shared_configurations("all"):
+		var entry := slots.reusable_entry(source)
+		if entry.is_empty(): continue
+		entry.source_code = source.code
+		entries.append(entry)
+	return entries
 
 func sync_now() -> void:
 	if busy or cloud.busy: return
@@ -109,8 +118,8 @@ func sync_now() -> void:
 	if not deleted.get("ok", false) or not deleted.get("data") is Array: _finish(false, epoch); return
 	deleted_builds.clear()
 	for build_hash in deleted.data: deleted_builds[build_hash] = true
-	for entry in slots.shared_configurations("all"):
-		if deleted_builds.has(entry.code.sha256_text()) and not slots.delete_shared(entry.code): _finish(false, epoch); return
+	for entry in cloud_entries():
+		if deleted_builds.has(entry.code.sha256_text()) and not slots.delete_shared(entry.source_code): _finish(false, epoch); return
 	for item in local_games():
 		var key: String = item.game_type + ":" + str(item.slot)
 		if conflicts.has(key): continue
@@ -127,7 +136,7 @@ func sync_now() -> void:
 			account.games[key] = {"revision": int(data.revision), "hash": item.hash}
 			if not _save_state(): ok = false; break
 	if ok:
-		for entry in slots.shared_configurations("all"):
+		for entry in cloud_entries():
 			var build_hash: String = entry.code.sha256_text()
 			if account.builds.has(build_hash): continue
 			var response: Dictionary = await cloud._rpc("put_private_build", {"build_hash": build_hash, "configuration": entry.code})
@@ -148,7 +157,7 @@ func sync_now() -> void:
 					conflicts[key] = remote.duplicate(true)
 	if ok:
 		var local_builds := {}
-		for entry in slots.shared_configurations("all"): local_builds[entry.code.sha256_text()] = true
+		for entry in cloud_entries(): local_builds[entry.code.sha256_text()] = true
 		var page := 0
 		while true:
 			var response: Dictionary = await cloud._rpc("list_private_builds", {"page_number": page})
@@ -257,8 +266,11 @@ func delete_game(remote: Dictionary, account_id: String) -> bool:
 
 func delete_build(code: String, account_id: String) -> bool:
 	if busy or cloud.busy: return false
+	var entry := slots.reusable_entry(slots.shared_entry(code))
+	if entry.is_empty(): return false
+	var remote_code: String = entry.code
 	if account_id != "":
-		if not await delete_cloud_record("delete_private_build", {"build_hash": code.sha256_text()}, account_id): return false
-	hidden_builds[code.sha256_text()] = true
+		if not await delete_cloud_record("delete_private_build", {"build_hash": remote_code.sha256_text()}, account_id): return false
+	hidden_builds[remote_code.sha256_text()] = true
 	if not _save_state(): return false
 	return slots.delete_shared(code)

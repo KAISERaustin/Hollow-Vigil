@@ -39,7 +39,9 @@ func run() -> void:
 		assert(mission.tuning.towers.rapid.damage == 31 + index)
 	var snapshot := {"version": 1, "sequence": 1, "game_type": "campaign", "id": "12345678-1234-4234-8234-123456789012", "name": "Campaign backup", "mode": "creative", "saved_at": 0, "completed": 30, "stats_version": 1, "levels": levels, "checkpoint": {}}
 	assert(Slots.valid(snapshot))
-	var fixtures := {"build": JSON.parse_string(code), "code": code, "snapshot": snapshot, "playthrough": JSON.parse_string(Playthrough.encode(levels, "Whole Campaign", ""))}
+	var waves := Build.capture("campaign", null, levels, "all", -1, {"resources": true, "timing": true, "composition": true, "rewards": true}, "All Campaign waves", "")
+	var entities := Build.capture("campaign", null, levels, "level", 29, Build.all_contents("campaign"), "Level 30 entity rules", "")
+	var fixtures := {"build": JSON.parse_string(Build.encode(waves)), "entities": JSON.parse_string(Build.encode(entities)), "snapshot": snapshot}
 	FileAccess.open("res://artifacts/campaign-cloud-catalog.json", FileAccess.WRITE).store_string(JSON.stringify(catalog))
 	FileAccess.open("res://artifacts/campaign-cloud-fixtures.json", FileAccess.WRITE).store_string(JSON.stringify(fixtures))
 	print("CAMPAIGN CLOUD CONTRACT: 30 levels preserve resources, entity rules, waves and per-group gold")

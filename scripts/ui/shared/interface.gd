@@ -513,6 +513,10 @@ static func number_row(title: String, number: SpinBox, preview: Button = null, i
 		row.add_child(illustration)
 	var caption := paragraph(title.replace("\n", " · "), BODY)
 	caption.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	caption.minimum_size_changed.connect(func():
+		row.custom_minimum_size.y = maxf(TARGET, caption.get_combined_minimum_size().y) + GAP * 2
+		row.queue_redraw()
+	)
 	row.add_child(caption)
 	if preview != null:
 		preview.size_flags_horizontal = Control.SIZE_SHRINK_END

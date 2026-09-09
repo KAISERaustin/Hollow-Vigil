@@ -8,7 +8,6 @@ var application_unfocused := false
 var public_builds: Node
 var private_backups: Node
 var campaign_progress := preload("res://scripts/campaign/progress.gd").new()
-var campaign_backup: Node
 var cloud: Node
 var bug_reports: Node
 var change_log: Node
@@ -46,15 +45,6 @@ func _ready() -> void:
 	if not load_saved_progress:
 		campaign_progress.path = game.save_path + ".campaign-test"
 	campaign_progress.load_progress()
-	campaign_backup = preload("res://scripts/cloud/campaign_backup.gd").new()
-	campaign_backup.cloud = cloud
-	campaign_backup.progress = campaign_progress
-	campaign_backup.restored.connect(func():
-		if is_instance_valid(campaign):
-			campaign.run = null
-			campaign.show_map()
-	)
-	add_child(campaign_backup)
 	public_builds = preload("res://scripts/cloud/public_builds.gd").new()
 	public_builds.cloud = cloud
 	if not load_saved_progress:

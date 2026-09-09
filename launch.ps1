@@ -76,7 +76,7 @@ try {
             }
         }
         if ($UnifiedTests -or $Check) {
-            foreach ($runner in @('campaign_only_runner', 'campaign_private_backup_runner', 'campaign_backup_runner', 'account_session_runner', 'bug_reports_runner')) {
+            foreach ($runner in @('campaign_only_runner', 'campaign_private_backup_runner', 'account_session_runner', 'bug_reports_runner')) {
                 Invoke-Godot -Name $runner -EngineArguments @('--headless', '--script', "res://tests/$runner.gd")
             }
         }

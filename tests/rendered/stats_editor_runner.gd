@@ -143,6 +143,15 @@ func run() -> void:
 		await settle()
 		menu.scroll.scroll_vertical += int(escort_card.global_position.y - menu.scroll.global_position.y)
 		await capture("grouped-escorts")
+		for field in Balance.Stats.capabilities("enemies").summon.fields:
+			var value := escort_card.find_child(field + "Value", true, false) as SpinBox
+			var disable := escort_card.find_child("DisableStat_" + field, true, false) as Button
+			var row := value.get_parent() as HBoxContainer
+			var caption := row.get_child(0) as Label
+			check(disable.get_parent() == row and disable.position.x >= value.position.x + value.size.x, "Disable sits right of value: " + field)
+			check(disable.text.is_empty() and disable.size == Vector2(48, 48), "Square icon disable: " + field)
+			check(caption.position.y >= 8 and caption.position.y + caption.size.y <= row.size.y - 8, "Wrapped label has vertical padding: " + field)
+			check(row.get_global_rect().end.x <= menu.scroll.get_global_rect().end.x + 1, "Summon row fits portrait: " + field)
 		press(menu, "CancelRules")
 	app.queue_free()
 	await process_frame

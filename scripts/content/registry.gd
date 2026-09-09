@@ -176,7 +176,7 @@ func _populate_towers() -> void:
 			for slot in Towers.ATTACHMENTS.get(branch, {}):
 				branch_attachments[branch][slot] = find("attributes", Towers.ATTACHMENTS[branch][slot])
 		var tower_type := TowerNode.new("tower/" + kind, get_node("tower"), Towers.TOWERS[kind],
-			{"kind": kind, "components": attachments, "branch_attachments": branch_attachments, "upgrade_sound": Towers.UPGRADE_SOUNDS.get(kind, ""), "upgrades": Towers.TOWER_UPGRADES[kind], "branches": Towers.BRANCHES[kind], "abilities": Towers.ABILITIES, "multipliers": Towers.BRANCH_STAT_MULTIPLIERS})
+			{"kind": kind, "damage_type": Towers.DAMAGE_TYPES.get(kind, "physical"), "components": attachments, "branch_attachments": branch_attachments, "upgrade_sound": Towers.UPGRADE_SOUNDS.get(kind, ""), "upgrades": Towers.TOWER_UPGRADES[kind], "branches": Towers.BRANCHES[kind], "abilities": Towers.ABILITIES, "multipliers": Towers.BRANCH_STAT_MULTIPLIERS})
 		_add(tower_type, "towers", kind)
 		_add(ProjectileNode.new("projectile/" + kind, get_node("projectile"), Towers.PROJECTILES[kind], {"kind": kind}), "projectiles", kind)
 		var previous: ContentNode = tower_type

@@ -123,17 +123,19 @@ func rebuild_routes() -> void:
 	route_exits.clear()
 	road_geometry.rebuild(authored_roads)
 
-func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = "", fire: bool = false, pierce: bool = false) -> bool:
+func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = "", fire: bool = false, pierce: bool = false, damage_type: String = "") -> bool:
 	if enemy.dead or not is_finite(damage) or damage <= 0.0 or not data.towers.has(tower_id):
 		return false
 	damage *= 1.0 + Relics.strength(enemy, "expose", simulation_time) * EnemyCapabilities.resistance(enemy, "hex_resistance", tuning) / 100.0
 	var tags: Array = [branch]
 	var owner: Dictionary = data.towers[tower_id]
+	if damage_type.is_empty(): damage_type = "fire" if fire else Balance.Content.tower(owner.kind).rule("damage_type", "physical")
 	for ability in ["frostneedle", "doomstone", "thunderseal"]:
 		if Balance.Stats.ability_enabled("towers", Balance.tier_key(owner.kind, owner.level, owner.get("branch", "")), ability, tuning): tags.append(ability)
 	var protection: float = enemy.get("shield", 0.0) + enemy.get("wards", 0)
 	var portal = Balance.Content.portal(enemy.get("portal_effect_style", enemy.get("rift_style", "forest")))
 	if portal != null and not pierce: damage = portal.incoming_damage(damage, tuning)
+	if portal != null and damage_type == "electric": damage *= portal.resistance("electric_resistance", tuning)
 	damage = EnemyCapabilities.damage(enemy, damage, tags, fire, tuning, pierce)
 	if enemy.get("boss", false):
 		if protection > 0.0 and enemy.get("shield", 0.0) + enemy.get("wards", 0) <= 0.0:
@@ -338,7 +340,7 @@ func tick(delta: float) -> void:
 							var arc := ShotFactory.shot("electric", victim.pos + Vector2(0, 29), other.pos, stats, other.id)
 							arc.tower_id = t.id
 							add_effect(arc)
-							hit(other, stats.damage * stats.arc_multiplier, t.id)
+							hit(other, stats.damage * stats.arc_multiplier, t.id, "tempest_web", false, false, "electric")
 							break
 			continue
 		launch_shot(t, pos, target, stats)

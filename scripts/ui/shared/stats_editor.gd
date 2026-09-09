@@ -189,17 +189,21 @@ func add_stat(field: String, target: VBoxContainer = null) -> void:
 	number.value = Stats.value(category, kind, field, game.tuning)
 	number.accessibility_name = descriptor.label
 	var label: String = descriptor.label + "\nDefault: " + String.num(Stats.default_value(category, kind, field), 2).trim_suffix(".0") + descriptor.suffix
-	target.add_child(UI.number_row(label, number))
+	var row := UI.number_row(label, number)
+	target.add_child(row)
 	numbers.append(number)
 	number.value_changed.connect(func(value: float): changed(Stats.edit(game.tuning, category, kind, field, value)))
 	if field not in Stats.REQUIRED:
-		var disable := UI.button("Disable " + descriptor.label, func():
+		var disable := UI.close_button(func():
 			commit_fields()
 			changed(Stats.edit(game.tuning, category, kind, "enabled_" + field, 0))
 			rebuild()
 		)
 		disable.name = "DisableStat_" + field
-		target.add_child(disable)
+		disable.accessibility_name = "Disable " + descriptor.label
+		disable.size_flags_horizontal = Control.SIZE_SHRINK_END
+		disable.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(disable)
 
 func add_choice(title: String, description: String, button: Button) -> void:
 	var row := UI.action_row(title, button, "Enabled" if button.disabled else "Select", null, description)

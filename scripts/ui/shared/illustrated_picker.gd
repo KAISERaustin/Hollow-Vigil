@@ -29,7 +29,7 @@ func _ready() -> void:
 		if is_visible_in_tree(): grab_focus()
 	)
 	var body := VBoxContainer.new()
-	body.add_theme_constant_override("separation", 0)
+	body.add_theme_constant_override("separation", 12 if direct_choices else 0)
 	popup.add_child(body)
 	var heading := VBoxContainer.new()
 	heading.add_theme_constant_override("separation", 8)
@@ -145,7 +145,7 @@ func fit_popup() -> void:
 	popup.max_size = Vector2i(safe.size)
 	var height := 560.0
 	if direct_choices:
-		height = 24 + popup.get_child(0).get_child(0).get_combined_minimum_size().y + rows.get_combined_minimum_size().y
+		height = 36 + popup.get_child(0).get_child(0).get_combined_minimum_size().y + rows.get_combined_minimum_size().y
 	popup.size = Vector2i(Vector2(minf(480, safe.size.x), minf(height, safe.size.y)))
 	popup.position = Vector2i(safe.get_center() - Vector2(popup.size) * 0.5)
 	# Rotation changes the scroll range after containers lay out their children.

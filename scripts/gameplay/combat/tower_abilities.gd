@@ -17,7 +17,8 @@ static func branch_hit(combat: VigilCombat, shot: Dictionary, enemy: Dictionary)
 		combat.curses[shot.tower_id] = curse
 		damage *= 1.0 + curse.stacks * ability.curse_multiplier
 		enemy.curse_stacks = curse.stacks
-	combat.hit(enemy, damage, shot.tower_id, shot.get("branch", ""), false, shot.get("relic_pierce", false))
+	var damage_type: String = shot.get("damage_type", Balance.Content.tower(shot.get("fx", {}).get("tower_kind", tower.kind)).rule("damage_type", "physical"))
+	combat.hit(enemy, damage, shot.tower_id, shot.get("branch", ""), false, shot.get("relic_pierce", false), damage_type)
 	combat.TowerComponents.after_hit(combat, shot, enemy)
 	if enemy.dead: return
 	for entry in shot.get("ability_effects", []):
@@ -39,7 +40,7 @@ static func branch_hit(combat: VigilCombat, shot: Dictionary, enemy: Dictionary)
 			charges[shot.tower_id] = 0
 			var summoner: bool = combat.EnemyCapabilities.has(enemy, "summon", combat.tuning)
 			var stats := Balance.definition(combat.EnemyCapabilities.category(enemy), enemy.kind, combat.tuning)
-			combat.hit(enemy, damage * (stats.seal_multiplier if summoner else ability.seal_damage), shot.tower_id, "thunderseal")
+			combat.hit(enemy, damage * (stats.seal_multiplier if summoner else ability.seal_damage), shot.tower_id, "thunderseal", false, false, "electric")
 			if summoner and not enemy.get("toll_delayed", false):
 				enemy.toll += stats.toll_delay
 				enemy.toll_delayed = true

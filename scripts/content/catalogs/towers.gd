@@ -1,5 +1,7 @@
 extends RefCounted
 
+const DAMAGE_TYPES := {"electric": "electric"}
+
 # Optional presentation assignments inherited by every tier of a tower family.
 const UPGRADE_SOUNDS := {"rapid": "upgrade_rapid"}
 
