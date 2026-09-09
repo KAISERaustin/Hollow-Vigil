@@ -10,7 +10,7 @@ const TOWERS := {
 	"electric": {"name": "Stormspire", "role": "MULTI-TARGET", "cost": 140.0, "damage": 3.0, "period": 0.4, "range": 160.0, "splash": 0.0, "targets": 5, "color": "91bbff", "description": "Forked lightning zaps up to {targets} enemies at a time within reach, of any troop type."},
 	"ironspike": {"name": "Ironspike", "role": "PIERCING", "cost": 140.0, "damage": 22.0, "period": 1.4, "range": 200.0, "splash": 0.0, "color": "ede4c9", "pierce_count": 3, "pierce_loss": 0.3, "pierce_floor": 0.5, "projectile_width": 9.0, "volley_count": 1, "volley_spacing": 20.0, "description": "A straight bolt pierces up to {pierce_count} aligned enemies, losing damage after each hit. Best beside long straight roads."},
 	"moonwheel": {"name": "Moonwheel", "role": "RETURNING", "cost": 130.0, "damage": 10.0, "period": 1.5, "range": 135.0, "splash": 0.0, "color": "93c9bc", "pierce_count": 3, "projectile_width": 12.0, "return_speed": 1.0, "description": "A crescent cuts out and back through up to {pierce_count} enemies per pass. Each enemy can take one hit on each leg; only one blade flies at a time."},
-	"hex_lantern": {"name": "Hex Lantern", "role": "SUPPORT", "cost": 100.0, "damage": 4.0, "period": 1.4, "range": 270.0, "splash": 0.0, "color": "c28cab", "vulnerability_percent": 12.0, "mark_duration": 2.0, "description": "Curse bolts mark enemies for {mark_duration} seconds, increasing all tower damage received by {vulnerability_percent}%. Only the strongest vulnerability applies."},
+	"hex_lantern": {"name": "Hex Lantern", "role": "SUPPORT", "cost": 100.0, "damage": 1.0, "period": 5.0, "range": 270.0, "splash": 0.0, "color": "c28cab", "vulnerability_percent": 75.0, "mark_duration": 6.0, "aura_damage_percent": 8.0, "description": "Slow curse bolts deal negligible damage. Hexed enemies take {vulnerability_percent}% more tower damage for {mark_duration} seconds. Other towers in range gain {aura_damage_percent}% damage. Only the strongest hex and aura apply."},
 	"caltrop_keep": {"name": "Caltrop Keep", "role": "ROAD TRAPS", "cost": 120.0, "damage": 24.0, "period": 2.0, "range": 125.0, "splash": 0.0, "color": "db8d73", "trap_capacity": 3, "trap_duration": 8.0, "trap_arm_time": 0.5, "trap_count": 1, "trap_radius": 12.0, "description": "Deploys single-use caltrops on nearby roads. Stores up to {trap_capacity}; each arms in {trap_arm_time} seconds and expires after {trap_duration} seconds. Traps never block movement."}
 }
 
@@ -47,8 +47,8 @@ const TOWER_UPGRADES := {
 		{"cost": 200.0, "damage": 21.0, "period": 1.2, "range": 155.0, "splash": 0.0, "pierce_count": 5, "return_speed": 1.4, "projectile_width": 16.0}
 	],
 	"hex_lantern": [
-		{"cost": 100.0, "damage": 7.0, "period": 1.2, "range": 300.0, "splash": 0.0, "vulnerability_percent": 16.0, "mark_duration": 2.5},
-		{"cost": 180.0, "damage": 10.0, "period": 1.0, "range": 330.0, "splash": 0.0, "vulnerability_percent": 20.0, "mark_duration": 3.0, "targets": 2}
+		{"cost": 100.0, "damage": 1.0, "period": 4.75, "range": 300.0, "splash": 0.0, "vulnerability_percent": 90.0, "mark_duration": 7.0, "aura_damage_percent": 10.0},
+		{"cost": 180.0, "damage": 1.0, "period": 4.5, "range": 330.0, "splash": 0.0, "vulnerability_percent": 100.0, "mark_duration": 8.0, "aura_damage_percent": 12.0, "targets": 2}
 	],
 	"caltrop_keep": [
 		{"cost": 120.0, "damage": 36.0, "period": 1.8, "range": 140.0, "splash": 0.0, "trap_capacity": 4, "trap_duration": 10.0},
@@ -82,8 +82,8 @@ const BRANCHES := {
 		"orbit_crown": {"name": "Orbit Crown", "color": "93c9bc", "cost": 300.0, "description": "Three blades orbit in a short radius, sweeping all nearby enemies every {period} seconds. Each enemy takes one hit per sweep, never one hit per blade."}
 	},
 	"hex_lantern": {
-		"oathbrand": {"name": "Oathbrand", "color": "c28cab", "cost": 280.0, "description": "Concentrates on one enemy: +{vulnerability_percent}% incoming tower damage for {mark_duration} seconds. Only the strongest mark applies; boss defenses remain intact."},
-		"witchlight": {"name": "Witchlight", "color": "b49dcc", "cost": 280.0, "description": "Marks add {vulnerability_percent}% incoming damage. A directly marked death spreads the mark to {mark_spread_count} nearby enemies for {mark_duration} seconds. Spread marks never spread again."}
+		"oathbrand": {"name": "Oathbrand", "color": "c28cab", "cost": 280.0, "description": "Concentrates on one enemy: +{vulnerability_percent}% incoming tower damage for {mark_duration} seconds. Other towers in range gain {aura_damage_percent}% damage. Only the strongest hex and aura apply; boss defenses remain intact."},
+		"witchlight": {"name": "Witchlight", "color": "b49dcc", "cost": 280.0, "description": "Marks add {vulnerability_percent}% incoming damage. A directly marked death spreads the mark to {mark_spread_count} nearby enemies for {mark_duration} seconds. Spread marks never spread again. Other towers in range gain {aura_damage_percent}% damage. Only the strongest hex and aura apply."}
 	},
 	"caltrop_keep": {
 		"dreadjaw": {"name": "Dreadjaw", "color": "ede4c9", "cost": 320.0, "description": "Stores {trap_capacity} heavy jaw traps. Each deals {damage} damage to one victim, arms in {trap_arm_time} seconds, and expires after {trap_duration} seconds."},
@@ -120,7 +120,7 @@ const ABILITIES := {
 	"needle_battery": {"pierce_count": 4, "volley_count": 3},
 	"reaper_wheel": {"pierce_count": 8, "projectile_width": 22.0},
 	"orbit_crown": {},
-	"oathbrand": {"targets": 1, "vulnerability_percent": 35.0, "mark_duration": 4.0},
+	"oathbrand": {"targets": 1, "vulnerability_percent": 150.0, "mark_duration": 10.0},
 	"witchlight": {"mark_spread_count": 3, "mark_spread_radius": 80.0},
 	"dreadjaw": {"trap_capacity": 3, "trap_arm_time": 1.0},
 	"scatterworks": {"trap_count": 3, "trap_capacity": 9}
@@ -131,7 +131,7 @@ const ABILITIES := {
 const ATTACHMENTS := {
 	"ironspike": {"attack": "piercing_attack"},
 	"moonwheel": {"attack": "returning_attack"},
-	"hex_lantern": {"mark": "vulnerability_mark"},
+	"hex_lantern": {"mark": "vulnerability_mark", "aura": "damage_aura"},
 	"caltrop_keep": {"attack": "road_traps"},
 	"siegebreaker": {"boss_bonus": "tower_boss_damage"},
 	"orbit_crown": {"attack": "orbit_attack"}

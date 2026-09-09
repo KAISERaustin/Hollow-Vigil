@@ -1,6 +1,7 @@
 extends RefCounted
 
 const TYPES := {
+	"damage_aura": preload("res://scripts/content/nodes/attributes/damage_aura.gd"),
 	"piercing_attack": preload("res://scripts/content/nodes/attributes/line_attack.gd"),
 	"returning_attack": preload("res://scripts/content/nodes/attributes/line_attack.gd"),
 	"orbit_attack": preload("res://scripts/content/nodes/attributes/orbit_attack.gd"),

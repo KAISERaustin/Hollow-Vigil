@@ -56,7 +56,7 @@ func fit() -> void:
 	# The outside gutters match the spacing between tower cards.
 	style.content_margin_left = UI.CARD_GAP
 	style.content_margin_right = UI.CARD_GAP
-	style.content_margin_top = 0
+	style.content_margin_top = UI.CARD_PADDING
 	style.content_margin_bottom = size.y - safe.end.y + UI.CARD_PADDING
 	palette.size = Vector2(safe.size.x, 0)
 	banner.size = Vector2(maxf(1, safe.size.x - UI.CARD_GAP * 2), 0)

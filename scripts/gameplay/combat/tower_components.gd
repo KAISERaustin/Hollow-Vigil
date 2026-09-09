@@ -6,6 +6,18 @@ static func definition(combat, tower: Dictionary):
 		return combat.tower_overrides[tower.id]
 	return Balance.Content.catalog().find("towers", Balance.tier_key(tower.kind, tower.level, tower.get("branch", "")))
 
+static func apply_auras(combat, recipient: Dictionary, stats: Dictionary) -> void:
+	var bonus := 0.0
+	var position := VigilWorld.pad_position(recipient.region, recipient.pad)
+	for source in combat.data.towers.values():
+		if source.id == recipient.id or source.get("rebuild_remaining", 0.0) > 0.0: continue
+		for entry in definition(combat, source).rule("components", []):
+			if not entry.component.has_method("aura_bonus"): continue
+			# Read unmodified source stats so mutually supporting towers cannot recurse.
+			var config: Dictionary = combat.configuration.tower_stats(source).merged(entry.config, true)
+			bonus = maxf(bonus, entry.component.aura_bonus(VigilWorld.pad_position(source.region, source.pad), position, config))
+	stats.damage *= 1.0 + bonus / 100.0
+
 static func sync(combat) -> void:
 	for id in combat.tower_component_state.keys():
 		if not combat.data.towers.has(id): clear(combat, id)

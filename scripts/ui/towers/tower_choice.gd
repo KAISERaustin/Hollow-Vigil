@@ -250,7 +250,7 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 			if fit_row:
 				# The display owns the width, never the catalog's minimum width.
 				# Portraits draw proportionally inside each card; keep touch height.
-				card.custom_minimum_size = Vector2(edge, maxf(UI.TARGET, edge))
+				card.custom_minimum_size = Vector2(edge, maxf(UI.TARGET, floorf(edge * 0.8)))
 			else:
 				card.custom_minimum_size = Vector2.ONE * maxf(CARD_SIZE.x, edge)
 		if fit_row:

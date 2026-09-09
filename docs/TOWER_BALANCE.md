@@ -26,9 +26,9 @@ The tables below are generated from resolved catalog values, including recent ra
 | Moonwheel | 1 | 10 | 1.5 | 135 | 0 | 130 |
 | Moonwheel | 2 | 15 | 1.35 | 145 | 0 | 120 |
 | Moonwheel | 3 | 21 | 1.2 | 155 | 0 | 200 |
-| Hex Lantern | 1 | 4 | 1.4 | 270 | 0 | 100 |
-| Hex Lantern | 2 | 7 | 1.2 | 300 | 0 | 100 |
-| Hex Lantern | 3 | 10 | 1 | 330 | 0 | 180 |
+| Hex Lantern | 1 | 1 | 5 | 270 | 0 | 100 |
+| Hex Lantern | 2 | 1 | 4.75 | 300 | 0 | 100 |
+| Hex Lantern | 3 | 1 | 4.5 | 330 | 0 | 180 |
 | Caltrop Keep | 1 | 24 | 2 | 125 | 0 | 120 |
 | Caltrop Keep | 2 | 36 | 1.8 | 140 | 0 | 120 |
 | Caltrop Keep | 3 | 52 | 1.6 | 155 | 0 | 200 |
@@ -51,8 +51,8 @@ Damage is per contact, not guaranteed DPS. Moonwheel may hit once on each travel
 | Ironspike | Needle Battery | 28 | 1.1 | 230 | 0 | 320 | 780 |
 | Moonwheel | Reaper Wheel | 32 | 1.5 | 185 | 0 | 300 | 750 |
 | Moonwheel | Orbit Crown | 12 | 0.45 | 75 | 0 | 300 | 750 |
-| Hex Lantern | Oathbrand | 10 | 1 | 330 | 0 | 280 | 660 |
-| Hex Lantern | Witchlight | 10 | 1 | 330 | 0 | 280 | 660 |
+| Hex Lantern | Oathbrand | 1 | 4.5 | 330 | 0 | 280 | 660 |
+| Hex Lantern | Witchlight | 1 | 4.5 | 330 | 0 | 280 | 660 |
 | Caltrop Keep | Dreadjaw | 140 | 2 | 155 | 0 | 320 | 760 |
 | Caltrop Keep | Scatterworks | 32 | 2 | 155 | 0 | 320 | 760 |
 
@@ -87,3 +87,5 @@ A shared spatial road index deduplicates overlapping routes and refreshes when a
 - `tests/campaign_expansion_runner.gd`: legal strategies for the final ten authored levels.
 - `tests/content_node_runner.gd`: shared content definitions and isolated instances.
 - `tests/rendered/mobile_campaign_controls_runner.gd`: Campaign placement, upgrades, equipment and wave controls at three portrait sizes.
+
+Hex Lantern support rework: levels 1/2/3 apply +75/90/100% incoming tower damage for 6/7/8 seconds and grant other towers in range +8/10/12% damage. Oathbrand applies +150% for 10 seconds to one target; Witchlight retains level-three values and spreads on death. Strongest hex and aura apply independently, without same-effect stacking. Aura is checked when attacks resolve their stats, excludes its source and rebuilding sources, and disappears immediately on removal. All values are editable per tier in Rules.

@@ -1,3 +1,5 @@
+> Historical concept. Hex Lantern live balance was reworked on September 9, 2026; see [current balance](../TOWER_BALANCE.md).
+
 # Four additional tower families
 
 September 7, 2026 · Original visual concept brief · This brief records the proposed designs; its figures are playtest candidates, not a balance certification or implementation status report.

@@ -67,7 +67,9 @@ func resolved_definition(category: String, kind: String) -> Dictionary:
 
 func tower_stats(tower: Dictionary) -> Dictionary:
 	if not configuration_active: configuration.synchronize(tuning, data.relics)
-	return configuration.tower_stats(tower)
+	var stats := configuration.tower_stats(tower).duplicate(true)
+	TowerComponents.apply_auras(self, tower, stats)
+	return stats
 
 func enemy_identifiers() -> Dictionary:
 	if not ticking: rebuild_enemy_index()

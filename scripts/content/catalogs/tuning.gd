@@ -71,6 +71,7 @@ const TUNING_FIELDS := {
 		"payout": {"label": "Gold per defeat", "suffix": " gold", "min": 0.0, "max": 10000.0, "step": 1.0}
 	},
 	"towers": {
+		"aura_damage_percent": {"label": "Nearby tower damage bonus", "suffix": "%", "min": 0, "max": 100, "step": 1},
 		"pierce_count": {"label": "Victims per pass", "suffix": "", "min": 1, "max": 50, "step": 1,"integer":true},
 		"pierce_loss": {"label": "Damage lost per victim", "suffix": "×", "min": 0, "max": 1, "step": 0.05},
 		"pierce_floor": {"label": "Minimum pierce damage", "suffix": "×", "min": 0, "max": 1, "step": 0.05},

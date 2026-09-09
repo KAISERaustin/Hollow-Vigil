@@ -71,7 +71,7 @@ try {
         # Registers script classes and imports assets on a completely clean checkout.
         Invoke-Godot -Name 'import' -EngineArguments @('--headless', '--editor', '--import')
         if ($Tests -or $Check) {
-            foreach ($runner in @('source_load_runner', 'campaign_runner', 'campaign_configuration_runner', 'campaign_export_runner', 'campaign_expansion_runner', 'campaign_ground_save_runner', 'tuning_schema_runner')) {
+            foreach ($runner in @('source_load_runner', 'hex_support_runner', 'campaign_runner', 'campaign_configuration_runner', 'campaign_export_runner', 'campaign_expansion_runner', 'campaign_ground_save_runner', 'tuning_schema_runner')) {
                 Invoke-Godot -Name $runner -EngineArguments @('--headless', '--script', "res://tests/$runner.gd")
             }
         }
