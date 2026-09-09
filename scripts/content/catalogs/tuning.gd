@@ -62,6 +62,10 @@ const TUNING_FIELDS := {
 		"curse_threshold": {"label": "Doomstone stacks to suppress regrowth", "suffix": " stacks", "min": 0.0, "max": 100.0, "step": 1.0, "integer": true}
 	},
 	"rifts": {
+		"electric_resistance": {"label": "Electric resistance", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
+		"ice_resistance": {"label": "Slow resistance", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
+		"poison_resistance": {"label": "Poison resistance", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
+		"push_resistance": {"label": "Knockback resistance", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
 		"armor_percent": {"label": "Enemy armor (damage reduction %)", "suffix": "%", "min": 0.0, "max": 100.0, "step": 0.25},
 		"health_regen_percent": {"label": "Enemy health restored (% per second)", "suffix": "% / s", "min": 0.0, "max": 100.0, "step": 0.25},
 		"strength": {"label": "Effect strength", "suffix": "%", "min": 0.0, "max": 100.0, "step": 0.25}

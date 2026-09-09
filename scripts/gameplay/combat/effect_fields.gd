@@ -45,4 +45,4 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 	combat.effect_fields = survivors
 	for effect in affected.values():
 		var resistance: float = 1.0 if effect.fire else combat.EnemyCapabilities.resistance(effect.enemy, "poison_resistance", combat.tuning)
-		combat.hit(effect.enemy, effect.damage * resistance, effect.owner, "", effect.fire)
+		combat.hit(effect.enemy, effect.damage * resistance, effect.owner, "", effect.fire, false, "fire" if effect.fire else "poison")

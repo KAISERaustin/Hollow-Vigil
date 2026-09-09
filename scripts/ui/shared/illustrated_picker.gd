@@ -51,8 +51,12 @@ func _ready() -> void:
 	rows = VBoxContainer.new()
 	rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	# Row contents center between adjacent rules, without extra space above them.
-	rows.add_theme_constant_override("separation", 0)
+	rows.add_theme_constant_override("separation", 8 if direct_choices else 0)
 	scroll.add_child(rows)
+	# Wrapping changes minimum heights after the popup assigns its final width.
+	# Refit then as well as on opening, especially inside a scrolling form.
+	rows.minimum_size_changed.connect(fit_popup, CONNECT_DEFERRED)
+	heading.minimum_size_changed.connect(fit_popup, CONNECT_DEFERRED)
 	get_viewport().size_changed.connect(fit_popup)
 
 func clear() -> void:
@@ -141,7 +145,6 @@ func fit_popup() -> void:
 	popup.max_size = Vector2i(safe.size)
 	var height := 560.0
 	if direct_choices:
-		rows.add_theme_constant_override("separation", 8)
 		height = 24 + popup.get_child(0).get_child(0).get_combined_minimum_size().y + rows.get_combined_minimum_size().y
 	popup.size = Vector2i(Vector2(minf(480, safe.size.x), minf(height, safe.size.y)))
 	popup.position = Vector2i(safe.get_center() - Vector2(popup.size) * 0.5)

@@ -102,6 +102,9 @@ func open_group(group: String) -> void:
 			fields.add_child(UI.paragraph("Applies to enemies and bosses. Set 0 to disable. Armor-piercing damage bypasses armor. Regeneration adds to the portal's built-in effect."))
 			add_number("armor_percent")
 			add_number("health_regen_percent")
+			fields.add_child(UI.paragraph("Resistances reduce electric damage, slow strength, poison damage or knockback distance by the chosen percentage. They combine with the enemy's own resistances. 100% grants immunity to that effect."))
+			for field in preload("res://scripts/content/nodes/attributes/portal_enemy_effects.gd").RESISTANCES:
+				add_number(field)
 		elif group == "Stats" and selected_fields().has("strength"):
 			fields.add_child(UI.paragraph(Balance.rift_description(selected_kind, game.tuning)))
 			add_number("strength")

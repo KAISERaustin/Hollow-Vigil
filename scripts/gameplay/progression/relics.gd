@@ -157,7 +157,7 @@ static func hindered(enemy: Dictionary, now: float) -> bool:
 	return enemy.get("root_until", 0.0) > now or enemy.get("stun_until", 0.0) > now or (enemy.get("slow_until", 0.0) > now and enemy.get("slow_percent", 0.0) > 0.0) or strength(enemy, "slow", now) > 0.0 or strength(enemy, "stun", now) > 0.0
 
 static func push_resistance(combat: VigilCombat, enemy: Dictionary) -> float:
-	return Balance.tuned_value("bosses" if enemy.get("boss", false) else "enemies", enemy.kind, "push_resistance", combat.tuning)
+	return 100.0 * (1.0 - combat.EnemyCapabilities.resistance(enemy, "push_resistance", combat.tuning))
 
 static func advance(combat: VigilCombat, delta: float) -> void:
 	for enemy in combat.enemies:
@@ -177,7 +177,7 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 			if not enemy.dead and status.type == "dot" and combat.data.towers.has(status.owner):
 				var elapsed := clampf(status.until - (combat.simulation_time - delta), 0.0, delta)
 				var resistance: float = 1.0 if status.fire else combat.EnemyCapabilities.resistance(enemy, "poison_resistance", combat.tuning)
-				combat.hit(enemy, status.damage * elapsed * resistance, status.owner, "", status.fire)
+				combat.hit(enemy, status.damage * elapsed * resistance, status.owner, "", status.fire, false, "fire" if status.fire else "poison")
 			if status.until <= combat.simulation_time or enemy.dead or not combat.data.towers.has(status.owner):
 				statuses.erase(key)
 

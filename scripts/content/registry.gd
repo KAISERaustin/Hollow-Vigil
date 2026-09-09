@@ -226,6 +226,8 @@ func _populate_world(root: ContentNode) -> void:
 		var config: Dictionary = World.PORTALS[style]
 		var attributes: Dictionary = World.RIFTS.get(style, {"name": config.name}).duplicate(true)
 		attributes.merge({"armor_percent": 0.0, "health_regen_percent": 0.0})
+		for field in preload("res://scripts/content/nodes/attributes/portal_enemy_effects.gd").RESISTANCES:
+			attributes[field] = 0.0
 		var rules: Dictionary = config.merged({"kind": style, "enemy_kinds": Actors.FAMILIES[style]})
 		var ornaments := {}
 		for kind in Actors.FAMILIES[style]:

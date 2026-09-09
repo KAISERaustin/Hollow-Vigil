@@ -92,6 +92,7 @@ try {
             Invoke-Godot -Name 'wave-editor-touch' -EngineArguments @('--script', 'res://tests/rendered/wave_editor_runner.gd')
             Invoke-Godot -Name 'campaign-touch' -EngineArguments @('--script', 'res://tests/rendered/mobile_campaign_controls_runner.gd')
             Invoke-Godot -Name 'picker-touch' -EngineArguments @('--script', 'res://tests/rendered/illustrated_picker_touch_runner.gd')
+            Invoke-Godot -Name 'save-slot-picker' -EngineArguments @('--script', 'res://tests/rendered/save_slot_picker_runner.gd')
         }
         if ($TerrainTests -or $TerrainPreview -or $Check) {
             Invoke-Godot -Name 'campaign-terrain' -EngineArguments @('--script', 'res://tests/rendered/campaign_terrain_checks.gd')

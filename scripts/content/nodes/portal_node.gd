@@ -26,3 +26,10 @@ func advance_enemy(enemy: Dictionary, delta: float, tuning: Dictionary) -> void:
 	for attachment in rule("components", []):
 		if attachment.slot == "enemy_effects":
 			attachment.component.advance(enemy, delta, definition(tuning).merged(attachment.config, true))
+
+func resistance(field: String, tuning: Dictionary) -> float:
+	var multiplier := 1.0
+	for attachment in rule("components", []):
+		if attachment.slot == "enemy_effects":
+			multiplier *= attachment.component.resistance(field, definition(tuning).merged(attachment.config, true))
+	return multiplier

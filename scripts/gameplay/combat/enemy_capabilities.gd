@@ -11,7 +11,9 @@ static func has(enemy: Dictionary, ability: String, tuning: Dictionary) -> bool:
 
 static func resistance(enemy: Dictionary, field: String, tuning: Dictionary) -> float:
 	var node = Balance.Content.catalog().get_node("resistance/" + field)
-	return node.multiplier(Balance.definition(category(enemy), enemy.kind, tuning))
+	var multiplier: float = node.multiplier(Balance.definition(category(enemy), enemy.kind, tuning))
+	var portal = Balance.Content.portal(enemy.get("portal_effect_style", enemy.get("rift_style", "")))
+	return multiplier * portal.resistance(field, tuning) if portal != null else multiplier
 
 static func initialize(enemy: Dictionary, tuning: Dictionary) -> void:
 	var stats := Balance.definition(category(enemy), enemy.kind, tuning)

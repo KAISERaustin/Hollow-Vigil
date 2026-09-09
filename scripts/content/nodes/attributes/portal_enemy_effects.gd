@@ -1,4 +1,8 @@
 extends "res://scripts/content/nodes/attribute_node.gd"
+const RESISTANCES := {"electric_resistance": "Electric resistance", "ice_resistance": "Slow resistance", "poison_resistance": "Poison resistance", "push_resistance": "Knockback resistance"}
+
+func resistance(field: String, config: Dictionary) -> float:
+	return 1.0 - clampf(float(config.get(field, 0.0)), 0.0, 100.0) / 100.0
 ## Stateless recipient modifiers; mutable health belongs to each enemy.
 func incoming_damage(amount: float, config: Dictionary) -> float:
 	return amount * (1.0 - clampf(float(config.get("armor_percent", 0.0)), 0.0, 100.0) / 100.0)
