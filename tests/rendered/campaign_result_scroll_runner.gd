@@ -40,7 +40,6 @@ func run() -> void:
 			await touch(action.get_global_rect().get_center(), false)
 			await settle()
 			check(campaign.page == "map" and not campaign.dialog.visible, "First result action returns to map")
-			print("SCROLL DEBUG ", result, " layout filter=", campaign.layout.mouse_filter, " range=", campaign.page_scroll.get_v_scroll_bar().max_value, " size=", campaign.page_scroll.size)
 			await swipe(campaign.page_scroll.get_global_rect().get_center())
 			check(campaign.page_scroll.scroll_vertical > 30 and campaign.page == "map", "Immediate map swipe after %s at %s" % [result, dimensions])
 			if DisplayServer.get_name() != "headless":

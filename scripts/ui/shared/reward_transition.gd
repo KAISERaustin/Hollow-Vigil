@@ -69,7 +69,6 @@ func _input(event: InputEvent) -> void:
 	# Release the captured pointer before suppressing its synthetic duplicate.
 	# Phones can deliver the emulated mouse press first; suppressing its release
 	# before cleanup leaves mouse_1 captured and blocks later map gestures.
-	# Godot can synthesize a mouse event from the same touch after it is dismissed.
 	if event.device == InputEvent.DEVICE_ID_EMULATION and (not dismissed_pointers.is_empty() or dismissed_frame == Engine.get_process_frames()):
 		get_viewport().set_input_as_handled()
 		return
