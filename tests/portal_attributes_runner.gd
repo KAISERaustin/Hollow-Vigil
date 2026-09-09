@@ -106,6 +106,24 @@ func check_resistances() -> void:
 		var replay = preload("res://scripts/campaign/run.gd").new(0, {"tuning": tuning}, "creative")
 		var restored = replay.from_checkpoint(replay.checkpoint())
 		check(restored != null and restored.game.tuning.rifts[style] == values, "Checkpoint retains four resistances")
+		var boss := game.combat.Bosses.create(game.combat, "0,0", "ruined_king", path)
+		boss.portal_effect_style = style
+		var boss_before: float = boss.hp
+		game.combat.hit(boss, 8.0, tower.id)
+		check(is_equal_approx(boss_before - boss.hp, 4.0), "Portal electric resistance includes bosses")
+		var immune := {"rifts": {style: {"electric_resistance": 100.0}}}
+		game.data.towers.clear()
+		game.apply_balance(immune)
+		game.data.towers.storm = tower
+		boss_before = boss.hp
+		game.combat.hit(boss, 8.0, tower.id, "", false, true)
+		check(boss.hp == boss_before, "100 percent electric resistance survives armor bypass")
+		game.data.towers.clear()
+		game.apply_balance({})
+		game.data.towers.storm = tower
+		boss_before = boss.hp
+		game.combat.hit(boss, 8.0, tower.id)
+		check(is_equal_approx(boss_before - boss.hp, 8.0), "Removing resistance updates live bosses")
 	check_chain_lightning()
 
 func check_chain_lightning() -> void:

@@ -25,6 +25,10 @@ func run() -> void:
 			browser.inputs.health_regen_percent.value = 5.0
 			check(browser.game.tuning.rifts[style].armor_percent == 25.0, "Armor updates draft")
 			check(browser.game.tuning.rifts[style].health_regen_percent == 5.0, "Regeneration updates draft")
+			for field in preload("res://scripts/content/nodes/attributes/portal_enemy_effects.gd").RESISTANCES:
+				check(browser.inputs.has(field), "Resistance control exists: " + field)
+				browser.inputs[field].value = 50.0
+				check(browser.game.tuning.rifts[style][field] == 50.0, "Resistance changes draft: " + field)
 			for frame in range(6): await process_frame
 			menu.fit()
 			menu.scroll.scroll_vertical = 0
@@ -33,6 +37,11 @@ func run() -> void:
 			for number in browser.inputs.values():
 				check(number.size.x > 0 and number.get_global_rect().end.x <= dimensions.x, "Fields fit portrait width")
 			root.get_texture().get_image().save_png("res://artifacts/portal-attributes-%s-%d.png" % [style, dimensions.x])
+			menu.scroll.ensure_control_visible(browser.inputs.push_resistance)
+			for frame in range(6): await process_frame
+			check(menu.scroll.get_global_rect().encloses(browser.inputs.push_resistance.get_global_rect()), "Last resistance remains reachable by scrolling")
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png("res://artifacts/portal-resistances-%s-%d.png" % [style, dimensions.x])
 			browser.cancel_item()
 			check(browser.game.tuning == original, "Cancel restores portal rules")
 	app.queue_free()

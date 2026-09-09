@@ -772,6 +772,7 @@ func open_rules() -> void:
 
 var level_rules: VBoxContainer
 var item_rule_snapshot := {}
+var original_rule_tuning := {}
 
 func show_campaign_content_rules(return_to: Callable = Callable()) -> void:
 	if not live_campaign() or not app.campaign.can_author(): return
@@ -780,6 +781,7 @@ func show_campaign_content_rules(return_to: Callable = Callable()) -> void:
 	campaign_rule_changes = {}
 	page_view("rules", "Edit rules", rules_back)
 	editor_game = VigilState.new(42, "creative", Build.Configuration.resolve(0, app.campaign.level_setup(0).overrides).tuning)
+	original_rule_tuning = editor_game.tuning.duplicate(true)
 	content.add_child(UI.paragraph("Changes apply to every level in this save."))
 	rules_editor = preload("res://scripts/ui/shared/rules_browser.gd").new()
 	rules_editor.game = editor_game
@@ -864,7 +866,23 @@ func rules_back() -> void:
 	else: cancel_rules()
 
 func cancel_rules() -> void:
+	if not has_rule_changes():
+		rules_return.call()
+		return
 	confirm("Discard rule changes?", "Leave this draft and keep the game's existing rules?", "Discard changes", rules_return)
+
+func has_rule_changes() -> bool:
+	for category in campaign_rule_changes:
+		for kind in campaign_rule_changes[category]:
+			for stat in campaign_rule_changes[category][kind]:
+				if campaign_rule_changes[category][kind][stat] != Balance.configuration_value(category, kind, stat, original_rule_tuning):
+					return true
+	for index in level_rules.changes:
+		var original := Build.Configuration.resolve(int(index), app.campaign.level_setup(int(index)).overrides)
+		for stat in level_rules.changes[index]:
+			if level_rules.changes[index][stat] != original[stat]:
+				return true
+	return false
 
 func show_backups(return_to: Callable = Callable()) -> void:
 	if return_to.is_valid(): backup_return = return_to
