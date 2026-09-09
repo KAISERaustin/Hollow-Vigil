@@ -94,3 +94,9 @@ The campaign world map uses six edge-to-edge biome sections with native scenery,
 Completed levels use `scripts/campaign/cleared_level_art.gd`, a stateless shared drawing component composed by `level_marker.gd`. Broken parchment stone, scattered masonry and an ochre beacon replace the intact marker; chapter bosses use collapsed gate jambs with the same beacon. Numbers remain readable and completion comes only from campaign progress. Flames are flat and static, with no glow or particles. Unfinished destinations retain their existing artwork. Regenerate mobile reference captures with `--script res://tests/previews/cleared_map_preview.gd`.
 
 Currency text uses a centered ochre coin with black rim, inset ring and diamond, matching the existing coin portrait. The reusable color glyph scales with surrounding text; see UI_STYLE_GUIDE.md.
+
+## Hex recipient effects
+
+`rendering/effects/hex_art.gd` shares a violet inked rune vocabulary between enemy vulnerability and allied tower empowerment. Enemy hexes use a hovering eye, three rising side runes and a low seal, following the existing poison bubbles and ice crystals. Poison and ice remain visible when combined with hex; bosses receive a larger hex cue to match their silhouettes. Boosted towers use a quiet flattened broken ring and two small runes at their foundations, drawn with each tower so depth ordering remains intact.
+
+Effects read live status/strength and the shared combat aura query, without visual timers or persistent state. Expired, removed and zero-strength effects disappear; rebuilding towers do not display the boost. `tests/rendered/hex_effect_runner.gd` exports all eight boosted tower families, poison/ice/hex comparisons and combined effects at two animation phases in 360x640, 390x844 and 540x960 portrait views. Run it through `launch.ps1 -ArtSmoke` or `-Check`.
