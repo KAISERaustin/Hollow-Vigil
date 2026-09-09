@@ -1,4 +1,4 @@
-extends "res://scripts/content/nodes/content_node.gd"
+extends "res://scripts/content/nodes/stats_node.gd"
 
 const ContentNode = preload("res://scripts/content/nodes/content_node.gd")
 
@@ -59,11 +59,8 @@ func stats(level: int = 0, tuning: Dictionary = {}, branch: String = "") -> Dict
 		level = int(_rules.get("level", 1))
 	if _rules.has("base_kind"):
 		return _base_type().stats(level, tuning, branch if branch != "" else _rules.get("branch", ""))
-	var result := scaled_stats(level, tuning, branch)
-	if level > 1:
-		var key: String = _rules.kind + ":" + (branch if level == 4 else str(level))
-		result.merge(tuning.get("towers", {}).get(key, {}), true)
-	return result
+	var key: String = _rules.kind if level == 1 else _rules.kind + ":" + (branch if level == 4 else str(level))
+	return Stats.resolve("towers", key, scaled_stats(level, {}, branch), tuning)
 
 func at_level(level: int, branch: String = "") -> ContentNode:
 	if _rules.has("base_kind"):

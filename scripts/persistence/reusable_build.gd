@@ -152,8 +152,8 @@ static func valid(value: Dictionary) -> bool:
 		var entry: Variant = value.data.levels.get(str(index))
 		if not entry is Dictionary or not _valid_stats(entry.get("stats"), value.contents, required_stats) or not entry.get("waves") is Dictionary: return false
 		var defaults := Configuration.Catalog.level(index)
-		if entry.waves.size() != defaults.waves.size(): return false
-		for wave in defaults.waves.size():
+		if not Configuration._number(entry.waves.size(), 1, 10000, true): return false
+		for wave in entry.waves.size():
 			var part: Variant = entry.waves.get(str(wave))
 			if not part is Dictionary or not _valid_stats(part.get("stats"), value.contents, required_stats): return false
 			if not _valid_wave_part(part, value.contents, defaults.roads.size()): return false
@@ -194,7 +194,7 @@ static func _valid_wave_part(part: Dictionary, contents: Dictionary, lanes: int)
 	if part.has("reward") and not Configuration._number(part.reward, 0, Configuration.Fields.CONFIGURATION_FIELDS.reward.max): return false
 	for key in ["timing", "composition"]:
 		if not part.has(key): continue
-		if not part[key] is Array or part[key].is_empty() or part[key].size() > 32: return false
+		if not part[key] is Array or part[key].size() > 32: return false
 		for group in part[key]:
 			if not group is Array: return false
 			if key == "timing":
@@ -216,9 +216,13 @@ static func campaign_level(value: Dictionary, index: int) -> Dictionary:
 		if not entry.resources is Dictionary or entry.resources.size() != 2: return {"ok": false}
 		overrides.merge(entry.resources, true)
 	var defaults := Configuration.Catalog.level(index)
-	for wave in defaults.waves.size():
+	var full_waves: bool = value.contents.get("timing", false) and value.contents.get("composition", false)
+	if entry.waves.size() != defaults.waves.size() and not full_waves:
+		return {"ok": false, "dependency": true, "error": "Save both Wave timing and counts and Enemy types and entrances to preserve added or removed waves."}
+	if full_waves: overrides.wave_count = entry.waves.size()
+	for wave in entry.waves.size():
 		var part: Dictionary = entry.waves[str(wave)]
-		var spawn_groups: Array = defaults.waves[wave].duplicate(true)
+		var spawn_groups: Array = defaults.waves[wave].duplicate(true) if wave < defaults.waves.size() else []
 		if part.has("timing") and part.has("composition"):
 			if part.timing.size() != part.composition.size(): return {"ok": false}
 			spawn_groups = []
@@ -252,7 +256,7 @@ static func portable_stats(value: Dictionary, choices: Dictionary) -> Dictionary
 	if not value.data.levels.has(str(index)): return {"ok": false, "error": "Choose a level included in this build."}
 	return {"ok": true, "tuning": value.data.levels[str(index)].stats.duplicate(true)}
 
-static func compose_campaign(value: Dictionary, choices: Dictionary) -> Dictionary:
+static func compose_campaign(value: Dictionary, _choices: Dictionary) -> Dictionary:
 	var levels := {}
 	for key in value.data.levels:
 		var composed := campaign_level(value, int(key))

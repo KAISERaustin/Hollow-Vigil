@@ -53,6 +53,12 @@ static func _prepare_regions(data: Dictionary) -> void:
 func start_wave() -> bool:
 	if phase != "planning" or wave >= mission.waves.size():
 		return false
+	while wave < mission.waves.size() and mission.waves[wave].is_empty(): wave += 1
+	if wave >= mission.waves.size():
+		phase = "victory"
+		finish_pending = true
+		changed.emit()
+		return false
 	wave_checkpoint = _capture_checkpoint("wave")
 	# This setup exception ends permanently for this run at the first wave start.
 	game.economy.set_sale_rules(null)
@@ -97,6 +103,8 @@ func tick(delta: float) -> void:
 		wave += 1
 		# A single transition pays each cleared wave exactly once.
 		game.data.balance += mission.wave_rules[wave - 1].reward
+		var cleared_wave := wave
+		while wave < mission.waves.size() and mission.waves[wave].is_empty(): wave += 1
 		phase = "victory" if wave == mission.waves.size() else "planning"
 		game.combat.pending_shots.clear()
 		game.combat.line_projectiles.clear()
@@ -108,7 +116,7 @@ func tick(delta: float) -> void:
 		game.combat.relic_progress.clear()
 		for tower in game.data.towers.values():
 			tower.cooldown = 0.0
-		wave_cleared.emit(wave, float(mission.wave_rules[wave - 1].reward))
+		wave_cleared.emit(cleared_wave, float(mission.wave_rules[cleared_wave - 1].reward))
 		changed.emit()
 		if phase == "victory":
 			finish_pending = true
@@ -129,10 +137,11 @@ func editable() -> bool:
 func can_author() -> bool:
 	return Balance.Content.catalog().get_node("level/campaign/" + mode).rule("developer_controls", false)
 
-func apply_configuration(overrides: Dictionary) -> bool:
+func apply_configuration(overrides: Dictionary, removed_wave: int = -1) -> bool:
 	if not can_author() or not editable() or not Configuration.valid_level(mission.index, overrides): return false
 	var next := Configuration.resolve(mission.index, overrides)
-	if phase == "wave" and next.waves[wave].size() < mission.waves[wave].size(): return false
+	# Live content-rule edits may still update stats, but wave composition is locked.
+	if phase == "wave" and (next.waves != mission.waves or next.wave_rules != mission.wave_rules): return false
 	# Already spawned enemies keep their health/effects. Only outstanding group members change.
 	if phase == "wave":
 		var pending: Array[Dictionary] = []
@@ -146,6 +155,11 @@ func apply_configuration(overrides: Dictionary) -> bool:
 			game.data.balance = maxf(0.0, game.data.balance + next.gold - mission.gold)
 			health = int(next.flame)
 	mission = next
+	if removed_wave >= 0 and removed_wave < wave: wave -= 1
+	wave = mini(wave, mission.waves.size())
+	if phase == "planning" and wave == mission.waves.size():
+		phase = "victory"
+		finish_pending = true
 	game.combat.authored_roads = mission.routes
 	game.economy.placement_roads = mission.routes
 	game.economy.placement_bounds = preload("res://scripts/content/nodes/ground_placement.gd").campaign_bounds(mission)

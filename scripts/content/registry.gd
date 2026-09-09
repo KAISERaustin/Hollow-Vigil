@@ -4,6 +4,7 @@ extends RefCounted
 ## One discoverable tree for every gameplay content family. Stable IDs are
 ## namespaced (tower/heavy and enemy/heavy are intentionally different nodes).
 const ContentNode = preload("res://scripts/content/nodes/content_node.gd")
+const StatsNode = preload("res://scripts/content/nodes/stats_node.gd")
 const TowerNode = preload("res://scripts/content/nodes/tower_node.gd")
 const EnemyNode = preload("res://scripts/content/nodes/enemy_node.gd")
 const BossNode = preload("res://scripts/content/nodes/boss_node.gd")
@@ -134,7 +135,12 @@ func _add(entry: ContentNode, category: String = "", kind: String = "") -> Conte
 
 func _populate() -> void:
 	var root := _add(ContentNode.new("content"))
-	var entity := _add(ContentNode.new("entity", root))
+	var stats_root := _add(StatsNode.new("stats", root))
+	var entity := _add(StatsNode.new("entity", stats_root))
+	for category in StatsNode.Stats.CATEGORIES:
+		for field in StatsNode.Stats.schema(category):
+			if not StatsNode.Stats.control(field):
+				_add(ContentNode.new("stats/" + category + "/" + field, stats_root, StatsNode.Stats.schema(category)[field]), "stats", category + "/" + field)
 	_add(TowerNode.new("tower", entity, {"targets": 1}, {"placement": "ground", "equipment_slots": ["relic"], "target_modes": ["first", "last", "most_hp"], "max_level": 4, "tuning_category": "towers"},
 		{"level": 1, "earnings": 0.0, "cooldown": 0.0, "angle": 0.0, "rebuild_remaining": 0.0, "target_mode": "first"}))
 	_add(EnemyNode.new("enemy", entity, {}, {"tuning_category": "enemies", "escape_damage": 1, "movement": "road", "authored_paths": true, "targetable": true}, {"segment": 1, "dead": false}))
@@ -237,7 +243,7 @@ func _populate_levels(root: ContentNode) -> void:
 		attributes.chapter = int(index / 5.0)
 		attributes.style = Levels.CHAPTERS[int(index / 5.0)].style
 		attributes.reward = 35 + index * 4
-		attributes.tuning = {"bosses": {"warden": {"hp": 1800.0, "shield": 300.0, "regen_period": 12.0}}} if index == 4 else {}
+		attributes.tuning = {}
 		_add(LevelNode.new("level/" + str(index), get_node("level/chapter/" + str(int(index / 5.0))), attributes), "levels", str(index))
 		for wave_index in range(attributes.waves.size()):
 			_add(WaveNode.new("wave/" + str(index) + "/" + str(wave_index), wave_root, {"groups": attributes.waves[wave_index]}, {"level": index, "wave": wave_index}))

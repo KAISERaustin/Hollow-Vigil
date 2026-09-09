@@ -6,8 +6,8 @@ const Art = preload("res://scripts/rendering/terrain/terrain_art.gd")
 const HEX := Color("c58cdb")
 const DEEP := Color("80549f")
 
-static func active(enemy: Dictionary, time: float) -> bool:
-	for status in enemy.get("gear_status", {}).values():
+static func active(recipient: Dictionary, time: float) -> bool:
+	for status in recipient.get("gear_status", {}).values():
 		if status.get("type", "") == "expose" and status.get("strength", 0.0) > 0.0 and status.get("until", 0.0) > time:
 			return true
 	return false

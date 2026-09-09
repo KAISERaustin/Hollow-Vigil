@@ -145,7 +145,6 @@ func progress_text(value: Dictionary, type: String = "") -> String:
 	if not checkpoint.is_empty() and checkpoint.phase != "victory":
 		text += "\nLevel %d · Start of wave %d" % [int(checkpoint.level) + 1, int(checkpoint.wave) + 1]
 	return text
-	return "%d explored tiles · %d towers" % [value.get("regions", {}).size(), value.get("towers", {}).size()]
 
 func show_slots() -> void:
 	page_view("slots", "Saved games", leave_saved_games)
@@ -548,7 +547,7 @@ func open_build_form() -> void:
 
 func open_saved_build_form(entry: Dictionary) -> void:
 	var build: Dictionary = entry.build
-	var source: VigilState
+	var source: VigilState = null
 	var levels := {}
 	var composed := Build.compose_campaign(build, {})
 	if not composed.ok: notice(composed.get("error", "This build has incompatible contents.")); return
@@ -814,6 +813,7 @@ func show_campaign_content_rules(return_to: Callable = Callable()) -> void:
 
 func show_campaign_rules(index: int, wave: int, return_to: Callable) -> void:
 	if not live_campaign() or not app.campaign.can_author() or wave < 0: return
+	if app.campaign.run != null and app.campaign.run.phase == "wave": return
 	wave_rules = true
 	rules_return = return_to
 	page_view("rules", "Edit wave %d" % (wave + 1), rules_back)
@@ -826,13 +826,13 @@ func show_campaign_rules(index: int, wave: int, return_to: Callable) -> void:
 	rules_editor.shared_page = true
 	if app.campaign.run != null and app.campaign.run.mission.index == index and app.campaign.page == "battle" and app.campaign.run.editable(): rules_editor.live_run = app.campaign.run
 	rules_editor.apply_changes = app.campaign.save_configuration
-	rules_editor.saved.connect(func(): app.campaign.persist_slot(); rules_return.call())
 	content.add_child(rules_editor)
-	footer.add_child(action("Apply changes", func(): rules_editor.save_changes(), "ApplyRules", true))
-	footer.add_child(action("Cancel", cancel_rules, "CancelRules"))
+	footer.add_child(action("Done", rules_return, "DoneWaveRules", true))
 
 func rules_back() -> void:
-	if not wave_rules and is_instance_valid(level_rules) and level_rules.is_visible_in_tree():
+	if wave_rules:
+		rules_return.call()
+	elif is_instance_valid(level_rules) and level_rules.is_visible_in_tree():
 		if level_rules.selected >= 0: level_rules.show_levels()
 		else:
 			level_rules.hide()

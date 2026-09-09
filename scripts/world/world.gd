@@ -25,7 +25,7 @@ static func pad_position(region: String, pad: int) -> Vector2:
 	if pad < 4:
 		return center(region) + PADS[pad]
 	var packed := pad - 4
-	return center(region) + Vector2(packed % 3000, packed / 3000) * 0.1 - Vector2.ONE * 150.0
+	return center(region) + Vector2(packed % 3000, floori(packed / 3000.0)) * 0.1 - Vector2.ONE * 150.0
 
 # Legacy 0..3 locations remain stable; ground keys encode tenths of a unit.
 const MAX_GROUND_PAD := 9000003

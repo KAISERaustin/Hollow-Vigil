@@ -1,7 +1,8 @@
 extends VBoxContainer
-## A wave draft owns composition, timing and rewards; content stats belong to Edit rules.
+## Immediate-save wave composition; persistence belongs to the campaign owner.
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Configuration = preload("res://scripts/campaign/configuration.gd")
+const Editor = preload("res://scripts/campaign/wave_editor.gd")
 const Fields = preload("res://scripts/content/catalogs/levels.gd")
 const Picker = preload("res://scripts/ui/shared/illustrated_picker.gd")
 const Portrait = preload("res://scripts/ui/shared/content_portrait.gd")
@@ -18,24 +19,23 @@ var live_run: RefCounted
 var initial_scope := 0
 var apply_changes: Callable
 var shared_page := false
+var saving := false
+var committed := {}
 
 func _ready() -> void:
 	name = "CampaignBalancePanel"
-	add_theme_constant_override("separation", 12)
-	draft = store.overrides(index)
+	add_theme_constant_override("separation", UI.GAP)
+	draft = store.overrides(index).duplicate(true)
+	committed = draft.duplicate(true)
 	scope = initial_scope
 	add_child(UI.paragraph("Level %d · %s" % [index + 1, Configuration.Catalog.level(index).name], 16))
-	add_child(UI.paragraph("Existing enemies stay on the field; pending spawns use the new settings. Times are measured from the wave's start." if live_run != null else "Changes stay in this draft until you apply them.", 14))
-	body = VBoxContainer.new()
-	body.add_theme_constant_override("separation", 12)
-	add_child(body)
-	message = UI.paragraph("", 14)
+	add_child(UI.paragraph("Changes save when you finish entering a value or choose an option. Empty waves are skipped during play. Reset wave restores its defaults."))
+	message = UI.paragraph("")
 	message.hide()
 	add_child(message)
-	var save := UI.gold_button("Apply wave changes", save_changes)
-	save.name = "SaveCampaignConfiguration"
-	add_child(save)
-	save.visible = not shared_page
+	body = VBoxContainer.new()
+	body.add_theme_constant_override("separation", UI.GAP)
+	add_child(body)
 	build_scope()
 
 func number_row(title: String, value: float, limits: Dictionary, change: Callable) -> SpinBox:
@@ -45,9 +45,13 @@ func number_row(title: String, value: float, limits: Dictionary, change: Callabl
 	number.step = limits.step
 	number.value = value
 	number.accessibility_name = title
-	number.value_changed.connect(change)
 	numbers.append(number)
 	body.add_child(UI.number_row(title, number))
+	if limits.get("integer", false): number.get_line_edit().virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER
+	number.value_changed.connect(func(amount: float):
+		change.call(amount)
+		save_changes()
+	)
 	return number
 
 func build_scope() -> void:
@@ -55,57 +59,101 @@ func build_scope() -> void:
 	for child in body.get_children():
 		body.remove_child(child)
 		child.queue_free()
+	if live_run != null and live_run.phase == "wave":
+		body.add_child(UI.paragraph("Wave editing is locked until the active wave ends."))
+		return
 	var mission := Configuration.resolve(index, draft)
+	if scope < 0 or scope >= mission.waves.size(): return
 	if not draft.has("waves"): draft.waves = {}
 	if not draft.waves.has(str(scope)): draft.waves[str(scope)] = {}
 	var wave_override: Dictionary = draft.waves[str(scope)]
 	var reward := number_row("Wave completion gold", mission.wave_rules[scope].reward, Fields.CONFIGURATION_FIELDS.reward, func(value: float): wave_override.reward = value)
 	reward.name = "CampaignWaveReward"
 	groups = mission.waves[scope].duplicate(true)
-	build_groups()
+	build_groups(mission)
+	var reset := UI.button("Reset wave to default", func():
+		draft = Editor.reset_wave(index, committed, scope)
+		groups = draft.waves[str(scope)].groups.duplicate(true)
+		save_changes()
+		build_scope.call_deferred()
+	)
+	reset.name = "ResetCampaignWave"
+	body.add_child(reset)
 
-func build_groups() -> void:
-	body.add_child(UI.heading("Wave spawn groups", 18))
+func enemy_picker(title: String) -> Button:
+	var selector := Picker.new()
+	selector.menu_title = title
+	selector.preview_factory = func(kind: String): return Portrait.preview("bosses" if Balance.BOSSES.has(kind) else "enemies", kind)
+	for kind in Configuration.spawn_kinds():
+		var category := "bosses" if Balance.BOSSES.has(kind) else "enemies"
+		selector.add_item(Balance.definitions(category)[kind].name)
+		selector.set_item_metadata(selector.item_count - 1, kind)
+	return selector
+
+func build_groups(mission: Dictionary) -> void:
+	body.add_child(UI.heading("Enemies and entrances", 18))
+	if groups.is_empty(): body.add_child(UI.paragraph("No enemies yet. Add an enemy to populate this wave."))
 	for group_index in groups.size():
 		var group: Array = groups[group_index]
-		body.add_child(UI.heading("Group %d" % (group_index + 1), 16))
-		var selector := Picker.new()
-		selector.menu_title = "Choose spawn type"
-		selector.preview_factory = func(kind: String):
-			return Portrait.preview("bosses" if Balance.BOSSES.has(kind) else "enemies", kind)
-		selector.custom_minimum_size.y = UI.TARGET
+		body.add_child(UI.rule())
+		var selector := enemy_picker("Choose enemy")
 		selector.name = "CampaignGroupKind" + str(group_index)
-		for kind in Configuration.spawn_kinds():
-			var category := "bosses" if Balance.BOSSES.has(kind) else "enemies"
-			selector.add_item(Balance.definitions(category)[kind].name)
-			selector.set_item_metadata(selector.item_count - 1, kind)
-			if kind == group[0]: selector.select(selector.item_count - 1)
-		selector.item_selected.connect(func(item: int): group[0] = selector.get_item_metadata(item))
+		for item in selector.item_count:
+			if selector.get_item_metadata(item) == group[0]: selector.select(item)
+		selector.item_selected.connect(func(item: int):
+			group[0] = selector.get_item_metadata(item)
+			save_changes()
+			build_scope.call_deferred()
+		)
 		body.add_child(selector)
-		for column in Fields.GROUP_FIELDS:
-			var limits: Dictionary = Fields.GROUP_FIELDS[column].duplicate()
-			if column == 2: limits.max = Configuration.Catalog.level(index).routes.size() - 1
-			var input := number_row(limits.label, group[column], limits, func(value: float): group[column] = value)
+		var limits: Dictionary = Fields.GROUP_FIELDS[1].duplicate()
+		limits.min = 0
+		var count := number_row("Enemy count · 0 removes", group[1], limits, func(value: float):
+			group[1] = value
+			if value == 0:
+				groups.erase(group)
+				build_scope.call_deferred()
+		)
+		count.name = "CampaignGroup%d_1" % group_index
+		var portal := Picker.new()
+		portal.name = "CampaignGroupPortal%d" % group_index
+		portal.menu_title = "Choose entrance portal"
+		for lane in mission.routes.size(): portal.add_item("Portal " + String.chr(65 + lane))
+		portal.select(int(group[2]))
+		portal.item_selected.connect(func(lane: int): group[2] = lane; save_changes())
+		body.add_child(portal)
+		for column in [3, 4]:
+			var input := number_row(Fields.GROUP_FIELDS[column].label, group[column], Fields.GROUP_FIELDS[column], func(value: float): group[column] = value)
 			input.name = "CampaignGroup%d_%d" % [group_index, column]
-		if groups.size() > 1 and not (live_run != null and live_run.phase == "wave" and live_run.wave == scope):
-			body.add_child(UI.button("Remove group %d" % (group_index + 1), func():
-				commit_scope()
-				groups.remove_at(group_index)
-				draft.waves[str(scope)].groups = groups.duplicate(true)
-				build_scope()
-			))
-	var add := UI.button("Add spawn group", func():
-		commit_scope()
-		groups.append(groups[-1].duplicate(true))
-		draft.waves[str(scope)].groups = groups.duplicate(true)
-		build_scope()
-	)
+		var category := "bosses" if Balance.BOSSES.has(group[0]) else "enemies"
+		var kind: String = group[0]
+		var payout := number_row("Gold per defeated enemy", Balance.definition(category, kind, mission.wave_rules[scope].tuning).payout,
+			Balance.editable_fields_for(category, kind).payout, func(value: float):
+				var entry: Dictionary = draft.waves[str(scope)]
+				if not entry.has("tuning"): entry.tuning = {}
+				if not entry.tuning.has(category): entry.tuning[category] = {}
+				if not entry.tuning[category].has(kind): entry.tuning[category][kind] = {}
+				entry.tuning[category][kind].payout = value
+		)
+		payout.name = "CampaignGroupGold%d" % group_index
+		body.add_child(UI.button("Remove this enemy group", func():
+			groups.remove_at(group_index)
+			save_changes()
+			build_scope.call_deferred()
+		))
+	var add := enemy_picker("Add enemies")
+	add.name = "AddWaveEnemies"
+	add.text = "Add enemies"
 	add.disabled = groups.size() >= 32
+	add.item_selected.connect(func(item: int):
+		groups.append(Editor.default_group(index, add.get_item_metadata(item)))
+		save_changes()
+		build_scope.call_deferred()
+	)
 	body.add_child(add)
+	body.add_child(UI.paragraph("Add the same enemy again to use another portal or spawn time. Gold per defeat applies to that enemy type throughout this wave. Up to 32 groups, 1,000 enemies per group and 5,000 per wave."))
 
 func commit_scope() -> void:
-	for number in numbers:
-		if is_instance_valid(number): number.apply()
 	draft.waves[str(scope)].groups = groups.duplicate(true)
 
 func show_message(text: String) -> void:
@@ -113,10 +161,16 @@ func show_message(text: String) -> void:
 	message.visible = not text.is_empty()
 
 func save_changes() -> void:
+	if saving: return
+	saving = true
 	commit_scope()
 	var ok: bool = apply_changes.call(index, draft) if apply_changes.is_valid() else store.save_level(index, draft)
 	if ok:
-		show_message("Wave changes saved.")
+		committed = draft.duplicate(true)
+		show_message("Saved")
 		saved.emit()
 	else:
-		show_message(store.last_error)
+		draft = committed.duplicate(true)
+		show_message("Couldn't save this change. Keep at least one enemy in the level and stay within the wave limits. Your previous settings are preserved.")
+		build_scope.call_deferred()
+	saving = false

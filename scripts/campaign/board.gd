@@ -1,6 +1,8 @@
 extends Battlefield
 
 const Catalog = preload("res://scripts/campaign/catalog.gd")
+# Retained for hosts connecting the legacy socket-selection interface.
+@warning_ignore("unused_signal")
 signal socket_picked(socket: int)
 var run: RefCounted
 var selected := -1

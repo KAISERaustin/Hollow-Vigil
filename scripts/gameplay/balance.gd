@@ -2,6 +2,7 @@ class_name Balance
 extends RefCounted
 
 const Content = preload("res://scripts/content/registry.gd")
+const Stats = preload("res://scripts/content/catalogs/stats.gd")
 
 const VERSION := 2
 const TARGET_MODES := {"first": "First", "last": "Last", "most_hp": "Most HP"}
@@ -102,6 +103,11 @@ const GEAR = preload("res://scripts/content/catalogs/gear.gd").GEAR
 const TUNING_FIELDS = preload("res://scripts/content/catalogs/tuning.gd").TUNING_FIELDS
 
 static func fields_for(category: String, kind: String) -> Dictionary:
+	if category in Stats.CATEGORIES:
+		var fields := {}
+		for field in Stats.baseline(category, kind):
+			fields[field] = Stats.schema(category)[field]
+		return fields
 	var result := {}
 	var schema: Dictionary = TUNING_FIELDS[category]
 	var defaults: Dictionary = definitions(category)[kind]
@@ -127,6 +133,7 @@ static func field_limits(category: String, kind: String, stat: String) -> Dictio
 	return _resolved_field_limits(category, kind, stat)
 
 static func _resolved_field_limits(category: String, kind: String, stat: String, defaults: Dictionary = {}) -> Dictionary:
+	if category in Stats.CATEGORIES: return Stats.schema(category)[stat].duplicate(true)
 	var limits: Dictionary = TUNING_FIELDS[category][stat].duplicate()
 	if category == "towers" and kind.contains(":") and stat in ["cost", "damage", "range", "splash"]:
 		var base: float = TOWERS[kind.get_slice(":", 0)][stat]
@@ -145,6 +152,9 @@ static func tower_definitions() -> Dictionary:
 	return definitions("towers")
 
 static func tuned_value(category: String, kind: String, stat: String, tuning: Dictionary = {}) -> float:
+	if category in Stats.CATEGORIES:
+		if Stats.control(stat): return Stats.value(category, kind, stat, tuning)
+		return float(definition(category, kind, tuning).get(stat, Stats.default_value(category, kind, stat)))
 	var node := Content.catalog().find(category, kind)
 	return tuning.get(category, {}).get(kind, {}).get(stat, node.attribute(stat))
 
@@ -165,15 +175,16 @@ static func valid_tuning(value: Variant) -> bool:
 			return false
 		# Resolve this call's catalog once; later calls still see newly registered
 		# nodes. Validation only needs membership and limits, not editor ordering.
-		var schema: Dictionary = TUNING_FIELDS[category]
+		var schema: Dictionary = Stats.schema(category) if category in Stats.CATEGORIES else TUNING_FIELDS[category]
 		var catalog: Dictionary = definitions(category)
 		for kind in value[category]:
 			if not catalog.has(kind) or not value[category][kind] is Dictionary:
 				return false
 			var defaults: Dictionary = catalog[kind]
 			for stat in value[category][kind]:
-				if not schema.has(stat) or not defaults.has(stat):
+				if not schema.has(stat) or (category not in Stats.CATEGORIES and not defaults.has(stat)):
 					return false
+				if category in Stats.CATEGORIES and stat.begins_with("enabled_") and stat.trim_prefix("enabled_") in Stats.REQUIRED and value[category][kind][stat] != 1: return false
 				var number: Variant = value[category][kind][stat]
 				var limits := _resolved_field_limits(category, kind, stat, defaults)
 				if not (number is float or number is int):
@@ -266,6 +277,7 @@ static func merge_tuning(defaults: Dictionary, overrides: Dictionary) -> Diction
 
 # Editor, override comparison and exports share the same resolved tier values.
 static func configuration_value(category: String, kind: String, stat: String, tuning: Dictionary = {}) -> float:
+	if category in Stats.CATEGORIES: return Stats.value(category, kind, stat, tuning)
 	if category != "towers": return tuned_value(category, kind, stat, tuning)
 	var node := Content.catalog().find("towers", kind)
 	var base: String = node.rule("base_kind", kind)

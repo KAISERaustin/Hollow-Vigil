@@ -68,7 +68,10 @@ func fit() -> void:
 func open() -> void:
 	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
 	cancel()
-	host.clear_selection() if host.has_method("clear_selection") else host.panels.close_sheet()
+	if host.has_method("clear_selection"):
+		host.clear_selection()
+	else:
+		host.panels.close_sheet()
 	show()
 	for child in palette.get_children():
 		palette.remove_child(child)
@@ -89,7 +92,10 @@ func open() -> void:
 func arm(value: String) -> void:
 	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
 	var active_pointer := pointer
-	host.clear_selection() if host.has_method("clear_selection") else host.panels.close_sheet()
+	if host.has_method("clear_selection"):
+		host.clear_selection()
+	else:
+		host.panels.close_sheet()
 	pointer = active_pointer
 	kind = value
 	for child in preview_body.get_children():
@@ -108,8 +114,8 @@ func arm(value: String) -> void:
 	if slide != null: slide.kill()
 	reveal = 0.0
 	slide = create_tween()
-	slide.tween_method(func(value: float):
-		reveal = value
+	slide.tween_method(func(progress: float):
+		reveal = progress
 		fit()
 	, 0.0, 1.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	dragging = false
