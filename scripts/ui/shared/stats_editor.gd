@@ -18,6 +18,7 @@ var filter: LineEdit
 var rows: Array[Dictionary] = []
 var section_body: VBoxContainer
 var added_section := false
+var added_groups: Dictionary = {}
 
 func _ready() -> void:
 	name = "StatsEditor"
@@ -71,6 +72,7 @@ func rebuild() -> void:
 		else: build_capabilities(true)
 	else:
 		for added in [false, true]:
+			added_groups.clear()
 			added_section = added
 			if added: body.add_child(UI.rule())
 			section_body = VBoxContainer.new()
@@ -156,23 +158,29 @@ func build_capabilities(catalog: bool) -> void:
 		if catalog:
 			add_choice(label, Descriptions.ability(Stats, category, kind, ability, game.tuning), button)
 		else:
-			var target := added_rule_body(ability) if added_section else section_body
+			var target := added_rule_body(ability, label) if added_section else section_body
 			target.add_child(button)
 			for field in descriptor.fields:
 				if Stats.enabled(category, kind, field, game.tuning) or not game.tuning.get(category, {}).get(kind, {}).has("enabled_" + field): add_stat(field, target)
 
-func added_rule_body(key: String) -> VBoxContainer:
+func added_rule_body(key: String, title: String) -> VBoxContainer:
+	if added_groups.has(key): return added_groups[key]
 	var content := VBoxContainer.new()
 	content.add_theme_constant_override("separation", UI.GAP)
+	content.add_child(UI.heading(title, 18))
 	var card := UI.rule_card(content)
 	card.name = "AddedRule_" + key
 	section_body.add_child(card)
+	added_groups[key] = content
 	return content
 
 func add_stat(field: String, target: VBoxContainer = null) -> void:
-	if target == null:
-		target = added_rule_body(field) if added_section else section_body
 	var descriptor: Dictionary = Stats.schema(category)[field]
+	if target == null:
+		var owner: String = descriptor.get("requires", "")
+		var key := owner if not owner.is_empty() else field
+		var title: String = Stats.capabilities(category)[owner].name if not owner.is_empty() else descriptor.label
+		target = added_rule_body(key, title) if added_section else section_body
 	var number := SpinBox.new()
 	number.name = field + "Value"
 	number.min_value = descriptor.min
