@@ -24,6 +24,13 @@ func run() -> void:
 				check(is_equal_approx(Balance.configuration_value(category, kind, field), Stats.Frozen.VALUES[category][kind][field]), "Frozen default " + category + "/" + kind + "/" + field)
 				check(is_equal_approx(float(actual[field]), Stats.Frozen.VALUES[category][kind][field]), "Runtime matches frozen default " + kind + "/" + field)
 			check(Balance.valid_tuning(Stats.reset({}, category, kind)), "Reset is valid " + category + "/" + kind)
+			if category == "towers":
+				check(not Balance.valid_tuning(Stats.edit({}, category, kind, "enabled_splash", 0)), "Cannot disable tower blast radius " + kind)
+				check(Balance.valid_tuning(Stats.edit({}, category, kind, "splash", 0)), "Tower blast radius accepts zero " + kind)
+			if category in ["enemies", "bosses"]:
+				for required in ["payout", "escape_damage"]:
+					check(not Balance.valid_tuning(Stats.edit({}, category, kind, "enabled_" + required, 0)), "Cannot disable " + category + "/" + kind + "/" + required)
+					check(Balance.valid_tuning(Stats.edit({}, category, kind, required, 12)), "Required value remains editable " + category + "/" + kind + "/" + required)
 			for ability in Stats.capabilities(category):
 				var candidate := Stats.attach({}, category, kind, ability)
 				check(Balance.valid_tuning(candidate), "Attachment validates " + category + "/" + kind + "/" + ability)

@@ -291,7 +291,7 @@ func refresh_identity() -> void:
 		"gear":
 			const Relics = preload("res://scripts/gameplay/progression/relics.gd")
 			var boss_kind: String = Relics.DEFINITIONS[selected_kind].boss
-			description.text = "From " + Balance.BOSSES[boss_kind].name + " · One of three victory drops\n\n" + Relics.description(selected_kind, game.tuning)
+			description.text = "From " + Balance.BOSSES[boss_kind].name + " · One of three victory drops\n\n" + Relics.editor_description(selected_kind, game.tuning)
 		"bosses":
 			var summaries := {
 				"warden": "A forest guardian protected by a root shield that does not regenerate. Fire deals extra damage to its protection.",

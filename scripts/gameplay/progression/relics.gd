@@ -18,6 +18,16 @@ static func description(relic_kind: String, tuning: Dictionary = {}) -> String:
 static func kind(data: Dictionary, tower: Dictionary) -> String:
 	return data.get("relics", {}).get(tower.get("relic", ""), "")
 
+static func editor_description(relic_kind: String, tuning: Dictionary = {}) -> String:
+	const Explanations = preload("res://scripts/content/catalogs/stat_descriptions.gd")
+	var paragraphs: PackedStringArray = [description(relic_kind, tuning), "How to adjust this gear"]
+	for field in Balance.editable_fields_for("gear", relic_kind):
+		var limits: Dictionary = Balance.field_limits("gear", relic_kind, field)
+		var explanation: String = Explanations.GEAR_FIELDS.get(field, Explanations.FIELDS.get(field, ""))
+		paragraphs.append(limits.label + ": " + explanation)
+	paragraphs.append("Changes apply on the next attack. Shots already launched and effects already active keep their values. Removing or transferring the gear clears its active effects.")
+	return "\n\n".join(paragraphs)
+
 static func owner(data: Dictionary, relic_id: String) -> String:
 	if relic_id == "":
 		return ""

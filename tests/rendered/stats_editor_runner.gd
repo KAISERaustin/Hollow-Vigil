@@ -40,6 +40,13 @@ func run() -> void:
 			await settle()
 			var fields: Control = menu.rules_editor.stats_editor
 			check(fields != null, "Shared Stats editor for " + category)
+			var defaults := fields.find_child("DefaultRules", true, false)
+			var additions := fields.find_child("AddedRules", true, false)
+			check(defaults != null and additions != null, "Separate default and added cards " + category)
+			check(defaults.find_child("payoutValue", true, false) != null if category != "towers" else true, "Defeat gold belongs to defaults " + category)
+			check(fields.find_child("DisableStat_payout", true, false) == null, "Cannot disable defeat gold " + category)
+			check(fields.find_child("DisableStat_escape_damage", true, false) == null, "Cannot disable escape damage " + category)
+			check(fields.find_child("DisableStat_splash", true, false) == null, "Cannot disable tower blast radius")
 			for child: Control in fields.find_children("*", "Control", true, false):
 				if child.is_visible_in_tree() and (child is Button or child is SpinBox):
 					check(child.size.y >= 48, "Touch height " + category + "/" + child.name)
@@ -101,6 +108,11 @@ func run() -> void:
 		search.text_changed.emit(search.text)
 		press(menu, "AddStat_slow_percent")
 		check(Balance.Stats.ability_enabled("towers", "rapid", "frostneedle", menu.editor_game.tuning), "Adding dependent stat attaches its ability")
+		var added: Control = menu.rules_editor.stats_editor.find_child("AddedRules", true, false)
+		check(added.find_child("slow_percentValue", true, false) != null, "Custom slow belongs to added card")
+		await settle()
+		menu.scroll.scroll_vertical = int(added.global_position.y - menu.scroll.global_position.y + menu.scroll.scroll_vertical)
+		await capture("added-stats")
 		press(menu, "CancelRules")
 		await settle()
 		check(menu.rules_editor.route == "list", "Cancel returns to item list")

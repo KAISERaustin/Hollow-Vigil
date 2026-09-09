@@ -40,6 +40,19 @@ func run() -> void:
 				root.get_texture().get_image().save_png("res://artifacts/rules-%d-%s-%s.png" % [dimensions.x, category, group])
 				browser.navigate_back()
 			browser.cancel_item()
+		for gear_kind in Balance.GEAR:
+			browser.open_item("gear", gear_kind)
+			browser.open_group("Stats")
+			check(browser.description.visible and browser.description.get_index() < browser.fields.get_index(), "Gear explanation precedes stats " + gear_kind)
+			check(browser.description.text.contains("How to adjust this gear"), "Detailed gear guidance " + gear_kind)
+			for stat in browser.selected_fields():
+				check(browser.description.text.contains(Balance.field_limits("gear", gear_kind, stat).label + ": "), "Explains gear setting " + gear_kind + "/" + stat)
+			for frame in range(3): await process_frame
+			menu.fit()
+			menu.scroll.scroll_vertical = 0
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png("res://artifacts/rules-%d-gear-%s.png" % [dimensions.x, gear_kind])
+			browser.cancel_item()
 		browser.open_item("enemies", "basic")
 		var original: Dictionary = browser.game.tuning.duplicate(true)
 		browser.open_group("Stats")

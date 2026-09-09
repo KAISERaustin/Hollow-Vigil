@@ -16,6 +16,8 @@ var numbers: Array[SpinBox] = []
 var body: VBoxContainer
 var filter: LineEdit
 var rows: Array[Dictionary] = []
+var section_body: VBoxContainer
+var added_section := false
 
 func _ready() -> void:
 	name = "StatsEditor"
@@ -68,14 +70,26 @@ func rebuild() -> void:
 		if group == "Stats": build_stat_catalog()
 		else: build_capabilities(true)
 	else:
-		if group == "Stats":
-			for field in Stats.schema(category):
-				if Stats.control(field) or Stats.schema(category)[field].get("group", "Stats") != "Stats": continue
-				if Stats.enabled(category, kind, field, game.tuning): add_stat(field)
-		else: build_capabilities(false)
+		for added in [false, true]:
+			added_section = added
+			if added: body.add_child(UI.rule())
+			section_body = VBoxContainer.new()
+			section_body.name = "AddedRules" if added else "DefaultRules"
+			section_body.add_theme_constant_override("separation", 12)
+			body.add_child(UI.info_card(section_body, UI.ADDED_RULES if added else UI.SURFACE, 12))
+			section_body.add_child(UI.heading(("Added " if added else "Default ") + group.to_lower(), 18))
+			section_body.add_child(UI.paragraph("Extras added to this item." if added else "Built into this item. Required stats cannot be disabled; their values can be edited.", 14))
+			if group == "Stats":
+				for field in Stats.schema(category):
+					if Stats.control(field) or Stats.schema(category)[field].get("group", "Stats") != "Stats": continue
+					if Stats.baseline(category, kind).has(field) == added: continue
+					if Stats.enabled(category, kind, field, game.tuning): add_stat(field)
+			else: build_capabilities(false)
+			if section_body.get_child_count() == 2:
+				section_body.add_child(UI.paragraph("No added " + group.to_lower() + " yet." if added else "No default " + group.to_lower() + ".", 14))
 		var add := UI.gold_button("Add " + {"Stats": "Stat", "Abilities": "Ability", "Attributes": "Attribute"}[group], func(): commit_fields(); choosing = true; rebuild(); call_deferred("reveal_editor"))
 		add.name = {"Stats": "AddStat", "Abilities": "AddAbility", "Attributes": "AddAttribute"}[group]
-		body.add_child(add)
+		section_body.add_child(add)
 		body.add_child(UI.paragraph("Changes stay in this draft until you press Save. Each tier and branch is independent.", 14))
 	if relayout.is_valid(): relayout.call()
 	if is_node_ready(): call_deferred("reveal_editor")
@@ -112,6 +126,7 @@ func build_stat_catalog() -> void:
 func build_capabilities(catalog: bool) -> void:
 	if group == "Attributes" and category != "towers":
 		for field in Stats.Capabilities.RESISTANCES:
+			if not catalog and Stats.baseline(category, kind).has(field) == added_section: continue
 			var enabled := Stats.enabled(category, kind, field, game.tuning)
 			if not catalog and enabled: add_stat(field)
 			if catalog:
@@ -125,6 +140,7 @@ func build_capabilities(catalog: bool) -> void:
 				add.disabled = enabled
 				add_choice(label, Descriptions.field(Stats, category, kind, field, game.tuning), add)
 	for ability in Stats.capabilities(category):
+		if not catalog and (ability in Stats.Capabilities.defaults(category, kind)) == added_section: continue
 		var descriptor: Dictionary = Stats.capabilities(category)[ability]
 		if descriptor.group != group: continue
 		var enabled := Stats.ability_enabled(category, kind, ability, game.tuning)
@@ -141,7 +157,7 @@ func build_capabilities(catalog: bool) -> void:
 		if catalog:
 			add_choice(label, Descriptions.ability(Stats, category, kind, ability, game.tuning), button)
 		else:
-			body.add_child(button)
+			section_body.add_child(button)
 		if not catalog:
 			for field in descriptor.fields:
 				if Stats.enabled(category, kind, field, game.tuning) or not game.tuning.get(category, {}).get(kind, {}).has("enabled_" + field): add_stat(field)
@@ -156,7 +172,7 @@ func add_stat(field: String) -> void:
 	number.value = Stats.value(category, kind, field, game.tuning)
 	number.accessibility_name = descriptor.label
 	var label: String = descriptor.label + "\nDefault: " + String.num(Stats.default_value(category, kind, field), 2).trim_suffix(".0") + descriptor.suffix
-	body.add_child(UI.number_row(label, number))
+	section_body.add_child(UI.number_row(label, number))
 	numbers.append(number)
 	number.value_changed.connect(func(value: float): changed(Stats.edit(game.tuning, category, kind, field, value)))
 	if field not in Stats.REQUIRED:
@@ -166,7 +182,7 @@ func add_stat(field: String) -> void:
 			rebuild()
 		)
 		disable.name = "DisableStat_" + field
-		body.add_child(disable)
+		section_body.add_child(disable)
 
 func add_choice(title: String, description: String, button: Button) -> void:
 	var row := UI.action_row(title, button, "Enabled" if button.disabled else "Select", null, description)

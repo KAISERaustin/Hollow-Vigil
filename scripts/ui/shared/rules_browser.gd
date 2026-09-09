@@ -84,6 +84,9 @@ func open_group(group: String) -> void:
 	editor.show()
 	for child in editor.get_children(): child.hide()
 	fields.show()
+	if category == "gear" and group == "Stats":
+		description.show()
+		editor.move_child(description, 0)
 	if category == "towers": tier_selector.show()
 	if is_instance_valid(stats_editor):
 		stats_editor.full_page = true
