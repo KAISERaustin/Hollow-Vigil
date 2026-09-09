@@ -530,6 +530,9 @@ static func number_row(title: String, number: SpinBox, preview: Button = null, i
 	number.add_theme_constant_override("buttons_width", 0)
 	number.add_theme_constant_override("set_min_buttons_width_from_icons", 0)
 	number.add_theme_constant_override("field_and_buttons_separation", 0)
+	# Zero-width buttons still draw their default arrows outside the field.
+	for icon_name in ["updown", "up", "up_hover", "up_pressed", "up_disabled", "down", "down_hover", "down_pressed", "down_disabled"]:
+		number.add_theme_icon_override(icon_name, ImageTexture.new())
 	var entry := number.get_line_edit()
 	entry.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER_DECIMAL
 	entry.accessibility_name = number.accessibility_name
