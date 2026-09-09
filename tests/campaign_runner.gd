@@ -203,7 +203,7 @@ func check_biome_portals() -> void:
 	definitions.forest.name = "Changed preview"
 	check(Balance.portal_definitions().forest.name == "Forest Rift", "Portal discovery returns independent presentation data")
 	var frozen: Dictionary = preload("res://scripts/campaign/configuration.gd").gameplay_values({})
-	check(frozen.rifts.keys() == Balance.RIFTS.keys(), "Campaign exports retain only the existing tunable portal kinds")
+	check(frozen.rifts.keys() == Balance.portal_definitions().keys(), "Campaign exports retain attributes for every portal kind")
 	for index in range(Catalog.COUNT):
 		var mission := Catalog.level(index)
 		var style: String = Catalog.CHAPTERS[index / Catalog.LEVELS_PER_CHAPTER].style

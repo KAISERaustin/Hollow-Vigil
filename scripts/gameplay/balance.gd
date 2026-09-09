@@ -89,6 +89,9 @@ static func portal_definitions() -> Dictionary:
 static func rift_description(style: String, tuning: Dictionary = {}, _authored_spawns: bool = true) -> String:
 	if Content.portal(style) == null: return ""
 	var effect := portal_effect_description(style, tuning)
+	var portal := Content.portal(style).definition(tuning)
+	if portal.armor_percent > 0.0: effect += " Armor: " + String.num(portal.armor_percent, 2) + "% damage reduction."
+	if portal.health_regen_percent > 0.0: effect += " Additional regeneration: " + String.num(portal.health_regen_percent, 2) + "% maximum health per second."
 	return "Used at every campaign entrance in this biome. Enemies and timing follow the authored waves. " + (effect if not effect.is_empty() else "No additional portal effect.")
 
 static func portal_effect_description(style: String, tuning: Dictionary = {}) -> String:

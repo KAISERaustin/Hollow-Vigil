@@ -88,6 +88,7 @@ func tick(delta: float) -> void:
 		var route: Array[Vector2] = mission.routes[spawn.lane]
 		if Balance.BOSSES.has(spawn.kind):
 			var boss: Dictionary = game.combat.Bosses.create(game.combat, "0,0", spawn.kind, route)
+			boss.portal_effect_style = mission.style
 			if spawn.has("payout"): boss.campaign_payout = spawn.payout
 			# Stable encounter identity keeps later levels' drops distinct and replay rewards idempotent.
 			boss.drop_source = "%d,%d" % [(int(mission.index) + 1) * 1000 + wave, group_id * 100000 + int(spawn.member)]
