@@ -530,7 +530,9 @@ func fit_dialog() -> void:
 		chrome += equipment_summary.get_combined_minimum_size().y + layout.get_theme_constant("separation")
 	# Keep the inventory compact while its existing scroll container exposes every item.
 	var height_limit := safe.size.y * 0.5 if mode == "equipment" else safe.size.y
-	scroll.custom_minimum_size.y = minf(body.get_combined_minimum_size().y, maxf(40.0, height_limit - chrome))
+	# A compact inventory still needs room for one complete touch row.
+	var minimum_body := UI.TARGET + 2 * UI.CARD_PADDING if mode == "equipment" else UI.TARGET
+	scroll.custom_minimum_size.y = minf(body.get_combined_minimum_size().y, maxf(minimum_body, height_limit - chrome))
 	card.size.y = 0.0
 	card.position = safe.position + (safe.size - card.size) * 0.5
 

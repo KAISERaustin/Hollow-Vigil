@@ -1,6 +1,7 @@
 extends "res://tests/rendered/campaign_runner.gd"
 
 func click_action(app: Control, button: Button, touch: bool) -> void:
+	await frame()
 	await Harness.tap(app, button.get_global_rect().get_center(), touch)
 	await frame()
 
@@ -31,20 +32,19 @@ func run() -> void:
 			check(not screen.tower_actions.upgrade_quote.visible, "Tower selection omits the bottom upgrade notification")
 			await frame()
 			var tower: Dictionary = screen.game.data.towers[screen.run.tower_at(socket.index)]
-			var upgrade: Button = screen.tower_dialog.confirm
 			var context := "Level %d %s" % [index + 1, "touch" if touch else "mouse"]
-			check(upgrade.mouse_filter != Control.MOUSE_FILTER_IGNORE, context + " retains button input boundary")
-			check(screen.board.get_global_rect().encloses(upgrade.get_global_rect()), context + " upgrade button is reachable")
+			check(screen.tower_dialog.confirm.mouse_filter != Control.MOUSE_FILTER_IGNORE, context + " retains button input boundary")
+			check(screen.board.get_global_rect().encloses(screen.tower_dialog.confirm.get_global_rect()), context + " upgrade button is reachable")
 			var before: float = screen.game.data.balance
 			var quote := Balance.upgrade_cost(tower, screen.game.tuning)
-			await click_action(app, upgrade, touch)
-			check(tower.level == 1 and screen.tower_dialog.visible and screen.tower_dialog.mode == "info" and screen.tower_dialog.upgrade_armed and screen.game.data.balance == before, context + " upgrade button opens comparison without spending")
-			check(not screen.tower_actions.visible and screen.tower_actions.pending_tower.is_empty(), context + " preview hides surrounding buttons without a checkmark")
+			await click_action(app, screen.tower_dialog.confirm, touch)
+			check(tower.level == 1 and screen.tower_dialog.visible and screen.tower_dialog.mode == "info" and screen.tower_dialog.upgrade_armed and screen.game.data.balance == before, context + " upgrade arms confirmation without spending")
+			check(not screen.tower_actions.visible and screen.tower_actions.pending_tower.is_empty(), context + " shared management owns upgrade input")
 			check(screen.tower_dialog.cost == quote, context + " confirmation shows the exact cost")
 			screen.tower_dialog.go_back()
 			await frame()
-			check(screen.tower_dialog.visible and not screen.tower_dialog.upgrade_armed and tower.level == 1 and screen.game.data.balance == before, context + " close restores controls without purchasing")
-			await click_action(app, upgrade, touch)
+			check(screen.tower_dialog.visible and not screen.tower_dialog.upgrade_armed and tower.level == 1 and screen.game.data.balance == before, context + " Back cancels confirmation without purchasing")
+			await click_action(app, screen.tower_dialog.confirm, touch)
 			var old_revision: int = screen.tower_dialog.revision
 			await click_action(app, screen.tower_dialog.confirm, touch)
 			check(tower.level == 2 and screen.game.data.balance == before - quote, context + " panel action purchases upgrade")
@@ -54,30 +54,28 @@ func run() -> void:
 			screen.begin_wave()
 			screen.show_socket(socket.index)
 			screen.game.data.balance = 10000.0
-			await click_action(app, upgrade, touch)
+			await click_action(app, screen.tower_dialog.confirm, touch)
 			var wave_time: float = screen.run.wave_time
 			screen._process(0.1)
-			check(not screen.paused and screen.run.wave_time > wave_time and screen.tower_dialog.visible, context + " upgrade comparison keeps campaign running")
+			check(not screen.paused and screen.run.wave_time > wave_time and screen.tower_dialog.visible, context + " upgrade confirmation keeps campaign running")
 			await click_action(app, screen.tower_dialog.confirm, touch)
 			screen.show_socket(socket.index)
-			check(tower.level == 3 and screen.tower_dialog.branch_cards.visible, context + " level 3 keeps a single upgrade entry point")
-			await click_action(app, upgrade, touch)
-			var branch: Button = screen.tower_dialog.find_child("Branch_thorn_volley", true, false)
+			check(tower.level == 3 and screen.tower_dialog.branch_cards.visible, context + " level 3 shows specialization choices")
 			before = screen.game.data.balance
 			quote = Balance.upgrade_cost(tower, screen.game.tuning, "thorn_volley")
-			await click_action(app, branch, touch)
-			check(tower.level == 3 and screen.tower_dialog.tower_branch == "thorn_volley" and screen.game.data.balance == before, context + " branch only updates the comparison")
-			await click_action(app, screen.tower_dialog.confirm, touch)
+			await click_action(app, screen.tower_dialog.find_child("Branch_thorn_volley", true, false), touch)
+			check(tower.level == 3 and screen.tower_dialog.tower_branch == "thorn_volley" and screen.game.data.balance == before, context + " branch selection arms confirmation")
+			await click_action(app, screen.tower_dialog.find_child("Branch_thorn_volley", true, false), touch)
 			check(tower.level == 4 and tower.branch == "thorn_volley" and screen.game.data.balance == before - quote, context + " branch purchases once")
 			screen.show_socket(socket.index)
-			check(not screen.game.economy.upgrade(tower.id) and upgrade.disabled, context + " max level stays locked")
+			check(not screen.game.economy.upgrade(tower.id) and screen.tower_dialog.confirm.disabled, context + " max level stays locked")
 			# The same transaction rejects insufficient gold, rebuilding and stale tiers.
 			tower.level = 1
 			tower.erase("branch")
 			screen.game.data.balance = 0.0
 			screen.tower_dialog.open_action("info")
 			await frame()
-			await click_action(app, upgrade, touch)
+			await click_action(app, screen.tower_dialog.confirm, touch)
 			check(screen.tower_dialog.visible and screen.tower_dialog.confirm.disabled and not screen.game.economy.upgrade(tower.id), context + " insufficient currency blocks purchase while keeping comparison readable")
 			screen.game.data.balance = 10000.0
 			tower.rebuild_remaining = 1.0
@@ -104,4 +102,3 @@ func run() -> void:
 	await process_frame
 	print("CAMPAIGN UPGRADES UI: %d checks, %d failures" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
-

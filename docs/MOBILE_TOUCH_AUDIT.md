@@ -4,9 +4,13 @@
 
 Rechecked Campaign and Infinite at 360×640, 390×844 and 540×960 upright portrait sizes. The bottom build picker was squeezing eight towers into one row, producing targets smaller than 48 units on the two narrow phones. The shared tower-choice component now retains 48-unit squares and supports horizontal finger scrolling when they do not fit. Wider rows still grow evenly; upward placement drags retain their existing behavior.
 
+The compact equipment panel could also leave only 40 units for its list at 360×640, clipping a 48-unit item button even at the final scroll position. It now reserves at least one complete touch row plus padding. The long-inventory regression checks the final icon's complete bounds and taps it to open its details.
+
 The complete menu audit now probes both scroll directions on each overflowing page, in addition to checking every control's reachable bounds and navigating with finger events. Short overflowing pages use a proportionate swipe. Text editors retain ownership of editing gestures. The ground-build regression checks every tower's size and scroll reachability, plus horizontal browsing without accidental selection, and is included in `launch.ps1 -MobileTests`.
 
-Focused results so far: ground-build touch 336 checks, tower management 450 checks, shared scroll scope 28 checks, and mobile navigation 3,185 checks; all passed. The complete menu and contextual suites are being rerun for this follow-up. Screenshots of the corrected build picker were inspected in both modes. These checks simulate touch on Windows; physical iPhone and Android validation remains separate.
+Updated stale test navigation to the current tower management card, two-tap upgrades and specialization choices, ground relocation, and explicit Campaign exit confirmation. Preserve complete 30-level upgrade coverage; ground construction is exercised by its dedicated finger-gesture runner. The swipe helper selects visible labels/buttons instead of text editors and uses longer strokes for distant rows.
+
+Verified focused results: ground-build touch 336 checks; tower management 450; shared scroll scope 28; mobile navigation 3,185; mobile scrolling 345; touch playthrough 2,729; illustrated picker 261; Campaign upgrades 1,200 across all 30 levels; Campaign controls 1,415; Campaign navigation 265; Infinite contextual actions 201; equipment 99. All passed. The complete page-swipe audit passed 7,307 checks with 0 failures: 689 touch actions, 31 picker selections and 105 page/viewport combinations. These results come from the individual mobile runners; the initial combined command stopped at stale tests before their updates. Screenshots of the corrected build picker, scrolled Waves, Backups and final equipment item were inspected. These checks simulate touch on Windows; physical iPhone and Android validation remains separate.
 
 ## Previous full touch audit
 

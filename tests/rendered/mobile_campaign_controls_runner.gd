@@ -194,9 +194,12 @@ func battle_menus() -> void:
 	check(campaign.run.wave_time > before and not campaign.paused, "Waves keeps combat running")
 	await back()
 	await back()
-	check(campaign.page == "map" and not app.slot_menu.visible, "Battle system Back returns to map")
+	check(campaign.dialog.visible and named("ConfirmCampaignExit") != null, "Battle Back asks before exiting")
+	await audit(campaign.dialog_card, "Exit level")
+	await press(named("ConfirmCampaignExit"))
+	check(campaign.page == "briefing" and not app.slot_menu.visible, "Confirmed exit returns to briefing")
 	await back()
-	check(campaign.page == "map", "Information Back returns to map")
+	check(campaign.page == "map", "Briefing Back returns to map")
 
 func wave_menus() -> void:
 	var scroll := campaign.dialog_body.get_parent() as ScrollContainer
@@ -281,6 +284,8 @@ func tower_menus(socket: Dictionary, id: String) -> void:
 	check(campaign.tower_move.visible and campaign.board.moving_tower == id, "Move touch starts destination selection")
 	await press(campaign.tower_move.cancel_button)
 	check(not campaign.tower_move.visible and campaign.board.moving_tower.is_empty(), "Move Cancel clears destination selection")
+	campaign.show_socket(socket.index)
+	await settle()
 	await press(named("Manage_move"))
 	await press(dialog.confirm)
 	var destination: Dictionary = campaign.run.mission.sockets[1]
@@ -288,9 +293,10 @@ func tower_menus(socket: Dictionary, id: String) -> void:
 	campaign.board.camera_framing.cancel()
 	await settle()
 	await tap_at(campaign.board.global_position + campaign.board.screen(destination.position))
-	check(campaign.run.tower_at(destination.index) == id and not campaign.tower_move.visible, "Touch relocates to selected socket")
+	var location := VigilWorld.ground_location(destination.position)
+	check(tower.region == location.region and tower.pad == location.pad and not campaign.tower_move.visible, "Touch relocates to clear ground using grid coordinates")
 	tower.rebuild_remaining = 0.0
-	campaign.show_socket(destination.index)
+	campaign.select_ground_tower(tower.region, tower.pad)
 	await settle()
 	await press(named("Manage_sell"))
 	await capture("tower-sale")
@@ -351,4 +357,3 @@ func result_routes() -> void:
 	check(campaign.page == "map", "Result World map touch returns to map")
 	await back()
 	check(app.slot_menu.visible and app.slot_menu.screen == "slots" and not is_instance_valid(app.campaign), "Map system Back follows visible Back to saved games")
-

@@ -170,7 +170,8 @@ func run() -> void:
 	app.tower_dialog.scroll.ensure_control_visible(last)
 	await frame()
 	check(app.tower_dialog.scroll.scroll_vertical > 0, "Large equipment collections scroll")
-	check(app.tower_dialog.scroll.get_global_rect().grow(1).encloses(last.get_global_rect()), "Last equipment icon is reachable")
+	check(app.tower_dialog.scroll.get_global_rect().grow(1).encloses(last.get_global_rect()), "Last equipment icon is reachable: item=%s scroll=%s" % [last.get_global_rect(), app.tower_dialog.scroll.get_global_rect()])
+	await Harness.capture(app, "relic-last-scroll")
 	await Harness.tap(app, last.get_global_rect().get_center(), true)
 	check(app.tower_dialog.mode == "equipment_detail" and app.tower_dialog.relic_choice == "scroll-23", "Last row opens the existing description menu")
 	for suffix in ["", ".tmp", ".bak"]:
@@ -181,4 +182,3 @@ func run() -> void:
 	await process_frame
 	print("RELIC UI: %d checks, %d failures" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
-
