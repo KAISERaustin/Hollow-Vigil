@@ -39,5 +39,20 @@ func run() -> void:
 	for level in range(1, 5):
 		var resolved := Balance.stats("hex_lantern", level, {}, "oathbrand" if level == 4 else "")
 		check(resolved.damage == 1.0 and resolved.period >= 4.5, "Every tier remains slow and low damage")
+	for tier in ["hex_lantern", "hex_lantern:2", "hex_lantern:3", "hex_lantern:oathbrand", "hex_lantern:witchlight"]:
+		var fields := Balance.editable_fields_for("towers", tier)
+		for key in ["cost", "damage", "period", "range", "vulnerability_percent", "mark_duration", "aura_damage_percent"]:
+			check(fields.has(key), tier + " exposes " + key + " in Rules")
+		if tier.ends_with("witchlight"):
+			check(fields.has("mark_spread_count") and fields.has("mark_spread_radius"), "Spread controls are editable")
+		var tuning := {"towers": {tier: {"aura_damage_percent": 17.0, "vulnerability_percent": 123.0, "mark_duration": 11.0, "period": 7.0, "damage": 2.0}}}
+		var restored: Dictionary = JSON.parse_string(JSON.stringify(tuning))
+		check(Balance.valid_tuning(restored), "Edited support settings survive serialization")
+		var level := 1 if not tier.contains(":") else (int(tier.get_slice(":", 1)) if tier.get_slice(":", 1).is_valid_int() else 4)
+		var branch: String = tier.get_slice(":", 1) if level == 4 else ""
+		var resolved := Balance.stats("hex_lantern", level, restored, branch)
+		check(resolved.aura_damage_percent == 17.0 and resolved.vulnerability_percent == 123.0 and resolved.mark_duration == 11.0 and resolved.period == 7.0 and resolved.damage == 2.0, "Every tier applies edited support values")
+	g.data.settings.developer_balance = {"towers": {"hex_lantern": {"aura_damage_percent": 20.0}}}
+	check(is_equal_approx(g.combat.tower_stats(ally).damage, 7.2), "Live rules edit updates aura immediately")
 	print("HEX SUPPORT: %d checks, %d failures" % [checks, failures.size()])
 	quit(1 if not failures.is_empty() else 0)

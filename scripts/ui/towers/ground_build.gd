@@ -25,7 +25,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	z_index = 0
 	palette = PanelContainer.new()
-	var drawer_style := StyleBoxEmpty.new()
+	var drawer_style := UI.surface(UI.PANEL, 0, 0)
 	palette.add_theme_stylebox_override("panel", drawer_style)
 	add_child(palette)
 	banner = PanelContainer.new()
