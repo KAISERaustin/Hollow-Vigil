@@ -93,6 +93,20 @@ func open_group(group: String) -> void:
 		stats_editor.group = group
 		stats_editor.get_child(0).hide()
 		stats_editor.rebuild()
+	elif category == "rifts":
+		for child in fields.get_children():
+			fields.remove_child(child)
+			child.queue_free()
+		inputs.clear()
+		if group == "Attributes":
+			fields.add_child(UI.paragraph("Applies to every enemy and boss from this portal type. Armor reduces incoming damage; regeneration restores a percentage of maximum health each second. Set 0 to remove an effect. Regeneration adds to the built-in portal effect."))
+			add_number("armor_percent")
+			add_number("health_regen_percent")
+		elif group == "Stats" and selected_fields().has("strength"):
+			fields.add_child(UI.paragraph(Balance.rift_description(selected_kind, game.tuning)))
+			add_number("strength")
+		else:
+			fields.add_child(UI.paragraph("Enemy armor and health regeneration are available under Attributes."))
 	elif group != "Stats":
 		for child in fields.get_children(): child.hide()
 		fields.add_child(UI.paragraph("No editable " + group.to_lower() + " for this item."))
@@ -118,6 +132,10 @@ func cancel_item() -> void:
 	show_category(category)
 
 func navigate_back() -> void:
+	if route in ["Stats", "Abilities", "Attributes"] and is_instance_valid(stats_editor) and stats_editor.choosing:
+		stats_editor.choosing = false
+		stats_editor.rebuild()
+		return
 	match route:
 		"list": show_categories()
 		"item": cancel_item()

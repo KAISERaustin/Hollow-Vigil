@@ -33,18 +33,6 @@ func show_levels() -> void:
 		open.name = "EditLevel%d" % index
 		add_child(UI.action_row(title, open, "Open"))
 
-func level_preview(index: int) -> Control:
-	var chapter: Dictionary = Configuration.Catalog.CHAPTERS[index / Configuration.Catalog.LEVELS_PER_CHAPTER]
-	if chapter.has("map_art"):
-		var picture := TextureRect.new()
-		picture.texture = chapter.map_art
-		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		picture.custom_minimum_size = Vector2(64, 64)
-		picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		return picture
-	return preload("res://scripts/ui/shared/content_portrait.gd").preview("rifts", chapter.style)
-
 func show_level(index: int) -> void:
 	snapshot = changes.duplicate(true)
 	selected = index
@@ -64,22 +52,13 @@ func show_item() -> void:
 	group = ""
 	var title := "Level %d · %s" % [selected + 1, Configuration.Catalog.level(selected).name]
 	add_child(UI.heading(title, 24))
-	add_child(level_preview(selected))
-	add_child(UI.button("Reset", func():
-		var defaults := Configuration.resolve(selected, {})
-		changes[str(selected)] = {}
-		for key in Fields.CONFIGURATION_FIELDS: changes[str(selected)][key] = defaults[key]
-	))
-	for label in ["Stats", "Abilities", "Attributes"]:
-		add_child(UI.button(label, open_group.bind(label)))
+	add_child(UI.button("Stats", open_group.bind("Stats")))
 	route_changed.emit(title, true)
 
 func open_group(label: String) -> void:
+	if label != "Stats": return
 	group = label
-	if label == "Stats": show_stats(selected)
-	else:
-		clear_body()
-		add_child(UI.paragraph("No editable " + label.to_lower() + " for this level."))
+	show_stats(selected)
 	route_changed.emit(label + " · Level " + str(selected + 1), true)
 
 func show_stats(index: int) -> void:
@@ -90,7 +69,7 @@ func show_stats(index: int) -> void:
 	var mission := Configuration.resolve(index, rules)
 	add_child(UI.heading("Level %d · %s" % [index + 1, mission.name], 24))
 	add_child(UI.paragraph("Starting gold and lives apply when starting this level. Before the first wave, they also update your current attempt. Enemies reaching the end cost lives; zero lives ends the attempt."))
-	for key in Fields.CONFIGURATION_FIELDS:
+	for key in ["gold", "flame"]:
 		var limits: Dictionary = Fields.CONFIGURATION_FIELDS[key]
 		var number := SpinBox.new()
 		number.name = "LevelRule_" + key
@@ -104,7 +83,6 @@ func show_stats(index: int) -> void:
 		)
 		numbers.append(number)
 		add_child(UI.number_row("Level lives" if key == "flame" else limits.label, number))
-	add_child(UI.paragraph("Gold per cleared wave is the default reward. Individual rewards and enemy spawns can be edited in Waves."))
 
 func commit_fields() -> void:
 	for number in numbers: number.apply()

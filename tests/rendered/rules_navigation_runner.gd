@@ -60,13 +60,26 @@ func run() -> void:
 		hp.value += 10
 		browser.cancel_item()
 		check(browser.game.tuning == original and menu.campaign_rule_changes.is_empty(), "Cancel restores draft and pending edits")
+		browser.hide()
 		menu.level_rules.show_levels()
-		menu.level_rules.show_level(0)
-		for group in ["Stats", "Abilities", "Attributes"]:
-			menu.level_rules.open_group(group)
-			check(menu.level_rules.group == group, "Level group " + group)
+		for index in menu.level_rules.Configuration.Catalog.COUNT:
+			menu.level_rules.show_level(index)
+			check(menu.level_rules.get_child_count() == 2 and menu.level_rules.get_child(1).text == "Stats", "Level has only title and Stats")
+			if index == 0:
+				for frame in range(6): await process_frame
+				menu.fit()
+				await RenderingServer.frame_post_draw
+				root.get_texture().get_image().save_png("res://artifacts/rules-%d-level.png" % dimensions.x)
+			menu.level_rules.open_group("Stats")
+			check(menu.level_rules.numbers.size() == 2, "Level stats only starting gold and lives")
+			check(menu.level_rules.find_child("LevelRule_reward", true, false) == null, "Wave reward is not editable in level stats")
+			if index == 0:
+				for frame in range(6): await process_frame
+				menu.fit()
+				await RenderingServer.frame_post_draw
+				root.get_texture().get_image().save_png("res://artifacts/rules-%d-level-stats.png" % dimensions.x)
 			menu.level_rules.navigate_back()
-		menu.level_rules.cancel_item()
+			menu.level_rules.cancel_item()
 	app.queue_free()
 	await process_frame
 	print("RULES NAVIGATION: %d checks, %d failures" % [checks, failures.size()])

@@ -15,3 +15,11 @@ func available_kinds(inhabitants: Array) -> Array:
 
 func accepts(kind: String) -> bool:
 	return kind in _rules.get("enemy_kinds", [])
+
+func incoming_damage(amount: float, tuning: Dictionary) -> float:
+	var effect = rule("enemy_effects")
+	return effect.incoming_damage(amount, definition(tuning)) if effect != null else amount
+
+func advance_enemy(enemy: Dictionary, delta: float, tuning: Dictionary) -> void:
+	var effect = rule("enemy_effects")
+	if effect != null: effect.advance(enemy, delta, definition(tuning))

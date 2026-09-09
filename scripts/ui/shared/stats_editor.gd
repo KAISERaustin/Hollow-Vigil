@@ -107,10 +107,10 @@ func build_stat_catalog() -> void:
 	for field in Stats.schema(category):
 		if Stats.control(field) or field in ["arrow_count", "fan_angle"] or Stats.schema(category)[field].get("group", "Stats") != "Stats": continue
 		var descriptor: Dictionary = Stats.schema(category)[field]
-		var enabled := Stats.enabled(category, kind, field, game.tuning)
+		if Stats.enabled(category, kind, field, game.tuning): continue
 		var label: String = descriptor.label
 		var requirement: String = descriptor.get("requires", "")
-		var button := UI.button(label + (" · Enabled" if enabled else " · Add"), func():
+		var button := UI.button(label + " · Add", func():
 			var candidate := game.tuning
 			if not requirement.is_empty(): candidate = Stats.attach(candidate, category, kind, requirement)
 			candidate = Stats.edit(candidate, category, kind, "enabled_" + field, 1)
@@ -120,7 +120,6 @@ func build_stat_catalog() -> void:
 			rebuild()
 		)
 		button.name = "AddStat_" + field
-		button.disabled = enabled
 		add_choice(label, Descriptions.field(Stats, category, kind, field, game.tuning), button)
 
 func build_capabilities(catalog: bool) -> void:

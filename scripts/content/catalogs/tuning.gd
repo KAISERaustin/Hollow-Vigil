@@ -62,6 +62,8 @@ const TUNING_FIELDS := {
 		"curse_threshold": {"label": "Doomstone stacks to suppress regrowth", "suffix": " stacks", "min": 0.0, "max": 100.0, "step": 1.0, "integer": true}
 	},
 	"rifts": {
+		"armor_percent": {"label": "Enemy armor (damage reduction %)", "suffix": "%", "min": 0.0, "max": 100.0, "step": 0.25},
+		"health_regen_percent": {"label": "Enemy health restored (% per second)", "suffix": "% / s", "min": 0.0, "max": 100.0, "step": 0.25},
 		"strength": {"label": "Effect strength", "suffix": "%", "min": 0.0, "max": 100.0, "step": 0.25}
 	},
 	"enemies": {

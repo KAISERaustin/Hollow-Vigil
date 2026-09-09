@@ -223,13 +223,15 @@ func _populate_world(root: ContentNode) -> void:
 	for style in World.ALL_STYLES:
 		_add(RegionNode.new("region/" + style, get_node("region"), {}, {"kind": style, "portal": "portal/" + style, "boss": World.BIOME_BOSSES[style]}))
 		var config: Dictionary = World.PORTALS[style]
-		var attributes: Dictionary = World.RIFTS.get(style, {"name": config.name})
+		var attributes: Dictionary = World.RIFTS.get(style, {"name": config.name}).duplicate(true)
+		attributes.merge({"armor_percent": 0.0, "health_regen_percent": 0.0})
 		var rules: Dictionary = config.merged({"kind": style, "enemy_kinds": Actors.FAMILIES[style]})
 		var ornaments := {}
 		for kind in Actors.FAMILIES[style]:
 			ornaments[kind] = PortalVisuals.ORNAMENTS[kind]
 		rules["components"] = [{"slot": "appearance", "component": portal_visual, "config": {"order": Actors.FAMILIES[style], "ornaments": ornaments, "mounts": PortalVisuals.PIT_MOUNTS if style == "castle_ruin" else PortalVisuals.MOUNTS}}]
-		_add(PortalNode.new("portal/" + style, get_node("portal"), attributes, rules), "rifts" if World.RIFTS.has(style) else "portals", style)
+		rules["enemy_effects"] = preload("res://scripts/content/nodes/attributes/portal_enemy_effects.gd").new("attribute/portal_enemy_effects")
+		_add(PortalNode.new("portal/" + style, get_node("portal"), attributes, rules), "rifts", style)
 
 func _populate_levels(root: ContentNode) -> void:
 	var level_root := _add(LevelNode.new("level", root))

@@ -132,6 +132,8 @@ func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = ""
 	for ability in ["frostneedle", "doomstone", "thunderseal"]:
 		if Balance.Stats.ability_enabled("towers", Balance.tier_key(owner.kind, owner.level, owner.get("branch", "")), ability, tuning): tags.append(ability)
 	var protection: float = enemy.get("shield", 0.0) + enemy.get("wards", 0)
+	var portal = Balance.Content.portal(enemy.get("rift_style", "forest"))
+	if portal != null and not pierce: damage = portal.incoming_damage(damage, tuning)
 	damage = EnemyCapabilities.damage(enemy, damage, tags, fire, tuning, pierce)
 	if enemy.get("boss", false):
 		if protection > 0.0 and enemy.get("shield", 0.0) + enemy.get("wards", 0) <= 0.0:
@@ -227,6 +229,8 @@ func tick(delta: float) -> void:
 	for e in enemies:
 		if e.dead:
 			continue
+		var portal = Balance.Content.portal(e.get("rift_style", "forest"))
+		if portal != null: portal.advance_enemy(e, delta, tuning)
 		var move := enemy_speed(e) * delta
 		if e.get("rift_style", "forest") == "bloodmoon_sanctuary":
 			e.hp = minf(e.max_hp, e.hp + e.max_hp * Balance.rift_strength("bloodmoon_sanctuary", tuning) / 100.0 * delta)
