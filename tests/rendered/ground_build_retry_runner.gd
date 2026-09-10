@@ -67,11 +67,12 @@ func run() -> void:
 		check(build.kind.is_empty() and not build.hovering, "Tap away dismisses retained preview")
 		check(build.banner.visible, "Dismissal keeps the card visible during its exit")
 		var open_y: float = build.banner.position.y
-		await create_timer(0.09).timeout
+		build.slide.pause()
+		build.slide.custom_step(0.09)
 		check(build.banner.visible and build.banner.position.y > open_y, "Dismissal slides the card downward")
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://artifacts/build-dismiss-%d.png" % viewport.x)
-		await create_timer(0.15).timeout
+		build.slide.custom_step(0.15)
 		check(not build.banner.visible, "Dismissal hides the card after the slide finishes")
 		build.arm("rapid")
 		await create_timer(0.22).timeout
