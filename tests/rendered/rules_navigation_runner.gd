@@ -87,22 +87,28 @@ func run() -> void:
 		browser.open_group("Stats")
 		hp = browser.find_child("hpValue", true, false)
 		var saved_hp: float = hp.value
+		await process_frame
 		hp.value += 10
+		await process_frame
 		browser.save_item()
 		check(menu.has_rule_changes(), "Saved item edit requires discard confirmation")
 		browser.open_item("enemies", "basic")
 		browser.open_group("Stats")
 		hp = browser.find_child("hpValue", true, false)
+		await process_frame
 		hp.value = saved_hp
+		await process_frame
 		browser.save_item()
 		check(not menu.has_rule_changes(), "Restoring original content value clears changes")
 		menu.level_rules.show_level(0)
 		menu.level_rules.open_group("Stats")
 		var gold: SpinBox = menu.level_rules.numbers[0]
+		await process_frame
 		var saved_gold := gold.value
 		gold.value += 10
 		check(menu.has_rule_changes(), "Level edit requires discard confirmation")
 		gold.value = saved_gold
+		await process_frame
 		menu.level_rules.show_levels()
 		check(not menu.has_rule_changes(), "Restoring original level value clears changes")
 		menu.level_rules.hide()
@@ -117,7 +123,8 @@ func run() -> void:
 		menu.level_rules.changes = {"0": {"gold": saved_gold + 10}}
 		menu.cancel_rules()
 		check(exits[0] == 2 and menu.get_child_count() == child_count + 1, "Unsaved changes still show confirmation")
-		menu.get_child(menu.get_child_count() - 1).free()
+		menu.get_child(menu.get_child_count() - 1).queue_free()
+		await process_frame
 	app.queue_free()
 	await process_frame
 	print("RULES NAVIGATION: %d checks, %d failures" % [checks, failures.size()])
