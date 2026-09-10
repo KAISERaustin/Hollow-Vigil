@@ -42,7 +42,7 @@ func run() -> void:
 			check(fields != null, "Shared Stats editor for " + category)
 			var defaults := fields.find_child("DefaultRules", true, false)
 			var additions := fields.find_child("AddedRules", true, false)
-			check(defaults != null and additions != null, "Separate default and added cards " + category)
+			check(defaults != null and (additions != null) == (category == "towers"), "Current stat cards " + category)
 			check(defaults.find_child("payoutValue", true, false) != null if category != "towers" else true, "Defeat gold belongs to defaults " + category)
 			check(fields.find_child("DisableStat_payout", true, false) == null, "Cannot disable defeat gold " + category)
 			check(fields.find_child("DisableStat_escape_damage", true, false) == null, "Cannot disable escape damage " + category)
@@ -52,7 +52,7 @@ func run() -> void:
 					check(child.size.y >= 48, "Touch height " + category + "/" + child.name)
 					check(child.get_global_rect().position.x >= menu.scroll.global_position.x - 1 and child.get_global_rect().end.x <= menu.scroll.get_global_rect().end.x + 1, "Horizontal fit " + category + "/" + child.name)
 			await capture(category)
-		for category in ["enemies", "bosses", "towers"]:
+		for category in ["towers"]:
 			menu.rules_editor.open_item(category, Balance.definitions(category).keys()[0])
 			for group in ["Stats"]:
 				menu.rules_editor.open_group(group)

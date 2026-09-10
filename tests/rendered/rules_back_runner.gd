@@ -27,9 +27,9 @@ func run() -> void:
 					browser.item_menu.get_node(group + "Menu").pressed.emit()
 					var context: String = category + "/" + kind + "/" + group
 					check(browser.route == group, context + " group opens")
-					if is_instance_valid(browser.stats_editor):
+					if category == "towers" and is_instance_valid(browser.stats_editor):
 						var editor = browser.stats_editor
-						var add_name: String = {"Stats":"AddStat", "Abilities":"AddAbility", "Attributes":"AddAttribute"}[group]
+						var add_name := "AddStat"
 						for back_kind in ["inline", "header", "system"]:
 							editor.find_child(add_name, true, false).pressed.emit()
 							check(editor.choosing, context + " Add opens")

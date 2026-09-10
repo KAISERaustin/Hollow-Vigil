@@ -12,7 +12,7 @@ Omit `-Headless` for rendering, screenshots and input tests. Each launcher invoc
 | Changed area | Focused coverage |
 | --- | --- |
 | Campaign simulation, routes, progression | `campaign_runner.gd`; `campaign_balance_runner.gd` only for difficulty changes |
-| Content nodes and shared stats | `content_node_runner.gd`, `stats_system_runner.gd`, `tuning_schema_runner.gd` |
+| Content nodes and shared stats | `content_node_runner.gd`, `stats_system_runner.gd`, `tuning_schema_runner.gd`, `simplified_rules_runner.gd` |
 | Hex support and portal gameplay | `hex_support_runner.gd`, `portal_attributes_runner.gd` |
 | Waves and exports | `wave_editor_runner.gd`, `campaign_configuration_runner.gd`, `campaign_export_runner.gd` |
 | Saves, restart and camera | `campaign_ground_save_runner.gd`, `campaign_reset_runner.gd`, `campaign_camera_runner.gd` |
