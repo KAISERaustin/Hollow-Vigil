@@ -644,7 +644,6 @@ func commit(opened_revision: int) -> void:
 			dismiss(false)
 			app.panels.close_sheet()
 			app.persist()
-			app.collection_effect(result.total)
 	elif mode == "move":
 		refresh()
 		if not visible or confirm.disabled:
