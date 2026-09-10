@@ -4,6 +4,16 @@ The Android preset builds a signed Google Play Android App Bundle at
 `exports/hollow-vigil-1.1.2.aab` with package ID `com.kaiser.hollowvigil`,
 version name `1.1.2`, and version code `12`. It targets ARM64 Android phones.
 
+## Internal testing release 1.1.3 — September 8, 2026
+
+Google Play confirmed **Available to internal testers** for **1.1.3 (13)** at **7:43 PM CDT**, using the existing internal track and tester list. Source: main `a628cc4`, with release metadata set to 1.1.3. The in-game version label also reports 1.1.3. After uploading, repository export presets, the Windows build filename, and the in-game version were advanced to **1.1.4 (14)** for the next build.
+
+Structure checks and 56,466 gameplay checks passed. Reward input passed 6 checks and the rendered palette retry runner passed 198 checks. The rendered mobile navigation audit completed 3,185 checks with **16 failures** for tower palette buttons below 48 UI units; this release-only task did not change that UI. Initial headless UI runs were stopped because they lack the required clipboard/rendering support. A 540×960 palette screenshot was visually inspected. No physical device installation or rotation check was performed.
+
+Bundletool validation and JAR signature verification passed. The manifest declares version code 13, version name 1.1.3, portrait orientation and a non-resizable activity. Google Play retained warnings for absent deobfuscation and native debug-symbol files. Release scripts, scenes, tests and client configuration (793 files) matched main.
+
+Bundle: `/private/tmp/hollow-vigil-release-1.1.3-source/exports/hollow-vigil-1.1.3.aab`. Logs: ignored `artifacts/release-1.1.3/`.
+
 ## Upload to Google Play
 
 1. Create the Hollow Vigil app in your Google Play Console account.
