@@ -1,5 +1,13 @@
 # Hollow Vigil on iPhone
 
+## TestFlight build 1.1.4 — September 9, 2026
+
+Build **0.1.0 (1.1.4)** was archived from committed main `e3dfec4`. The in-game version is **1.1.4**. Organizer recorded **Uploaded to Apple** at **8:13 PM CDT**, and App Store Connect confirmed **Processing**. Processing completion and Just for Testing availability are pending verification.
+
+Fresh import, structure validation, the 12 current Campaign test suites (238 scripts loaded and 8,842 gameplay checks), and 1,334 rendered mobile Campaign checks passed. The stats suite initially failed because the isolated snapshot lacked `.runtime`; creating the directory required by the test launcher resolved it. The separate rendered Campaign navigation runner failed around exit confirmation (`ConfirmCampaignExit` missing, then a null `BeginCampaignMission` access); that validation issue remains unresolved. The pending menu-scroll audit was also attempted but produced no completion result within three minutes and was stopped; it is not counted as passing. Portrait screenshots were inspected. No physical iOS or Android installation or rotation testing was performed.
+
+The Release archive and deep, strict code-signature verification passed. Both orientation arrays contain only `UIInterfaceOrientationPortrait`, with `UIRequiresFullScreen=true`. Archive: `~/Library/Developer/Xcode/Archives/2026-09-09/HollowVigil-1.1.4.xcarchive`. Source: `/private/tmp/hollow-vigil-release-1.1.4-source`. Logs: ignored `artifacts/release-1.1.4/`. PCK SHA-256: `7cd0c84340301c407b1e38fb16d107d9792504b6c8d5e7df31dc9105ee12e8c2`.
+
 ## TestFlight build 1.1.2 — September 8, 2026
 
 Version **0.1.0 (1.1.2)** contains GitHub main `d2ee2cd` with the export build number advanced by one. Xcode Organizer confirmed **App upload complete** through **Distribute App → App Store Connect → Distribute**. Apple records the upload at **7:11 PM CDT**. App Store Connect subsequently showed **Testing** in **Just for Testing**, with 10 testers and 12 builds.

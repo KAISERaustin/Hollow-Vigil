@@ -1,8 +1,18 @@
 # Android invited testing
 
 The Android preset builds a signed Google Play Android App Bundle at
-`exports/hollow-vigil-1.1.2.aab` with package ID `com.kaiser.hollowvigil`,
-version name `1.1.2`, and version code `12`. It targets ARM64 Android phones.
+`exports/hollow-vigil-1.1.4.aab` with package ID `com.kaiser.hollowvigil`,
+version name `1.1.4`, and version code `14`. It targets ARM64 Android phones.
+
+## Internal testing release 1.1.4 — September 9, 2026
+
+Google Play confirmed **Available to internal testers** for **1.1.4 (14)** at **8:17 PM CDT** in the existing internal testing track. Source: committed main `e3dfec4`. The in-game version is also 1.1.4.
+
+Fresh import, structure validation, 238-script source loading, 8,842 Campaign gameplay checks and 1,334 rendered mobile controls checks passed. The separate Campaign navigation audit failed around exit confirmation and remains unresolved; see `IPHONE_SETUP.md` for details. No physical Android installation or rotation test was performed.
+
+Bundletool validation and JAR signature verification passed. The manifest declares version code 14, version name 1.1.4, portrait orientation and a non-resizable activity. Google Play reported only the existing missing deobfuscation-file and native debug-symbol warnings; supported-device counts did not change.
+
+Bundle: `/private/tmp/hollow-vigil-release-1.1.4-source/exports/hollow-vigil-1.1.4.aab`. SHA-256: `c79f61e6e6c4d2aac16c3d4faec8b0088fcf734688bf5462141ce6780b51fe82`. Logs: ignored `artifacts/release-1.1.4/`.
 
 ## Internal testing release 1.1.3 — September 8, 2026
 
