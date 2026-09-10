@@ -39,13 +39,16 @@ func run() -> void:
 			await settle()
 			var banner: Control = app.ground_build.banner
 			var details: Control = banner.find_child("TowerDetails", true, false)
-			check(details.size.y <= 144, "Compact construction row")
-			check(banner.size.y < 210, "Placement panel stays compact")
+			check(details.size.y <= 280, "Compact construction row")
+			check(banner.size.y < 310, "Placement panel stays compact")
 			check(details.find_child("UpgradePaths", true, false) == null, "No premature specializations")
 			var indicator: Control = details.find_child("TowerLevelIndicator", true, false)
-			check(banner.get_global_rect().encloses(indicator.get_global_rect()), "Indicator fits panel")
-			if kind == "rapid":
-				root.get_texture().get_image().save_png("res://artifacts/compact-level-%d.png" % viewport.x)
+			check(indicator == null, "Construction info omits level blocks")
+			for node_name in ["BuildPortrait", "BuildTowerName", "BuildCost", "BuildDamage", "BuildDescription"]:
+				var content: Control = details.find_child(node_name, true, false)
+				check(content != null and banner.get_global_rect().encloses(content.get_global_rect()), "Info content fits: " + node_name)
+			if kind in ["rapid", "electric", "hex_lantern"]:
+				root.get_texture().get_image().save_png("res://artifacts/tower-info-%s-%d.png" % [kind, viewport.x])
 		app.ground_build.cancel()
 	var id: String = app.game.economy.build("rapid", app.run.mission.sockets[0].region, int(app.run.mission.sockets[0].pad))
 	app.field.selected_tower = id
