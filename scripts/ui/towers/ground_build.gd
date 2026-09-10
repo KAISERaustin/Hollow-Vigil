@@ -16,6 +16,8 @@ var pointer := -2
 var origin := Vector2.ZERO
 var point := Vector2.ZERO
 var dragging := false
+var hovering := false
+var reposition_pending := false
 var valid := false
 var allowed_to_build: Callable
 
@@ -119,6 +121,8 @@ func arm(value: String) -> void:
 		fit()
 	, 0.0, 1.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	dragging = false
+	hovering = false
+	reposition_pending = false
 	valid = false
 	queue_redraw()
 	fit()
@@ -169,7 +173,7 @@ func _input(event: InputEvent) -> void:
 			up = not down
 		elif event is InputEventMouseMotion: motion = true
 	if id == -2: return
-	if dragging and id != pointer:
+	if (dragging or reposition_pending) and id != pointer:
 		get_viewport().set_input_as_handled()
 		return
 	if not candidate.is_empty() and id == pointer:
@@ -181,9 +185,22 @@ func _input(event: InputEvent) -> void:
 		elif up:
 			candidate = ""
 	if kind.is_empty(): return
-	if not dragging and palette.get_global_rect().has_point(pos): return
+	if not dragging and not reposition_pending and palette.get_global_rect().has_point(pos): return
 	# Keep portrait drags inside the card; consume outside dismissal before world input.
-	if not dragging and banner.get_global_rect().has_point(pos): return
+	if not dragging and not reposition_pending and banner.get_global_rect().has_point(pos): return
+	if hovering and not dragging:
+		if down:
+			pointer = id
+			origin = pos
+			reposition_pending = true
+		elif reposition_pending and motion and pos.distance_to(origin) > 12:
+			reposition_pending = false
+			dragging = true
+		elif reposition_pending and up:
+			cancel()
+		if not dragging:
+			get_viewport().set_input_as_handled()
+			return
 	if not dragging:
 		if down: cancel()
 		get_viewport().set_input_as_handled()
@@ -193,6 +210,8 @@ func _input(event: InputEvent) -> void:
 		refresh()
 		if up and dragging:
 			dragging = false
+			hovering = true
+			pointer = -2
 			if valid:
 				var location := VigilWorld.ground_location(point)
 				var built := field.state.economy.build(kind, location.region, location.pad)
@@ -217,6 +236,8 @@ func cancel() -> void:
 	kind = ""
 	candidate = ""
 	dragging = false
+	hovering = false
+	reposition_pending = false
 	pointer = -2
 	if is_instance_valid(field):
 		field.touches.clear()
@@ -232,7 +253,7 @@ func _notification(what: int) -> void:
 	if what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED]: cancel()
 
 func _draw() -> void:
-	if kind.is_empty() or not dragging: return
+	if kind.is_empty() or not (dragging or hovering): return
 	var at := field.global_position - global_position + field.screen(point)
 	var tint := Color("368149") if valid else Color("cc3030")
 	draw_set_transform(at, 0, Vector2.ONE * field.zoom)
