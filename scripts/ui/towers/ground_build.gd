@@ -203,12 +203,12 @@ func _input(event: InputEvent) -> void:
 			reposition_pending = false
 			dragging = true
 		elif reposition_pending and up:
-			cancel()
+			cancel(true)
 		if not dragging:
 			get_viewport().set_input_as_handled()
 			return
 	if not dragging:
-		if down: cancel()
+		if down: cancel(true)
 		get_viewport().set_input_as_handled()
 		return
 	if id == pointer and (motion or down or up):
@@ -238,7 +238,7 @@ func refresh() -> void:
 	if allowed_to_build.is_valid(): valid = valid and allowed_to_build.call()
 	queue_redraw()
 
-func cancel() -> void:
+func cancel(animate: bool = false) -> void:
 	kind = ""
 	candidate = ""
 	dragging = false
@@ -252,7 +252,16 @@ func cancel() -> void:
 		field.gesture_consumed = true
 	if is_instance_valid(palette): palette.show()
 	if slide != null: slide.kill()
-	if is_instance_valid(banner): banner.hide()
+	if is_instance_valid(banner):
+		if animate and banner.visible:
+			slide = create_tween()
+			slide.tween_method(func(progress: float):
+				reveal = progress
+				fit()
+			, reveal, 0.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			slide.tween_callback(banner.hide)
+		else:
+			banner.hide()
 	show()
 	queue_redraw()
 

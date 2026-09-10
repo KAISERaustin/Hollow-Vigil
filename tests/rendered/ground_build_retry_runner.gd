@@ -65,6 +65,26 @@ func run() -> void:
 		touch(build, Vector2(80, 100), true)
 		touch(build, Vector2(80, 100), false)
 		check(build.kind.is_empty() and not build.hovering, "Tap away dismisses retained preview")
+		check(build.banner.visible, "Dismissal keeps the card visible during its exit")
+		var open_y: float = build.banner.position.y
+		await create_timer(0.09).timeout
+		check(build.banner.visible and build.banner.position.y > open_y, "Dismissal slides the card downward")
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://artifacts/build-dismiss-%d.png" % viewport.x)
+		await create_timer(0.15).timeout
+		check(not build.banner.visible, "Dismissal hides the card after the slide finishes")
+		build.arm("rapid")
+		await create_timer(0.22).timeout
+		var outside := InputEventMouseButton.new()
+		outside.button_index = MOUSE_BUTTON_LEFT
+		outside.pressed = true
+		outside.position = Vector2(80, 100)
+		build._input(outside)
+		check(build.kind.is_empty() and build.banner.visible, "Mouse outside press animates dismissal")
+		await create_timer(0.06).timeout
+		build.arm("rapid")
+		await create_timer(0.22).timeout
+		check(build.banner.visible and is_equal_approx(build.reveal, 1.0), "Reopening cancels the pending dismissal")
 		build.arm("rapid")
 		build.dragging = true
 		build.pointer = -1
