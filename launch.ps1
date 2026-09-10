@@ -11,13 +11,22 @@ param(
     [switch]$ArtSmoke,
     [switch]$Check,
     [switch]$Import,
+    [string]$TestScript,
+    [switch]$Headless,
     [string]$GodotPath = $env:GODOT_PATH
 )
 
 $ErrorActionPreference = 'Stop'
 $projectPath = $PSScriptRoot
-$modes = @($Editor, $Tests, $Smoke, $StyleTests, $MobileTests, $UnifiedTests, $TerrainTests, $TerrainPreview, $ArtSmoke, $Check, $Import) | Where-Object { $_ }
+$modes = @($Editor, $Tests, $Smoke, $StyleTests, $MobileTests, $UnifiedTests, $TerrainTests, $TerrainPreview, $ArtSmoke, $Check, $Import, [bool]$TestScript) | Where-Object { $_ }
 if (@($modes).Count -gt 1) { throw 'Choose one launch mode at a time.' }
+if ($Headless -and -not $TestScript) { throw '-Headless is only used with -TestScript.' }
+if ($TestScript) {
+    $TestScript = $TestScript.Replace('\', '/').Replace('res://', '')
+    if ($TestScript -notmatch '^tests/(?:[a-zA-Z0-9_]+/)*[a-zA-Z0-9_]+\.gd$' -or -not (Test-Path -LiteralPath (Join-Path $projectPath $TestScript))) {
+        throw '-TestScript must name an existing GDScript under tests/.'
+    }
+}
 
 if (-not $GodotPath) {
     foreach ($name in @('godot', 'godot4', 'godot-mono')) {
@@ -34,6 +43,11 @@ if (-not (Test-Path -LiteralPath $GodotPath -PathType Leaf)) {
 }
 $enginePath = (Resolve-Path -LiteralPath $GodotPath).Path
 $artifactPath = Join-Path $projectPath 'artifacts'
+$testRunId = Get-Date -Format 'yyyyMMdd-HHmmss-ffff'
+if ($Tests -or $Smoke -or $StyleTests -or $MobileTests -or $UnifiedTests -or $TerrainTests -or $TerrainPreview -or $ArtSmoke -or $Check -or $Import -or $TestScript) {
+    $artifactPath = Join-Path $artifactPath "test-runs/$testRunId-$PID"
+    Write-Host "Test logs: $artifactPath"
+}
 New-Item -ItemType Directory -Force -Path $artifactPath | Out-Null
 
 function Invoke-Godot {
@@ -58,8 +72,8 @@ $savedAppData = $env:APPDATA
 $savedLocalAppData = $env:LOCALAPPDATA
 try {
     $runtimePath = Join-Path $projectPath '.runtime'
-    if ($Tests -or $Smoke -or $StyleTests -or $MobileTests -or $UnifiedTests -or $TerrainTests -or $TerrainPreview -or $ArtSmoke -or $Check -or $Import) {
-        $runtimePath = Join-Path $runtimePath 'tests'
+    if ($Tests -or $Smoke -or $StyleTests -or $MobileTests -or $UnifiedTests -or $TerrainTests -or $TerrainPreview -or $ArtSmoke -or $Check -or $Import -or $TestScript) {
+        $runtimePath = Join-Path $runtimePath "tests/$testRunId-$PID"
     }
     $env:APPDATA = Join-Path $runtimePath 'Roaming'
     $env:LOCALAPPDATA = Join-Path $runtimePath 'Local'
@@ -70,8 +84,13 @@ try {
     } else {
         # Registers script classes and imports assets on a completely clean checkout.
         Invoke-Godot -Name 'import' -EngineArguments @('--headless', '--editor', '--import')
+        if ($TestScript) {
+            $testArguments = @('--script', "res://$TestScript")
+            if ($Headless) { $testArguments = @('--headless') + $testArguments }
+            Invoke-Godot -Name ([IO.Path]::GetFileNameWithoutExtension($TestScript)) -EngineArguments $testArguments
+        }
         if ($Tests -or $Check) {
-            foreach ($runner in @('source_load_runner', 'stats_system_runner', 'hex_support_runner', 'portal_attributes_runner', 'campaign_runner', 'campaign_configuration_runner', 'wave_editor_runner', 'campaign_export_runner', 'campaign_expansion_runner', 'campaign_ground_save_runner', 'tuning_schema_runner')) {
+            foreach ($runner in @('source_load_runner', 'simplified_rules_runner', 'stats_system_runner', 'hex_support_runner', 'portal_attributes_runner', 'campaign_runner', 'campaign_configuration_runner', 'wave_editor_runner', 'campaign_export_runner', 'campaign_expansion_runner', 'campaign_ground_save_runner', 'tuning_schema_runner')) {
                 Invoke-Godot -Name $runner -EngineArguments @('--headless', '--script', "res://tests/$runner.gd")
             }
         }
@@ -88,7 +107,6 @@ try {
             Invoke-Godot -Name 'stats-editor' -EngineArguments @('--script', 'res://tests/rendered/stats_editor_runner.gd')
             Invoke-Godot -Name 'rules-navigation' -EngineArguments @('--script', 'res://tests/rendered/rules_navigation_runner.gd')
 			Invoke-Godot -Name 'rules-back' -EngineArguments @('--script', 'res://tests/rendered/rules_back_runner.gd')
-            Invoke-Godot -Name 'portal-attributes' -EngineArguments @('--script', 'res://tests/rendered/portal_attributes_runner.gd')
             Invoke-Godot -Name 'wave-editor-touch' -EngineArguments @('--script', 'res://tests/rendered/wave_editor_runner.gd')
             Invoke-Godot -Name 'campaign-touch' -EngineArguments @('--script', 'res://tests/rendered/mobile_campaign_controls_runner.gd')
             Invoke-Godot -Name 'picker-touch' -EngineArguments @('--script', 'res://tests/rendered/illustrated_picker_touch_runner.gd')
@@ -99,7 +117,6 @@ try {
         }
         if ($ArtSmoke -or $Check) {
 			Invoke-Godot -Name 'hex-effects' -EngineArguments @('--script', 'res://tests/rendered/hex_effect_runner.gd')
-            Invoke-Godot -Name 'gear-art' -EngineArguments @('--script', 'res://tests/rendered/gear_art_runner.gd')
             Invoke-Godot -Name 'construction-effect' -EngineArguments @('--script', 'res://tests/rendered/construction_effect_runner.gd')
         }
         if (@($modes).Count -eq 0) { Invoke-Godot -Name 'game' -EngineArguments @() }

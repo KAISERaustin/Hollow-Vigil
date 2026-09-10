@@ -128,7 +128,6 @@ func apply_balance(candidate: Dictionary) -> bool:
 	for region in data.regions.values():
 		region.history.clear()
 		region.history_time = 0.0
-	combat.income_events.clear()
 	return true
 
 func snapshot(now: float = -1.0) -> Dictionary:

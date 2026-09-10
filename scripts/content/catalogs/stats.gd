@@ -68,6 +68,7 @@ static func register_baseline(category: String, kind: String, values: Dictionary
 	extensions[category][kind] = stats
 
 static func ability_enabled(category: String, kind: String, ability: String, tuning: Dictionary) -> bool:
+	if category != "towers" or ability.begins_with("gear_"): return false
 	return tuning.get(category, {}).get(kind, {}).get("use_" + ability, 1 if ability in Capabilities.defaults(category, kind) else 0) > 0
 
 static func default_value(category: String, kind: String, field: String) -> float:
@@ -103,6 +104,10 @@ static func resolve(category: String, kind: String, identity: Dictionary, tuning
 		for ability in capabilities(category):
 			if ability_enabled(category, kind, ability, tuning): names.append(capabilities(category)[ability].name)
 		result.description = "Assigned capabilities: " + ", ".join(names) + "." if not names.is_empty() else ("Standard shots with this tier's configured stats." if category == "towers" else "Uses its configured stats without additional abilities.")
+	if category != "towers":
+		for field in Capabilities.RESISTANCES: result[field] = 0.0
+		result.erase("weakness")
+		result.description = "Uses its configured health, speed, rewards and core damage."
 	return result
 
 static func neutral(field: String) -> float:
@@ -153,3 +158,11 @@ static func compact(tuning: Dictionary) -> Dictionary:
 			if values.is_empty(): result[category].erase(kind)
 		if result[category].is_empty(): result.erase(category)
 	return result
+
+# Legacy schemas remain readable, but removed capabilities cannot be edited.
+static func editable_stat(category: String, field: String) -> bool:
+	if control(field) or field.begins_with("gear_"): return false
+	var descriptor: Dictionary = schema(category).get(field, {})
+	if descriptor.get("group", "Stats") != "Stats": return false
+	if category == "towers": return descriptor.get("requires", "").is_empty()
+	return field in ["hp", "speed", "payout", "escape_damage"]

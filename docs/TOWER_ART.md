@@ -24,9 +24,10 @@ projectile outlets, placement and saved tower identities are unchanged.
 The artwork family supplies portrait bounds to `sentinel_portrait`, which
 centers and fits the taller fire crown inside both medallions and dialog headers.
 
-The twelve transparent 256 x 256 PNGs in `assets/towers/` are rendered from
+The tower upgrade art runner generates twelve transparent 256 x 256 PNGs in
+ignored `artifacts/towers/` from
 the same native Godot artwork used in play, with consistent framing. No AI
-image-generation prompt or external image model is used. `./launch.ps1 -ArtSmoke` checks equipment artwork, transparent padding, upgrade events, rejected upgrades, effect expiration and state replacement. Captures are written under `artifacts/`.
+image-generation prompt or external image model is used. `./launch.ps1 -ArtSmoke` checks Hex effects, upgrade events, rejected upgrades, effect expiration and state replacement. The standalone tower upgrade art runner checks transparent padding and stage artwork. Captures are written under `artifacts/`.
 
 A successful economy upgrade emits `tower_upgraded`. The battlefield displays
 a 0.65-second expanding dust cloud and tower-colored motes at that socket.
@@ -41,8 +42,8 @@ Ironspike, Moonwheel, Hex Lantern and Caltrop Keep compose the stateless native
 fortified and two final branch silhouettes. The same drawing owner supplies
 battlefields, build previews, menu portraits and upgrade previews in Campaign.
 The concept renderer now inherits this production owner rather than duplicating
-its drawing code. Its twenty transparent exports and review boards remain in
-`docs/concepts/tower-expansion/`.
+its drawing code. It generates twenty transparent exports and review boards in ignored
+`artifacts/tower-expansion/`.
 
 `rendering/effects/tower_component_art.gd` draws actual live bolts, outward and
 returning crescents, armed/unarmed road traps and orbiting blades from combat

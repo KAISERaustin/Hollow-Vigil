@@ -150,6 +150,7 @@ func _has_point(point: Vector2) -> bool:
 	return Rect2(Vector2.ZERO, size).has_point(point)
 
 func open_action(action: String, branch: String = "") -> void:
+	if action.begins_with("equipment"): return
 	app.field.selected_tower_range_visible = true
 	if dismissal: dismissal.kill()
 	dismissing = false
@@ -168,7 +169,7 @@ func open_action(action: String, branch: String = "") -> void:
 		branch_cards = null
 	identity_card.show()
 	var id: String = app.field.selected_tower
-	if not action in ["info", "preview", "upgrade", "sell", "move", "target", "equipment"] or not app.game.data.towers.has(id):
+	if not action in ["info", "preview", "upgrade", "sell", "move", "target"] or not app.game.data.towers.has(id):
 		return
 	opener = get_viewport().gui_get_focus_owner()
 	revision += 1
@@ -400,6 +401,7 @@ func management_button(action: String, label: String, callback: Callable) -> But
 	return button
 
 func configure_management_button(button: Button, action: String, label: String) -> void:
+	button.disabled = action == "equipment"
 	button.custom_minimum_size = Vector2(48, 48)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER

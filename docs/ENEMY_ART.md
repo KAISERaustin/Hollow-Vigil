@@ -8,4 +8,4 @@ Forest uses moss, leaves and bark; Forge uses coal, iron and embers; Crypt uses 
 
 Developer controls read the same definition as combat. Optional future capabilities belong to attachable components; these drawings add no hidden buffs or timed status effects.
 
-The transparent reference PNGs in `assets/enemies/` show the native artwork. Gameplay draws the shapes directly. Campaign terrain and illustrated-picker tests cover their current rendering and portrait integration.
+The active enemy images are cataloged under `assets/artwork/enemy/`, with native drawing fallbacks. Campaign terrain and illustrated-picker tests cover their current rendering and portrait integration.

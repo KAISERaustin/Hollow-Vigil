@@ -16,7 +16,7 @@ static func description(relic_kind: String, tuning: Dictionary = {}) -> String:
 	return DEFINITIONS[relic_kind].description.format(gear)
 
 static func kind(data: Dictionary, tower: Dictionary) -> String:
-	return data.get("relics", {}).get(tower.get("relic", ""), "")
+	return ""
 
 static func editor_description(relic_kind: String, tuning: Dictionary = {}) -> String:
 	const Explanations = preload("res://scripts/content/catalogs/stat_descriptions.gd")
@@ -37,39 +37,20 @@ static func owner(data: Dictionary, relic_id: String) -> String:
 	return ""
 
 static func available(data: Dictionary) -> Array[String]:
-	var result: Array[String] = []
-	for relic_id in data.get("relics", {}):
-		if owner(data, relic_id).is_empty():
-			result.append(relic_id)
-	return result
+	return []
 
 static func migrate(data: Dictionary) -> void:
-	if not data.has("relics"):
-		data.relics = {}
-	# Older progress receives each recorded victory once, without paying gold again.
-	for records in [data.regions, data.get("castles", {})]:
-		for source in records:
-			var boss: Dictionary = records[source].get("boss", {})
-			if boss.get("status", "") == "defeated":
-				award_set(data, source, boss.get("kind", ""))
+	data.relics = {}
+	for tower in data.get("towers", {}).values(): tower.erase("relic")
 
 static func drop_id(source: String, gear_kind: String, boss_kind: String) -> String:
 	return source if gear_kind == boss_kind else source + "#" + gear_kind
 
 static func award_set(data: Dictionary, source: String, boss_kind: String) -> Array[String]:
-	var awarded: Array[String] = []
-	for gear_kind in BOSS_DROPS.get(boss_kind, []):
-		if award(data, drop_id(source, gear_kind, boss_kind), gear_kind):
-			awarded.append(gear_kind)
-	return awarded
+	return []
 
 static func award(data: Dictionary, source: String, boss_kind: String) -> bool:
-	if not data.has("relics"):
-		data.relics = {}
-	if data.relics.has(source) or not DEFINITIONS.has(boss_kind):
-		return false
-	data.relics[source] = boss_kind
-	return true
+	return false
 
 static func prepare(combat: VigilCombat, tower: Dictionary, target: Dictionary, stats: Dictionary) -> Dictionary:
 	var relic_kind := kind(combat.data, tower)

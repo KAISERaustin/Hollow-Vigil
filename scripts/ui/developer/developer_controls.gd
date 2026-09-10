@@ -7,7 +7,7 @@ signal rules_edited(category: String, kind: String, stats: Array)
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Picker = preload("res://scripts/ui/shared/illustrated_picker.gd")
 const Portrait = preload("res://scripts/ui/shared/content_portrait.gd")
-var categories: Array[String] = ["session", "bosses", "rifts", "enemies", "towers", "gear"]
+var categories: Array[String] = ["session", "bosses", "enemies", "towers", "gear"]
 var configuration_only := false
 var authored_spawns := false
 var game: VigilState
@@ -69,9 +69,10 @@ func _ready() -> void:
 	move_child(category_list, 0)
 	for section in categories:
 		var tab := UI.button(category_title(section), show_category.bind(section))
+		tab.disabled = section == "gear"
 		tab.name = section.capitalize() + "Category"
 		tabs[section] = tab
-		category_list.add_child(UI.action_row(tab.text, tab, "Open"))
+		category_list.add_child(UI.action_row(tab.text, tab, "Unavailable" if section == "gear" else "Open"))
 	editor = VBoxContainer.new()
 	editor.name = "BalanceEditor"
 	editor.add_theme_constant_override("separation", 12)
@@ -242,7 +243,7 @@ func show_fields() -> void:
 		hint.text = "Tier %d · Live changes · Auto-saved" % selected_level
 		detail.text = "Edit this tier independently. Costs are for building tier 1 or purchasing the selected upgrade. Specialization effects appear below combat stats."
 	if category == "bosses":
-		detail.text = "Counter: " + Balance.BOSSES[selected_kind].weakness + ". Values override these defaults. Health, shields, wards and timers preserve their remaining proportion. Rewards apply on defeat."
+		detail.text = "Health changes preserve remaining health percentage. Rewards apply on defeat."
 	if category == "gear":
 		detail.text = "Changes apply on the next attack. Launched shots and active effects keep their values. Root cooldowns retain their remaining proportion; stack limits update immediately. Removing or transferring gear clears its active effects."
 	if category == "rifts":
@@ -292,14 +293,7 @@ func refresh_identity() -> void:
 			const Relics = preload("res://scripts/gameplay/progression/relics.gd")
 			var boss_kind: String = Relics.DEFINITIONS[selected_kind].boss
 			description.text = "From " + Balance.BOSSES[boss_kind].name + " · One of three victory drops\n\n" + Relics.editor_description(selected_kind, game.tuning)
-		"bosses":
-			var summaries := {
-				"warden": "A forest guardian protected by a root shield that does not regenerate. Fire deals extra damage to its protection.",
-				"cindermaw": "An armored fire spirit in a broken vessel. It hastens when wounded; frost can quench its rage.",
-				"bell": "A haunted bell that periodically summons escorts. Delaying its tolls keeps the procession under control.",
-				"prior": "A spectral prior protected by regenerating wards. Curses can bypass its defenses and suppress regrowth."
-			}
-			description.text = definition.get("description", summaries.get(selected_kind, "")) + " Counter: " + definition.weakness + "."
+		"bosses": description.text = "Uses its configured health, speed, rewards and core damage."
 	portrait.accessibility_name = identity_title.text + " portrait"
 	UI.fit_heading(identity_title)
 	portrait.queue_redraw()

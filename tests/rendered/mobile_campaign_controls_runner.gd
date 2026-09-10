@@ -2,7 +2,6 @@ extends SceneTree
 ## Real viewport touch events, isolated saved slots, and every Campaign menu.
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Catalog = preload("res://scripts/campaign/catalog.gd")
-const Relics = preload("res://scripts/gameplay/progression/relics.gd")
 var app: VigilApp
 var campaign: Control
 var checks := 0
@@ -178,7 +177,6 @@ func battle_menus() -> void:
 	await press(named("CampaignWaves"))
 	await wave_menus()
 	await press(named("CloseCampaignDialog"))
-	# Ground placement's complete finger flow is covered by ground_build_runner.
 	# Set up a tower here to audit the current shared management menus.
 	var socket: Dictionary = campaign.run.mission.sockets[0]
 	campaign.run.build(socket.index, "rapid")
@@ -238,7 +236,8 @@ func wave_menus() -> void:
 
 func tower_menus(socket: Dictionary, id: String) -> void:
 	var tower: Dictionary = campaign.game.data.towers[id]
-	for action in ["target", "equipment", "sell", "move"]:
+	var dialog: VigilTowerDialog = campaign.tower_dialog
+	for action in ["target", "sell", "move"]:
 		campaign.show_socket(socket.index)
 		await settle()
 		await press(named("Manage_" + action))
@@ -257,29 +256,6 @@ func tower_menus(socket: Dictionary, id: String) -> void:
 		check(campaign.tower_dialog.target_choice == target and tower.get("target_mode", "first") == "first", "Target selection waits for Apply")
 	await press(campaign.tower_dialog.confirm)
 	check(tower.target_mode == Balance.TARGET_MODES.keys()[-1], "Touch applies targeting")
-	for index in 18: Relics.award(campaign.game.data, "90,%d" % index, Relics.DEFINITIONS.keys()[index % Relics.DEFINITIONS.size()])
-	campaign.show_socket(socket.index)
-	await settle()
-	await press(named("Manage_equipment"))
-	var dialog: VigilTowerDialog = campaign.tower_dialog
-	await swipe(dialog.scroll.get_global_rect().get_center(), Vector2(0, -70))
-	check(dialog.scroll.scroll_vertical > 0 and dialog.mode == "equipment", "Equipment inventory swipes without selecting")
-	await press(named("Relic_90,17"))
-	check(dialog.mode == "equipment_detail", "Last equipment row opens by touch")
-	await audit(dialog.card, "Equipment detail")
-	await back()
-	check(dialog.visible and dialog.mode == "equipment" and not tower.has("relic"), "Equipment detail Back retains inventory without equipping")
-	await press(named("Relic_90,17"))
-	await press(dialog.confirm)
-	check(dialog.mode == "equipment" and tower.relic == "90,17", "Touch equips inventory item")
-	await press(named("RemoveEquipment"))
-	await audit(dialog.card, "Equipment removal")
-	await back()
-	check(dialog.visible and dialog.mode == "equipment" and tower.relic == "90,17", "Equipment removal Back cancels without removing")
-	await press(named("RemoveEquipment"))
-	await press(dialog.confirm)
-	check(dialog.mode == "equipment" and not tower.has("relic"), "Touch confirms equipment removal")
-	await back()
 	campaign.show_socket(socket.index)
 	await settle()
 	await press(named("Manage_move"))

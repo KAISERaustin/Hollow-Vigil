@@ -42,7 +42,7 @@ func run() -> void:
 	app.open_campaign_slot(0, app.slot_menu.campaign_slots.create(0, "creative", "Wave menu test"))
 	var screen: Control = app.campaign
 	screen.set_process(false)
-	screen.progress.data.completed_levels = 20
+	screen.progress.data.completed_levels = preload("res://scripts/campaign/catalog.gd").COUNT
 	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = viewport
 		root.content_scale_size = viewport

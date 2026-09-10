@@ -43,30 +43,6 @@ func cancel_upgrade() -> void:
 	if buttons.has("upgrade"):
 		buttons.upgrade.queue_redraw()
 
-func request_upgrade() -> void:
-	refresh()
-	if not visible or buttons.upgrade.disabled:
-		return
-	if upgrade_in_dialog:
-		action_requested.emit("preview")
-		return
-	var id := field.selected_tower
-	var tower: Dictionary = field.state.data.towers[id]
-	if pending_tower == id and tower.level == 3:
-		cancel_upgrade()
-		return
-	if pending_tower == id:
-		var level := pending_level
-		cancel_upgrade()
-		if field.state.economy.upgrade(id, level):
-			upgraded.emit()
-	else:
-		pending_tower = id
-		pending_level = int(tower.level)
-		pending_cost = Balance.upgrade_cost(tower, field.state.tuning)
-	refresh()
-	buttons.upgrade.queue_redraw()
-
 func _unhandled_key_input(event: InputEvent) -> void:
 	if pending_tower != "" and event.is_action_pressed("ui_cancel"):
 		cancel_upgrade()
@@ -86,6 +62,7 @@ func _ready() -> void:
 	upgrade_quote.hide()
 	for action in ACTION_OFFSETS:
 		var button := UI.accent_button("", func(): action_requested.emit(action), UI.GOLD if action == "upgrade" else UI.SURFACE)
+		button.disabled = action == "equipment"
 		button.size = BUTTON_SIZE
 		button.accessibility_description = action.capitalize()
 		button.accessibility_name = action.capitalize() + " tower"

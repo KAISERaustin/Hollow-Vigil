@@ -59,9 +59,9 @@ func run() -> void:
 	bell.toll = 0.01
 	bell_run.game.combat.tick(Balance.STEP)
 	check(bell.path == route and bell.tile == "0,0", "Campaign boss retains its authored route")
-	check(bell_run.game.combat.enemies.size() == 4, "Drowned Bell summons campaign escorts")
+	check(bell_run.game.combat.enemies.size() == 1, "Authored boss remains the only spawn")
 	for enemy in bell_run.game.combat.enemies:
-		check(enemy.path[-1] == Catalog.CORE, "Boss and summoned escorts reach the campaign sanctuary")
+		check(enemy.path[-1] == Catalog.CORE, "Authored boss route reaches the campaign sanctuary")
 	bell.path = [Catalog.CORE - Vector2(0,0.1),Catalog.CORE]
 	bell.pos = bell.path[0]
 	bell.segment = 1
@@ -240,7 +240,7 @@ func check_effect_cleanup() -> void:
 			battle.health = 0
 		var finished_count := [0]
 		battle.finished.connect(func(): finished_count[0] += 1)
-		for kind in ["shot", "death", "relic_drop"]:
+		for kind in ["shot", "death"]:
 			battle.game.combat.add_effect({"kind": kind, "life": 0.5, "max_life": 0.5})
 		battle.tick(Balance.STEP)
 		check(battle.phase == outcome, "Wave reaches %s with effects still visible" % outcome)

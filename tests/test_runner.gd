@@ -13,18 +13,9 @@ func check(condition: bool, message: String) -> void:
 		failures.append(message)
 		push_error("FAIL: " + message)
 
-func advance(g: VigilState, seconds: float) -> void:
-	for i in range(int(seconds / Balance.STEP)):
-		g.combat.tick(Balance.STEP)
-
 func fixture_enemy(g: VigilState, kind: String = "basic") -> Dictionary:
 	var route: Array[Vector2] = [Vector2(-250, 0), Vector2(0, 0)]
 	return g.combat.spawn_on_path(kind, route)
-
-func legacy_core_fixture(seed_value: int) -> VigilState:
-	# Existing core-only progress can build without new-game onboarding.
-	var game := VigilState.new(seed_value)
-	return game
 
 func clean_test_save(path: String) -> void:
 	for suffix in ["", ".tmp", ".bak"]:

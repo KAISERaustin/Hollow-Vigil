@@ -5,7 +5,7 @@ func run() -> void:
 	var store := Progress.new()
 	store.path = "user://campaign-reset-" + str(Time.get_ticks_usec()) + ".save"
 	check(store.reset_progress(), "Fresh progression can reset")
-	check(store.restore_completed_levels(20), "Existing completion prepares")
+	check(store.restore_completed_levels(Progress.Catalog.COUNT), "Existing completion prepares")
 	check(store.reset_progress() and store.data.completed_levels == 0, "All campaign completion resets")
 	var loaded := Progress.new()
 	loaded.path = store.path

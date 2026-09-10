@@ -91,12 +91,6 @@ func persist() -> void:
 	config.set_value("preferences", "settings", game.data.settings)
 	if config.save(preferences_path()) != OK: toast("Couldn't save sound preferences.")
 
-func apply_ui_preferences() -> void:
-	theme = UI.theme()
-	for node in find_children("*", "Control", true, false):
-		if node.has_meta("ui_font_size"):
-			node.add_theme_font_size_override("font_size", UI.type_size(node.get_meta("ui_font_size")))
-
 func toast(message: String, seconds: float = 4.0, color: Color = UI.TEXT) -> void:
 	toast_label.text = message
 	toast_label.add_theme_color_override("font_color", color)

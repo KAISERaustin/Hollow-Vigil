@@ -114,11 +114,8 @@ Existing stable tower IDs must remain unchanged. Verify component reuse on multi
 
 ## Preview files
 
-- [Level-one concept board](tower-expansion/level-one-concepts.png)
-- [All 20 tower stages](tower-expansion/all-levels-and-branches.png)
-- [Phone-size review sheet](tower-expansion/phone-390.png)
-- Transparent 256 × 256 exports of every stage are in `docs/concepts/tower-expansion/`.
+The generator writes the level-one concept board, all 20 tower stages, phone-size review sheet and transparent 256 × 256 exports to ignored `artifacts/tower-expansion/`. Regenerate them when needed instead of storing duplicate renders in source control.
 
-The review-only native drawing code is `tests/previews/tower_expansion/concept_art.gd`; `concept_data.gd` owns preview identities. The generator is `tests/previews/tower_expansion_preview.gd`. These files do not register content, add menu choices, run a simulation, or write progress saves. Render with Godot using `--path . --script res://tests/previews/tower_expansion_preview.gd`, with APPDATA and LOCALAPPDATA directed into `.runtime/tower-concepts/` as in the project launcher. The renderer checks export success, transparent bounds, and unique art for all 20 stages.
+The review-only native drawing code is `tools/previews/tower_expansion/concept_art.gd`; `concept_data.gd` owns preview identities. The generator is `tools/previews/tower_expansion_preview.gd`. These files do not register content, add menu choices, run a simulation, or write progress saves. Render with Godot using `--path . --script res://tools/previews/tower_expansion_preview.gd`, with APPDATA and LOCALAPPDATA directed into `.runtime/tower-concepts/` as in the project launcher. The renderer checks export success, transparent bounds, and unique art for all 20 stages.
 
 Source references: [tower catalog](../../scripts/content/catalogs/towers.gd), [progression contract](../TOWER_BALANCE.md), [node architecture](../NODE_SYSTEM.md), [art direction](../ART_DIRECTION.md), [UI style](../UI_STYLE_GUIDE.md).

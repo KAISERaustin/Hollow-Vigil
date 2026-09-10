@@ -7,7 +7,6 @@ const Run = preload("res://scripts/campaign/run.gd")
 const Progress = preload("res://scripts/campaign/progress.gd")
 const Board = preload("res://scripts/campaign/board.gd")
 const WorldMap = preload("res://scripts/campaign/world_map.gd")
-const TowerChoice = preload("res://scripts/ui/towers/tower_choice.gd")
 const WaveSummary = preload("res://scripts/ui/shared/wave_summary.gd")
 signal closed
 var app: VigilApp
@@ -40,7 +39,6 @@ var save_notice: Label
 var socket_dialog := false
 var ground_build: Control
 var build_choices: ScrollContainer
-var build_selection := preload("res://scripts/ui/towers/build_selection.gd").new()
 var waves_dialog := false
 var shared_setups: Dictionary = {}
 var configuration_picker: Node
@@ -144,7 +142,6 @@ func build_tower_ui() -> void:
 	tower_dialog = VigilTowerDialog.new()
 	tower_dialog.app = self
 	tower_dialog.clear_selection_on_upgrade = true
-	tower_dialog.upgraded.connect(build_selection.show_choices)
 	tower_dialog.z_index = 102
 	add_child(tower_dialog)
 	tower_actions.action_requested.connect(tower_dialog.open_action)
@@ -882,35 +879,6 @@ func show_socket(socket: int) -> void:
 		return
 	ground_build.open()
 
-func select_build_preview(kind: String, confirm: Button) -> void:
-	build_selection.select(kind)
-	board.preview_kind = kind
-	var definition := Balance.definition("towers", kind, game.tuning)
-	confirm.text = "Build %s · %s gold" % [definition.name, UI.exact_money(definition.cost)]
-	confirm.disabled = game.data.balance < definition.cost
-	TowerChoice.show_details(build_choices, game.tuning, kind)
-	dialog_title.text = definition.name
-	var back := dialog_header.get_node("BackToTowers") as Button
-	back.show()
-	back.grab_focus()
-	dialog_actions.show()
-	(dialog_body.get_parent() as ScrollContainer).scroll_vertical = 0
-	board.build_preview.open(board, dialog_card)
-	fit.call_deferred()
-	board.queue_redraw()
-
-func show_build_choices() -> void:
-	build_selection.show_choices()
-	var kind: String = build_selection.kind
-	TowerChoice.clear_details(build_choices)
-	dialog_header.get_node("BackToTowers").hide()
-	dialog_actions.hide()
-	dialog_title.text = "Build a tower"
-	board.build_preview.clear(board)
-	(dialog_body.get_parent() as ScrollContainer).scroll_vertical = 0
-	build_choices.get_node("Cards/CampaignBuild_" + kind).grab_focus()
-	fit.call_deferred()
-
 func show_result() -> void:
 	if reward_transition.active:
 		result_pending = true
@@ -1215,63 +1183,6 @@ func configuration_menu() -> Control:
 	app.slot_menu.show()
 	app.slot_menu.move_to_front()
 	return app.slot_menu
-
-func show_configuration_picker(index: int, kind: String) -> void:
-	if not can_author(): return
-	var was_paused := paused
-	paused = true
-	var menu := configuration_menu()
-	if is_instance_valid(configuration_picker): configuration_picker.queue_free()
-	configuration_picker = preload("res://scripts/ui/configuration_picker.gd").new()
-	menu.add_child(configuration_picker)
-	configuration_picker.menu = menu
-	configuration_picker.kind = kind
-	configuration_picker.level = index
-	configuration_picker.back = func():
-		menu.view_revision += 1
-		menu.hide()
-		paused = was_paused
-	configuration_picker.create = func():
-		menu.open_game_menu()
-		menu.open_rules()
-	configuration_picker.selected = func(entry: Dictionary):
-		shared_setups[index] = VigilSaveSlots.CampaignBuild.decode(entry.code)
-		menu.view_revision += 1
-		menu.hide()
-		show_briefing(index)
-	configuration_picker.show_page()
-
-func show_campaign_share(index: int, saved: bool = false) -> void:
-	if not can_author(): return
-	var was_paused := paused
-	paused = true
-	var source: RefCounted = Run.new(index, configuration.overrides(index)) if saved else run
-	var rules: Dictionary = configuration.overrides(index) if saved else active_overrides
-	var menu := configuration_menu()
-	menu.show_export(source.game, {"level": index, "overrides": rules}, func():
-		menu.view_revision += 1
-		menu.hide()
-		paused = was_paused
-	)
-
-func show_level_export(index: int) -> void:
-	var code := Configuration.export_level(index, configuration.overrides(index))
-	open_dialog("Level %d balancing export" % (index + 1))
-	dialog_body.add_child(UI.paragraph("Saved configuration with defaults, effective statistics, wave schedules and changes. Copy the code to transfer or inspect it.", 14))
-	var export_code := TextEdit.new()
-	export_code.name = "CampaignExportCode"
-	export_code.text = code
-	export_code.editable = false
-	export_code.custom_minimum_size.y = 220
-	export_code.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-	dialog_body.add_child(export_code)
-	var copy := UI.button("Copy export code", func():
-		DisplayServer.clipboard_set(code)
-		toast("Campaign level export copied.")
-	)
-	copy.name = "CopyCampaignExport"
-	dialog_body.add_child(copy)
-	add_dialog_back("Back to Waves", show_waves)
 
 func show_wave_balance(wave: int) -> void:
 	var report := Configuration.wave_reports(run.mission)[wave]

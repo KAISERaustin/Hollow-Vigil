@@ -1,7 +1,6 @@
 extends SceneTree
 
 const Build = preload("res://scripts/persistence/reusable_build.gd")
-const Run = preload("res://scripts/campaign/run.gd")
 var checks := 0
 var failures := 0
 var app: VigilApp
@@ -61,14 +60,9 @@ func capture(key: String) -> void:
 		check(menu.scroll.get_global_rect().end.y <= menu.footer.global_position.y + 1, "Footer remains outside scroll area: " + key)
 
 func check_campaign_settings(key: String) -> void:
-	check(button("CreativeTools") == null, "Campaign menu omits Creative tools: " + key)
 	await press("GameSettings")
 	var run_before: RefCounted = app.campaign.run
 	var gold_before: float = run_before.game.data.balance if run_before != null else 0.0
-	menu.show_creative_tools()
-	await frames()
-	check(menu.screen == "settings", "Campaign rejects direct Creative tools navigation: " + key)
-	check(button("CreativeTools") == null and button("AddMillionGold") == null, "Campaign settings have no gold grant: " + key)
 	check(app.campaign.run == run_before, "Settings preserve the Campaign run: " + key)
 	if run_before != null:
 		check(run_before.game.data.balance == gold_before, "Settings preserve Campaign gold: " + key)
@@ -111,10 +105,6 @@ func run() -> void:
 			print("CAMPAIGN MAP MENU: %s at %dx%d" % [mode, viewport.x, viewport.y])
 			var slot := 0 if mode == "creative" else 1
 			var saved: Dictionary = menu.campaign_slots.create(slot, mode, "OG Testing " + mode.capitalize(), {"0": {"overrides": {"gold": 777}}})
-			var checkpoint_run := Run.new(0, {"gold": 777}, mode)
-			check(checkpoint_run.build(checkpoint_run.mission.sockets[0].index, "rapid"), "Place a checkpoint tower")
-			saved.checkpoint = checkpoint_run.checkpoint()
-			check(menu.campaign_slots.save_slot(slot, saved), "Persist checkpoint fixture")
 			app.open_campaign_slot(slot, saved)
 			var campaign: Control = app.campaign
 			campaign.set_process(false)
@@ -138,13 +128,6 @@ func run() -> void:
 			check((button("EditRules") != null) == (mode == "creative"), "Rule editing follows the slot mode")
 			await capture(mode + "-menu")
 			await check_campaign_settings(mode + "-map")
-			if mode == "creative":
-				await press("EditRules")
-				check(button("EditLevel1") == null, "Campaign rules omit the level list")
-				await press("EnemiesCategory")
-				menu.rules_editor.inputs.hp.value = 999
-				await press("ApplyRules")
-				check(campaign.level_setup(0).overrides.tuning.enemies.basic.hp == 999 and campaign.level_setup(29).overrides.tuning.enemies.basic.hp == 999 and campaign.run == null, "Map rule editing reaches the whole campaign without starting a mission")
 			await press("SaveBuild")
 			check(menu.form.scope == "all" and menu.form.level == -1, "Map defaults to a whole campaign export")
 			var name_field: LineEdit = menu.find_child("BuildName", true, false)
@@ -156,7 +139,6 @@ func run() -> void:
 			for level in whole.data.levels.values(): check(not level.has("layout"), "Campaign export excludes every placed layout")
 			check(whole.data.levels["0"].resources.gold == 777, "Global stat edits preserve starting resources in exports")
 			check(not whole.has("checkpoint") and not whole.has("completed"), "Portable export excludes saved progression")
-			check(campaign.campaign_save.checkpoint.state.towers.size() == 1, "Export composition does not mutate checkpoint state")
 			await press("SavePrivately")
 			check(not menu.form_saved_code.is_empty(), "Map export saves privately")
 			await capture(mode + "-export")
@@ -179,9 +161,9 @@ func run() -> void:
 			check(campaign.page_scroll.scroll_vertical == scroll_position, "Returning preserves map scroll")
 			# Export excludes placements even when the live run has newer towers.
 			campaign.show_briefing(0)
-			check(campaign.run.build(campaign.run.mission.sockets[1].index, "rapid"), "Place a second tower in the resumed run")
-			check(campaign.run.start_wave(), "Start a checkpointed wave")
-			check(campaign.run.build(campaign.run.mission.sockets[2].index, "rapid"), "Place a tower after the wave checkpoint")
+			check(campaign.run.build(campaign.run.mission.sockets[1].index, "rapid"), "Place a tower in the fresh run")
+			check(campaign.run.start_wave(), "Start an authored wave")
+			check(campaign.run.build(campaign.run.mission.sockets[2].index, "rapid"), "Place another tower during the wave")
 			app.show_game_menu()
 			await frames()
 			await check_campaign_settings(mode + "-battle")
@@ -191,8 +173,7 @@ func run() -> void:
 			await press("SaveBuild")
 			menu.form.name = "Latest placement"
 			check(not menu.prepared_form().data.levels["0"].has("layout"), "Returning from battle still exports only Campaign content")
-			check(campaign.run.game.data.towers.size() == 3, "Content export preserves all live placements")
-			check(campaign.campaign_save.checkpoint.state.towers.size() == 2, "Export does not rewrite the wave-start checkpoint")
+			check(campaign.run.game.data.towers.size() == 2, "Content export preserves all live placements")
 			menu.resume_game()
 			campaign.close()
 			await frames()

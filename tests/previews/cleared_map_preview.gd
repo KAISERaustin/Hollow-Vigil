@@ -9,7 +9,7 @@ func run() -> void:
 	for width in [360,390,540]:
 		root.size = Vector2i(width,900)
 		root.content_scale_size = root.size
-		for completed in [0,1,20]:
+		for completed in [0,1,preload("res://scripts/campaign/catalog.gd").COUNT]:
 			progress.data.completed_levels = completed
 			var map := preload("res://scripts/campaign/world_map.gd").new()
 			map.progress = progress

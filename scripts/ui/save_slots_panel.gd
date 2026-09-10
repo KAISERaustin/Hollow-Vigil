@@ -93,17 +93,3 @@ func add_back(back: Button) -> void:
 	UI.configure_back_button(back, back.text)
 	header.add_child(back)
 	header.move_child(back, 0)
-
-func add_action(button: Button) -> void:
-	var caption := button.text
-	if caption.begins_with("Browse") or caption.begins_with("View community"): caption = "Browse"
-	elif caption == "Saved games": caption = "Open"
-	elif caption.begins_with("Archive"): caption = "Archive"
-	elif caption.begins_with("Create"): caption = "Create"
-	elif caption.begins_with("Paste"): caption = "Paste"
-	elif caption.begins_with("Load"): caption = "Load"
-	elif caption.begins_with("Copy"): caption = "Copy"
-	elif caption.begins_with("Save"): caption = "Save"
-	elif caption.begins_with("Choose"): caption = "Choose"
-	elif caption.begins_with("Use"): caption = "Use"
-	content.add_child(UI.action_row(button.text, button, caption))

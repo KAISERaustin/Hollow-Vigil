@@ -8,7 +8,7 @@ silhouettes, thick ink contours, carved wood, parchment/bone, stone, iron,
 colored insets and brass fittings. Preserve flat fills and sharp geometry while
 adding structural detail. Gear is drawn natively through the reusable families
 in `scripts/rendering/actors/gear/`; see [GEAR.md](GEAR.md). Render transparent
-exports and the complete board with `tests/rendered/gear_art_runner.gd`.
+exports and the complete board with `tools/previews/gear_art_preview.gd`.
 
 UI texture direction, extended September 7, 2026: tan UI backgrounds use
 `assets/ui/welcome-parchment.png`, generated paper with quiet fibers and mottling.
@@ -27,8 +27,7 @@ Warden, fire-spirit Cinder Reliquary, spectral Bell and haloed Prior recognizabl
 Warden and Reliquary have no arms or legs. Bosses glide without gait animation.
 Use 0.51 artwork scale (15% below the former 0.6). Titles use the shared Noto
 Serif semibold in parchment nameplates with thin ink borders, with no weakness
-subtitle. Health, root shield and ward indicators remain separate. Legacy sprites
-in `assets/bosses/` are reference history and are not loaded by the renderer.
+subtitle. Health, root shield and ward indicators remain separate.
 
 - Ground: forest #95aa83, forge #bb8c76, crypt #7fa6aa, sanctuary #ae879b.
 - Ink: #000000. Paper/socket: #e8ddbd. Road: #dfd0ab.

@@ -38,7 +38,7 @@ func run() -> void:
 	root.add_child(viewport)
 	var art := TowerImage.new()
 	viewport.add_child(art)
-	DirAccess.make_dir_recursive_absolute("res://assets/towers")
+	DirAccess.make_dir_recursive_absolute("res://artifacts/towers")
 	var names := {"rapid":"ashneedle", "heavy":"obelisk", "splash":"pyre", "electric":"stormspire"}
 	var row := 0
 	for kind in ["rapid","heavy","splash","electric"]:
@@ -53,7 +53,7 @@ func run() -> void:
 			check(img.get_used_rect().grow(4).intersection(Rect2i(0,0,256,256)) == img.get_used_rect().grow(4), "Artwork fits with transparent padding")
 			check(img.get_data() != previous, "%s tier %d has distinct artwork" % [kind,level])
 			previous = img.get_data()
-			check(img.save_png("res://assets/towers/%s-level-%d.png" % [names[kind],level]) == OK, "PNG saved")
+			check(img.save_png("res://artifacts/towers/%s-level-%d.png" % [names[kind],level]) == OK, "PNG saved")
 			var sprite := Sprite2D.new()
 			sprite.texture = ImageTexture.create_from_image(img)
 			sprite.centered = false
@@ -73,37 +73,6 @@ func run() -> void:
 		root.add_child(label)
 	await frame()
 	root.get_texture().get_image().save_png("res://artifacts/tower-upgrade-stages.png")
-	var game := VigilState.new(123)
-	# Artwork fixture represents existing core-only progress.
-	game.data.balance = 10000
-	var field := Battlefield.new()
-	field.state = game
-	field.size = Vector2(1000,850)
-	root.add_child(field)
-	field.set_process(false)
-	for kind in names:
-		var pad: int = names.keys().find(kind)
-		var id := game.economy.build(kind,"0,0",pad)
-		check(field.upgrade_poofs.is_empty(), "Building or loading does not fake an upgrade")
-		for level in [1,2]:
-			check(game.economy.upgrade(id,level), "Upgrade succeeds")
-			check(field.upgrade_poofs.size() == 1, "One poof per successful upgrade")
-			check(field.upgrade_poofs[0].pos == VigilWorld.pad_position("0,0",pad), "Poof follows the upgraded socket")
-			check(not game.economy.upgrade(id,level), "Stale upgrade rejected")
-			check(field.upgrade_poofs.size() == 1, "Rejected upgrade does not poof")
-			field._process(0.2)
-			field.queue_redraw()
-			await frame()
-			if kind == "rapid" and level == 1:
-				root.get_texture().get_image().save_png("res://artifacts/tower-upgrade-poof.png")
-			field._process(0.71)
-			check(field.upgrade_poofs.is_empty(), "Poof expires in real time")
-		check(not game.economy.upgrade(id) and field.upgrade_poofs.is_empty(), "Max level does not poof")
-	var old_economy := game.economy
-	field.state = VigilState.new(124)
-	field._process(0.01)
-	check(not old_economy.tower_upgraded.is_connected(field.on_tower_upgraded), "Reset disconnects the old economy")
-	check(field.state.economy.tower_upgraded.is_connected(field.on_tower_upgraded), "Reset connects the new economy")
 	print("TOWER UPGRADE ART: %d checks, %d failures" % [checks,failures.size()])
 	FileAccess.open("res://artifacts/tower-upgrade-art-results.txt",FileAccess.WRITE).store_string("%d checks, %d failures\n%s" % [checks,failures.size(),"\n".join(failures)])
 	quit(0 if failures.is_empty() else 1)

@@ -25,12 +25,3 @@ static func socket(index: int) -> Dictionary:
 	var region := Vector2i(-1 if column == 0 else (1 if column == 3 else 0), -2 if row == 0 else (-1 if row < 3 else 0))
 	var pad := (1 if column in [0, 2] else 0) + (2 if row in [0, 2] else 0)
 	return {"region": VigilWorld.key(region), "pad": pad, "position": VigilWorld.pad_position(VigilWorld.key(region), pad), "index": index}
-
-static func wave_text(mission: Dictionary, wave: int) -> String:
-	if wave >= mission.waves.size():
-		return "All waves cleared"
-	var parts: PackedStringArray = []
-	for group in mission.waves[wave]:
-		var definitions: Dictionary = Balance.BOSSES if Balance.BOSSES.has(group[0]) else Balance.ENEMIES
-		parts.append("%d %s · %s" % [group[1], definitions[group[0]].name, String.chr(65 + int(group[2]))])
-	return "\n".join(parts)

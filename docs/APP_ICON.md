@@ -1,6 +1,6 @@
 # App icon
 
-The app uses `icon.png`: an opaque 1024 × 1024 RGB PNG created with the built-in image generation tool and resized for delivery. `project.godot` selects `res://icon.png`; the Android, Android Tablet and iOS export presets inherit that application icon without separate artwork overrides. The former `icon.svg` is retained as an unused historical asset.
+The app uses `icon.png`: an opaque 1024 × 1024 RGB PNG created with the built-in image generation tool and resized for delivery. `project.godot` selects `res://icon.png`; the Android, Android Tablet and iOS export presets inherit that application icon without separate artwork overrides.
 
 Updated September 7, 2026 at the user's request to match the current main menu. The [supplied menu reference](references/app-icon-main-menu-reference.png) provides the deep forest paper, parchment moon, angular sage mountains, pine trees, gold crowned watchtower, mint core gateway and winding parchment path. The icon enlarges the two structures and removes menu lettering, buttons and the tiny enemy so the scene remains readable at launcher sizes. Black contours and restrained flat colors preserve the menu's artwork style; subtle paper grain carries its background treatment.
 

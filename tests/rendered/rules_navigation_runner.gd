@@ -17,7 +17,21 @@ func run() -> void:
 		root.content_scale_size = dimensions
 		menu.show_campaign_content_rules()
 		var browser = menu.rules_editor
-		for category in browser.categories:
+		for category in ["enemies", "bosses", "towers"]:
+			browser.category = category
+			var items: Dictionary = Balance.TOWERS if category == "towers" else browser.editor_definitions()
+			for kind in items:
+				browser.open_item(category, kind)
+				check(browser.item_menu.find_child("StatsMenu", true, false) != null, "Stats available for " + kind)
+				check(browser.item_menu.find_child("AbilitiesMenu", true, false) == null and browser.item_menu.find_child("AttributesMenu", true, false) == null, "Capabilities absent for " + kind)
+				browser.cancel_item()
+		browser.show_categories()
+		for frame in range(3): await process_frame
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://artifacts/simplified-categories-%d.png" % dimensions.x)
+		check(not browser.categories.has("rifts"), "No portals in Edit rules")
+		check(browser.tabs.gear.disabled, "Gear button is disabled")
+		for category in ["enemies", "bosses", "towers"]:
 			browser.show_category(category)
 			for frame in range(6): await process_frame
 			menu.fit()
@@ -29,7 +43,8 @@ func run() -> void:
 			check(browser.listing.get_child_count() == definitions.size(), category + " lists all items")
 			browser.open_item(category, definitions.keys()[0])
 			check(browser.item_menu.visible and not browser.editor.visible, category + " opens item menu")
-			for group in ["Stats", "Abilities", "Attributes"]:
+			check(browser.item_menu.find_child("AbilitiesMenu", true, false) == null and browser.item_menu.find_child("AttributesMenu", true, false) == null, "No capability menu buttons")
+			for group in ["Stats"]:
 				browser.open_group(group)
 				check(browser.editor.visible and not browser.item_menu.visible, category + " separate " + group)
 				if browser.stats_editor != null:
@@ -39,19 +54,6 @@ func run() -> void:
 				await RenderingServer.frame_post_draw
 				root.get_texture().get_image().save_png("res://artifacts/rules-%d-%s-%s.png" % [dimensions.x, category, group])
 				browser.navigate_back()
-			browser.cancel_item()
-		for gear_kind in Balance.GEAR:
-			browser.open_item("gear", gear_kind)
-			browser.open_group("Stats")
-			check(browser.description.visible and browser.description.get_index() < browser.fields.get_index(), "Gear explanation precedes stats " + gear_kind)
-			check(browser.description.text.contains("How to adjust this gear"), "Detailed gear guidance " + gear_kind)
-			for stat in browser.selected_fields():
-				check(browser.description.text.contains(Balance.field_limits("gear", gear_kind, stat).label + ": "), "Explains gear setting " + gear_kind + "/" + stat)
-			for frame in range(3): await process_frame
-			menu.fit()
-			menu.scroll.scroll_vertical = 0
-			await RenderingServer.frame_post_draw
-			root.get_texture().get_image().save_png("res://artifacts/rules-%d-gear-%s.png" % [dimensions.x, gear_kind])
 			browser.cancel_item()
 		browser.open_item("enemies", "basic")
 		var original: Dictionary = browser.game.tuning.duplicate(true)
@@ -125,6 +127,15 @@ func run() -> void:
 		check(exits[0] == 2 and menu.get_child_count() == child_count + 1, "Unsaved changes still show confirmation")
 		menu.get_child(menu.get_child_count() - 1).queue_free()
 		await process_frame
+	menu.hide()
+	var tower := Balance.Content.tower("rapid").create("1", "0,0", 0)
+	app.campaign.game.data.towers["1"] = tower
+	app.campaign.field.selected_tower = "1"
+	app.campaign.tower_dialog.open_action("info")
+	var gear: Button = app.campaign.tower_dialog.find_child("Manage_equipment", true, false)
+	check(gear != null and gear.disabled, "Tower gear button stays visible and disabled")
+	app.campaign.tower_dialog.open_action("equipment")
+	check(app.campaign.tower_dialog.mode == "info", "Gear navigation cannot open")
 	app.queue_free()
 	await process_frame
 	print("RULES NAVIGATION: %d checks, %d failures" % [checks, failures.size()])

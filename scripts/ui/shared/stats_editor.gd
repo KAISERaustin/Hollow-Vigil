@@ -25,7 +25,7 @@ func _ready() -> void:
 	add_theme_constant_override("separation", 12)
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 8)
-	for label in ["Stats", "Abilities", "Attributes"]:
+	for label in ["Stats"]:
 		var button := UI.button(label, func():
 			commit_fields()
 			group = label
@@ -51,6 +51,7 @@ func changed(candidate: Dictionary) -> void:
 		edited.call(category, kind, candidate.get(category, {}).get(kind, {}).keys())
 
 func rebuild() -> void:
+	group = "Stats"
 	numbers.clear()
 	rows.clear()
 	for child in body.get_children():
@@ -71,7 +72,7 @@ func rebuild() -> void:
 		if group == "Stats": build_stat_catalog()
 		else: build_capabilities(true)
 	else:
-		for added in [false, true]:
+		for added in ([false, true] if category == "towers" else [false]):
 			added_groups.clear()
 			added_section = added
 			if added: body.add_child(UI.rule())
@@ -83,7 +84,7 @@ func rebuild() -> void:
 			section_body.add_child(UI.paragraph("Extras added to this item." if added else "Built into this item. Required stats cannot be disabled; their values can be edited.", 14))
 			if group == "Stats":
 				for field in Stats.schema(category):
-					if Stats.control(field) or Stats.schema(category)[field].get("group", "Stats") != "Stats": continue
+					if not Stats.editable_stat(category, field): continue
 					if Stats.baseline(category, kind).has(field) == added: continue
 					if Stats.enabled(category, kind, field, game.tuning): add_stat(field)
 			else: build_capabilities(false)
@@ -91,7 +92,8 @@ func rebuild() -> void:
 				section_body.add_child(UI.paragraph("No added " + group.to_lower() + " yet." if added else "No default " + group.to_lower() + ".", 14))
 		var add := UI.gold_button("Add " + {"Stats": "Stat", "Abilities": "Ability", "Attributes": "Attribute"}[group], func(): commit_fields(); choosing = true; rebuild(); call_deferred("reveal_editor"))
 		add.name = {"Stats": "AddStat", "Abilities": "AddAbility", "Attributes": "AddAttribute"}[group]
-		section_body.add_child(add)
+		if category == "towers": section_body.add_child(add)
+		else: add.free()
 		body.add_child(UI.paragraph("Changes stay in this draft until you press Save. Each tier and branch is independent.", 14))
 	if relayout.is_valid(): relayout.call()
 	if is_node_ready(): call_deferred("reveal_editor")
@@ -107,7 +109,7 @@ func reveal_editor() -> void:
 
 func build_stat_catalog() -> void:
 	for field in Stats.schema(category):
-		if Stats.control(field) or field in ["arrow_count", "fan_angle"] or Stats.schema(category)[field].get("group", "Stats") != "Stats": continue
+		if not Stats.editable_stat(category, field) or field in ["arrow_count", "fan_angle"]: continue
 		var descriptor: Dictionary = Stats.schema(category)[field]
 		if Stats.enabled(category, kind, field, game.tuning): continue
 		var label: String = descriptor.label

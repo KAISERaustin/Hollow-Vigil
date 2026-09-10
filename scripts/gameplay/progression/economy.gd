@@ -42,12 +42,6 @@ var tuning: Dictionary:
 func _init(shared_data: Dictionary) -> void:
 	data = shared_data
 
-func unclaimed() -> float:
-	var total: float = data.reserve
-	for t in data.towers.values():
-		total = minf(Balance.MAX_MONEY, total + t.earnings)
-	return total
-
 func spend(cost: float) -> bool:
 	if not is_finite(cost) or cost <= 0.0 or data.balance < cost:
 		return false
@@ -176,29 +170,7 @@ func credit(id: String, amount: float) -> void:
 
 # Empty identity removes the equipped piece; replacing or selling never destroys it.
 func equip_relic(id: String, relic_id: String, expected_current: String, expected_owner: String = "") -> bool:
-	const Relics = preload("res://scripts/gameplay/progression/relics.gd")
-	if not data.towers.has(id) or data.towers[id].get("relic", "") != expected_current:
-		return false
-	if relic_id != "" and (not data.get("relics", {}).has(relic_id) or Relics.owner(data, relic_id) != expected_owner):
-		return false
-	if relic_id != "":
-		var gear := Balance.Content.gear(data.relics[relic_id])
-		if gear == null or not gear.can_equip_on(Balance.Content.tower(data.towers[id].kind)):
-			return false
-	if relic_id == expected_current:
-		return true
-	if expected_owner != "" and data.towers.has(expected_owner):
-		data.towers[expected_owner].erase("relic")
-		clear_tower_history(expected_owner)
-		relic_changed.emit(expected_owner)
-	if relic_id == "":
-		data.towers[id].erase("relic")
-	else:
-		data.towers[id].relic = relic_id
-	clear_tower_history(id)
-	relic_changed.emit(id)
-	sound_requested.emit("menu_upgrade", Vector2.INF)
-	return true
+	return false
 
 func clear_tower_history(id: String) -> void:
 	# Relearn production after combat power moves between towers.

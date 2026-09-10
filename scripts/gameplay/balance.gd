@@ -56,16 +56,8 @@ static func tower_stats(tower: Dictionary, tuning: Dictionary = {}, inventory: D
 	return equipment_stats(result, tower, tuning, inventory)
 
 static func equipment_stats(base: Dictionary, tower: Dictionary, tuning: Dictionary, inventory: Dictionary) -> Dictionary:
-	var gear := Content.gear(inventory.get(tower.get("relic", ""), ""))
-	var result := base
-	var equipped: String = inventory.get(tower.get("relic", ""), "")
-	var key := tier_key(tower.kind, tower.level, tower.get("branch", ""))
-	if gear != null and not Stats.ability_enabled("towers", key, "gear_" + equipped, tuning): result = gear.modify_stats(result, tuning)
-	for assignment in preload("res://scripts/gameplay/combat/stat_composition.gd").direct_gear(tower, tuning, inventory): result = assignment.node.modify_stats(result)
-	return result
+	return base
 
-# One schema drives the editor and save validation. Overrides belong to a save,
-# never to these shared defaults. Tower keys may identify a tier or branch.
 const RIFTS = preload("res://scripts/content/catalogs/world.gd").RIFTS
 
 static func rift_strength(style: String, tuning: Dictionary = {}) -> float:
@@ -103,10 +95,6 @@ static func portal_effect_description(style: String, tuning: Dictionary = {}) ->
 		"drowned_crypt": return "Restless: +" + amount + "% movement speed throughout the journey."
 		"bloodmoon_sanctuary": return "Regeneration: restores " + amount + "% of maximum health each second throughout the journey."
 	return ""
-
-static func enemy_portal_style(kind: String) -> String:
-	var node := Content.enemy(kind)
-	return node.rule("portal_style", "forest") if node != null else "forest"
 
 const GEAR = preload("res://scripts/content/catalogs/gear.gd").GEAR
 
@@ -160,9 +148,6 @@ static func definitions(category: String) -> Dictionary:
 
 static func tier_key(kind: String, level: int, branch: String = "") -> String:
 	return kind if level == 1 else kind + ":" + (branch if level == 4 else str(level))
-
-static func tower_definitions() -> Dictionary:
-	return definitions("towers")
 
 static func tuned_value(category: String, kind: String, stat: String, tuning: Dictionary = {}) -> float:
 	if category in Stats.CATEGORIES:

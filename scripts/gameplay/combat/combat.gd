@@ -31,7 +31,6 @@ var effects: Array[Dictionary] = []
 var pending_shots: Array[Dictionary] = []
 var rng := RandomNumberGenerator.new()
 var simulation_time := 0.0
-var income_events: Array[Vector2] = []
 var enemy_serial := 0
 var tick_count := 0
 var enemy_pool: Array[Dictionary] = []
@@ -167,7 +166,6 @@ func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = ""
 	if not is_boss and not enemy.has("summoner"):
 		var r: Dictionary = data.regions[enemy.source]
 		r.history[tower_id] = r.history.get(tower_id, 0.0) + reward
-	income_events.append(Vector2(simulation_time, reward))
 	add_effect({"kind": "death", "pos": enemy.pos, "life": 0.45, "max_life": 0.45, "color": Bosses.DEFINITIONS[enemy.kind].color if is_boss else Balance.ENEMIES[enemy.kind].color})
 	return true
 
@@ -348,8 +346,6 @@ func tick(delta: float) -> void:
 	indexed_enemy_count = enemies.size()
 	ticking = false
 	configuration_active = false
-	while not income_events.is_empty() and simulation_time - income_events[0].x > 60.0:
-		income_events.pop_front()
 	if data.automation:
 		economy.collect()
 
@@ -392,13 +388,6 @@ func recycle_dead_enemies() -> void:
 				enemy_pool.append(e)
 	enemies = live
 	if tick_count % 128 == 0: route_cache.prune()
-
-func income_rate() -> float:
-	# Gold per second, averaged over up to 60 seconds with a 10-second startup floor.
-	var amount := 0.0
-	for event in income_events:
-		amount += event.y
-	return amount / maxf(10.0, minf(60.0, simulation_time))
 
 # Branch state is transient: tower identity owns curses, enemy identity owns seals.
 func branch_hit(shot: Dictionary, enemy: Dictionary) -> void:

@@ -212,10 +212,6 @@ func begin_new(slot: int = -1, entry: Dictionary = {}) -> void:
 	new_game = {"mode": "", "slot": slot, "name": "", "entry": entry.duplicate(true), "choices": {}}
 	show_play_style()
 
-func show_creation(slot: int, reset: bool = true) -> void:
-	if reset or new_game.is_empty(): begin_new(slot)
-	else: show_play_style()
-
 func show_play_style() -> void:
 	page_view("play_style", "New game", show_slots if int(new_game.slot) >= 0 else show_home)
 	content.add_child(UI.heading("1. Play style", 18))
@@ -476,10 +472,6 @@ func use_detail() -> void:
 		new_game.choices = {}
 		show_starting_build()
 	else: begin_new(-1, detail_entry)
-
-func backup_status(_type: String, _slot: int) -> String:
-	if is_instance_valid(app.private_backups): return app.private_backups.game_status(_type, _slot)
-	return "Saved on this device · Private backup pending" if app.cloud.signed_in() else "Saved on this device · Sign in for automatic backups"
 
 func library_backup_status() -> String:
 	if is_instance_valid(app.private_backups): return app.private_backups.library_status()
@@ -787,7 +779,7 @@ func show_campaign_content_rules(return_to: Callable = Callable()) -> void:
 	rules_editor.game = editor_game
 	rules_editor.configuration_only = true
 	rules_editor.authored_spawns = true
-	rules_editor.categories.assign(Build.STAT_GROUPS)
+	rules_editor.categories.assign(["enemies", "bosses", "towers", "gear"])
 	rules_editor.rules_edited.connect(func(category: String, kind: String, stats: Array):
 		if not campaign_rule_changes.has(category): campaign_rule_changes[category] = {}
 		if not campaign_rule_changes[category].has(kind): campaign_rule_changes[category][kind] = {}
@@ -983,7 +975,7 @@ func version_summary(value: Dictionary, type: String) -> String:
 	var saved := float(value.get("saved_at", value.get("last_accounted", 0)))
 	var timestamp := Time.get_datetime_string_from_unix_time(int(saved)).replace("T", " ") + " UTC" if saved > 0 else "Time unavailable"
 	var rules: Dictionary = value.get("levels", {})
-	return progress_text(value, type) + "\nSaved " + timestamp + "\n%s gold · %d towers · %d gear items\n%s" % [UI.exact_money(float(state.get("balance", 0))), state.get("towers", {}).size(), state.get("relics", {}).size(), "Custom rules included" if not rules.is_empty() else "Original rules"]
+	return progress_text(value, type) + "\nSaved " + timestamp + "\n%s gold · %d towers\n%s" % [UI.exact_money(float(state.get("balance", 0))), state.get("towers", {}).size(), "Custom rules included" if not rules.is_empty() else "Original rules"]
 
 func review_restore() -> void:
 	page_view("restore_review", "Restore backup", show_restore_destination)

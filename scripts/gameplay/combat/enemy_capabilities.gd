@@ -10,10 +10,8 @@ static func has(enemy: Dictionary, ability: String, tuning: Dictionary) -> bool:
 	return Stats.ability_enabled(category(enemy), enemy.kind, ability, tuning)
 
 static func resistance(enemy: Dictionary, field: String, tuning: Dictionary) -> float:
-	var node = Balance.Content.catalog().get_node("resistance/" + field)
-	var multiplier: float = node.multiplier(Balance.definition(category(enemy), enemy.kind, tuning))
 	var portal = Balance.Content.portal(enemy.get("portal_effect_style", enemy.get("rift_style", "")))
-	return multiplier * portal.resistance(field, tuning) if portal != null else multiplier
+	return portal.resistance(field, tuning) if portal != null else 1.0
 
 static func initialize(enemy: Dictionary, tuning: Dictionary) -> void:
 	var stats := Balance.definition(category(enemy), enemy.kind, tuning)

@@ -9,7 +9,7 @@ const GROUPS = preload("res://scripts/content/catalogs/build_groups.gd")
 const STAT_GROUPS := ["enemies", "bosses", "towers", "gear", "rifts"]
 
 static func groups(game_type: String) -> Array:
-	return Balance.Content.catalog().children("build_contents").filter(func(node): return node.rule("export_game_type", node.rule("game_type")) in ["both", game_type])
+	return Balance.Content.catalog().children("build_contents").filter(func(node): return node.id.get_slice("/", 1) not in ["gear", "rifts"] and node.rule("export_game_type", node.rule("game_type")) in ["both", game_type])
 
 static func all_contents(game_type: String, option: String = "") -> Dictionary:
 	var selected := {}

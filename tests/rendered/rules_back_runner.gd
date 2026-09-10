@@ -18,12 +18,12 @@ func run() -> void:
 		root.content_scale_size = dimensions
 		menu.show_campaign_content_rules()
 		var browser = menu.rules_editor
-		for category in browser.categories:
+		for category in ["enemies", "bosses", "towers"]:
 			browser.show_category(category)
 			var definitions: Dictionary = Balance.TOWERS if category == "towers" else browser.editor_definitions()
 			for kind in definitions:
 				browser.open_item(category, kind)
-				for group in ["Stats", "Abilities", "Attributes"]:
+				for group in ["Stats"]:
 					browser.item_menu.get_node(group + "Menu").pressed.emit()
 					var context: String = category + "/" + kind + "/" + group
 					check(browser.route == group, context + " group opens")

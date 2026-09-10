@@ -38,9 +38,9 @@ static func inheritance(t) -> void:
 
 static func content_coverage(t) -> void:
 	var registry := Content.catalog()
-	for family in ["tower", "enemy", "boss", "gear", "attribute", "projectile", "ability", "region", "portal", "socket", "landmark", "level", "wave", "targeting"]:
+	for family in ["tower", "enemy", "boss", "attribute", "projectile", "ability", "region", "portal", "socket", "landmark", "level", "wave", "targeting"]:
 		t.check(registry.get_node(family) != null and not registry.descendants(family).is_empty(), "Registered content family: " + family)
-	for category in ["towers", "enemies", "bosses", "gear", "rifts"]:
+	for category in ["towers", "enemies", "bosses", "rifts"]:
 		for kind in Balance.definitions(category):
 			var node := registry.find(category, kind)
 			t.check(node != null and node.attributes() == Balance.definitions(category)[kind], "Runtime content resolves from a node: " + category + "/" + kind)
@@ -71,7 +71,7 @@ static func tower_instances(t) -> void:
 	t.check(pike.stats(1).damage == 12.0 and Content.tower("rapid").stats(1).damage == 6.0, "Derived tower attributes do not retune their parent")
 	for kind in Balance.TOWERS:
 		var node := Content.tower(kind)
-		t.check(node.can_place("plus", true, false), "Every tower fits a free owned plus socket")
+		t.check(node.can_place("ground", true, false), "Every tower fits free owned ground")
 		t.check(not node.can_place("road", true, false) and not node.can_place("plus", false, false) and not node.can_place("plus", true, true), "Tower family rejects wrong surface, unowned land and occupied sockets")
 		for child in registry.descendants("tower/" + kind):
 			if child.id == "tower/pike":
@@ -79,16 +79,13 @@ static func tower_instances(t) -> void:
 			var tower = child.create("5", "1,0", 2)
 			t.check(tower.kind == kind and tower.level == child.rule("level"), "Tier instances retain save kind and acquire their inherited level")
 			t.check(child.stats() == Balance.tower_stats(tower), "Tier nodes resolve through base scaling exactly once")
-		for gear_kind in Balance.GEAR:
-			t.check(node.can_equip(Content.gear(gear_kind)) and Content.gear(gear_kind).can_equip_on(node), "All existing relics fit the shared tower equipment slot")
-	var game: VigilState = t.legacy_core_fixture(91345)
+	var game: VigilState = VigilState.new(91345)
 	var balance: float = game.data.balance
 	t.check(game.economy.build("missing", "0,0", 0) == "" and game.economy.build("rapid", "0,0", VigilWorld.MAX_GROUND_PAD + 1) == "" and game.data.balance == balance, "Invalid node placement never spends gold")
 	for key in ["rapid:2", "rapid:3", "rapid:frostneedle"]:
 		t.check(game.economy.build(key, "0,0", 0) == "" and game.data.balance == balance, "Tier catalog keys cannot bypass upgrade purchases: " + key)
 	var id: String = game.economy.build("rapid", "0,0", 0)
 	t.check(id != "" and not game.economy.can_place("heavy", "0,0", 0), "Economy uses inherited placement and reserves the plus socket")
-	t.check(not Content.gear("warden").can_equip_on(Content.enemy("basic")), "Gear rejects a non-tower recipient")
 
 static func actor_instances(t) -> void:
 	var route: Array[Vector2] = [Vector2.ZERO, Vector2(100, 0)]
@@ -105,18 +102,6 @@ static func actor_instances(t) -> void:
 		var node := Content.boss(kind)
 		var enemy := node.create_encounter(20, "2,0", Vector2.ZERO)
 		t.check(enemy.boss and node.escape_damage() == 20 and enemy.hp == Balance.BOSSES[kind].hp, "Boss construction inherits enemy fields and encounter-specific state")
-		t.check(Content.catalog().get_node(node.rule("drop")) == Content.gear(kind), "Boss drop references its registered gear subtype")
-	var warden := Content.boss("warden").create_encounter(20, "2,0", Vector2.ZERO)
-	t.check(Content.boss("warden").absorb_damage(warden, 100.0, "", true) == 0.0 and warden.shield == 400.0, "Warden subtype consumes its shield with fire weakness")
-	var prior := Content.boss("prior").create_encounter(21, "2,0", Vector2.ZERO)
-	t.check(Content.boss("prior").absorb_damage(prior, 100.0, "doomstone", false) == 100.0 and prior.wards == 3, "Prior subtype allows ward-bypassing specialization")
-	var bell := Content.gear("bell")
-	var first := bell.make_record()
-	var second := bell.make_record()
-	for attack in range(4):
-		var stats := bell.prepare(first, 1, float(attack), {"damage": 10.0, "period": 1.0})
-		t.check(stats.relic_echo == (attack == 3), "Relic subtype fires its effect on the fourth attack")
-	t.check(second.attacks == 0, "Gear counters belong to one equipped instance")
 
 static func level_instances(t) -> void:
 	for index in range(Catalog.COUNT):

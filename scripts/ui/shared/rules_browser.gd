@@ -25,6 +25,7 @@ func show_categories() -> void:
 	route_changed.emit("Edit rules", false)
 
 func show_category(section: String) -> void:
+	if section in ["rifts", "gear"]: return
 	commit_fields()
 	category = section
 	editor.hide()
@@ -46,6 +47,7 @@ func show_category(section: String) -> void:
 	route_changed.emit(category_title(category), false)
 
 func open_item(section: String, kind: String) -> void:
+	if section in ["rifts", "gear"]: return
 	snapshot = game.tuning.duplicate(true)
 	item_started.emit()
 	super.show_category(section)
@@ -69,7 +71,7 @@ func show_item() -> void:
 		show_fields()
 		show_item()
 	))
-	for group in ["Stats", "Abilities", "Attributes"]:
+	for group in ["Stats"]:
 		var button := UI.button(group, open_group.bind(group))
 		button.name = group + "Menu"
 		item_menu.add_child(button)
@@ -78,6 +80,7 @@ func show_item() -> void:
 	route_changed.emit(identity_title.text, true)
 
 func open_group(group: String) -> void:
+	if group != "Stats": return
 	commit_fields()
 	show_fields()
 	item_menu.hide()

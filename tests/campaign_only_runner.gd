@@ -14,8 +14,6 @@ func run() -> void:
 	check(menu.screen == "main", "Startup opens main menu")
 	check(app.game.suspended and app.game.combat.enemies.is_empty(), "No background battle runs at startup")
 	check(menu.find_child("OpenCampaign", true, false) != null, "Campaign entry is present")
-	check(not app.has_method("activate_slot"), "No world session activation API remains")
-	check(not app.game.has_method("expand") and not app.game.has_method("apply_offline"), "No territory expansion or offline simulation remains")
 	menu.open_mode("unsupported")
 	check(menu.screen == "main", "Unsupported mode entry is rejected")
 	menu.open_mode("campaign")

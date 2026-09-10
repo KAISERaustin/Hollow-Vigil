@@ -294,14 +294,6 @@ func earnings_local_rect(t: Dictionary) -> Rect2:
 	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 18.0
 	return Rect2(Vector2(-width / 2.0, -68), Vector2(width, 23))
 
-func earnings_rect(t: Dictionary) -> Rect2:
-	var rect := earnings_local_rect(t)
-	var anchor := screen(VigilWorld.pad_position(t.region, t.pad))
-	return Rect2(anchor + rect.position * zoom, rect.size * zoom)
-
-func core_is_visible() -> bool:
-	return Rect2(Vector2.ZERO, size).has_point(screen(VigilWorld.CORE_POSITION))
-
 func update_view(_delta: float, tick_remainder: float = 0.0) -> void:
 	effect_offset = tick_remainder
 	queue_redraw()
