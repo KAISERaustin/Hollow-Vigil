@@ -1,10 +1,10 @@
 extends SceneTree
 ## Regenerate the cloud catalog and real client fixtures from shared content nodes.
 const Build = preload("res://scripts/persistence/reusable_build.gd")
-const Playthrough = preload("res://scripts/persistence/campaign_playthrough.gd")
 const Slots = preload("res://scripts/persistence/campaign_slots.gd")
 
 func _initialize() -> void:
+	preload("res://tests/support/timeout.gd").arm(self)
 	call_deferred("run")
 
 func run() -> void:
