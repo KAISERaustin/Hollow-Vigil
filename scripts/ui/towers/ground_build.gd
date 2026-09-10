@@ -18,6 +18,7 @@ var point := Vector2.ZERO
 var dragging := false
 var hovering := false
 var reposition_pending := false
+var drag_offset := Vector2.ZERO
 var valid := false
 var allowed_to_build: Callable
 
@@ -123,6 +124,7 @@ func arm(value: String) -> void:
 	dragging = false
 	hovering = false
 	reposition_pending = false
+	drag_offset = Vector2.ZERO
 	valid = false
 	queue_redraw()
 	fit()
@@ -192,6 +194,8 @@ func _input(event: InputEvent) -> void:
 		if down:
 			pointer = id
 			origin = pos
+			# Keep the tower anchored to its retained position, not the new finger.
+			drag_offset = point - field.world(pos - field.global_position)
 			reposition_pending = true
 		elif reposition_pending and motion and pos.distance_to(origin) > 12:
 			reposition_pending = false
@@ -206,7 +210,7 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if id == pointer and (motion or down or up):
-		point = field.world(pos - field.global_position)
+		point = field.world(pos - field.global_position) + drag_offset
 		refresh()
 		if up and dragging:
 			dragging = false
@@ -238,6 +242,7 @@ func cancel() -> void:
 	dragging = false
 	hovering = false
 	reposition_pending = false
+	drag_offset = Vector2.ZERO
 	pointer = -2
 	if is_instance_valid(field):
 		field.touches.clear()

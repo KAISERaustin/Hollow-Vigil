@@ -46,6 +46,14 @@ func run() -> void:
 		drag.position = Vector2(130, 140)
 		build._input(drag)
 		check(build.dragging and build.point != retained, "New gesture repositions tower")
+		var expected: Vector2 = retained + app.field.world(Vector2(130, 140) - app.field.global_position) - app.field.world(Vector2(100, 120) - app.field.global_position)
+		var location := VigilWorld.ground_location(expected)
+		check(build.point.is_equal_approx(VigilWorld.pad_position(location.region, location.pad)), "Touch retry preserves finger offset and moves by drag delta")
+		drag.position = Vector2(75, 120)
+		build._input(drag)
+		expected = retained + app.field.world(Vector2(75, 120) - app.field.global_position) - app.field.world(Vector2(100, 120) - app.field.global_position)
+		location = VigilWorld.ground_location(expected)
+		check(build.point.is_equal_approx(VigilWorld.pad_position(location.region, location.pad)), "Dragging left moves relative to original tower without accumulated drift")
 		touch(build, blocked, false)
 		check(build.hovering and build.kind == "rapid", "Repeated invalid drop remains adjustable")
 		# Put the retained ghost inside the visible battlefield for rendered inspection.
@@ -80,6 +88,8 @@ func run() -> void:
 		press.button_index = MOUSE_BUTTON_LEFT
 		press.pressed = true
 		press.position = destination + Vector2(20, 0)
+		build.point = app.field.world(destination + Vector2(20, 0) - app.field.global_position)
+		build.refresh()
 		build._input(press)
 		var motion := InputEventMouseMotion.new()
 		motion.position = destination
