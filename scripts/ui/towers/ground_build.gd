@@ -29,6 +29,8 @@ func _ready() -> void:
 	z_index = 0
 	palette = PanelContainer.new()
 	var drawer_style := UI.surface(UI.PANEL, 0, 0)
+	drawer_style.border_width_top = UI.OUTLINE
+	drawer_style.set_corner_radius_all(0)
 	palette.add_theme_stylebox_override("panel", drawer_style)
 	add_child(palette)
 	banner = PanelContainer.new()
