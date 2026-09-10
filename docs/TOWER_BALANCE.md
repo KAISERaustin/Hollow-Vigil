@@ -2,7 +2,7 @@
 
 All eight tower families are available in Campaign. Each starts at level 1, upgrades through levels 2 and 3, then chooses one permanent level-4 branch. The shared construction, upgrade, targeting, equipment, sale, relocation, rules editor and save systems use the same catalog.
 
-The tables below are generated from resolved catalog values, including recent range adjustments. `scripts/content/catalogs/towers.gd` is authoritative. Save-specific rules and equipment can change these values. Regenerate the source data with `tests/previews/tower_catalog_export.gd`.
+The tables below are generated from resolved catalog values, including recent range adjustments. `scripts/content/catalogs/towers.gd` is authoritative. Save-specific rules and equipment can change these values. Regenerate the source data with `tools/previews/tower_catalog_export.gd`.
 
 ## Levels 1–3
 
