@@ -51,8 +51,8 @@ func upload() -> bool:
 	var result: Dictionary = await cloud._request("/rest/v1/bug_reports", pending.duplicate(true), false)
 	busy = false
 	var data: Variant = result.get("data")
-	var duplicate: bool = int(result.get("code", 0)) == 409 and data is Dictionary and data.get("code") == "23505"
-	if result.get("ok", false) or duplicate:
+	var already_reported: bool = int(result.get("code", 0)) == 409 and data is Dictionary and data.get("code") == "23505"
+	if result.get("ok", false) or already_reported:
 		title = ""
 		description = ""
 		pending.clear()

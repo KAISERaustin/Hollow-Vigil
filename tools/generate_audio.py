@@ -115,10 +115,8 @@ for name, f, d, tex, sweep in [
     ('slider', 860, .04, 'wood', 0), ('collect', 880, .32, 'chime', .7),
     ('upgrade', 520, .4, 'chime', .8),
     ('sell', 690, .24, 'chime', -.5), ('move', 190, .27, 'wood', .3),
-    ('ready', 610, .3, 'chime', .5), ('expand', 260, .65, 'orb', .8),
-    ('traffic', 330, .3, 'orb', .4), ('unlock', 740, .4, 'chime', .35),
-    ('automation', 960, .25, 'arc', .2), ('reset', 310, .55, 'chime', .6),
-    ('return', 550, .6, 'chime', .3), ('notice', 390, .12, 'wood', -.15)]:
+    ('ready', 610, .3, 'chime', .5),
+    ('notice', 390, .12, 'wood', -.15)]:
     cue('menu_' + name, 'menu', f, d, tex, sweep)
 
 tower_construction()

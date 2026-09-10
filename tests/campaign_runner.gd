@@ -58,10 +58,10 @@ func run() -> void:
 	var bell := bell_run.game.combat.Bosses.create(bell_run.game.combat,"0,0","bell",route)
 	bell.toll = 0.01
 	bell_run.game.combat.tick(Balance.STEP)
-	check(bell.path == route and bell.tile == "0,0", "Campaign boss does not enter sandbox patrol routing")
-	check(bell_run.game.combat.enemies.size() == 4, "Drowned Bell summons campaign escorts")
+	check(bell.path == route and bell.tile == "0,0", "Campaign boss retains its authored route")
+	check(bell_run.game.combat.enemies.size() == 1, "Authored boss remains the only spawn")
 	for enemy in bell_run.game.combat.enemies:
-		check(enemy.path[-1] == Catalog.CORE, "Boss and summoned escorts reach the campaign sanctuary")
+		check(enemy.path[-1] == Catalog.CORE, "Authored boss route reaches the campaign sanctuary")
 	bell.path = [Catalog.CORE - Vector2(0,0.1),Catalog.CORE]
 	bell.pos = bell.path[0]
 	bell.segment = 1
@@ -76,7 +76,7 @@ func run() -> void:
 	var reloaded := Progress.new()
 	reloaded.path = progress.path
 	reloaded.load_progress()
-	check(reloaded.data.completed_levels == 1 and reloaded.data.size() == 3, "Only version, sequence and completed count survive reload")
+	check(reloaded.data.completed_levels == 1 and not reloaded.data.has("checkpoint"), "Progress and equipment survive reload without unfinished attempts")
 	resumed.health = 5
 	check(progress.save_run(resumed) and progress.data.completed_levels == 1, "Replays do not count a completed level twice")
 	var skipped := Run.new(2)
@@ -130,8 +130,6 @@ func run() -> void:
 	check(reloaded.restore_completed_levels(2) and reloaded.data.completed_levels == 2, "Explicit cloud restore can replace progress with an older count")
 	check(not reloaded.restore_completed_levels(Catalog.COUNT + 1), "Out-of-range cloud progress cannot replace local data")
 	clean_test_save(progress.path)
-	var sandbox := VigilState.new(42)
-	check(not sandbox.combat.scripted_spawns and sandbox.combat.spawn_on_path("basic",route).is_empty(), "Sandbox does not accept campaign spawns")
 	print("Campaign: %d checks, %d failures" % [checks,failures.size()])
 	quit(0 if failures.is_empty() else 1)
 
@@ -173,12 +171,11 @@ func check_setup_refunds() -> void:
 	check(sale.refund == Balance.sell_refund(tower), "Between-wave sale uses normal refund")
 	for mode in ["creative", "survival"]:
 		var world := VigilState.new(42, mode)
-		world.data.first_property_required = false
 		world.data.balance = 1000.0
 		var id := world.economy.build("rapid", "0,0", 0)
-		check(not id.is_empty(), "Open-world refund fixture builds")
+		check(not id.is_empty(), "Shared economy fixture builds")
 		var world_tower: Dictionary = world.data.towers[id]
-		check(world.economy.sell(id).refund == Balance.sell_refund(world_tower), "Open-world modes keep normal refunds")
+		check(world.economy.sell(id).refund == Balance.sell_refund(world_tower), "Shared economy keeps normal refunds without a level component")
 	var definition := Balance.Content.level(0)
 	other.game.economy.set_sale_rules(definition.without_component("test/no_refund", "setup_refund"))
 	check(other.game.economy.sell_refund(other_tower) == Balance.sell_refund(other_tower), "Removing the attached component restores normal refunds")
@@ -206,7 +203,7 @@ func check_biome_portals() -> void:
 	definitions.forest.name = "Changed preview"
 	check(Balance.portal_definitions().forest.name == "Forest Rift", "Portal discovery returns independent presentation data")
 	var frozen: Dictionary = preload("res://scripts/campaign/configuration.gd").gameplay_values({})
-	check(frozen.rifts.keys() == Balance.RIFTS.keys(), "Campaign exports retain only the existing tunable portal kinds")
+	check(frozen.rifts.keys() == Balance.portal_definitions().keys(), "Campaign exports retain attributes for every portal kind")
 	for index in range(Catalog.COUNT):
 		var mission := Catalog.level(index)
 		var style: String = Catalog.CHAPTERS[index / Catalog.LEVELS_PER_CHAPTER].style
@@ -243,7 +240,7 @@ func check_effect_cleanup() -> void:
 			battle.health = 0
 		var finished_count := [0]
 		battle.finished.connect(func(): finished_count[0] += 1)
-		for kind in ["shot", "death", "relic_drop"]:
+		for kind in ["shot", "death"]:
 			battle.game.combat.add_effect({"kind": kind, "life": 0.5, "max_life": 0.5})
 		battle.tick(Balance.STEP)
 		check(battle.phase == outcome, "Wave reaches %s with effects still visible" % outcome)

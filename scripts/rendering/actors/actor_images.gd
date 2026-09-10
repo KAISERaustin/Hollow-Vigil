@@ -22,7 +22,7 @@ static func recipes() -> Array[Dictionary]:
 	var index := 0
 	for kind in Balance.ENEMIES:
 		result.append({"key": "enemy/" + kind, "kind": kind, "family": "enemy",
-			"bounds": ENEMY_BOUNDS, "region": Rect2((index % 21) * 96, (index / 21) * 96, 96, 96)})
+			"bounds": ENEMY_BOUNDS, "region": Rect2((index % 21) * 96, floori(index / 21.0) * 96, 96, 96)})
 		index += 1
 	index = 0
 	for kind in Balance.TOWERS:
@@ -32,7 +32,7 @@ static func recipes() -> Array[Dictionary]:
 			for family in (["tower", "bow"] if kind == "ironspike" else ["tower"]):
 				result.append({"key": "%s/%s/%d/%s" % [family, kind, tier[0], tier[1]],
 					"family": family, "kind": kind, "level": tier[0], "branch": tier[1], "bounds": TOWER_BOUNDS,
-					"region": Rect2((index % 10) * 192, 96 + (index / 10) * 192, 192, 192)})
+					"region": Rect2((index % 10) * 192, 96 + floori(index / 10.0) * 192, 192, 192)})
 				index += 1
 	return result
 

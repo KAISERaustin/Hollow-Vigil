@@ -32,8 +32,6 @@ func _draw() -> void:
 		draw_colored_polygon(pointer, UI.GOLD)
 		draw_polyline(pointer, Color.BLACK, 2, true)
 	if completed:
-		if active:
-			draw_style_box(UI.surface(Color(0,0,0,0), UI.OUTLINE, 4), Rect2(Vector2.ZERO, size))
 		var rubble_offset := Vector2.ZERO if is_gate() else (size-Vector2(54,54))*0.5
 		ClearedArt.draw(self, offset+rubble_offset, is_gate())
 		if is_gate():

@@ -15,5 +15,6 @@ func capture(tuning: Dictionary, selected: Array) -> Dictionary:
 		var values := {}
 		for stat in Balance.editable_fields_for(category, kind):
 			values[stat] = Balance.configuration_value(category, kind, stat, tuning)
+		if category in Balance.Stats.CATEGORIES: values.merge(tuning.get(category, {}).get(kind, {}), true)
 		result[kind] = values
 	return result

@@ -59,9 +59,9 @@ func _save_state() -> bool:
 
 func local_games() -> Array:
 	var result := []
-	for type in ["campaign", "infinite"]:
+	for type in ["campaign"]:
 		for slot in 3:
-			var snapshot: Dictionary = campaign_slots.summary(slot) if type == "campaign" else slots.summary(slot)
+			var snapshot: Dictionary = campaign_slots.summary(slot)
 			if snapshot.is_empty(): continue
 			result.append({"game_type": type, "slot": slot, "snapshot": snapshot, "hash": fingerprint(snapshot)})
 	return result
@@ -70,14 +70,13 @@ func unreadable_games() -> int:
 	var count := 0
 	for slot in 3:
 		if campaign_slots.occupied(slot) and campaign_slots.summary(slot).is_empty(): count += 1
-		if slots.occupied(slot) and slots.summary(slot).is_empty(): count += 1
 	return count
 
 func game_status(type: String, slot: int) -> String:
 	if not cloud.signed_in(): return "Saved on this device · Sign in for automatic backups"
 	var key := type + ":" + str(slot)
 	if conflicts.has(key): return "Saved on this device · Choose which version to keep in Backups"
-	var saved: Dictionary = campaign_slots.summary(slot) if type == "campaign" else slots.summary(slot)
+	var saved: Dictionary = campaign_slots.summary(slot)
 	var known: Dictionary = _account().games.get(key, {})
 	if known.get("revision", -1) == 0 and not saved.is_empty() and known.get("hash") == fingerprint(saved): return "Saved on this device · Cloud backup deleted; new progress will back up"
 	if not saved.is_empty() and known.get("hash") == fingerprint(saved): return "Saved on this device · Private backup up to date"
@@ -86,9 +85,18 @@ func game_status(type: String, slot: int) -> String:
 func library_status() -> String:
 	if not cloud.signed_in(): return "Sign in for automatic private backup."
 	var pending := 0
-	for entry in slots.shared_configurations("all"):
+	for entry in cloud_entries():
 		if not _account().builds.has(entry.code.sha256_text()): pending += 1
 	return "Private library backup up to date." if pending == 0 else "%d private build backups pending." % pending
+
+func cloud_entries() -> Array:
+	var entries := []
+	for source in slots.shared_configurations("all"):
+		var entry := slots.reusable_entry(source)
+		if entry.is_empty(): continue
+		entry.source_code = source.code
+		entries.append(entry)
+	return entries
 
 func sync_now() -> void:
 	if busy or cloud.busy: return
@@ -110,8 +118,8 @@ func sync_now() -> void:
 	if not deleted.get("ok", false) or not deleted.get("data") is Array: _finish(false, epoch); return
 	deleted_builds.clear()
 	for build_hash in deleted.data: deleted_builds[build_hash] = true
-	for entry in slots.shared_configurations("all"):
-		if deleted_builds.has(entry.code.sha256_text()) and not slots.delete_shared(entry.code): _finish(false, epoch); return
+	for entry in cloud_entries():
+		if deleted_builds.has(entry.code.sha256_text()) and not slots.delete_shared(entry.source_code): _finish(false, epoch); return
 	for item in local_games():
 		var key: String = item.game_type + ":" + str(item.slot)
 		if conflicts.has(key): continue
@@ -128,7 +136,7 @@ func sync_now() -> void:
 			account.games[key] = {"revision": int(data.revision), "hash": item.hash}
 			if not _save_state(): ok = false; break
 	if ok:
-		for entry in slots.shared_configurations("all"):
+		for entry in cloud_entries():
 			var build_hash: String = entry.code.sha256_text()
 			if account.builds.has(build_hash): continue
 			var response: Dictionary = await cloud._rpc("put_private_build", {"build_hash": build_hash, "configuration": entry.code})
@@ -141,7 +149,7 @@ func sync_now() -> void:
 		if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
 		ok = response.get("ok", false) and response.get("data") is Array
 		if ok:
-			remote_games = response.data
+			remote_games = response.data.filter(func(remote): return remote.get("game_type") == "campaign")
 			for remote in remote_games:
 				var key: String = remote.game_type + ":" + str(remote.slot_number)
 				var known: Dictionary = account.games.get(key, {})
@@ -149,7 +157,7 @@ func sync_now() -> void:
 					conflicts[key] = remote.duplicate(true)
 	if ok:
 		var local_builds := {}
-		for entry in slots.shared_configurations("all"): local_builds[entry.code.sha256_text()] = true
+		for entry in cloud_entries(): local_builds[entry.code.sha256_text()] = true
 		var page := 0
 		while true:
 			var response: Dictionary = await cloud._rpc("list_private_builds", {"page_number": page})
@@ -157,7 +165,7 @@ func sync_now() -> void:
 			if not response.get("ok", false) or not response.get("data") is Array: ok = false; break
 			for entry in response.data:
 				if not entry.get("configuration") is String or entry.get("build_hash") != entry.configuration.sha256_text(): ok = false; break
-				if hidden_builds.has(entry.build_hash): continue
+				if hidden_builds.has(entry.build_hash) or slots.shared_entry(entry.configuration).is_empty(): continue
 				if not local_builds.has(entry.build_hash):
 					if not slots.save_shared(entry.configuration): ok = false; break
 					local_builds[entry.build_hash] = true
@@ -182,7 +190,7 @@ func _finish(ok: bool, epoch: int) -> void:
 	changed.emit()
 
 func read_backup(type: String, slot: int) -> Dictionary:
-	if busy or cloud.busy: return {}
+	if type != "campaign" or busy or cloud.busy: return {}
 	var account_id: String = cloud.player_id
 	var epoch: int = cloud.generation
 	busy = true
@@ -195,7 +203,7 @@ func read_backup(type: String, slot: int) -> Dictionary:
 	var value: Dictionary = response.data
 	if not value.get("snapshot") is Dictionary: return {}
 	if value.get("content_hash") != fingerprint(value.snapshot): return {}
-	var valid: bool = CampaignSlots.valid(value.snapshot) if type == "campaign" else slots.storage.valid_data(value.snapshot)
+	var valid: bool = CampaignSlots.valid(value.snapshot)
 	return value if valid else {}
 
 func keep_local(type: String, slot: int, cloud_revision: int) -> void:
@@ -209,7 +217,7 @@ func keep_local(type: String, slot: int, cloud_revision: int) -> void:
 
 func accept_restored(type: String, destination: int, source_slot: int, revision: int) -> void:
 	var key := type + ":" + str(destination)
-	var value: Dictionary = campaign_slots.summary(destination) if type == "campaign" else slots.summary(destination)
+	var value: Dictionary = campaign_slots.summary(destination)
 	if source_slot == destination:
 		_account().games[key] = {"revision": revision, "hash": fingerprint(value)}
 	else: _account().games.erase(key)
@@ -226,8 +234,8 @@ func recovery_games() -> Array:
 		if filename.ends_with(".tmp") or filename.ends_with(".bak") or filename.ends_with(".cloud-outbox"): continue
 		var path := slots.base_path.get_base_dir().path_join(filename)
 		var campaign := campaign_slots.storage.read_candidate(path)
-		var type := "campaign" if not campaign.is_empty() else "infinite"
-		var snapshot: Dictionary = campaign if not campaign.is_empty() else slots.storage.read_candidate(path)
+		var type := "campaign"
+		var snapshot: Dictionary = campaign
 		if not snapshot.is_empty(): result.append({"game_type": type, "snapshot": snapshot, "path": path})
 	return result
 
@@ -250,7 +258,7 @@ func delete_cloud_record(endpoint: String, payload: Dictionary, account_id: Stri
 func delete_game(remote: Dictionary, account_id: String) -> bool:
 	if not await delete_cloud_record("delete_private_game", {"game_type": remote.game_type, "slot_number": int(remote.slot_number), "expected_revision": int(remote.revision)}, account_id): return false
 	var key: String = remote.game_type + ":" + str(remote.slot_number)
-	var snapshot: Dictionary = campaign_slots.summary(int(remote.slot_number)) if remote.game_type == "campaign" else slots.summary(int(remote.slot_number))
+	var snapshot: Dictionary = campaign_slots.summary(int(remote.slot_number))
 	_account().games[key] = {"revision": 0, "hash": fingerprint(snapshot)}
 	conflicts.erase(key)
 	remote_games.erase(remote)
@@ -258,8 +266,11 @@ func delete_game(remote: Dictionary, account_id: String) -> bool:
 
 func delete_build(code: String, account_id: String) -> bool:
 	if busy or cloud.busy: return false
+	var entry := slots.reusable_entry(slots.shared_entry(code))
+	if entry.is_empty(): return false
+	var remote_code: String = entry.code
 	if account_id != "":
-		if not await delete_cloud_record("delete_private_build", {"build_hash": code.sha256_text()}, account_id): return false
-	hidden_builds[code.sha256_text()] = true
+		if not await delete_cloud_record("delete_private_build", {"build_hash": remote_code.sha256_text()}, account_id): return false
+	hidden_builds[remote_code.sha256_text()] = true
 	if not _save_state(): return false
 	return slots.delete_shared(code)

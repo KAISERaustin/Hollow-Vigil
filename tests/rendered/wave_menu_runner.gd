@@ -39,10 +39,10 @@ func run() -> void:
 	root.add_child(app)
 	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	app.set_process(false)
-	app.show_campaign()
+	app.open_campaign_slot(0, app.slot_menu.campaign_slots.create(0, "creative", "Wave menu test"))
 	var screen: Control = app.campaign
 	screen.set_process(false)
-	screen.progress.data.completed_levels = 20
+	screen.progress.data.completed_levels = preload("res://scripts/campaign/catalog.gd").COUNT
 	for viewport in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = viewport
 		root.content_scale_size = viewport
@@ -56,6 +56,11 @@ func run() -> void:
 				var context := "%s level %d at %s" % [mode, level + 1, viewport]
 				var scroll := screen.dialog_body.get_parent() as ScrollContainer
 				var list: VBoxContainer = screen.dialog_body.get_node("WaveSummaries")
+				var total: Control = screen.dialog_body.get_node("TotalWaveTime")
+				check(is_equal_approx(total.size.x, list.size.x), "Total time spans the wave menu " + context)
+				if mode == "creative":
+					var rules: Control = screen.dialog_body.get_node("WavesEditRules")
+					check(is_equal_approx(total.size.x, rules.size.x) and total.get_rect().end.y < rules.position.y, "Total time matches Edit rules width and sits above it " + context)
 				check(Rect2(Vector2.ZERO, Vector2(viewport)).encloses(screen.dialog_card.get_global_rect()), "Dialog fits " + context)
 				check(list.get_child_count() == screen.run.mission.waves.size(), "Every wave is present " + context)
 				var previous: Control
@@ -109,7 +114,8 @@ func run() -> void:
 	await settle()
 	screen.find_child("EditCampaignWave2", true, false).pressed.emit()
 	await settle()
-	check(screen.dialog_title.text == "Edit wave 2" and screen.dialog_body.get_child(0).initial_scope == 1, "Edit wave 2 selects the second wave")
+	check(app.slot_menu.screen == "rules" and app.slot_menu.rules_editor.initial_scope == 1, "Edit wave 2 selects the second wave")
+	app.slot_menu.rules_return.call()
 	screen.start_mission(0)
 	screen.run.wave = 1
 	screen.run.phase = "wave"

@@ -1,6 +1,8 @@
 extends Battlefield
 
 const Catalog = preload("res://scripts/campaign/catalog.gd")
+# Retained for hosts connecting the legacy socket-selection interface.
+@warning_ignore("unused_signal")
 signal socket_picked(socket: int)
 var run: RefCounted
 var selected := -1
@@ -30,7 +32,6 @@ func _ready() -> void:
 	clear_selection()
 	# The original cached terrain renderer accepts authored geometry. Only the
 	# roads and sockets differ; all ground, scenery and actor art stays shared.
-	terrain_layer.hide()
 	landscape = Node2D.new()
 	landscape.show_behind_parent = true
 	add_child(landscape)

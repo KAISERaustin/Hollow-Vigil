@@ -46,7 +46,7 @@ func run() -> void:
 					var expected: float = ceil(original * maxf(1.0, Balance.definitions(category)[kind][stat] / base)) + 1.0 if base > 0 else original
 					check(limits.max == expected, "Tier ceiling preserves scaled legacy values: " + kind + "/" + stat)
 	check(Balance.valid_tuning(minima) and Balance.valid_tuning(maxima), "Every supported minimum and maximum validates together")
-	for invalid in [null, [], "text", 1, true, {"unknown": {}}, {"towers": []}, {"towers": {"unknown": {}}}, {"towers": {"rapid": []}}, {"towers": {"rapid": {"unknown": 1}}}, {"towers": {"rapid:2": {"slow_duration": 1}}}, {"towers": {"rapid": {"targets": 1.5}}}, {"enemies": {"basic": {"hp": true}}}, {"enemies": {"basic": {"hp": "5"}}}, {"enemies": {"basic": {"hp": NAN}}}, {"enemies": {"basic": {"hp": INF}}}, {"enemies": {"basic": {"hp": 0}}}, {"enemies": {"basic": {"hp": 100001}}}]:
+	for invalid in [null, [], "text", 1, true, {"unknown": {}}, {"towers": []}, {"towers": {"unknown": {}}}, {"towers": {"rapid": []}}, {"towers": {"rapid": {"unknown": 1}}}, {"towers": {"rapid": {"targets": 1.5}}}, {"enemies": {"basic": {"hp": true}}}, {"enemies": {"basic": {"hp": "5"}}}, {"enemies": {"basic": {"hp": NAN}}}, {"enemies": {"basic": {"hp": INF}}}, {"enemies": {"basic": {"hp": 0}}}, {"enemies": {"basic": {"hp": 100001}}}]:
 		check(not Balance.valid_tuning(invalid), "Reject malformed tuning: " + str(invalid))
 	check(Balance.valid_tuning({}) and Balance.valid_tuning({"towers": {"rapid": {}}}), "Empty overrides preserve defaults")
 	var copied := Balance.fields_for("towers", "rapid:2")

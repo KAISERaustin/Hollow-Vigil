@@ -1,5 +1,7 @@
 class_name VigilCombat
 extends RefCounted
+const EnemyCapabilities = preload("res://scripts/gameplay/combat/enemy_capabilities.gd")
+const StatComposition = preload("res://scripts/gameplay/combat/stat_composition.gd")
 
 const ShotFactory = preload("res://scripts/gameplay/combat/shot_factory.gd")
 
@@ -29,7 +31,6 @@ var effects: Array[Dictionary] = []
 var pending_shots: Array[Dictionary] = []
 var rng := RandomNumberGenerator.new()
 var simulation_time := 0.0
-var income_events: Array[Vector2] = []
 var enemy_serial := 0
 var tick_count := 0
 var enemy_pool: Array[Dictionary] = []
@@ -46,7 +47,7 @@ var spatial_ready := false
 var indexed_enemy_count := -1
 var ticking := false
 # Authored missions own their spawn schedule; ordinary worlds keep rift timers.
-var scripted_spawns := false
+var scripted_spawns := true
 var road_geometry := preload("res://scripts/gameplay/combat/road_geometry.gd").new()
 var authored_roads: Array = []:
 	set(value):
@@ -67,7 +68,13 @@ func resolved_definition(category: String, kind: String) -> Dictionary:
 
 func tower_stats(tower: Dictionary) -> Dictionary:
 	if not configuration_active: configuration.synchronize(tuning, data.relics)
-	return configuration.tower_stats(tower)
+	var stats := configuration.tower_stats(tower).duplicate(true)
+	TowerComponents.apply_auras(self, tower, stats)
+	return stats
+
+func tower_aura_bonus(tower: Dictionary) -> float:
+	if not configuration_active: configuration.synchronize(tuning, data.relics)
+	return TowerComponents.aura_bonus(self, tower)
 
 func enemy_identifiers() -> Dictionary:
 	if not ticking: rebuild_enemy_index()
@@ -110,22 +117,26 @@ func _init(shared_data: Dictionary, transactions: VigilEconomy, shared_paths: Di
 	rng.randomize()
 
 func rebuild_routes() -> void:
-	route_exits = VigilWorld.shortest_exits(data.regions)
 	paths.clear()
 	branching_routes.clear()
-	for id in route_exits:
-		paths[id] = VigilWorld.route(data.regions, id, route_exits)
-		var choices: Array = route_exits[id]
-		branching_routes[id] = choices.size() > 1 or (not choices.is_empty() and branching_routes[choices[0]])
-	road_geometry.rebuild(authored_roads if scripted_spawns else paths.values())
+	route_exits.clear()
+	road_geometry.rebuild(authored_roads)
 
-func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = "", fire: bool = false, pierce: bool = false) -> bool:
+func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = "", fire: bool = false, pierce: bool = false, damage_type: String = "") -> bool:
 	if enemy.dead or not is_finite(damage) or damage <= 0.0 or not data.towers.has(tower_id):
 		return false
-	damage *= 1.0 + Relics.strength(enemy, "expose", simulation_time) / 100.0
+	damage *= 1.0 + Relics.strength(enemy, "expose", simulation_time) * EnemyCapabilities.resistance(enemy, "hex_resistance", tuning) / 100.0
+	var tags: Array = [branch]
+	var owner: Dictionary = data.towers[tower_id]
+	if damage_type.is_empty(): damage_type = "fire" if fire else Balance.Content.tower(owner.kind).rule("damage_type", "physical")
+	for ability in ["frostneedle", "doomstone", "thunderseal"]:
+		if Balance.Stats.ability_enabled("towers", Balance.tier_key(owner.kind, owner.level, owner.get("branch", "")), ability, tuning): tags.append(ability)
+	var protection: float = enemy.get("shield", 0.0) + enemy.get("wards", 0)
+	var portal = Balance.Content.portal(enemy.get("portal_effect_style", enemy.get("rift_style", "forest")))
+	if portal != null and not pierce: damage = portal.incoming_damage(damage, tuning)
+	if portal != null and damage_type == "electric": damage *= portal.resistance("electric_resistance", tuning)
+	damage = EnemyCapabilities.damage(enemy, damage, tags, fire, tuning, pierce)
 	if enemy.get("boss", false):
-		var protection: float = enemy.get("shield", 0.0) + enemy.get("wards", 0)
-		damage = Bosses.damage(enemy, damage, branch, fire, tuning, pierce)
 		if protection > 0.0 and enemy.get("shield", 0.0) + enemy.get("wards", 0) <= 0.0:
 			sound_requested.emit("boss_" + enemy.kind + "_break", enemy.pos)
 	enemy.hp -= damage
@@ -135,9 +146,11 @@ func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = ""
 	enemy.dead = true
 	TowerComponents.killed(self, enemy)
 	Relics.credited_kill(self, tower_id)
+	TowerComponents.credited_kill(self, tower_id)
 	sound_requested.emit(Balance.Content.boss(enemy.kind).sound_cue("death") if enemy.get("boss", false) else Balance.Content.enemy(enemy.kind).rule("death_cue"), enemy.pos)
 	var is_boss: bool = enemy.get("boss", false)
 	var reward: float = Balance.tuned_value("bosses", enemy.kind, "payout", tuning) if is_boss else Balance.tuned_value("enemies", enemy.kind, "payout", tuning)
+	reward = float(enemy.get("campaign_payout", reward))
 	if enemy.has("summoner"):
 		reward = 0.0
 	if is_boss:
@@ -149,41 +162,16 @@ func hit(enemy: Dictionary, damage: float, tower_id: String, branch: String = ""
 			add_effect({"kind": "relic_drop", "relic_kind": gear_kind, "pos": enemy.pos + Vector2((index - 1) * 28, 0), "life": 2.0, "max_life": 2.0, "color": Relics.DEFINITIONS[gear_kind].color})
 	economy.credit(tower_id, reward)
 	data.kills += 1.0
-	# One-time encounters must not inflate recurring offline income.
+	# Encounter rewards remain separate from ordinary enemy earnings.
 	if not is_boss and not enemy.has("summoner"):
 		var r: Dictionary = data.regions[enemy.source]
 		r.history[tower_id] = r.history.get(tower_id, 0.0) + reward
-	income_events.append(Vector2(simulation_time, reward))
 	add_effect({"kind": "death", "pos": enemy.pos, "life": 0.45, "max_life": 0.45, "color": Bosses.DEFINITIONS[enemy.kind].color if is_boss else Balance.ENEMIES[enemy.kind].color})
 	return true
 
 func add_effect(fx: Dictionary) -> void:
 	if effects.size() < 100:
 		effects.append(fx)
-
-func spawn(id: String, forced_kind: String = "", escort: bool = false) -> Dictionary:
-	if not VigilWorld.has_rift(id, data.regions, int(data.seed)) or not data.regions.has(id):
-		return {}
-	var r: Dictionary = data.regions[id]
-	var kind := forced_kind
-	var style: String = r.get("style", "forest")
-	var portal := Balance.Content.portal(style)
-	if portal == null:
-		return {}
-	if kind == "":
-		kind = portal.choose_kind(r.unlocks, rng.randf())
-	var enemy_type := Balance.Content.enemy(kind)
-	if enemy_type == null:
-		return {}
-	if escort:
-		if not portal.rule("allow_escorts", true) or not enemy_type.rule("escort", false):
-			return {}
-	elif not portal.accepts(kind):
-		return {}
-	if not paths.has(id) or paths[id].size() < 2:
-		return {}
-	var route: Array[Vector2] = VigilWorld.route(data.regions, id, route_exits, rng) if branching_routes[id] else paths[id]
-	return _create_enemy(id, kind, route, style)
 
 func spawn_on_path(kind: String, route: Array[Vector2], style: String = "forest") -> Dictionary:
 	var enemy_type := Balance.Content.enemy(kind)
@@ -196,6 +184,7 @@ func _create_enemy(id: String, kind: String, route: Array[Vector2], style: Strin
 	var e: Dictionary = enemy_pool.pop_back() if not enemy_pool.is_empty() else {}
 	var multiplier := rift_health_multiplier({"rift_style": style})
 	Balance.Content.enemy(kind).create_into(e, enemy_serial, id, route, style, tuning, multiplier)
+	EnemyCapabilities.initialize(e, tuning)
 	set_enemy_route(e, route)
 	enemies.append(e)
 	spatial_ready = false
@@ -214,10 +203,12 @@ func advance_effects(delta: float) -> void:
 func enemy_speed(enemy: Dictionary) -> float:
 	if enemy.get("stun_until", 0.0) > simulation_time or enemy.get("root_until", 0.0) > simulation_time or Relics.strength(enemy, "stun", simulation_time) > 0.0:
 		return 0.0
-	var speed: float = Balance.Content.boss(enemy.kind).movement_speed(enemy, simulation_time, tuning, resolved_definition("bosses", enemy.kind)) if enemy.get("boss", false) else float(resolved_definition("enemies", enemy.kind).speed)
+	var speed: float = resolved_definition(EnemyCapabilities.category(enemy), enemy.kind).speed
 	if enemy.get("rift_style", "forest") == "drowned_crypt": speed *= 1.0 + resolved_definition("rifts", "drowned_crypt").strength / 100.0
 	var slow := Relics.strength(enemy, "slow", simulation_time)
 	if enemy.get("slow_until", 0.0) > simulation_time: slow = maxf(slow, enemy.get("slow_percent", 25.0))
+	slow *= EnemyCapabilities.resistance(enemy, "ice_resistance", tuning)
+	speed *= EnemyCapabilities.speed(enemy, simulation_time, tuning, slow)
 	return speed * (1.0 - slow / 100.0)
 
 func tick(delta: float) -> void:
@@ -232,26 +223,14 @@ func tick(delta: float) -> void:
 	data.active_seconds += delta
 	tick_count += 1
 	TowerComponents.sync(self)
-	# Every rift advances on the same clock. Camera visibility only affects drawing.
-	for r in data.regions.values():
-		if scripted_spawns:
-			break
-		if not VigilWorld.has_rift(r.id, data.regions, int(data.seed)):
-			continue
-		r.history_time = minf(Balance.HISTORY_SECONDS, r.history_time + delta)
-		# Offline estimates include time with escapes / no kills across the whole world.
-		if r.history_time >= Balance.HISTORY_SECONDS:
-			for tid in r.history:
-				r.history[tid] *= exp(-delta / Balance.HISTORY_SECONDS)
-		r.timer -= delta
-		while r.timer <= 0.0:
-			spawn(r.id)
-			r.timer += economy.spawn_period(r.id) * rng.randf_range(0.9, 1.1)
 	Bosses.advance(self, delta)
+	EnemyCapabilities.advance(self, delta)
 	Relics.advance(self, delta)
 	for e in enemies:
 		if e.dead:
 			continue
+		var portal = Balance.Content.portal(e.get("portal_effect_style", e.get("rift_style", "forest")))
+		if portal != null: portal.advance_enemy(e, delta, tuning)
 		var move := enemy_speed(e) * delta
 		if e.get("rift_style", "forest") == "bloodmoon_sanctuary":
 			e.hp = minf(e.max_hp, e.hp + e.max_hp * Balance.rift_strength("bloodmoon_sanctuary", tuning) / 100.0 * delta)
@@ -263,10 +242,6 @@ func tick(delta: float) -> void:
 				e.segment += 1
 				move -= dist
 				if e.segment >= p.size():
-					if e.get("boss", false) and e.tile != "0,0":
-						Bosses.next_leg(self, e)
-						p = e.path
-						continue
 					e.dead = true
 					sound_requested.emit(Balance.Content.boss(e.kind).sound_cue("escape") if e.get("boss", false) else "escape", e.pos)
 					if e.get("boss", false):
@@ -333,6 +308,7 @@ func tick(delta: float) -> void:
 		if target.id >= 0 and Balance.Content.locks_target(t.get("target_mode", "first")):
 			target_locks[t.id] = target.id
 		stats = Relics.prepare(self, t, target, stats)
+		stats = TowerComponents.prepare_attributes(self, t, target, stats)
 		t.cooldown = stats.period
 		t.angle = pos.angle_to_point(target.pos)
 		if not attack.is_empty():
@@ -342,7 +318,7 @@ func tick(delta: float) -> void:
 			# A new pulse replaces this tower's previous connections, even when
 			# developer tuning makes attacks faster than the lightning fade.
 			effects = effects.filter(func(fx): return not (fx.kind == "shot" and fx.get("tower_id", "") == t.id and fx.tower_kind == "electric"))
-		if stats.get("targets", 1) > 1 or t.get("branch", "") == "tempest_web":
+		if stats.get("targets", 1) > 1 or StatComposition.has(t, "tempest_web", tuning):
 			# Pick distinct enemies in priority order before damage changes HP scores.
 			var victims: Array[Dictionary] = [target]
 			candidates.erase(target)
@@ -355,14 +331,14 @@ func tick(delta: float) -> void:
 			var used: Array = victims.map(func(e): return e.id)
 			for victim in victims:
 				launch_shot(t, pos, victim, stats, victim.id == target.id)
-				if t.get("branch", "") == "tempest_web":
+				if StatComposition.has(t, "tempest_web", tuning):
 					for other in nearby_enemies(victim.pos, stats.arc_range):
 						if not other.dead and other.id not in used and victim.pos.distance_to(other.pos) <= stats.arc_range:
 							used.append(other.id)
 							var arc := ShotFactory.shot("electric", victim.pos + Vector2(0, 29), other.pos, stats, other.id)
 							arc.tower_id = t.id
 							add_effect(arc)
-							hit(other, stats.damage * stats.arc_multiplier, t.id)
+							hit(other, stats.damage * stats.arc_multiplier, t.id, "tempest_web", false, false, "electric")
 							break
 			continue
 		launch_shot(t, pos, target, stats)
@@ -370,8 +346,6 @@ func tick(delta: float) -> void:
 	indexed_enemy_count = enemies.size()
 	ticking = false
 	configuration_active = false
-	while not income_events.is_empty() and simulation_time - income_events[0].x > 60.0:
-		income_events.pop_front()
 	if data.automation:
 		economy.collect()
 
@@ -414,13 +388,6 @@ func recycle_dead_enemies() -> void:
 				enemy_pool.append(e)
 	enemies = live
 	if tick_count % 128 == 0: route_cache.prune()
-
-func income_rate() -> float:
-	# Gold per second, averaged over up to 60 seconds with a 10-second startup floor.
-	var amount := 0.0
-	for event in income_events:
-		amount += event.y
-	return amount / maxf(10.0, minf(60.0, simulation_time))
 
 # Branch state is transient: tower identity owns curses, enemy identity owns seals.
 func branch_hit(shot: Dictionary, enemy: Dictionary) -> void:
@@ -469,6 +436,7 @@ func prepare_defenses(delta: float) -> void:
 		var origin := VigilWorld.pad_position(tower.region, tower.pad)
 		if tower.cooldown <= 0.000001 and entry.component.ready(self, tower, origin, stats):
 			stats = Relics.prepare(self, tower, {"id": -1}, stats)
+			stats = TowerComponents.prepare_attributes(self, tower, {"id": -1}, stats)
 			entry.component.attack(self, tower, origin, {}, stats)
 			tower.cooldown = stats.period
 	preload("res://scripts/gameplay/combat/road_traps.gd").advance(self)

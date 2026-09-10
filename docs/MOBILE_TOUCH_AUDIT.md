@@ -1,77 +1,11 @@
-# Mobile touch menu audit
+# Campaign mobile validation
 
-## September 8 scrolling follow-up
+Supported app viewports are upright portrait: 360×640, 390×844 and 540×960. Keep fixed Back/title headers, reachable scrolling content, 48-unit touch targets, safe-area padding and clear ownership of taps and drags.
 
-Rechecked Campaign and Infinite at 360×640, 390×844 and 540×960 upright portrait sizes. The bottom build picker was squeezing eight towers into one row, producing targets smaller than 48 units on the two narrow phones. The shared tower-choice component now retains 48-unit squares and supports horizontal finger scrolling when they do not fit. Wider rows still grow evenly; upward placement drags retain their existing behavior.
+`launch.ps1 -MobileTests` runs the current main-menu layout, Campaign navigation, full Campaign touch controls and illustrated-picker touch checks. The navigation tests cover entering/leaving levels, canceling exit, menu pause/resume, Creative and Survival, and preserving completed progression. Touch controls cover Campaign menus, placement, tower management, upgrades, waves and scrolling.
 
-The compact equipment panel could also leave only 40 units for its list at 360×640, clipping a 48-unit item button even at the final scroll position. It now reserves at least one complete touch row plus padding. The long-inventory regression checks the final icon's complete bounds and taps it to open its details.
+`tests/campaign_only_runner.gd` additionally checks startup, slot creation/continue, Campaign build compatibility, backup enumeration, unsupported restore rejection and independent sound preferences.
 
-The complete menu audit now probes both scroll directions on each overflowing page, in addition to checking every control's reachable bounds and navigating with finger events. Short overflowing pages use a proportionate swipe. Text editors retain ownership of editing gestures. The ground-build regression checks every tower's size and scroll reachability, plus horizontal browsing without accidental selection, and is included in `launch.ps1 -MobileTests`.
+These are simulated desktop touch checks. Physical release acceptance must confirm iPhone and Android touch, safe areas, keyboard dismissal, interruptions, performance and that turning the device leaves gameplay upright.
 
-Updated stale test navigation to the current tower management card, two-tap upgrades and specialization choices, ground relocation, and explicit Campaign exit confirmation. Preserve complete 30-level upgrade coverage; ground construction is exercised by its dedicated finger-gesture runner. The swipe helper selects visible labels/buttons instead of text editors and uses longer strokes for distant rows.
-
-Verified focused results: ground-build touch 336 checks; tower management 450; shared scroll scope 28; mobile navigation 3,185; mobile scrolling 345; touch playthrough 2,729; illustrated picker 261; Campaign upgrades 1,200 across all 30 levels; Campaign controls 1,415; Campaign navigation 265; Infinite contextual actions 201; equipment 99. All passed. The complete page-swipe audit passed 7,307 checks with 0 failures: 689 touch actions, 31 picker selections and 105 page/viewport combinations. These results come from the individual mobile runners; the initial combined command stopped at stale tests before their updates. Screenshots of the corrected build picker, scrolled Waves, Backups and final equipment item were inspected. These checks simulate touch on Windows; physical iPhone and Android validation remains separate.
-
-## Previous full touch audit
-
-September 7, 2026. Scope: the current production menu tree in `UI_MENU_TREE.md`, both game modes, shared contextual menus, and legacy menu components that remain callable. This audit tests source in the Windows Godot runtime using injected `InputEventScreenTouch` and `InputEventScreenDrag`; it does not identify or update an installed phone build.
-
-## Coverage
-
-| Menu family | Surfaces and interactions | Evidence |
-| --- | --- | --- |
-| Main menu and navigation | Campaign, Infinite, Settings, game home, Back, held-session resume and exit | `mobile_navigation_runner`, `mobile_menu_audit_runner` |
-| Saved games and creation | Empty/occupied slots, Continue, delete/replace confirmation, Creative/Survival, starting build, review, name and destination choice | `mobile_menu_audit_runner` |
-| Build libraries | My builds, Community, details, use, private save, sharing entry and return, refresh/retry/paging states | `mobile_menu_audit_runner` with an in-memory network fixture |
-| Save build | Contents checkboxes, scope/level pickers, name/description, private save, sharing, validation messages and fixed actions | `mobile_navigation_runner`, `mobile_menu_audit_runner` |
-| Backups and recovery | Account entry, backup lists, destination, local/cloud comparison, restore/replace/cancel and deletion confirmations | `mobile_menu_audit_runner`; local fixture data only |
-| Settings and account | Sound mute, category volumes, numeric entry/step buttons, previews/defaults, email/code/player-name fields, Paste, sign-in return and Done | `mobile_navigation_runner`, `mobile_menu_audit_runner`, `mobile_scroll_runner` |
-| Creative rules and tools | Every registered rule category, illustrated type/tier choices, exact values, Apply/Cancel/discard, camera/health toggles, gold action | `mobile_navigation_runner`, `mobile_menu_audit_runner`, `illustrated_picker_touch_runner` |
-| Infinite contextual menus | Construction, territory, portals, core, tower information, targeting, equipment, upgrade/branch, sale and relocation | `mobile_navigation_runner`, `mobile_playthrough_runner`, `mobile_context_actions_runner`, equipment and Campaign shared-tower runners |
-| Return earnings and reset | Return overlay, Close, Collect, repeated collection, persistence, reset Cancel/Back/confirm and blocking touches behind dialogs | `mobile_context_actions_runner` with isolated saves |
-| Campaign | Chapter map, level markers, briefing, battle, Waves, wave details/editor, construction, shared tower actions, result navigation | `mobile_playthrough_runner`, `mobile_campaign_controls_runner`, `campaign_upgrade_runner` |
-| Shared touch behavior | Swipe over cards/buttons, tap versus drag, dropdown selection, nested scrolling, cancellation, modal shielding, pan/pinch, safe-area coordinate conversion and portrait sizing | `touch_scroll_scope_runner`, `mobile_navigation_runner`, `mobile_scroll_runner`, `illustrated_picker_touch_runner` |
-
-The main reachability audit uses 360×640, 390×844 and 540×960 upright portrait viewports. Full menu workflows and rendered screenshots complement checks of bounds: an element existing or receiving a directly emitted signal alone is not evidence of a successful finger interaction. Text and network responses use deterministic fixtures where native keyboards or services are unavailable.
-
-## Repairs
-
-- Nested Back actions return through Campaign wave/build menus and tower equipment menus instead of dismissing the entire interaction. Android Back follows the visible Campaign navigation.
-- Equipment removal uses the shared 48-unit screen-control minimum.
-- Illustrated choice popups refit to the viewport safe area when orientation changes.
-- Mouse emulation from physical touch is explicit in the project configuration, preserving Godot control taps alongside the battlefield's native touch handling.
-- Form errors/status are revealed after scrolling settles, so pressing a pinned footer action cannot leave its response offscreen. Navigation revisions prevent an old response from scrolling a later page.
-- Scroll containers refresh their cached content measurements after rebuilding a page. This repairs the zero scroll range reproduced when refreshing the Campaign map with equally tall replacement content.
-- Full Campaign build saving no longer repeatedly reconstructs the same validation schemas. Each document still validates every selected value, level and wave. The Save form paints progress before serialization, prevents duplicate taps, and cancels preparation if Back navigates away.
-- Stale menu expectations and unusable test helpers were corrected; the launcher includes the additional touch regressions.
-
-## Validation and release boundary
-
-Run `./launch.ps1 -MobileTests` for the touch suites and `./launch.ps1 -StyleTests` for rendered layout coverage. This audit ran the focused touch runners individually and the rendered checks described below; it does not claim the complete repository check passes.
-
-Verified results:
-
-- Complete menu touch workflow: 6,092 checks, 0 failures; 485 touch actions, 31 touch picker choices and 105 distinct page/viewport audits across the three portrait sizes.
-- Shared touch and repeated page rebuilds: 28 checks, 0 failures.
-- Mobile navigation after the shared scroll repair: 3,140 checks, 0 failures.
-- Illustrated picker: 261 rendered checks, 0 failures.
-- Mobile scrolling, legacy menus and numeric controls: 345 rendered checks, 0 failures.
-- Campaign upgrades across all 30 levels: 1,200 checks, 0 failures.
-- Campaign touch controls: 1,610 checks, 0 failures. All 30 markers were checked at each portrait size and all 30 levels were opened by touch at 390×844.
-- Shared equipment UI: 117 checks, 0 failures.
-- Contextual transactions, return earnings and reset: 201 checks, 0 failures across the three portrait sizes.
-- Long-library finger scrolling and Details/Delete/Cancel: 137 checks, 0 failures.
-- Save preparation feedback, duplicate-tap prevention and Back before serialization: 10 checks each at 360×640 and 390×844, 0 failures.
-- Rendered Campaign landscape/map/map-menu/HUD checks: 104 / 2,073 / 627 / 1,581 checks, all passing.
-- Parchment corners: 960 checks, 0 failures. Waves: 6,645 checks, 0 failures after correcting a stale test heading from `Level configuration` to `Edit wave 2`.
-- UI style: 16 screens at three sizes, 0 failures. Compact menu layout: all developer types at three sizes, 0 failures. Developer layout: 29,757 checks, 0 failures. Portal UI: 168 checks, 0 failures.
-- Tuning-schema equivalence and invalid-value coverage: 1,427 checks, 0 failures. Developer tiers: 4,851 checks, 0 failures.
-- Unified persistence, all content selections, node extension and final-wave validation: 2,390 checks, 0 failures.
-
-A headless full Campaign build benchmark measured capture / compose / encode / decode at 14,124 / 4,228 / 8,685 / 9,332 ms before the optimization, versus 1,533 / 224 / 508 / 543 ms after it. The encoded document remained 1,952,411 bytes. Final touch Save privately runs, including visible progress and duplicate-tap protection, completed in 2,852 ms at 360×640 and 2,862 ms at 390×844 on this PC. These measurements are local observations under concurrent test load, not phone performance guarantees.
-
-The initial navigation test expected Infinite to open the retired home route; it now checks Saved games. The toolbar regression expected identical Campaign and Infinite button coordinates despite their intentionally different compositions; it now verifies reachability, minimum target sizes and non-overlap. Touch workflow fixtures now stop kinetic movement before tapping a specific row, and use valid saved-game data for navigation that requires a successful save.
-
-The three content-to-gameplay imports observed during this audit were subsequently removed by the tower integration work. Line attacks and road traps now call the injected combat owner; `tools/check_structure.py` passes with zero failures. The Windows certificate-store warning appeared in the local test runtime; it is not evidence of a successful device/network test.
-
-Physical iOS and Android validation remains required for display density, native text keyboards, safe areas reported by the OS, edge/back gestures, interruption/resume, and device performance. The intended native keyboard overlay policy is preserved. World-anchored tower controls continue to scale with their towers as required by the style guide. No real account was signed in and no cloud record was published, replaced or deleted by the touch fixtures. A passing desktop audit cannot guarantee that every future phone session is free of issues; the delivered source must still be built and installed on the phone.
+September 9, 2026 Campaign validation: 1,415 mobile-control checks, 265 navigation checks and 261 illustrated-picker checks passed across the three portrait sizes; the opening-page layout also passed.

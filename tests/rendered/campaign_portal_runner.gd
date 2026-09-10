@@ -7,7 +7,6 @@ const Board = preload("res://scripts/campaign/board.gd")
 const World = preload("res://scripts/content/catalogs/world.gd")
 const Rifts = preload("res://scripts/rendering/actors/rift_art.gd")
 const UI = preload("res://scripts/ui/shared/interface.gd")
-const Controls = preload("res://scripts/ui/developer/developer_controls.gd")
 const SIZES := [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]
 
 class PortalCanvas extends Node2D:
@@ -51,7 +50,6 @@ func run() -> void:
 		root.size = dimensions
 		root.content_scale_size = dimensions
 		await campaign_boards(dimensions)
-		await developer_selector(dimensions)
 	print("CAMPAIGN PORTALS: %d checks, %d boards, %d entrances, %d failures" % [checks, boards_checked, lanes_checked, failures])
 	quit(1 if failures else 0)
 
@@ -149,39 +147,3 @@ func compare_portal(actual: Image, expected: Image, entrance: Dictionary, index:
 	if different > 0:
 		actual.save_png("res://artifacts/campaign-portals-mismatch-%02d-%d.png" % [index + 1, dimensions.x])
 		expected.save_png("res://artifacts/campaign-portals-expected-%02d-%d.png" % [index + 1, dimensions.x])
-
-func developer_selector(dimensions: Vector2i) -> void:
-	var sheet := PanelContainer.new()
-	sheet.theme = UI.theme()
-	sheet.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 12))
-	sheet.size = Vector2(dimensions)
-	root.add_child(sheet)
-	var scroll := ScrollContainer.new()
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	sheet.add_child(scroll)
-	var controls := Controls.new()
-	controls.game = VigilState.new(879)
-	controls.configuration_only = true
-	controls.authored_spawns = true
-	controls.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(controls)
-	controls.show_category("rifts")
-	await frame()
-	check(controls.selector.item_count == World.ALL_STYLES.size(), "Campaign portal selector contains all six biomes")
-	var kinds: Array = []
-	for index in range(controls.selector.item_count):
-		controls.selector.select(index)
-		controls.selector.item_selected.emit(index)
-		scroll.scroll_vertical = 0
-		await frame()
-		var style: String = controls.selected_kind
-		kinds.append(style)
-		check(controls.identity_title.text == Balance.rift_name(style), "Portal selector shows the correct identity: " + style)
-		check(scroll.get_global_rect().grow(1).encloses(controls.selector.get_global_rect()), "Portal selector fits phone width and remains reachable")
-		check(scroll.get_global_rect().grow(1).encloses(controls.portrait.get_global_rect()), "Selected portal portrait is fully visible")
-		check(controls.inputs.has("strength") == World.RIFTS.has(style), "Only effect-bearing portals have strength controls: " + style)
-		check(not controls.description.text.contains("Attune") and not controls.description.text.contains("Summons only"), "Campaign portal description respects authored wave rosters")
-		check(root.get_texture().get_image().save_png("res://artifacts/campaign-portals-editor-%s-%d.png" % [style, dimensions.x]) == OK, "Save portal rule portrait")
-	check(kinds == World.ALL_STYLES, "Portal selector contains each biome exactly once in biome order")
-	sheet.free()
-	await process_frame

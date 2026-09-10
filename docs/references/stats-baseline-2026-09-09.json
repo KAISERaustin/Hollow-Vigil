@@ -1,0 +1,2106 @@
+{
+	"ability_components": {
+		"thorn_volley": [
+			"damage_over_time"
+		]
+	},
+	"authored_level_tuning": {
+		"1": {},
+		"10": {},
+		"11": {},
+		"12": {},
+		"13": {},
+		"14": {},
+		"15": {},
+		"16": {},
+		"17": {},
+		"18": {},
+		"19": {},
+		"2": {},
+		"20": {},
+		"21": {},
+		"22": {},
+		"23": {},
+		"24": {},
+		"25": {},
+		"26": {},
+		"27": {},
+		"28": {},
+		"29": {},
+		"3": {},
+		"30": {},
+		"4": {},
+		"5": {
+			"bosses": {
+				"warden": {
+					"hp": 1800.0,
+					"regen_period": 12.0,
+					"shield": 300.0
+				}
+			}
+		},
+		"6": {},
+		"7": {},
+		"8": {},
+		"9": {}
+	},
+	"captured_date": "2026-09-09",
+	"definitions": {
+		"abilities": {
+			"cinderfield": {
+				"burn_duration": 3.0,
+				"burn_multiplier": 0.4444444444444444
+			},
+			"doomstone": {
+				"curse_limit": 5,
+				"curse_multiplier": 0.2
+			},
+			"dreadjaw": {
+				"trap_arm_time": 1.0,
+				"trap_capacity": 3
+			},
+			"frostneedle": {
+				"slow_duration": 2.0,
+				"slow_percent": 25.0
+			},
+			"grave_echo": {
+				"fragment_count": 5,
+				"fragment_multiplier": 0.2,
+				"fragment_range": 90.0
+			},
+			"needle_battery": {
+				"pierce_count": 4,
+				"volley_count": 3
+			},
+			"oathbrand": {
+				"mark_duration": 10.0,
+				"targets": 1,
+				"vulnerability_percent": 150.0
+			},
+			"orbit_crown": {},
+			"reaper_wheel": {
+				"pierce_count": 8,
+				"projectile_width": 22.0
+			},
+			"rupture_pyre": {
+				"push_distance": 20.0,
+				"push_immunity": 1.0
+			},
+			"scatterworks": {
+				"trap_capacity": 9,
+				"trap_count": 3
+			},
+			"siegebreaker": {
+				"boss_damage_multiplier": 1.5,
+				"pierce_count": 3,
+				"pierce_floor": 1.0,
+				"pierce_loss": 0.0
+			},
+			"tempest_web": {
+				"arc_multiplier": 0.5,
+				"arc_range": 60.0
+			},
+			"thorn_volley": {
+				"arrow_count": 5,
+				"dot_multiplier": 0.3333333333333333,
+				"duration": 3.0,
+				"fan_angle": 0.96
+			},
+			"thunderseal": {
+				"seal_damage": 3.0,
+				"seal_hits": 5,
+				"stun_duration": 0.4,
+				"stun_immunity": 2.0
+			},
+			"witchlight": {
+				"mark_spread_count": 3,
+				"mark_spread_radius": 80.0
+			}
+		},
+		"bosses": {
+			"bell": {
+				"color": "93c9bc",
+				"escort_count": 3,
+				"escort_kind": 0,
+				"escort_limit": 6,
+				"hp": 2800.0,
+				"name": "The Drowned Bell",
+				"payout": 450.0,
+				"push_resistance": 0.0,
+				"seal_multiplier": 4.5,
+				"speed": 32.0,
+				"toll_delay": 2.0,
+				"toll_period": 8.0,
+				"weakness": "Thunderseal: stronger seals; delays tolls"
+			},
+			"cindermaw": {
+				"armor_reduction": 30.0,
+				"color": "db8d73",
+				"frost_multiplier": 1.5,
+				"haste_multiplier": 1.7,
+				"hp": 3600.0,
+				"name": "The Cinder Reliquary",
+				"payout": 500.0,
+				"push_resistance": 0.0,
+				"quench": 100.0,
+				"rage_threshold": 50.0,
+				"speed": 25.0,
+				"weakness": "Frostneedle: +50% damage; quenches haste"
+			},
+			"mourning_matriarch": {
+				"color": "a5aa73",
+				"description": "A veiled orchard spirit rising from a rootbound coffin, crowned with pale fruit and funeral boughs. Her relentless procession rewards slowing attacks and focused fire.",
+				"hp": 3400.0,
+				"name": "The Mourning Matriarch",
+				"payout": 500.0,
+				"push_resistance": 50.0,
+				"speed": 29.0,
+				"weakness": "Slowing attacks extend the time available for focused fire"
+			},
+			"prior": {
+				"color": "b49dcc",
+				"curse_threshold": 5,
+				"doom_bypass": 1,
+				"hp": 3000.0,
+				"name": "The Eclipse Prior",
+				"payout": 500.0,
+				"push_resistance": 0.0,
+				"regen_period": 10.0,
+				"regrowth_suppression": 100.0,
+				"speed": 30.0,
+				"wards": 3,
+				"weakness": "Doomstone: bypasses wards; curses regrowth"
+			},
+			"ruined_king": {
+				"color": "99948c",
+				"description": "The fallen sovereign of Castle Ruin, enthroned in shattered masonry beneath a broken crown. Slow and immensely durable, his stone body resists knockback.",
+				"hp": 4200.0,
+				"name": "The Ruined King",
+				"payout": 550.0,
+				"push_resistance": 90.0,
+				"speed": 23.0,
+				"weakness": "Sustained heavy damage breaks his stone body"
+			},
+			"warden": {
+				"color": "95aa83",
+				"fire_multiplier": 2.0,
+				"hp": 3200.0,
+				"name": "Briarbound Warden",
+				"payout": 450.0,
+				"push_resistance": 0.0,
+				"regen_period": 10.0,
+				"regrowth_suppression": 100.0,
+				"shield": 600.0,
+				"speed": 27.0,
+				"weakness": "Cinderfield: double root shield damage"
+			}
+		},
+		"enemies": {
+			"basic": {
+				"color": "95aa83",
+				"description": "A moss-draped wanderer with a cracked bone mask, drawn from the Forest's tangled roots. Its steady march gives new towers time to strike.",
+				"hp": 45.0,
+				"name": "Moss Hollow",
+				"payout": 5.0,
+				"push_resistance": 0.0,
+				"role": "FOREST · COMMON",
+				"speed": 39.0
+			},
+			"bell_hulk": {
+				"color": "7fa6aa",
+				"description": "A sunken bronze bell carried by a hulking drowned body. Heavy chains and a sealed bell casing resist knockback.",
+				"hp": 340.0,
+				"name": "Bell Hulk",
+				"payout": 24.0,
+				"push_resistance": 75.0,
+				"role": "CRYPT · DURABLE",
+				"speed": 25.0
+			},
+			"blood_acolyte": {
+				"color": "ae879b",
+				"description": "A crimson-robed worshipper carrying a crescent staff. The Bloodmoon Sanctuary restores its wounds throughout its journey.",
+				"hp": 45.0,
+				"name": "Blood Acolyte",
+				"payout": 5.0,
+				"push_resistance": 0.0,
+				"role": "SANCTUARY · COMMON",
+				"speed": 39.0
+			},
+			"briarling": {
+				"color": "b9bd8a",
+				"description": "A bone-faced thornling that darts from the Mourning Orchard’s portals. Fast attacks and slowing needles catch its fragile wooden frame.",
+				"hp": 85.0,
+				"name": "Briarling",
+				"payout": 13.0,
+				"push_resistance": 0.0,
+				"role": "ORCHARD · SWIFT",
+				"speed": 86.0
+			},
+			"cinder_imp": {
+				"color": "db8d73",
+				"description": "A small horned coal creature with a glowing furnace belly. The first inhabitant to emerge from an Ashen Forge portal.",
+				"hp": 45.0,
+				"name": "Cinder Imp",
+				"payout": 5.0,
+				"push_resistance": 0.0,
+				"role": "FORGE · COMMON",
+				"speed": 39.0
+			},
+			"coffinbound": {
+				"color": "a5aa73",
+				"description": "A walking coffin lashed shut with pale roots. Only the Orchard portal releases it. Slow, durable, and resistant to knockback; heavy damage breaks its shell.",
+				"hp": 820.0,
+				"name": "Coffinbound",
+				"payout": 64.0,
+				"push_resistance": 90.0,
+				"role": "ORCHARD · ROOTED",
+				"speed": 22.0
+			},
+			"crescent_wisp": {
+				"color": "c4b6b1",
+				"description": "A floating crescent shrine with a veiled red eye and long prayer ribbons. Its slight form moves quickly beneath the blood moon.",
+				"hp": 36.0,
+				"name": "Crescent Wisp",
+				"payout": 8.0,
+				"push_resistance": 0.0,
+				"role": "SANCTUARY · SWIFT",
+				"speed": 74.0
+			},
+			"drowned_thrall": {
+				"color": "7fa6aa",
+				"description": "A waterlogged pilgrim tangled in reeds and burial cloth. Drowned Crypt portals send it down the roads with a restless current at its back.",
+				"hp": 45.0,
+				"name": "Drowned Thrall",
+				"payout": 5.0,
+				"push_resistance": 0.0,
+				"role": "CRYPT · COMMON",
+				"speed": 39.0
+			},
+			"fast": {
+				"color": "93c9bc",
+				"description": "A leaf-crowned woodland spirit trailing thorn tendrils. This fragile Forest foe races along the roads toward the core.",
+				"hp": 36.0,
+				"name": "Bramble Wraith",
+				"payout": 8.0,
+				"push_resistance": 0.0,
+				"role": "FOREST · SWIFT",
+				"speed": 74.0
+			},
+			"heavy": {
+				"color": "95aa83",
+				"description": "An ancient woodland husk wrapped in bark and heavy roots. Its slow, sturdy frame resists knockback and rewards heavy damage.",
+				"hp": 340.0,
+				"name": "Rootbound Revenant",
+				"payout": 24.0,
+				"push_resistance": 75.0,
+				"role": "FOREST · ROOTED",
+				"speed": 25.0
+			},
+			"lantern": {
+				"color": "bb8c76",
+				"description": "A soot-robed furnace tender carrying a stolen ember. Ashen Forge portals harden its frame for a steady march through tower fire.",
+				"hp": 120.0,
+				"name": "Ember Keeper",
+				"payout": 14.0,
+				"push_resistance": 0.0,
+				"role": "FORGE · STEADFAST",
+				"speed": 46.0
+			},
+			"mire_wraith": {
+				"color": "93c9bc",
+				"description": "A thin, streaming ghost wearing a shell mask. Its trailing fins and torn shroud cut swiftly through the Drowned Crypt's mist.",
+				"hp": 36.0,
+				"name": "Mire Wraith",
+				"payout": 8.0,
+				"push_resistance": 0.0,
+				"role": "CRYPT · SWIFT",
+				"speed": 74.0
+			},
+			"ruin_knight": {
+				"color": "ae879b",
+				"description": "An oathbound guardian in crescent-crowned armor. Bloodmoon Sanctuary portals summon this enduring knight beneath a crimson mantle.",
+				"hp": 1200.0,
+				"name": "Eclipse Knight",
+				"payout": 95.0,
+				"push_resistance": 50.0,
+				"role": "SANCTUARY · ELITE",
+				"speed": 38.0
+			},
+			"sentinel": {
+				"color": "74798c",
+				"description": "A dark iron guardian summoned only by castle ruin portals. A deep health pool guards a rich bounty.",
+				"hp": 680.0,
+				"name": "Crypt Sentinel",
+				"payout": 55.0,
+				"push_resistance": 0.0,
+				"role": "DUNGEON · ARMORED",
+				"speed": 28.0
+			},
+			"sepulcher": {
+				"color": "99948c",
+				"description": "A walking royal tomb crowned with ruined battlements. Castle ruin portals alone release this slow, immensely durable foe, whose stone bulk resists knockback.",
+				"hp": 2200.0,
+				"name": "Sepulcher Colossus",
+				"payout": 165.0,
+				"push_resistance": 90.0,
+				"role": "DUNGEON · COLOSSAL",
+				"speed": 24.0
+			},
+			"shade": {
+				"color": "9182ad",
+				"description": "A swift shadow born only in castle ruin portals. Its dense shroud withstands sustained fire.",
+				"hp": 240.0,
+				"name": "Abyss Shade",
+				"payout": 30.0,
+				"push_resistance": 0.0,
+				"role": "DUNGEON · SWIFT",
+				"speed": 56.0
+			},
+			"slag_golem": {
+				"color": "bb8c76",
+				"description": "A lumbering pile of blackened iron with an anvil-shaped head and molten seams. Its weight resists knockback.",
+				"hp": 340.0,
+				"name": "Slag Golem",
+				"payout": 24.0,
+				"push_resistance": 75.0,
+				"role": "FORGE · DURABLE",
+				"speed": 25.0
+			},
+			"veil_widow": {
+				"color": "c4b6b1",
+				"description": "A mourning spirit in a split burial veil, born only through the Orchard portal. Its steady pace and dense shroud reward sustained fire.",
+				"hp": 260.0,
+				"name": "Veil Widow",
+				"payout": 28.0,
+				"push_resistance": 25.0,
+				"role": "ORCHARD · ENDURING",
+				"speed": 43.0
+			}
+		},
+		"gear": {
+			"bell": {
+				"attack_count": 4.0,
+				"echo_delay": 0.18,
+				"echo_multiplier": 0.5,
+				"name": "Tollstone"
+			},
+			"bell_chain": {
+				"attack_count": 4.0,
+				"name": "Undertow Chain",
+				"push_distance": 28.0,
+				"push_immunity": 2.0
+			},
+			"bell_chime": {
+				"area_radius": 60.0,
+				"attack_count": 6.0,
+				"boss_duration": 0.2,
+				"duration": 0.5,
+				"name": "Hush Chime",
+				"stun_immunity": 3.0
+			},
+			"cinder_censer": {
+				"area_radius": 45.0,
+				"attack_count": 3.0,
+				"dot_multiplier": 0.2,
+				"duration": 3.0,
+				"fire_damage": 1.0,
+				"name": "Ashen Censer"
+			},
+			"cinder_crucible": {
+				"attack_count": 4.0,
+				"blast_multiplier": 1.25,
+				"blast_radius": 52.0,
+				"name": "Crucible Seal"
+			},
+			"cindermaw": {
+				"name": "Ember Fang",
+				"speed_per_stack": 8.0,
+				"stack_limit": 5.0,
+				"stack_timeout": 3.0
+			},
+			"king_edge": {
+				"damage_multiplier": 1.6,
+				"health_threshold": 25.0,
+				"name": "Executioner’s Edge"
+			},
+			"king_signet": {
+				"damage_multiplier": 1.8,
+				"health_threshold": 90.0,
+				"name": "Siege Signet"
+			},
+			"matriarch_fruit": {
+				"attack_count": 4.0,
+				"duration": 3.0,
+				"name": "Pale Mourning Fruit",
+				"vulnerability_percent": 15.0
+			},
+			"matriarch_lantern": {
+				"name": "Wakekeeper’s Lantern",
+				"opening_attacks": 2.0,
+				"opening_speed": 35.0,
+				"range_percent": 20.0,
+				"reset_timeout": 4.0
+			},
+			"mourning_matriarch": {
+				"attack_count": 2.0,
+				"boss_duration": 1.0,
+				"duration": 2.0,
+				"name": "Mourning Veil",
+				"slow_percent": 30.0
+			},
+			"prior": {
+				"attack_count": 5.0,
+				"damage_multiplier": 1.5,
+				"defense_bypass": 1.0,
+				"name": "Eclipse Shard"
+			},
+			"prior_mirror": {
+				"attack_count": 5.0,
+				"fork_count": 2.0,
+				"fork_multiplier": 0.45,
+				"fork_radius": 90.0,
+				"name": "Penumbral Mirror"
+			},
+			"prior_rosary": {
+				"damage_per_stack": 5.0,
+				"name": "Bloodmoon Rosary",
+				"stack_limit": 5.0,
+				"stack_timeout": 6.0
+			},
+			"ruined_king": {
+				"damage_multiplier": 1.4,
+				"name": "Kingsbane Crown"
+			},
+			"warden": {
+				"boss_root_duration": 0.35,
+				"name": "Warden’s Rootheart",
+				"root_duration": 0.75,
+				"root_immunity": 3.0,
+				"root_period": 6.0
+			},
+			"warden_lens": {
+				"damage_multiplier": 1.35,
+				"name": "Heartwood Lens"
+			},
+			"warden_thornspindle": {
+				"attack_count": 3.0,
+				"dot_multiplier": 0.3,
+				"duration": 4.0,
+				"fire_damage": 0.0,
+				"name": "Briar Thornspindle"
+			}
+		},
+		"projectiles": {
+			"caltrop_keep": {
+				"impact_time": 0.15,
+				"max_flight": 0.4,
+				"min_flight": 0.1,
+				"muzzle": "(0.0, -8.0)",
+				"speed": 360.0
+			},
+			"electric": {
+				"impact_time": 0.3,
+				"max_flight": 0.0,
+				"min_flight": 0.0,
+				"muzzle": "(0.0, -29.0)",
+				"speed": 760.0
+			},
+			"heavy": {
+				"impact_time": 0.18,
+				"max_flight": 0.36,
+				"min_flight": 0.18,
+				"muzzle": "(0.0, -22.0)",
+				"speed": 470.0
+			},
+			"hex_lantern": {
+				"impact_time": 0.2,
+				"max_flight": 0.4,
+				"min_flight": 0.1,
+				"muzzle": "(0.0, -23.0)",
+				"speed": 400.0
+			},
+			"ironspike": {
+				"impact_time": 0.12,
+				"max_flight": 0.6,
+				"min_flight": 0.1,
+				"muzzle": "(0.0, -30.0)",
+				"speed": 420.0
+			},
+			"moonwheel": {
+				"impact_time": 0.12,
+				"max_flight": 0.6,
+				"min_flight": 0.1,
+				"muzzle": "(0.0, -32.0)",
+				"speed": 260.0
+			},
+			"rapid": {
+				"impact_time": 0.09,
+				"max_flight": 0.22,
+				"min_flight": 0.1,
+				"muzzle": "(0.0, -25.0)",
+				"speed": 760.0
+			},
+			"splash": {
+				"impact_time": 0.24,
+				"max_flight": 0.3,
+				"min_flight": 0.17,
+				"muzzle": "(0.0, -29.0)",
+				"speed": 520.0
+			}
+		},
+		"rifts": {
+			"ashen_forge": {
+				"name": "Forged Rift",
+				"strength": 25.0
+			},
+			"bloodmoon_sanctuary": {
+				"name": "Bloodmoon Rift",
+				"strength": 1.0
+			},
+			"drowned_crypt": {
+				"name": "Drowned Rift",
+				"strength": 15.0
+			}
+		},
+		"towers": {
+			"caltrop_keep": {
+				"color": "db8d73",
+				"cost": 120.0,
+				"damage": 24.0,
+				"description": "Deploys single-use caltrops on nearby roads. Stores up to {trap_capacity}; each arms in {trap_arm_time} seconds and expires after {trap_duration} seconds. Traps never block movement.",
+				"name": "Caltrop Keep",
+				"period": 2.0,
+				"range": 125.0,
+				"role": "ROAD TRAPS",
+				"splash": 0.0,
+				"targets": 1,
+				"trap_arm_time": 0.5,
+				"trap_capacity": 3,
+				"trap_count": 1,
+				"trap_duration": 8.0,
+				"trap_radius": 12.0
+			},
+			"caltrop_keep:2": {
+				"color": "db8d73",
+				"cost": 120.0,
+				"damage": 36.0,
+				"description": "Deploys single-use caltrops on nearby roads. Stores up to {trap_capacity}; each arms in {trap_arm_time} seconds and expires after {trap_duration} seconds. Traps never block movement.",
+				"name": "Caltrop Keep",
+				"period": 1.8,
+				"range": 140.0,
+				"role": "ROAD TRAPS",
+				"splash": 0.0,
+				"targets": 1,
+				"trap_arm_time": 0.5,
+				"trap_capacity": 4,
+				"trap_count": 1,
+				"trap_duration": 10.0,
+				"trap_radius": 12.0
+			},
+			"caltrop_keep:3": {
+				"color": "db8d73",
+				"cost": 200.0,
+				"damage": 52.0,
+				"description": "Deploys single-use caltrops on nearby roads. Stores up to {trap_capacity}; each arms in {trap_arm_time} seconds and expires after {trap_duration} seconds. Traps never block movement.",
+				"name": "Caltrop Keep",
+				"period": 1.6,
+				"range": 155.0,
+				"role": "ROAD TRAPS",
+				"splash": 0.0,
+				"targets": 1,
+				"trap_arm_time": 0.5,
+				"trap_capacity": 5,
+				"trap_count": 1,
+				"trap_duration": 12.0,
+				"trap_radius": 12.0
+			},
+			"caltrop_keep:dreadjaw": {
+				"color": "ede4c9",
+				"cost": 320.0,
+				"damage": 140.0,
+				"description": "Stores {trap_capacity} heavy jaw traps. Each deals {damage} damage to one victim, arms in {trap_arm_time} seconds, and expires after {trap_duration} seconds.",
+				"name": "Dreadjaw",
+				"period": 2.0,
+				"range": 155.0,
+				"role": "ROAD TRAPS",
+				"splash": 0.0,
+				"targets": 1,
+				"trap_arm_time": 1.0,
+				"trap_capacity": 3,
+				"trap_count": 1,
+				"trap_duration": 12.0,
+				"trap_radius": 12.0
+			},
+			"caltrop_keep:scatterworks": {
+				"color": "e0b568",
+				"cost": 320.0,
+				"damage": 32.0,
+				"description": "Deploys {trap_count} weaker caltrops per cycle at separate road positions. Stores up to {trap_capacity}; each damages one victim and disappears.",
+				"name": "Scatterworks",
+				"period": 2.0,
+				"range": 155.0,
+				"role": "ROAD TRAPS",
+				"splash": 0.0,
+				"targets": 1,
+				"trap_arm_time": 0.5,
+				"trap_capacity": 9,
+				"trap_count": 3,
+				"trap_duration": 12.0,
+				"trap_radius": 12.0
+			},
+			"electric": {
+				"color": "91bbff",
+				"cost": 140.0,
+				"damage": 3.0,
+				"description": "Forked lightning zaps up to {targets} enemies at a time within reach, of any troop type.",
+				"name": "Stormspire",
+				"period": 0.4,
+				"range": 160.0,
+				"role": "MULTI-TARGET",
+				"splash": 0.0,
+				"targets": 5
+			},
+			"electric:2": {
+				"color": "91bbff",
+				"cost": 120.0,
+				"damage": 5.0,
+				"description": "Forked lightning zaps up to {targets} enemies at a time within reach, of any troop type.",
+				"name": "Stormspire",
+				"period": 0.35,
+				"range": 174.0,
+				"role": "MULTI-TARGET",
+				"splash": 0.0,
+				"targets": 5
+			},
+			"electric:3": {
+				"color": "91bbff",
+				"cost": 200.0,
+				"damage": 7.0,
+				"description": "Forked lightning zaps up to {targets} enemies at a time within reach, of any troop type.",
+				"name": "Stormspire",
+				"period": 0.3,
+				"range": 188.0,
+				"role": "MULTI-TARGET",
+				"splash": 0.0,
+				"targets": 5
+			},
+			"electric:tempest_web": {
+				"arc_multiplier": 0.5,
+				"arc_range": 60.0,
+				"color": "a9dce9",
+				"cost": 300.0,
+				"damage": 7.0,
+				"description": "Strikes up to {targets} enemies. Each strike arcs to one additional, distinct enemy within {arc_range} units for {arc_percent}% damage, reaching beyond normal range.",
+				"name": "Tempest Web",
+				"period": 0.3,
+				"range": 188.0,
+				"role": "MULTI-TARGET",
+				"splash": 0.0,
+				"targets": 5
+			},
+			"electric:thunderseal": {
+				"color": "b3b5f1",
+				"cost": 300.0,
+				"damage": 7.0,
+				"description": "After {seal_hits} hits from this tower, a seal detonates for {seal_damage} times hit damage as a bonus and a {stun_duration}-second stun. Charges reset; {stun_immunity}-second stun immunity prevents continuous lockdown.",
+				"name": "Thunderseal",
+				"period": 0.3,
+				"range": 188.0,
+				"role": "MULTI-TARGET",
+				"seal_damage": 3.0,
+				"seal_hits": 5,
+				"splash": 0.0,
+				"stun_duration": 0.4,
+				"stun_immunity": 2.0,
+				"targets": 5
+			},
+			"heavy": {
+				"color": "b49dcc",
+				"cost": 160.0,
+				"damage": 40.0,
+				"description": "Large magic orbs reach distant foes and deal heavy damage to resilient enemies.",
+				"name": "Obelisk",
+				"period": 1.8,
+				"range": 185.0,
+				"role": "HEAVY",
+				"splash": 0.0,
+				"targets": 1
+			},
+			"heavy:2": {
+				"color": "b49dcc",
+				"cost": 140.0,
+				"damage": 60.0,
+				"description": "Large magic orbs reach distant foes and deal heavy damage to resilient enemies.",
+				"name": "Obelisk",
+				"period": 1.35,
+				"range": 201.0,
+				"role": "HEAVY",
+				"splash": 0.0,
+				"targets": 1
+			},
+			"heavy:3": {
+				"color": "b49dcc",
+				"cost": 220.0,
+				"damage": 90.0,
+				"description": "Large magic orbs reach distant foes and deal heavy damage to resilient enemies.",
+				"name": "Obelisk",
+				"period": 0.9,
+				"range": 217.0,
+				"role": "HEAVY",
+				"splash": 0.0,
+				"targets": 1
+			},
+			"heavy:doomstone": {
+				"color": "c282bb",
+				"cost": 360.0,
+				"curse_limit": 5,
+				"curse_multiplier": 0.2,
+				"damage": 90.0,
+				"description": "Consecutive hits on one enemy increase this tower's damage by {curse_percent}% per curse stack, up to {curse_max_percent}% bonus. Switching targets resets the curse.",
+				"name": "Doomstone",
+				"period": 0.9,
+				"range": 217.0,
+				"role": "HEAVY",
+				"splash": 0.0,
+				"targets": 1
+			},
+			"heavy:grave_echo": {
+				"color": "c3a0ed",
+				"cost": 360.0,
+				"damage": 110.00000000000001,
+				"description": "A heavy orb bursts into {fragment_count} seeking fragments. Each deals {fragment_percent}% of its damage to a different enemy within {fragment_range} units. The original target is excluded; unused fragments fade.",
+				"fragment_count": 5,
+				"fragment_multiplier": 0.2,
+				"fragment_range": 90.0,
+				"name": "Grave Echo",
+				"period": 0.9,
+				"range": 217.0,
+				"role": "HEAVY",
+				"splash": 0.0,
+				"targets": 1
+			},
+			"hex_lantern": {
+				"aura_damage_percent": 8.0,
+				"color": "c28cab",
+				"cost": 100.0,
+				"damage": 1.0,
+				"description": "Slow curse bolts deal negligible damage. Hexed enemies take {vulnerability_percent}% more tower damage for {mark_duration} seconds. Other towers in range gain {aura_damage_percent}% damage. Only the strongest hex and aura apply.",
+				"mark_duration": 6.0,
+				"name": "Hex Lantern",
+				"period": 5.0,
+				"range": 270.0,
+				"role": "SUPPORT",
+				"splash": 0.0,
+				"targets": 1,
+				"vulnerability_percent": 75.0
+			},
+			"hex_lantern:2": {
+				"aura_damage_percent": 10.0,
+				"color": "c28cab",
+				"cost": 100.0,
+				"damage": 1.0,
+				"description": "Slow curse bolts deal negligible damage. Hexed enemies take {vulnerability_percent}% more tower damage for {mark_duration} seconds. Other towers in range gain {aura_damage_percent}% damage. Only the strongest hex and aura apply.",
+				"mark_duration": 7.0,
+				"name": "Hex Lantern",
+				"period": 4.75,
+				"range": 300.0,
+				"role": "SUPPORT",
+				"splash": 0.0,
+				"targets": 1,
+				"vulnerability_percent": 90.0
+			},
+			"hex_lantern:3": {
+				"aura_damage_percent": 12.0,
+				"color": "c28cab",
+				"cost": 180.0,
+				"damage": 1.0,
+				"description": "Slow curse bolts deal negligible damage. Hexed enemies take {vulnerability_percent}% more tower damage for {mark_duration} seconds. Other towers in range gain {aura_damage_percent}% damage. Only the strongest hex and aura apply.",
+				"mark_duration": 8.0,
+				"name": "Hex Lantern",
+				"period": 4.5,
+				"range": 330.0,
+				"role": "SUPPORT",
+				"splash": 0.0,
+				"targets": 2,
+				"vulnerability_percent": 100.0
+			},
+			"hex_lantern:oathbrand": {
+				"aura_damage_percent": 12.0,
+				"color": "c28cab",
+				"cost": 280.0,
+				"damage": 1.0,
+				"description": "Concentrates on one enemy: +{vulnerability_percent}% incoming tower damage for {mark_duration} seconds. Other towers in range gain {aura_damage_percent}% damage. Only the strongest hex and aura apply; boss defenses remain intact.",
+				"mark_duration": 10.0,
+				"name": "Oathbrand",
+				"period": 4.5,
+				"range": 330.0,
+				"role": "SUPPORT",
+				"splash": 0.0,
+				"targets": 1,
+				"vulnerability_percent": 150.0
+			},
+			"hex_lantern:witchlight": {
+				"aura_damage_percent": 12.0,
+				"color": "b49dcc",
+				"cost": 280.0,
+				"damage": 1.0,
+				"description": "Marks add {vulnerability_percent}% incoming damage. A directly marked death spreads the mark to {mark_spread_count} nearby enemies for {mark_duration} seconds. Spread marks never spread again. Other towers in range gain {aura_damage_percent}% damage. Only the strongest hex and aura apply.",
+				"mark_duration": 8.0,
+				"mark_spread_count": 3,
+				"mark_spread_radius": 80.0,
+				"name": "Witchlight",
+				"period": 4.5,
+				"range": 330.0,
+				"role": "SUPPORT",
+				"splash": 0.0,
+				"targets": 2,
+				"vulnerability_percent": 100.0
+			},
+			"ironspike": {
+				"color": "ede4c9",
+				"cost": 140.0,
+				"damage": 22.0,
+				"description": "A straight bolt pierces up to {pierce_count} aligned enemies, losing damage after each hit. Best beside long straight roads.",
+				"name": "Ironspike",
+				"period": 1.4,
+				"pierce_count": 3,
+				"pierce_floor": 0.5,
+				"pierce_loss": 0.3,
+				"projectile_width": 9.0,
+				"range": 200.0,
+				"role": "PIERCING",
+				"splash": 0.0,
+				"targets": 1,
+				"volley_count": 1,
+				"volley_spacing": 20.0
+			},
+			"ironspike:2": {
+				"color": "ede4c9",
+				"cost": 120.0,
+				"damage": 32.0,
+				"description": "A straight bolt pierces up to {pierce_count} aligned enemies, losing damage after each hit. Best beside long straight roads.",
+				"name": "Ironspike",
+				"period": 1.25,
+				"pierce_count": 4,
+				"pierce_floor": 0.4,
+				"pierce_loss": 0.2,
+				"projectile_width": 9.0,
+				"range": 215.0,
+				"role": "PIERCING",
+				"splash": 0.0,
+				"targets": 1,
+				"volley_count": 1,
+				"volley_spacing": 20.0
+			},
+			"ironspike:3": {
+				"color": "ede4c9",
+				"cost": 200.0,
+				"damage": 44.0,
+				"description": "A straight bolt pierces up to {pierce_count} aligned enemies, losing damage after each hit. Best beside long straight roads.",
+				"name": "Ironspike",
+				"period": 1.1,
+				"pierce_count": 5,
+				"pierce_floor": 0.4,
+				"pierce_loss": 0.15,
+				"projectile_width": 9.0,
+				"range": 230.0,
+				"role": "PIERCING",
+				"splash": 0.0,
+				"targets": 1,
+				"volley_count": 1,
+				"volley_spacing": 20.0
+			},
+			"ironspike:needle_battery": {
+				"color": "e0b568",
+				"cost": 320.0,
+				"damage": 28.0,
+				"description": "Fires {volley_count} parallel bolts, each piercing {pierce_count} enemies. A victim takes at most one hit per volley; wider coverage trades away single-target force.",
+				"name": "Needle Battery",
+				"period": 1.1,
+				"pierce_count": 4,
+				"pierce_floor": 0.4,
+				"pierce_loss": 0.15,
+				"projectile_width": 9.0,
+				"range": 230.0,
+				"role": "PIERCING",
+				"splash": 0.0,
+				"targets": 1,
+				"volley_count": 3,
+				"volley_spacing": 20.0
+			},
+			"ironspike:siegebreaker": {
+				"boss_damage_multiplier": 1.5,
+				"color": "ede4c9",
+				"cost": 320.0,
+				"damage": 59.99999999999999,
+				"description": "Heavy bolts pierce {pierce_count} enemies at full damage. Boss hits deal {boss_damage_multiplier} times damage before defenses. A slower reload rewards focus fire.",
+				"name": "Siegebreaker",
+				"period": 1.25,
+				"pierce_count": 3,
+				"pierce_floor": 1.0,
+				"pierce_loss": 0.0,
+				"projectile_width": 9.0,
+				"range": 250.0,
+				"role": "PIERCING",
+				"splash": 0.0,
+				"targets": 1,
+				"volley_count": 1,
+				"volley_spacing": 20.0
+			},
+			"moonwheel": {
+				"color": "93c9bc",
+				"cost": 130.0,
+				"damage": 10.0,
+				"description": "A crescent cuts out and back through up to {pierce_count} enemies per pass. Each enemy can take one hit on each leg; only one blade flies at a time.",
+				"name": "Moonwheel",
+				"period": 1.5,
+				"pierce_count": 3,
+				"projectile_width": 12.0,
+				"range": 135.0,
+				"return_speed": 1.0,
+				"role": "RETURNING",
+				"splash": 0.0,
+				"targets": 1
+			},
+			"moonwheel:2": {
+				"color": "93c9bc",
+				"cost": 120.0,
+				"damage": 15.0,
+				"description": "A crescent cuts out and back through up to {pierce_count} enemies per pass. Each enemy can take one hit on each leg; only one blade flies at a time.",
+				"name": "Moonwheel",
+				"period": 1.35,
+				"pierce_count": 4,
+				"projectile_width": 12.0,
+				"range": 145.0,
+				"return_speed": 1.2,
+				"role": "RETURNING",
+				"splash": 0.0,
+				"targets": 1
+			},
+			"moonwheel:3": {
+				"color": "93c9bc",
+				"cost": 200.0,
+				"damage": 21.0,
+				"description": "A crescent cuts out and back through up to {pierce_count} enemies per pass. Each enemy can take one hit on each leg; only one blade flies at a time.",
+				"name": "Moonwheel",
+				"period": 1.2,
+				"pierce_count": 5,
+				"projectile_width": 16.0,
+				"range": 155.0,
+				"return_speed": 1.4,
+				"role": "RETURNING",
+				"splash": 0.0,
+				"targets": 1
+			},
+			"moonwheel:orbit_crown": {
+				"color": "93c9bc",
+				"cost": 300.0,
+				"damage": 12.0,
+				"description": "Three blades orbit in a short radius, sweeping all nearby enemies every {period} seconds. Each enemy takes one hit per sweep, never one hit per blade.",
+				"name": "Orbit Crown",
+				"period": 0.44999999999999996,
+				"pierce_count": 5,
+				"projectile_width": 16.0,
+				"range": 75.0,
+				"return_speed": 1.4,
+				"role": "RETURNING",
+				"splash": 0.0,
+				"targets": 1
+			},
+			"moonwheel:reaper_wheel": {
+				"color": "93c9bc",
+				"cost": 300.0,
+				"damage": 32.0,
+				"description": "A giant serrated crescent cuts through {pierce_count} enemies on each leg. Its broad, long corridor and slower throws reward dense traffic.",
+				"name": "Reaper Wheel",
+				"period": 1.5,
+				"pierce_count": 8,
+				"projectile_width": 22.0,
+				"range": 185.0,
+				"return_speed": 1.4,
+				"role": "RETURNING",
+				"splash": 0.0,
+				"targets": 1
+			},
+			"rapid": {
+				"color": "e0b568",
+				"cost": 60.0,
+				"damage": 6.0,
+				"description": "Swift pointed darts cut through hollows and wraiths.",
+				"name": "Ashneedle",
+				"period": 0.48,
+				"range": 140.0,
+				"role": "RAPID",
+				"splash": 0.0,
+				"targets": 1
+			},
+			"rapid:2": {
+				"color": "e0b568",
+				"cost": 60.0,
+				"damage": 10.0,
+				"description": "Swift pointed darts cut through hollows and wraiths.",
+				"name": "Ashneedle",
+				"period": 0.4,
+				"range": 154.0,
+				"role": "RAPID",
+				"splash": 0.0,
+				"targets": 1
+			},
+			"rapid:3": {
+				"color": "e0b568",
+				"cost": 100.0,
+				"damage": 15.0,
+				"description": "Swift pointed darts cut through hollows and wraiths.",
+				"name": "Ashneedle",
+				"period": 0.3,
+				"range": 168.0,
+				"role": "RAPID",
+				"splash": 0.0,
+				"targets": 1
+			},
+			"rapid:frostneedle": {
+				"color": "96d6e6",
+				"cost": 180.0,
+				"damage": 15.0,
+				"description": "Ice needles slow enemies by {slow_percent}% for {slow_duration} seconds. Repeated hits refresh the slow; they never stack.",
+				"name": "Frostneedle",
+				"period": 0.3,
+				"range": 168.0,
+				"role": "RAPID",
+				"slow_duration": 2.0,
+				"slow_percent": 25.0,
+				"splash": 0.0,
+				"targets": 1
+			},
+			"rapid:thorn_volley": {
+				"arrow_count": 5,
+				"color": "93b979",
+				"cost": 180.0,
+				"damage": 15.0,
+				"description": "Arrows poison their target for {duration} seconds, dealing {poison_dps} damage each second. Hits from this tower refresh the poison without stacking.",
+				"dot_multiplier": 0.3333333333333333,
+				"duration": 3.0,
+				"fan_angle": 0.96,
+				"name": "Poison Arrow",
+				"period": 0.3,
+				"range": 168.0,
+				"role": "RAPID",
+				"splash": 0.0,
+				"targets": 1
+			},
+			"splash": {
+				"color": "db8d73",
+				"cost": 120.0,
+				"damage": 15.0,
+				"description": "Flame waves burst on impact, striking every enemy within the blast radius.",
+				"name": "Pyre",
+				"period": 1.5,
+				"range": 115.0,
+				"role": "SPLASH",
+				"splash": 46.0,
+				"targets": 1
+			},
+			"splash:2": {
+				"color": "db8d73",
+				"cost": 120.0,
+				"damage": 24.0,
+				"description": "Flame waves burst on impact, striking every enemy within the blast radius.",
+				"name": "Pyre",
+				"period": 1.3,
+				"range": 129.0,
+				"role": "SPLASH",
+				"splash": 56.0,
+				"targets": 1
+			},
+			"splash:3": {
+				"color": "db8d73",
+				"cost": 200.0,
+				"damage": 36.0,
+				"description": "Flame waves burst on impact, striking every enemy within the blast radius.",
+				"name": "Pyre",
+				"period": 1.1,
+				"range": 143.0,
+				"role": "SPLASH",
+				"splash": 66.0,
+				"targets": 1
+			},
+			"splash:cinderfield": {
+				"burn_duration": 3.0,
+				"burn_multiplier": 0.4444444444444444,
+				"color": "f19b57",
+				"cost": 320.0,
+				"damage": 27.0,
+				"description": "Blasts leave burning ground for {burn_duration} seconds at {burn_dps} damage per second. Overlapping fire from this tower refreshes without stacking.",
+				"name": "Cinderfield",
+				"period": 1.1,
+				"range": 143.0,
+				"role": "SPLASH",
+				"splash": 66.0,
+				"targets": 1
+			},
+			"splash:rupture_pyre": {
+				"color": "e6a16d",
+				"cost": 320.0,
+				"damage": 54.0,
+				"description": "Blasts deal {damage} damage every {period} seconds and push enemies back {push_distance} units, reduced by enemy resistance. Enemies resist another push for {push_immunity} seconds.",
+				"name": "Rupture Pyre",
+				"period": 1.5,
+				"push_distance": 20.0,
+				"push_immunity": 1.0,
+				"range": 143.0,
+				"role": "SPLASH",
+				"splash": 66.0,
+				"targets": 1
+			}
+		}
+	},
+	"editable_values": {
+		"bosses": {
+			"bell": {
+				"escort_count": 3.0,
+				"escort_kind": 0.0,
+				"escort_limit": 6.0,
+				"hp": 2800.0,
+				"payout": 450.0,
+				"push_resistance": 0.0,
+				"seal_multiplier": 4.5,
+				"speed": 32.0,
+				"toll_delay": 2.0,
+				"toll_period": 8.0
+			},
+			"cindermaw": {
+				"armor_reduction": 30.0,
+				"frost_multiplier": 1.5,
+				"haste_multiplier": 1.7,
+				"hp": 3600.0,
+				"payout": 500.0,
+				"push_resistance": 0.0,
+				"quench": 100.0,
+				"rage_threshold": 50.0,
+				"speed": 25.0
+			},
+			"mourning_matriarch": {
+				"hp": 3400.0,
+				"payout": 500.0,
+				"push_resistance": 50.0,
+				"speed": 29.0
+			},
+			"prior": {
+				"curse_threshold": 5.0,
+				"doom_bypass": 1.0,
+				"hp": 3000.0,
+				"payout": 500.0,
+				"push_resistance": 0.0,
+				"regen_period": 10.0,
+				"regrowth_suppression": 100.0,
+				"speed": 30.0,
+				"wards": 3.0
+			},
+			"ruined_king": {
+				"hp": 4200.0,
+				"payout": 550.0,
+				"push_resistance": 90.0,
+				"speed": 23.0
+			},
+			"warden": {
+				"fire_multiplier": 2.0,
+				"hp": 3200.0,
+				"payout": 450.0,
+				"push_resistance": 0.0,
+				"regen_period": 10.0,
+				"regrowth_suppression": 100.0,
+				"shield": 600.0,
+				"speed": 27.0
+			}
+		},
+		"enemies": {
+			"basic": {
+				"hp": 45.0,
+				"payout": 5.0,
+				"push_resistance": 0.0,
+				"speed": 39.0
+			},
+			"bell_hulk": {
+				"hp": 340.0,
+				"payout": 24.0,
+				"push_resistance": 75.0,
+				"speed": 25.0
+			},
+			"blood_acolyte": {
+				"hp": 45.0,
+				"payout": 5.0,
+				"push_resistance": 0.0,
+				"speed": 39.0
+			},
+			"briarling": {
+				"hp": 85.0,
+				"payout": 13.0,
+				"push_resistance": 0.0,
+				"speed": 86.0
+			},
+			"cinder_imp": {
+				"hp": 45.0,
+				"payout": 5.0,
+				"push_resistance": 0.0,
+				"speed": 39.0
+			},
+			"coffinbound": {
+				"hp": 820.0,
+				"payout": 64.0,
+				"push_resistance": 90.0,
+				"speed": 22.0
+			},
+			"crescent_wisp": {
+				"hp": 36.0,
+				"payout": 8.0,
+				"push_resistance": 0.0,
+				"speed": 74.0
+			},
+			"drowned_thrall": {
+				"hp": 45.0,
+				"payout": 5.0,
+				"push_resistance": 0.0,
+				"speed": 39.0
+			},
+			"fast": {
+				"hp": 36.0,
+				"payout": 8.0,
+				"push_resistance": 0.0,
+				"speed": 74.0
+			},
+			"heavy": {
+				"hp": 340.0,
+				"payout": 24.0,
+				"push_resistance": 75.0,
+				"speed": 25.0
+			},
+			"lantern": {
+				"hp": 120.0,
+				"payout": 14.0,
+				"push_resistance": 0.0,
+				"speed": 46.0
+			},
+			"mire_wraith": {
+				"hp": 36.0,
+				"payout": 8.0,
+				"push_resistance": 0.0,
+				"speed": 74.0
+			},
+			"ruin_knight": {
+				"hp": 1200.0,
+				"payout": 95.0,
+				"push_resistance": 50.0,
+				"speed": 38.0
+			},
+			"sentinel": {
+				"hp": 680.0,
+				"payout": 55.0,
+				"push_resistance": 0.0,
+				"speed": 28.0
+			},
+			"sepulcher": {
+				"hp": 2200.0,
+				"payout": 165.0,
+				"push_resistance": 90.0,
+				"speed": 24.0
+			},
+			"shade": {
+				"hp": 240.0,
+				"payout": 30.0,
+				"push_resistance": 0.0,
+				"speed": 56.0
+			},
+			"slag_golem": {
+				"hp": 340.0,
+				"payout": 24.0,
+				"push_resistance": 75.0,
+				"speed": 25.0
+			},
+			"veil_widow": {
+				"hp": 260.0,
+				"payout": 28.0,
+				"push_resistance": 25.0,
+				"speed": 43.0
+			}
+		},
+		"gear": {
+			"bell": {
+				"attack_count": 4.0,
+				"echo_delay": 0.18,
+				"echo_multiplier": 0.5
+			},
+			"bell_chain": {
+				"attack_count": 4.0,
+				"push_distance": 28.0,
+				"push_immunity": 2.0
+			},
+			"bell_chime": {
+				"area_radius": 60.0,
+				"attack_count": 6.0,
+				"boss_duration": 0.2,
+				"duration": 0.5,
+				"stun_immunity": 3.0
+			},
+			"cinder_censer": {
+				"area_radius": 45.0,
+				"attack_count": 3.0,
+				"dot_multiplier": 0.2,
+				"duration": 3.0,
+				"fire_damage": 1.0
+			},
+			"cinder_crucible": {
+				"attack_count": 4.0,
+				"blast_multiplier": 1.25,
+				"blast_radius": 52.0
+			},
+			"cindermaw": {
+				"speed_per_stack": 8.0,
+				"stack_limit": 5.0,
+				"stack_timeout": 3.0
+			},
+			"king_edge": {
+				"damage_multiplier": 1.6,
+				"health_threshold": 25.0
+			},
+			"king_signet": {
+				"damage_multiplier": 1.8,
+				"health_threshold": 90.0
+			},
+			"matriarch_fruit": {
+				"attack_count": 4.0,
+				"duration": 3.0,
+				"vulnerability_percent": 15.0
+			},
+			"matriarch_lantern": {
+				"range_percent": 20.0
+			},
+			"mourning_matriarch": {
+				"attack_count": 2.0,
+				"boss_duration": 1.0,
+				"duration": 2.0,
+				"slow_percent": 30.0
+			},
+			"prior": {
+				"attack_count": 5.0,
+				"damage_multiplier": 1.5,
+				"defense_bypass": 1.0
+			},
+			"prior_mirror": {
+				"attack_count": 5.0,
+				"fork_count": 2.0,
+				"fork_multiplier": 0.45,
+				"fork_radius": 90.0
+			},
+			"prior_rosary": {
+				"damage_per_stack": 5.0,
+				"stack_limit": 5.0,
+				"stack_timeout": 6.0
+			},
+			"ruined_king": {
+				"damage_multiplier": 1.4
+			},
+			"warden": {
+				"boss_root_duration": 0.35,
+				"root_duration": 0.75,
+				"root_immunity": 3.0,
+				"root_period": 6.0
+			},
+			"warden_lens": {
+				"damage_multiplier": 1.35
+			},
+			"warden_thornspindle": {
+				"attack_count": 3.0,
+				"dot_multiplier": 0.3,
+				"duration": 4.0,
+				"fire_damage": 0.0
+			}
+		},
+		"rifts": {
+			"ashen_forge": {
+				"strength": 25.0
+			},
+			"bloodmoon_sanctuary": {
+				"strength": 1.0
+			},
+			"drowned_crypt": {
+				"strength": 15.0
+			}
+		},
+		"towers": {
+			"caltrop_keep": {
+				"cost": 120.0,
+				"damage": 24.0,
+				"period": 2.0,
+				"range": 125.0,
+				"splash": 0.0,
+				"targets": 1.0,
+				"trap_arm_time": 0.5,
+				"trap_capacity": 3.0,
+				"trap_count": 1.0,
+				"trap_duration": 8.0,
+				"trap_radius": 12.0
+			},
+			"caltrop_keep:2": {
+				"cost": 120.0,
+				"damage": 36.0,
+				"period": 1.8,
+				"range": 140.0,
+				"splash": 0.0,
+				"targets": 1.0,
+				"trap_arm_time": 0.5,
+				"trap_capacity": 4.0,
+				"trap_count": 1.0,
+				"trap_duration": 10.0,
+				"trap_radius": 12.0
+			},
+			"caltrop_keep:3": {
+				"cost": 200.0,
+				"damage": 52.0,
+				"period": 1.6,
+				"range": 155.0,
+				"splash": 0.0,
+				"targets": 1.0,
+				"trap_arm_time": 0.5,
+				"trap_capacity": 5.0,
+				"trap_count": 1.0,
+				"trap_duration": 12.0,
+				"trap_radius": 12.0
+			},
+			"caltrop_keep:dreadjaw": {
+				"cost": 320.0,
+				"damage": 140.0,
+				"period": 2.0,
+				"range": 155.0,
+				"splash": 0.0,
+				"targets": 1.0,
+				"trap_arm_time": 1.0,
+				"trap_capacity": 3.0,
+				"trap_count": 1.0,
+				"trap_duration": 12.0,
+				"trap_radius": 12.0
+			},
+			"caltrop_keep:scatterworks": {
+				"cost": 320.0,
+				"damage": 32.0,
+				"period": 2.0,
+				"range": 155.0,
+				"splash": 0.0,
+				"targets": 1.0,
+				"trap_arm_time": 0.5,
+				"trap_capacity": 9.0,
+				"trap_count": 3.0,
+				"trap_duration": 12.0,
+				"trap_radius": 12.0
+			},
+			"electric": {
+				"cost": 140.0,
+				"damage": 3.0,
+				"period": 0.4,
+				"range": 160.0,
+				"splash": 0.0,
+				"targets": 5.0
+			},
+			"electric:2": {
+				"cost": 120.0,
+				"damage": 5.0,
+				"period": 0.35,
+				"range": 174.0,
+				"splash": 0.0,
+				"targets": 5.0
+			},
+			"electric:3": {
+				"cost": 200.0,
+				"damage": 7.0,
+				"period": 0.3,
+				"range": 188.0,
+				"splash": 0.0,
+				"targets": 5.0
+			},
+			"electric:tempest_web": {
+				"arc_multiplier": 0.5,
+				"arc_range": 60.0,
+				"cost": 300.0,
+				"damage": 7.0,
+				"period": 0.3,
+				"range": 188.0,
+				"splash": 0.0,
+				"targets": 5.0
+			},
+			"electric:thunderseal": {
+				"cost": 300.0,
+				"damage": 7.0,
+				"period": 0.3,
+				"range": 188.0,
+				"seal_damage": 3.0,
+				"seal_hits": 5.0,
+				"splash": 0.0,
+				"stun_duration": 0.4,
+				"stun_immunity": 2.0,
+				"targets": 5.0
+			},
+			"heavy": {
+				"cost": 160.0,
+				"damage": 40.0,
+				"period": 1.8,
+				"range": 185.0,
+				"splash": 0.0,
+				"targets": 1.0
+			},
+			"heavy:2": {
+				"cost": 140.0,
+				"damage": 60.0,
+				"period": 1.35,
+				"range": 201.0,
+				"splash": 0.0,
+				"targets": 1.0
+			},
+			"heavy:3": {
+				"cost": 220.0,
+				"damage": 90.0,
+				"period": 0.9,
+				"range": 217.0,
+				"splash": 0.0,
+				"targets": 1.0
+			},
+			"heavy:doomstone": {
+				"cost": 360.0,
+				"curse_limit": 5.0,
+				"curse_multiplier": 0.2,
+				"damage": 90.0,
+				"period": 0.9,
+				"range": 217.0,
+				"splash": 0.0,
+				"targets": 1.0
+			},
+			"heavy:grave_echo": {
+				"cost": 360.0,
+				"damage": 110.00000000000001,
+				"fragment_count": 5.0,
+				"fragment_multiplier": 0.2,
+				"fragment_range": 90.0,
+				"period": 0.9,
+				"range": 217.0,
+				"splash": 0.0,
+				"targets": 1.0
+			},
+			"hex_lantern": {
+				"aura_damage_percent": 8.0,
+				"cost": 100.0,
+				"damage": 1.0,
+				"mark_duration": 6.0,
+				"period": 5.0,
+				"range": 270.0,
+				"splash": 0.0,
+				"targets": 1.0,
+				"vulnerability_percent": 75.0
+			},
+			"hex_lantern:2": {
+				"aura_damage_percent": 10.0,
+				"cost": 100.0,
+				"damage": 1.0,
+				"mark_duration": 7.0,
+				"period": 4.75,
+				"range": 300.0,
+				"splash": 0.0,
+				"targets": 1.0,
+				"vulnerability_percent": 90.0
+			},
+			"hex_lantern:3": {
+				"aura_damage_percent": 12.0,
+				"cost": 180.0,
+				"damage": 1.0,
+				"mark_duration": 8.0,
+				"period": 4.5,
+				"range": 330.0,
+				"splash": 0.0,
+				"targets": 2.0,
+				"vulnerability_percent": 100.0
+			},
+			"hex_lantern:oathbrand": {
+				"aura_damage_percent": 12.0,
+				"cost": 280.0,
+				"damage": 1.0,
+				"mark_duration": 10.0,
+				"period": 4.5,
+				"range": 330.0,
+				"splash": 0.0,
+				"targets": 1.0,
+				"vulnerability_percent": 150.0
+			},
+			"hex_lantern:witchlight": {
+				"aura_damage_percent": 12.0,
+				"cost": 280.0,
+				"damage": 1.0,
+				"mark_duration": 8.0,
+				"mark_spread_count": 3.0,
+				"mark_spread_radius": 80.0,
+				"period": 4.5,
+				"range": 330.0,
+				"splash": 0.0,
+				"targets": 2.0,
+				"vulnerability_percent": 100.0
+			},
+			"ironspike": {
+				"cost": 140.0,
+				"damage": 22.0,
+				"period": 1.4,
+				"pierce_count": 3.0,
+				"pierce_floor": 0.5,
+				"pierce_loss": 0.3,
+				"projectile_width": 9.0,
+				"range": 200.0,
+				"splash": 0.0,
+				"targets": 1.0,
+				"volley_count": 1.0,
+				"volley_spacing": 20.0
+			},
+			"ironspike:2": {
+				"cost": 120.0,
+				"damage": 32.0,
+				"period": 1.25,
+				"pierce_count": 4.0,
+				"pierce_floor": 0.4,
+				"pierce_loss": 0.2,
+				"projectile_width": 9.0,
+				"range": 215.0,
+				"splash": 0.0,
+				"targets": 1.0,
+				"volley_count": 1.0,
+				"volley_spacing": 20.0
+			},
+			"ironspike:3": {
+				"cost": 200.0,
+				"damage": 44.0,
+				"period": 1.1,
+				"pierce_count": 5.0,
+				"pierce_floor": 0.4,
+				"pierce_loss": 0.15,
+				"projectile_width": 9.0,
+				"range": 230.0,
+				"splash": 0.0,
+				"targets": 1.0,
+				"volley_count": 1.0,
+				"volley_spacing": 20.0
+			},
+			"ironspike:needle_battery": {
+				"cost": 320.0,
+				"damage": 28.0,
+				"period": 1.1,
+				"pierce_count": 4.0,
+				"pierce_floor": 0.4,
+				"pierce_loss": 0.15,
+				"projectile_width": 9.0,
+				"range": 230.0,
+				"splash": 0.0,
+				"targets": 1.0,
+				"volley_count": 3.0,
+				"volley_spacing": 20.0
+			},
+			"ironspike:siegebreaker": {
+				"boss_damage_multiplier": 1.5,
+				"cost": 320.0,
+				"damage": 59.99999999999999,
+				"period": 1.25,
+				"pierce_count": 3.0,
+				"pierce_floor": 1.0,
+				"pierce_loss": 0.0,
+				"projectile_width": 9.0,
+				"range": 250.0,
+				"splash": 0.0,
+				"targets": 1.0,
+				"volley_count": 1.0,
+				"volley_spacing": 20.0
+			},
+			"moonwheel": {
+				"cost": 130.0,
+				"damage": 10.0,
+				"period": 1.5,
+				"pierce_count": 3.0,
+				"projectile_width": 12.0,
+				"range": 135.0,
+				"return_speed": 1.0,
+				"splash": 0.0,
+				"targets": 1.0
+			},
+			"moonwheel:2": {
+				"cost": 120.0,
+				"damage": 15.0,
+				"period": 1.35,
+				"pierce_count": 4.0,
+				"projectile_width": 12.0,
+				"range": 145.0,
+				"return_speed": 1.2,
+				"splash": 0.0,
+				"targets": 1.0
+			},
+			"moonwheel:3": {
+				"cost": 200.0,
+				"damage": 21.0,
+				"period": 1.2,
+				"pierce_count": 5.0,
+				"projectile_width": 16.0,
+				"range": 155.0,
+				"return_speed": 1.4,
+				"splash": 0.0,
+				"targets": 1.0
+			},
+			"moonwheel:orbit_crown": {
+				"cost": 300.0,
+				"damage": 12.0,
+				"period": 0.44999999999999996,
+				"pierce_count": 5.0,
+				"projectile_width": 16.0,
+				"range": 75.0,
+				"return_speed": 1.4,
+				"splash": 0.0,
+				"targets": 1.0
+			},
+			"moonwheel:reaper_wheel": {
+				"cost": 300.0,
+				"damage": 32.0,
+				"period": 1.5,
+				"pierce_count": 8.0,
+				"projectile_width": 22.0,
+				"range": 185.0,
+				"return_speed": 1.4,
+				"splash": 0.0,
+				"targets": 1.0
+			},
+			"rapid": {
+				"cost": 60.0,
+				"damage": 6.0,
+				"period": 0.48,
+				"range": 140.0,
+				"splash": 0.0,
+				"targets": 1.0
+			},
+			"rapid:2": {
+				"cost": 60.0,
+				"damage": 10.0,
+				"period": 0.4,
+				"range": 154.0,
+				"splash": 0.0,
+				"targets": 1.0
+			},
+			"rapid:3": {
+				"cost": 100.0,
+				"damage": 15.0,
+				"period": 0.3,
+				"range": 168.0,
+				"splash": 0.0,
+				"targets": 1.0
+			},
+			"rapid:frostneedle": {
+				"cost": 180.0,
+				"damage": 15.0,
+				"period": 0.3,
+				"range": 168.0,
+				"slow_duration": 2.0,
+				"slow_percent": 25.0,
+				"splash": 0.0,
+				"targets": 1.0
+			},
+			"rapid:thorn_volley": {
+				"cost": 180.0,
+				"damage": 15.0,
+				"dot_multiplier": 0.3333333333333333,
+				"duration": 3.0,
+				"period": 0.3,
+				"range": 168.0,
+				"splash": 0.0,
+				"targets": 1.0
+			},
+			"splash": {
+				"cost": 120.0,
+				"damage": 15.0,
+				"period": 1.5,
+				"range": 115.0,
+				"splash": 46.0,
+				"targets": 1.0
+			},
+			"splash:2": {
+				"cost": 120.0,
+				"damage": 24.0,
+				"period": 1.3,
+				"range": 129.0,
+				"splash": 56.0,
+				"targets": 1.0
+			},
+			"splash:3": {
+				"cost": 200.0,
+				"damage": 36.0,
+				"period": 1.1,
+				"range": 143.0,
+				"splash": 66.0,
+				"targets": 1.0
+			},
+			"splash:cinderfield": {
+				"burn_duration": 3.0,
+				"burn_multiplier": 0.4444444444444444,
+				"cost": 320.0,
+				"damage": 27.0,
+				"period": 1.1,
+				"range": 143.0,
+				"splash": 66.0,
+				"targets": 1.0
+			},
+			"splash:rupture_pyre": {
+				"cost": 320.0,
+				"damage": 54.0,
+				"period": 1.5,
+				"push_distance": 20.0,
+				"push_immunity": 1.0,
+				"range": 143.0,
+				"splash": 66.0,
+				"targets": 1.0
+			}
+		}
+	},
+	"escape_damage": {
+		"bosses": {
+			"bell": 20,
+			"cindermaw": 20,
+			"mourning_matriarch": 20,
+			"prior": 20,
+			"ruined_king": 20,
+			"warden": 20
+		},
+		"enemies": {
+			"basic": 1,
+			"bell_hulk": 1,
+			"blood_acolyte": 1,
+			"briarling": 1,
+			"cinder_imp": 1,
+			"coffinbound": 1,
+			"crescent_wisp": 1,
+			"drowned_thrall": 1,
+			"fast": 1,
+			"heavy": 2,
+			"lantern": 1,
+			"mire_wraith": 1,
+			"ruin_knight": 4,
+			"sentinel": 3,
+			"sepulcher": 5,
+			"shade": 2,
+			"slag_golem": 1,
+			"veil_widow": 1
+		}
+	},
+	"retired_fields": {
+		"gear": {
+			"matriarch_lantern": [
+				"opening_attacks",
+				"opening_speed",
+				"reset_timeout"
+			]
+		},
+		"towers": {
+			"rapid:thorn_volley": [
+				"arrow_count",
+				"fan_angle"
+			]
+		}
+	},
+	"scope": "Shipped defaults without player overrides, equipment, or temporary combat effects",
+	"source_commit": "5188cb4d16b81d6389884c8857621555a583aaa0",
+	"source_sha256": {
+		"scripts/content/catalogs/actors.gd": "fd36cb90de9d4b935477eebcd16182eab4a5ea5b989d507cb97685ecb083636b",
+		"scripts/content/catalogs/gear.gd": "ace6b7ecfa90c311fd355fc97130364edd469ee484bc0d26cdb2eca8f18abd05",
+		"scripts/content/catalogs/towers.gd": "33ab08ac806370fb74f3a160b567722ae9e0e59b59aea664afd1d7e3e1c78fd0",
+		"scripts/content/catalogs/tuning.gd": "89358496a367b6e4482ce9a0bb1c0569e51c59173b848ba06ed4b2458b4e6b2d",
+		"scripts/content/registry.gd": "14b4b8556049de4de979a59c3acb808f6b98e9a143fc7a7294033acd9bb05437"
+	},
+	"tower_components": {
+		"caltrop_keep": [
+			{
+				"component": "attribute/road_traps",
+				"config": {},
+				"slot": "attack"
+			}
+		],
+		"caltrop_keep:2": [
+			{
+				"component": "attribute/road_traps",
+				"config": {},
+				"slot": "attack"
+			}
+		],
+		"caltrop_keep:3": [
+			{
+				"component": "attribute/road_traps",
+				"config": {},
+				"slot": "attack"
+			}
+		],
+		"caltrop_keep:dreadjaw": [
+			{
+				"component": "attribute/road_traps",
+				"config": {},
+				"slot": "attack"
+			}
+		],
+		"caltrop_keep:scatterworks": [
+			{
+				"component": "attribute/road_traps",
+				"config": {},
+				"slot": "attack"
+			}
+		],
+		"electric": [],
+		"electric:2": [],
+		"electric:3": [],
+		"electric:tempest_web": [],
+		"electric:thunderseal": [],
+		"heavy": [],
+		"heavy:2": [],
+		"heavy:3": [],
+		"heavy:doomstone": [],
+		"heavy:grave_echo": [],
+		"hex_lantern": [
+			{
+				"component": "attribute/vulnerability_mark",
+				"config": {},
+				"slot": "mark"
+			},
+			{
+				"component": "attribute/damage_aura",
+				"config": {},
+				"slot": "aura"
+			}
+		],
+		"hex_lantern:2": [
+			{
+				"component": "attribute/vulnerability_mark",
+				"config": {},
+				"slot": "mark"
+			},
+			{
+				"component": "attribute/damage_aura",
+				"config": {},
+				"slot": "aura"
+			}
+		],
+		"hex_lantern:3": [
+			{
+				"component": "attribute/vulnerability_mark",
+				"config": {},
+				"slot": "mark"
+			},
+			{
+				"component": "attribute/damage_aura",
+				"config": {},
+				"slot": "aura"
+			}
+		],
+		"hex_lantern:oathbrand": [
+			{
+				"component": "attribute/vulnerability_mark",
+				"config": {},
+				"slot": "mark"
+			},
+			{
+				"component": "attribute/damage_aura",
+				"config": {},
+				"slot": "aura"
+			}
+		],
+		"hex_lantern:witchlight": [
+			{
+				"component": "attribute/vulnerability_mark",
+				"config": {},
+				"slot": "mark"
+			},
+			{
+				"component": "attribute/damage_aura",
+				"config": {},
+				"slot": "aura"
+			}
+		],
+		"ironspike": [
+			{
+				"component": "attribute/piercing_attack",
+				"config": {},
+				"slot": "attack"
+			}
+		],
+		"ironspike:2": [
+			{
+				"component": "attribute/piercing_attack",
+				"config": {},
+				"slot": "attack"
+			}
+		],
+		"ironspike:3": [
+			{
+				"component": "attribute/piercing_attack",
+				"config": {},
+				"slot": "attack"
+			}
+		],
+		"ironspike:needle_battery": [
+			{
+				"component": "attribute/piercing_attack",
+				"config": {},
+				"slot": "attack"
+			}
+		],
+		"ironspike:siegebreaker": [
+			{
+				"component": "attribute/piercing_attack",
+				"config": {},
+				"slot": "attack"
+			},
+			{
+				"component": "attribute/tower_boss_damage",
+				"config": {},
+				"slot": "boss_bonus"
+			}
+		],
+		"moonwheel": [
+			{
+				"component": "attribute/returning_attack",
+				"config": {},
+				"slot": "attack"
+			}
+		],
+		"moonwheel:2": [
+			{
+				"component": "attribute/returning_attack",
+				"config": {},
+				"slot": "attack"
+			}
+		],
+		"moonwheel:3": [
+			{
+				"component": "attribute/returning_attack",
+				"config": {},
+				"slot": "attack"
+			}
+		],
+		"moonwheel:orbit_crown": [
+			{
+				"component": "attribute/orbit_attack",
+				"config": {},
+				"slot": "attack"
+			}
+		],
+		"moonwheel:reaper_wheel": [
+			{
+				"component": "attribute/returning_attack",
+				"config": {},
+				"slot": "attack"
+			}
+		],
+		"rapid": [],
+		"rapid:2": [],
+		"rapid:3": [],
+		"rapid:frostneedle": [],
+		"rapid:thorn_volley": [],
+		"splash": [],
+		"splash:2": [],
+		"splash:3": [],
+		"splash:cinderfield": [],
+		"splash:rupture_pyre": []
+	},
+	"version": 1
+}

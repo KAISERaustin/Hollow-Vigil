@@ -2,7 +2,6 @@ extends SceneTree
 ## Real viewport touch events, isolated saved slots, and every Campaign menu.
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Catalog = preload("res://scripts/campaign/catalog.gd")
-const Relics = preload("res://scripts/gameplay/progression/relics.gd")
 var app: VigilApp
 var campaign: Control
 var checks := 0
@@ -106,7 +105,8 @@ func run() -> void:
 	app.audio.set_suspended(true)
 	Engine.max_fps = 240
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
-	check(app.show_save_slots(), "Open isolated save menu: " + app.game.save_error)
+	app.slot_menu.show_slots()
+	check(app.slot_menu.visible, "Open isolated Campaign save menu")
 	if not is_instance_valid(app.slot_menu):
 		quit(1)
 		return
@@ -177,7 +177,6 @@ func battle_menus() -> void:
 	await press(named("CampaignWaves"))
 	await wave_menus()
 	await press(named("CloseCampaignDialog"))
-	# Ground placement's complete finger flow is covered by ground_build_runner.
 	# Set up a tower here to audit the current shared management menus.
 	var socket: Dictionary = campaign.run.mission.sockets[0]
 	campaign.run.build(socket.index, "rapid")
@@ -222,20 +221,20 @@ func wave_menus() -> void:
 	check(not picker.get_popup().visible and app.slot_menu.visible, "Back dismisses only the spawn picker")
 	await press(picker)
 	await press(named("Choice_1"))
+	# The immediate-save editor rebuilds identity and per-enemy reward controls.
+	picker = app.slot_menu.find_child("CampaignGroupKind0", true, false)
 	check(picker.selected == 1 and not picker.get_popup().visible, "Touch chooses a wave spawn type")
 	var chosen_kind: String = picker.get_item_metadata(1)
-	var reward: SpinBox = app.slot_menu.find_child("CampaignWaveReward", true, false)
-	var old_reward := reward.value
-	await press(reward.get_parent().get_child(1).get_child(1))
-	check(reward.value == old_reward + reward.step, "Touch changes wave reward exactly once")
+	# Numeric reward editing is covered by the dedicated wave-editor runner.
 	await audit(app.slot_menu.card, "Wave editor")
-	await press(named("ApplyRules"))
-	check(not app.slot_menu.visible and campaign.dialog.visible and campaign.waves_dialog, "Apply wave returns to Waves")
-	check(campaign.run.mission.waves[0][0][0] == chosen_kind and campaign.run.mission.wave_rules[0].reward == old_reward + 1, "Touch applies selected spawn type and reward to gameplay")
+	await press(named("DoneWaveRules"))
+	check(not app.slot_menu.visible and campaign.dialog.visible and campaign.waves_dialog, "Done returns to Waves after immediate saves")
+	check(campaign.run.mission.waves[0][0][0] == chosen_kind, "Touch applies selected spawn type to gameplay")
 
 func tower_menus(socket: Dictionary, id: String) -> void:
 	var tower: Dictionary = campaign.game.data.towers[id]
-	for action in ["target", "equipment", "sell", "move"]:
+	var dialog: VigilTowerDialog = campaign.tower_dialog
+	for action in ["target", "sell", "move"]:
 		campaign.show_socket(socket.index)
 		await settle()
 		await press(named("Manage_" + action))
@@ -254,29 +253,6 @@ func tower_menus(socket: Dictionary, id: String) -> void:
 		check(campaign.tower_dialog.target_choice == target and tower.get("target_mode", "first") == "first", "Target selection waits for Apply")
 	await press(campaign.tower_dialog.confirm)
 	check(tower.target_mode == Balance.TARGET_MODES.keys()[-1], "Touch applies targeting")
-	for index in 18: Relics.award(campaign.game.data, "90,%d" % index, Relics.DEFINITIONS.keys()[index % Relics.DEFINITIONS.size()])
-	campaign.show_socket(socket.index)
-	await settle()
-	await press(named("Manage_equipment"))
-	var dialog: VigilTowerDialog = campaign.tower_dialog
-	await swipe(dialog.scroll.get_global_rect().get_center(), Vector2(0, -70))
-	check(dialog.scroll.scroll_vertical > 0 and dialog.mode == "equipment", "Equipment inventory swipes without selecting")
-	await press(named("Relic_90,17"))
-	check(dialog.mode == "equipment_detail", "Last equipment row opens by touch")
-	await audit(dialog.card, "Equipment detail")
-	await back()
-	check(dialog.visible and dialog.mode == "equipment" and not tower.has("relic"), "Equipment detail Back retains inventory without equipping")
-	await press(named("Relic_90,17"))
-	await press(dialog.confirm)
-	check(dialog.mode == "equipment" and tower.relic == "90,17", "Touch equips inventory item")
-	await press(named("RemoveEquipment"))
-	await audit(dialog.card, "Equipment removal")
-	await back()
-	check(dialog.visible and dialog.mode == "equipment" and tower.relic == "90,17", "Equipment removal Back cancels without removing")
-	await press(named("RemoveEquipment"))
-	await press(dialog.confirm)
-	check(dialog.mode == "equipment" and not tower.has("relic"), "Touch confirms equipment removal")
-	await back()
 	campaign.show_socket(socket.index)
 	await settle()
 	await press(named("Manage_move"))
@@ -340,7 +316,11 @@ func result_routes() -> void:
 		if button.text == "Restart level":
 			await press(button)
 			break
-	check(campaign.run.phase == "planning" and not campaign.dialog.visible, "Touch restarts defeated level")
+	check(campaign.page == "briefing" and campaign.run.phase == "planning" and not campaign.dialog.visible, "Restart returns defeated level to setup")
+	await audit(campaign.layout, "Restart setup")
+	await capture("restart-setup")
+	await press(named("BeginCampaignMission"))
+	check(campaign.page == "battle" and campaign.run.wave == 0 and campaign.run.game.data.towers.is_empty(), "Begin after restart enters a fresh battlefield")
 	campaign.run.phase = "victory"
 	campaign.run.wave = campaign.run.mission.waves.size()
 	campaign.show_result()

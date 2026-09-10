@@ -1,8 +1,10 @@
-# Boss equipment
+# Archived boss equipment
+
+Gear is removed from active gameplay. Acquisition, equipment and effects are disabled, and Gear buttons are disabled. All 18 source images remain in `assets/retained_gear/` for future use. The descriptions below document the former system. See [Simplified rules](SIMPLIFIED_RULES.md).
 
 There are **18 equipment types: three for each of the six bosses**. A victory awards the complete three-piece set once. Each piece occupies the shared tower relic slot and works on every tower and specialization. Old recorded victories receive any missing set pieces on load, without replacing existing equipment or repaying gold.
 
-In a Creative world, open **Settings → Developer Controls → Gear** to select any piece and edit every numeric effect setting. Changes auto-save within that Creative world; descriptions update immediately. Reset selected restores only that piece. Equipment identity, boss theme and attached behavior are authored content; the editor changes their behavior settings.
+In Campaign Creative, open **Menu → Edit rules → Gear** to select a piece and edit its numeric effect settings. Apply commits the draft to the Campaign configuration; descriptions reflect the selected values. Reset selected restores only that piece. Equipment identity, boss theme and attached behavior remain authored content.
 
 | Boss | Equipment | Default attribute |
 | --- | --- | --- |
@@ -52,6 +54,6 @@ Drop IDs preserve the original coordinate for each boss's first piece and use `c
 
 The September 7 gear direction follows the user's detailed portal references: layered angular silhouettes, solid black outlines, parchment/bone, carved wood, stone and iron, small brass fittings and restrained biome accents. The eighteen names and saved IDs are unchanged. Generic colored-circle badges are replaced by complete objects.
 
-`rendering/actors/relic_art.gd` selects the Gear node's presentation family. The six families in `rendering/actors/gear/` compose the shared `illustration.gd` drawing kit. Menus, developer portraits, equipped badges and drops all use that renderer. There are no bitmap dependencies in gameplay; `assets/gear/` contains transparent 256px exports of all eighteen native designs for inspection and reuse.
+`rendering/actors/relic_art.gd` selects the Gear node's presentation family. The six families in `rendering/actors/gear/` compose the shared `illustration.gd` drawing kit. Menus, developer portraits, equipped badges and drops all use that renderer. There are no bitmap dependencies in gameplay; the gear art runner writes transparent 256px exports to ignored `artifacts/gear/` of all eighteen native designs for inspection and reuse.
 
-Validation: `tests/gear_runner.gd` covers catalog counts, every field, actual effects, component composition, all tower/specialization launch paths, lifecycle and save migration, including `unit/gear_rework_checks.gd`. The unit checks also run in `tests/test_runner.gd`. `tests/rendered/gear_menu_checks.gd` covers the eighteen-piece editor and mobile layouts. `tests/rendered/gear_gameplay_runner.gd` opens every equipment detail at three phone sizes in Infinite and Campaign, and verifies equipped range circles and upgrade comparisons. Run `tests/rendered/gear_art_runner.gd` to regenerate all eighteen PNGs and `artifacts/gear-lineup.png`, with transparent padding, unique image content and 24/40/64px silhouette checks.
+Validation: `tests/content_node_runner.gd` checks shared definitions, composition and isolated instances. `tests/rendered/illustrated_picker_touch_runner.gd` exercises equipment selection and touch ownership. `tools/previews/gear_art_preview.gd` regenerates all eighteen PNGs and the lineup, checking transparent padding and small silhouettes.

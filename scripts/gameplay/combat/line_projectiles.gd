@@ -19,7 +19,8 @@ static func aim_point(combat, target: Dictionary, muzzle: Vector2, speed: float)
 	return aim
 
 static func launch(combat, tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary, returning: bool) -> void:
-	var profile: Dictionary = Balance.PROJECTILES[tower.kind]
+	var profile: Dictionary = Balance.PROJECTILES[tower.kind].duplicate()
+	profile.speed = stats.get("projectile_speed", profile.speed)
 	var muzzle: Vector2 = origin + profile.muzzle
 	var direction: Vector2 = (aim_point(combat, target, muzzle, profile.speed) - muzzle).normalized()
 	if direction.is_zero_approx(): direction = Vector2.UP

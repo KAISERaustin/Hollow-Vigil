@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     failures = []
     identities = {}
-    for directory in ("scripts", "tests", "scenes"):
+    for directory in ("scripts", "tests", "scenes", "tools"):
         for path in sorted((ROOT / directory).rglob("*")):
             if not path.is_file():
                 continue

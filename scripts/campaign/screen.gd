@@ -7,7 +7,6 @@ const Run = preload("res://scripts/campaign/run.gd")
 const Progress = preload("res://scripts/campaign/progress.gd")
 const Board = preload("res://scripts/campaign/board.gd")
 const WorldMap = preload("res://scripts/campaign/world_map.gd")
-const TowerChoice = preload("res://scripts/ui/towers/tower_choice.gd")
 const WaveSummary = preload("res://scripts/ui/shared/wave_summary.gd")
 signal closed
 var app: VigilApp
@@ -40,7 +39,6 @@ var save_notice: Label
 var socket_dialog := false
 var ground_build: Control
 var build_choices: ScrollContainer
-var build_selection := preload("res://scripts/ui/towers/build_selection.gd").new()
 var waves_dialog := false
 var shared_setups: Dictionary = {}
 var configuration_picker: Node
@@ -144,7 +142,6 @@ func build_tower_ui() -> void:
 	tower_dialog = VigilTowerDialog.new()
 	tower_dialog.app = self
 	tower_dialog.clear_selection_on_upgrade = true
-	tower_dialog.upgraded.connect(build_selection.show_choices)
 	tower_dialog.z_index = 102
 	add_child(tower_dialog)
 	tower_actions.action_requested.connect(tower_dialog.open_action)
@@ -470,11 +467,11 @@ func show_map() -> void:
 	if cleared == Catalog.COUNT:
 		footer.add_child(UI.paragraph("Every sanctuary burns again. Replay any level to perfect your vigil.", 15))
 
-func show_briefing(index: int) -> void:
+func show_briefing(index: int, include_loadout: bool = true) -> void:
 	if not progress.unlocked(index):
 		return
 	clear_page("briefing")
-	run = configured_run(index)
+	run = configured_run(index, include_loadout)
 	header("%02d · %s" % [index+1, run.mission.name], show_map)
 	add_board(false)
 	var stats := HBoxContainer.new()
@@ -497,14 +494,14 @@ func show_briefing(index: int) -> void:
 	var details := UI.button("Preview waves", show_waves, 52)
 	details.name = "PreviewCampaignWaves"
 	actions.add_child(details)
-	var start := UI.gold_button("Begin level", start_mission.bind(index), 52)
+	var start := UI.gold_button("Begin level", start_mission.bind(index, include_loadout), 52)
 	start.name = "BeginCampaignMission"
 	actions.add_child(start)
 
-func start_mission(index: int) -> void:
+func start_mission(index: int, include_loadout: bool = true) -> void:
 	if not progress.unlocked(index):
 		return
-	run = configured_run(index)
+	run = configured_run(index, include_loadout)
 	connect_run()
 	show_battle()
 	save_progress()
@@ -513,11 +510,7 @@ func restart_mission(index: int) -> void:
 	if not progress.unlocked(index):
 		return
 	# Restart uses the level rules, never its checkpoint or imported tower loadout.
-	active_overrides = level_setup(index).overrides.duplicate(true)
-	run = Run.new(index, active_overrides, mode)
-	progress.apply_equipment(run)
-	connect_run()
-	show_battle()
+	show_briefing(index, false)
 	save_progress()
 
 func connect_run() -> void:
@@ -576,9 +569,8 @@ func show_battle(start_paused: bool = false) -> void:
 	pause_button = game_toolbar.pause_button
 	speed_button = game_toolbar.speed_button
 	update_time_controls()
-	var waves := UI.toolbar_action("Waves", show_waves)
+	var waves := UI.info_button(show_waves, "Wave information")
 	waves.name = "CampaignWaves"
-	waves.custom_minimum_size.x = 60
 	waves.size_flags_horizontal = Control.SIZE_FILL
 	wave_button = UI.toolbar_action("Start wave", begin_wave, true)
 	wave_button.custom_minimum_size.x = 96
@@ -729,6 +721,8 @@ func show_waves() -> void:
 	waves_dialog = true
 	dialog.z_index = 101
 	fit()
+	var reports := Configuration.wave_reports(run.mission)
+	dialog_body.add_child(WaveSummary.total_time_card(reports))
 	if can_author():
 		var rules := UI.button("Edit rules", show_campaign_rules)
 		rules.name = "WavesEditRules"
@@ -737,20 +731,128 @@ func show_waves() -> void:
 	preview.name = "WaveSummaries"
 	preview.add_theme_constant_override("separation", 8)
 	dialog_body.add_child(preview)
-	var reports := Configuration.wave_reports(run.mission)
 	for index in range(run.mission.waves.size()):
 		var report: Dictionary = reports[index]
 		var state := "Cleared" if index < run.wave else ""
 		if index == run.wave and run.phase in ["planning", "wave"]:
 			state = "In progress" if run.phase == "wave" else "Up next"
 		var edit := Callable()
-		if can_author():
+		var authoring := {}
+		if can_edit_waves():
 			edit = show_level_balance.bind(int(run.mission.index), index)
-		preview.add_child(WaveSummary.card(report, state, show_wave_balance.bind(index), edit))
+			authoring = {"quantity": func(kind: String): show_enemy_quantity(index, kind), "add": show_add_wave_enemy.bind(index), "remove": confirm_remove_wave.bind(index)}
+		preview.add_child(WaveSummary.card(report, state, show_wave_balance.bind(index), edit, authoring))
+	if can_edit_waves():
+		var add := UI.button("New wave", confirm_new_wave)
+		add.name = "NewCampaignWave"
+		dialog_body.add_child(add)
+		var reset := UI.button("Reset all waves to default", confirm_reset_waves)
+		reset.name = "ResetLevelWaves"
+		dialog_body.add_child(reset)
+	elif can_author():
+		dialog_body.add_child(UI.paragraph("Wave editing unlocks when the active wave ends."))
 	if can_author() and active_campaign_slot < 0:
 		var share := UI.button("Share campaign", show_playthrough_share)
 		share.name = "ShareCampaignConfiguration"
 		dialog_actions.add_child(share)
+
+func can_edit_waves() -> bool:
+	return can_author() and run != null and run.phase != "wave"
+
+func confirm_reset_waves() -> void:
+	if not can_edit_waves(): return
+	open_dialog("Reset all waves?")
+	dialog_actions.show()
+	dialog_body.add_child(UI.paragraph("Restore this level's original waves, enemies, timing and wave rewards? This also removes added waves."))
+	var reset := UI.button("Reset waves", func():
+		var rules: Dictionary = level_setup(run.mission.index).overrides.duplicate(true)
+		rules.erase("waves")
+		rules.erase("wave_count")
+		if save_configuration(run.mission.index, rules): show_waves()
+		else: toast("Couldn't save the reset. Your existing waves are preserved.")
+	)
+	reset.name = "ConfirmResetWaves"
+	dialog_actions.add_child(reset)
+	dialog_actions.add_child(UI.button("Cancel", show_waves))
+
+func confirm_new_wave() -> void:
+	if not can_edit_waves(): return
+	open_dialog("New wave")
+	dialog_actions.show()
+	dialog_body.add_child(UI.paragraph("Are you sure you want to make a new wave? It starts empty, using this level's first-wave settings."))
+	var yes := UI.button("Yes", func():
+		var rules: Dictionary = level_setup(run.mission.index).overrides
+		var next := preload("res://scripts/campaign/wave_editor.gd").append_wave(run.mission.index, rules)
+		if save_configuration(run.mission.index, next): show_waves()
+		else: toast("Couldn't save the new wave.")
+	)
+	yes.name = "ConfirmNewWave"
+	dialog_actions.add_child(yes)
+	dialog_actions.add_child(UI.button("Cancel", show_waves))
+
+func confirm_remove_wave(wave: int) -> void:
+	if not can_edit_waves(): return
+	open_dialog("Remove wave %d?" % (wave + 1))
+	dialog_actions.show()
+	dialog_body.add_child(UI.paragraph("Remove this wave and its enemies? The remaining waves will be renumbered. The level must keep at least one enemy."))
+	var remove := UI.button("Remove wave", func():
+		var next := preload("res://scripts/campaign/wave_editor.gd").remove_wave(run.mission.index, level_setup(run.mission.index).overrides, wave)
+		if save_configuration(run.mission.index, next, wave): show_waves()
+		else: toast("Keep at least one wave with an enemy. The change was not saved.")
+	)
+	remove.name = "ConfirmRemoveWave"
+	dialog_actions.add_child(remove)
+	dialog_actions.add_child(UI.button("Cancel", show_waves))
+
+func show_enemy_quantity(wave: int, kind: String) -> void:
+	if not can_edit_waves(): return
+	var report := Configuration.wave_report(run.mission, wave)
+	open_dialog("Enemy count")
+	dialog_actions.show()
+	dialog_body.add_child(WaveSummary.enemy_row(kind, int(report.enemy_counts[kind])))
+	dialog_body.add_child(UI.paragraph("Enter 0 to remove this enemy. Existing portal and timing settings are preserved; totals are shared proportionally across its groups."))
+	var number := SpinBox.new()
+	number.min_value = 0
+	number.max_value = 5000
+	number.step = 1
+	number.value = report.enemy_counts[kind]
+	number.name = "QuickWaveEnemyCount"
+	number.accessibility_name = "Enemy count"
+	dialog_body.add_child(UI.number_row("Enemy count", number))
+	number.get_line_edit().virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER
+	number.value_changed.connect(func(value: float):
+		var rules: Dictionary = level_setup(run.mission.index).overrides
+		var next := preload("res://scripts/campaign/wave_editor.gd").set_count(run.mission.index, rules, wave, kind, int(value))
+		if save_configuration(run.mission.index, next):
+			if value == 0: show_waves.call_deferred()
+		else:
+			number.set_value_no_signal(Configuration.wave_report(run.mission, wave).enemy_counts.get(kind, 0))
+			toast("Couldn't save. Keep an enemy in the level; each group allows up to 1,000 enemies.")
+	)
+	dialog_actions.add_child(UI.button("Done", func(): number.apply(); show_waves.call_deferred()))
+	number.get_line_edit().grab_focus.call_deferred()
+	number.get_line_edit().select_all.call_deferred()
+
+func show_add_wave_enemy(wave: int) -> void:
+	if not can_edit_waves(): return
+	var picker := preload("res://scripts/ui/shared/illustrated_picker.gd").new()
+	picker.menu_title = "Add enemies"
+	picker.preview_factory = func(kind: String): return preload("res://scripts/ui/shared/content_portrait.gd").preview("bosses" if Balance.BOSSES.has(kind) else "enemies", kind)
+	for kind in Configuration.spawn_kinds():
+		picker.add_item(Balance.definition("bosses" if Balance.BOSSES.has(kind) else "enemies", kind).name)
+		picker.set_item_metadata(picker.item_count - 1, kind)
+	dialog_body.add_child(picker)
+	picker.hide()
+	picker.item_selected.connect(func(item: int):
+		var editor = preload("res://scripts/campaign/wave_editor.gd")
+		var rules: Dictionary = level_setup(run.mission.index).overrides
+		var entries: Array = editor.waves(run.mission.index, rules)
+		entries[wave].groups.append(editor.default_group(run.mission.index, picker.get_item_metadata(item)))
+		if save_configuration(run.mission.index, editor.replace(rules, entries)): show_level_balance(run.mission.index, wave)
+		else: toast("Couldn't add this enemy. The wave may have reached its group or enemy limit.")
+	)
+	picker.popup.popup_hide.connect(picker.queue_free)
+	picker.show_popup()
 
 func show_campaign_rules() -> void:
 	if not can_author(): return
@@ -776,35 +878,6 @@ func show_socket(socket: int) -> void:
 		tower_dialog.open_action("info")
 		return
 	ground_build.open()
-
-func select_build_preview(kind: String, confirm: Button) -> void:
-	build_selection.select(kind)
-	board.preview_kind = kind
-	var definition := Balance.definition("towers", kind, game.tuning)
-	confirm.text = "Build %s · %s gold" % [definition.name, UI.exact_money(definition.cost)]
-	confirm.disabled = game.data.balance < definition.cost
-	TowerChoice.show_details(build_choices, game.tuning, kind)
-	dialog_title.text = definition.name
-	var back := dialog_header.get_node("BackToTowers") as Button
-	back.show()
-	back.grab_focus()
-	dialog_actions.show()
-	(dialog_body.get_parent() as ScrollContainer).scroll_vertical = 0
-	board.build_preview.open(board, dialog_card)
-	fit.call_deferred()
-	board.queue_redraw()
-
-func show_build_choices() -> void:
-	build_selection.show_choices()
-	var kind: String = build_selection.kind
-	TowerChoice.clear_details(build_choices)
-	dialog_header.get_node("BackToTowers").hide()
-	dialog_actions.hide()
-	dialog_title.text = "Build a tower"
-	board.build_preview.clear(board)
-	(dialog_body.get_parent() as ScrollContainer).scroll_vertical = 0
-	build_choices.get_node("Cards/CampaignBuild_" + kind).grab_focus()
-	fit.call_deferred()
 
 func show_result() -> void:
 	if reward_transition.active:
@@ -1007,7 +1080,7 @@ func close(save_before_close: bool = true) -> void:
 	queue_free()
 
 func show_level_balance(index: int, wave_index: int = -1) -> void:
-	if not can_author() or wave_index < 0: return
+	if not can_edit_waves() or wave_index < 0: return
 	if active_campaign_slot >= 0:
 		close_dialog()
 		app.show_game_menu()
@@ -1029,8 +1102,8 @@ func show_level_balance(index: int, wave_index: int = -1) -> void:
 	editor.initial_scope = wave_index
 	if run != null and run.mission.index == index and page == "battle" and run.editable(): editor.live_run = run
 	editor.apply_changes = save_configuration
-	if wave_index >= 0: editor.saved.connect(show_waves)
 	dialog_body.add_child(editor)
+	add_dialog_back("Back to Waves", func(): editor.finish_editing(); show_waves())
 
 func save_campaign_tuning(changes: Dictionary, level_changes: Dictionary = {}) -> bool:
 	if not can_author() or not Balance.valid_tuning(changes) or changes.has("session"): return false
@@ -1038,6 +1111,7 @@ func save_campaign_tuning(changes: Dictionary, level_changes: Dictionary = {}) -
 		if not str(key).is_valid_int() or not Configuration.valid_level(int(key), level_changes[key]): return false
 	if changes.is_empty() and level_changes.is_empty(): return true
 	var levels := Configuration.with_campaign_tuning(session_levels(), changes)
+	levels = preload("res://scripts/persistence/stats_migration.gd").levels(levels)
 	for key in level_changes:
 		levels[str(key)].overrides.merge(level_changes[key], true)
 	if active_campaign_slot >= 0:
@@ -1062,44 +1136,44 @@ func save_campaign_tuning(changes: Dictionary, level_changes: Dictionary = {}) -
 func index_for_run() -> int:
 	return int(run.mission.index)
 
-func configured_run(index: int) -> RefCounted:
+func configured_run(index: int, include_loadout: bool = true) -> RefCounted:
 	var setup := level_setup(index)
 	active_overrides = setup.overrides.duplicate(true)
 	var next := Run.new(index, active_overrides, mode)
-	VigilSaveSlots.CampaignBuild.apply_loadout(next, setup)
+	if include_loadout:
+		VigilSaveSlots.CampaignBuild.apply_loadout(next, setup)
 	progress.apply_equipment(next)
 	return next
 
-func save_configuration(index: int, rules: Dictionary) -> bool:
+func save_configuration(index: int, rules: Dictionary, removed_wave: int = -1) -> bool:
 	if not can_author() or not Configuration.valid_level(index, rules): return false
-	var live: bool = run != null and run.mission.index == index and page == "battle" and run.editable()
+	if run != null and run.phase == "wave": return false
 	if active_campaign_slot >= 0:
 		var previous: Dictionary = campaign_save.levels.get(str(index), {"overrides": {}}).duplicate(true)
 		var next := previous.duplicate(true)
 		next.overrides = rules.duplicate(true)
-		if live and run.phase == "wave" and Configuration.resolve(index, rules).waves[run.wave].size() < run.mission.waves[run.wave].size(): return false
 		campaign_save.levels[str(index)] = next
 		if not persist_slot():
 			campaign_save.levels[str(index)] = previous
 			return false
-		refresh_configuration(index, rules)
+		refresh_configuration(index, rules, removed_wave)
 		return true
-	if live and run.phase == "wave" and Configuration.resolve(index, rules).waves[run.wave].size() < run.mission.waves[run.wave].size():
-		configuration.last_error = "Keep active wave groups in place; change their remaining counts instead."
-		return false
 	if not configuration.save_level(index, rules): return false
 	shared_setups.erase(index)
-	refresh_configuration(index, rules)
+	refresh_configuration(index, rules, removed_wave)
 	return true
 
-func refresh_configuration(index: int, rules: Dictionary) -> void:
+func refresh_configuration(index: int, rules: Dictionary, removed_wave: int = -1) -> void:
 	if run == null or run.mission.index != index: return
 	if page == "briefing":
 		# Rebuild the preview and starting values from the saved configuration.
 		show_briefing(index)
 	elif page == "battle" and run.editable():
-		run.apply_configuration(rules)
+		run.apply_configuration(rules, removed_wave)
 		active_overrides = rules.duplicate(true)
+	elif run.can_author() and run.phase != "wave":
+		run.mission = Configuration.resolve(index, rules)
+		run.rules = rules.duplicate(true)
 
 func configuration_menu() -> Control:
 	if not is_instance_valid(app.slot_menu):
@@ -1109,63 +1183,6 @@ func configuration_menu() -> Control:
 	app.slot_menu.show()
 	app.slot_menu.move_to_front()
 	return app.slot_menu
-
-func show_configuration_picker(index: int, kind: String) -> void:
-	if not can_author(): return
-	var was_paused := paused
-	paused = true
-	var menu := configuration_menu()
-	if is_instance_valid(configuration_picker): configuration_picker.queue_free()
-	configuration_picker = preload("res://scripts/ui/configuration_picker.gd").new()
-	menu.add_child(configuration_picker)
-	configuration_picker.menu = menu
-	configuration_picker.kind = kind
-	configuration_picker.level = index
-	configuration_picker.back = func():
-		menu.view_revision += 1
-		menu.hide()
-		paused = was_paused
-	configuration_picker.create = func():
-		menu.open_game_menu()
-		menu.open_rules()
-	configuration_picker.selected = func(entry: Dictionary):
-		shared_setups[index] = VigilSaveSlots.CampaignBuild.decode(entry.code)
-		menu.view_revision += 1
-		menu.hide()
-		show_briefing(index)
-	configuration_picker.show_page()
-
-func show_campaign_share(index: int, saved: bool = false) -> void:
-	if not can_author(): return
-	var was_paused := paused
-	paused = true
-	var source: RefCounted = Run.new(index, configuration.overrides(index)) if saved else run
-	var rules: Dictionary = configuration.overrides(index) if saved else active_overrides
-	var menu := configuration_menu()
-	menu.show_export(source.game, {"level": index, "overrides": rules}, func():
-		menu.view_revision += 1
-		menu.hide()
-		paused = was_paused
-	)
-
-func show_level_export(index: int) -> void:
-	var code := Configuration.export_level(index, configuration.overrides(index))
-	open_dialog("Level %d balancing export" % (index + 1))
-	dialog_body.add_child(UI.paragraph("Saved configuration with defaults, effective statistics, wave schedules and changes. Copy the code to transfer or inspect it.", 14))
-	var export_code := TextEdit.new()
-	export_code.name = "CampaignExportCode"
-	export_code.text = code
-	export_code.editable = false
-	export_code.custom_minimum_size.y = 220
-	export_code.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-	dialog_body.add_child(export_code)
-	var copy := UI.button("Copy export code", func():
-		DisplayServer.clipboard_set(code)
-		toast("Campaign level export copied.")
-	)
-	copy.name = "CopyCampaignExport"
-	dialog_body.add_child(copy)
-	add_dialog_back("Back to Waves", show_waves)
 
 func show_wave_balance(wave: int) -> void:
 	var report := Configuration.wave_reports(run.mission)[wave]
@@ -1177,7 +1194,7 @@ func confirm_progress_reset() -> void:
 	var popup := preload("res://scripts/ui/shared/confirmation_popup.gd").new()
 	popup.name = "CampaignResetConfirmation"
 	add_child(popup)
-	popup.configure("Reset campaign progress?", "Return to level 1 on this device. Your account, cloud backups, Infinite Worlds, equipment and balancing settings are kept.", "Reset progress", func():
+	popup.configure("Reset campaign progress?", "Return to level 1 on this device. Your account, cloud backups, equipment and balancing settings are kept.", "Reset progress", func():
 		if not progress.reset_progress():
 			popup.show_error(progress.last_error)
 			return

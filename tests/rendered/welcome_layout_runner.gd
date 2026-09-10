@@ -11,9 +11,6 @@ func run() -> void:
 	root.add_child(app)
 	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	app.set_process(false)
-	app.slot_menu = preload("res://scripts/ui/unified_menu.gd").new()
-	app.slot_menu.app = app
-	app.add_child(app.slot_menu)
 	for dimensions in [Vector2i(540,960), Vector2i(360,640), Vector2i(390,844), Vector2i(558,978), Vector2i(320,568)]:
 		root.size = dimensions
 		root.content_scale_size = dimensions
@@ -28,8 +25,8 @@ func run() -> void:
 		for art in [welcome.crest, welcome.battlefield, welcome.footer_rule]:
 			check(art.mouse_filter == Control.MOUSE_FILTER_IGNORE, "Decorative art never owns input")
 		var buttons: Array[Node] = welcome.modes.get_children()
-		check(buttons.size() == 3 and buttons[2].text == "Settings", "Settings is the third action")
-		check(buttons[0].size.is_equal_approx(buttons[2].size), "All actions share dimensions")
+		check(buttons.size() == 2 and buttons[1].text == "Settings", "Campaign and Settings are the two actions")
+		check(buttons[0].size.is_equal_approx(buttons[1].size), "All actions share dimensions")
 		for button in buttons:
 			check(button.size == Vector2(minf(320, welcome.size.x - 16), 56), "Original button dimensions remain exact")
 		check(welcome.modes.get_theme_constant("separation") == 14, "Original button gaps remain exact")

@@ -8,7 +8,7 @@ func _ready() -> void:
 	add_child(UI.paragraph("Master scales every sound: 10% master × 65% towers = 6.5%. Music is the continuous background track; set Music to 0% for a quiet background.", 13))
 	var mute := UI.toggle_button(app.audio.preferences().get("muted", false), func(value):
 		app.audio.set_muted(value)
-		app.balance_changed()
+		app.persist()
 	)
 	mute.name = "MuteAudio"
 	add_child(UI.action_row("Mute all sound", mute, mute.text))
@@ -24,7 +24,7 @@ func _ready() -> void:
 		number.accessibility_name = category.capitalize() + " volume"
 		number.value_changed.connect(func(value):
 			app.audio.set_volume(category, value / 100.0)
-			app.balance_changed()
+			app.persist()
 		)
 		var preview := UI.button("", func(): preview_category(category))
 		preview.icon = preload("res://assets/ui/play.svg")
@@ -45,7 +45,6 @@ func _ready() -> void:
 		app.audio.set_muted(false)
 		app.persist()
 		if return_to.is_valid(): return_to.call()
-		else: app.panels.show_sound_settings()
 	)
 	reset.name = "RestoreAudioDefaults"
 	add_child(UI.action_row(reset.text, reset, "Restore"))

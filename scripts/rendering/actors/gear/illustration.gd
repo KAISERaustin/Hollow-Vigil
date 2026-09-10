@@ -54,9 +54,3 @@ func link(x: float, y: float, color: Color, horizontal: bool = false) -> void:
 	else:
 		poly([x-4,y-8,x+3,y-9,x+6,y-4,x+5,y+7,x,y+10,x-5,y+6,x-6,y-3], color, 2)
 		line([x,y-4,x,y+5], INK, 2.2)
-
-func skull(x: float, y: float, color: Color = PAPER) -> void:
-	poly([x-7,y-7,x+5,y-8,x+9,y-3,x+6,y+4,x+4,y+8,x-4,y+8,x-5,y+3,x-9,y], color, 2)
-	poly([x-5,y-3,x-1,y-2,x-3,y+1], INK, 0)
-	poly([x+2,y-3,x+6,y-4,x+4,y], INK, 0)
-	line([x-2,y+5,x+3,y+5], INK, 1.4)

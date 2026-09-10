@@ -3,9 +3,7 @@
 Each combat owns `configuration_cache.gd`, `route_cache.gd`, and its shared enemy
 index. These are derived data, excluded from save payloads. Route assignment goes
 through `combat.set_enemy_route`: waypoints and suffix distances are immutable
-and shared only between identical routes. Route replacements, boss patrol legs,
-and restored bosses use the same boundary. Existing actors keep their route when
-the world expands. The weak route table is pruned during assignment and ticking;
+and shared only between identical routes. Authored route assignments and boss escorts use the same boundary. Existing actors retain their immutable route snapshot. The weak route table is pruned during assignment and ticking;
 recycling drops route and identifier references before reusing an enemy dictionary.
 
 Resolved content definitions and tower statistics are session-local. Tuning and

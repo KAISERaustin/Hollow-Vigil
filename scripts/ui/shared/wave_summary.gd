@@ -5,7 +5,22 @@ extends RefCounted
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Portrait = preload("res://scripts/ui/shared/content_portrait.gd")
 
-static func card(report: Dictionary, status: String, details: Callable, edit: Callable = Callable()) -> PanelContainer:
+static func total_time_card(reports: Array[Dictionary]) -> PanelContainer:
+	var seconds := 0.0
+	for report in reports:
+		seconds += float(report.last_spawn_seconds)
+	var rounded := ceili(seconds)
+	var duration := "%d min %02d sec" % [rounded / 60, rounded % 60] if rounded >= 60 else "%d sec" % rounded
+	var body := UI.stat("Total wait time", duration, 28)
+	body.move_child(body.get_child(1), 0)
+	for entry: Label in body.get_children():
+		entry.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var panel := UI.info_card(body, UI.GOLD, UI.CARD_PADDING)
+	panel.name = "TotalWaveTime"
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return panel
+
+static func card(report: Dictionary, status: String, details: Callable, edit: Callable = Callable(), authoring: Dictionary = {}) -> PanelContainer:
 	var body := VBoxContainer.new()
 	var panel := UI.info_card(body, UI.SURFACE, UI.CARD_PADDING)
 	panel.name = "WaveSummary" + str(report.wave)
@@ -39,7 +54,22 @@ static func card(report: Dictionary, status: String, details: Callable, edit: Ca
 	roster.add_theme_constant_override("separation", UI.CARD_GAP)
 	body.add_child(roster)
 	for kind: String in report.enemy_counts:
-		roster.add_child(enemy_row(kind, int(report.enemy_counts[kind])))
+		var row := enemy_row(kind, int(report.enemy_counts[kind]))
+		if authoring.has("quantity"):
+			var identity: HBoxContainer = row.get_child(0)
+			var badge := identity.get_child(-1)
+			identity.remove_child(badge)
+			badge.queue_free()
+			var quantity := UI.button("×%d" % int(report.enemy_counts[kind]), authoring.quantity.bind(kind))
+			quantity.name = "WaveEnemyCount_" + kind
+			quantity.custom_minimum_size = Vector2(72, UI.TARGET)
+			quantity.add_theme_font_size_override("font_size", UI.type_size(UI.CAPTION))
+			quantity.accessibility_name = "Edit " + str(report.enemy_counts[kind]) + " " + str(Balance.definition("bosses" if Balance.BOSSES.has(kind) else "enemies", kind).name)
+			quantity.size_flags_horizontal = Control.SIZE_SHRINK_END
+			quantity.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			identity.add_child(quantity)
+		roster.add_child(row)
+	if report.spawn_count == 0: roster.add_child(UI.paragraph("Empty wave · skipped during play"))
 	var actions := HBoxContainer.new()
 	actions.name = "WaveActions"
 	actions.add_theme_constant_override("separation", UI.GAP)
@@ -56,6 +86,16 @@ static func card(report: Dictionary, status: String, details: Callable, edit: Ca
 		edit_button.accessibility_name = "Edit wave %d" % report.wave
 		edit_button.add_theme_font_size_override("font_size", UI.type_size(UI.CAPTION))
 		actions.add_child(edit_button)
+	if authoring.has("add"):
+		var controls := HBoxContainer.new()
+		controls.add_theme_constant_override("separation", UI.GAP)
+		body.add_child(controls)
+		var add := UI.button("Add enemies", authoring.add)
+		add.name = "AddEnemiesWave%d" % report.wave
+		controls.add_child(add)
+		var remove := UI.button("Remove wave", authoring.remove)
+		remove.name = "RemoveWave%d" % report.wave
+		controls.add_child(remove)
 	return panel
 
 static func enemy_row(kind: String, count: int, detail: String = "") -> PanelContainer:

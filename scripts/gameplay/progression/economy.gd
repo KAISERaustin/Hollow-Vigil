@@ -42,12 +42,6 @@ var tuning: Dictionary:
 func _init(shared_data: Dictionary) -> void:
 	data = shared_data
 
-func unclaimed() -> float:
-	var total: float = data.reserve
-	for t in data.towers.values():
-		total = minf(Balance.MAX_MONEY, total + t.earnings)
-	return total
-
 func spend(cost: float) -> bool:
 	if not is_finite(cost) or cost <= 0.0 or data.balance < cost:
 		return false
@@ -65,10 +59,6 @@ func tower_at(region: String, pad: int) -> String:
 	ensure_tower_index()
 	return tower_cells.get(region, {}).get(pad, "")
 
-func needs_first_property() -> bool:
-	# Saves created before onboarding was introduced remain unrestricted.
-	return data.get("first_property_required", false)
-
 func can_place(kind: String, region: String, pad: int) -> bool:
 	var node := Balance.Content.tower(kind)
 	if node == null or pad < 0 or pad > VigilWorld.MAX_GROUND_PAD:
@@ -79,8 +69,6 @@ func ground_allowed(point: Vector2, ignore_id: String = "") -> bool:
 	return preload("res://scripts/content/nodes/ground_placement.gd").allowed(data, point, placement_roads, placement_bounds, ignore_id)
 
 func build(kind: String, region: String, pad: int) -> String:
-	if needs_first_property():
-		return ""
 	if not can_place(kind, region, pad):
 		return ""
 	if not spend(Balance.tuned_value("towers", kind, "cost", tuning)):
@@ -129,9 +117,6 @@ func relocate(id: String, region: String, pad: int, expected_level: int = -1) ->
 	clear_tower_history(id)
 	return true
 
-func traffic_cost(id: String) -> float:
-	return ceil(Balance.TRAFFIC_BASE_COST * pow(Balance.TRAFFIC_COST_GROWTH, data.regions[id].traffic))
-
 func set_sale_rules(definition: VigilContentNode) -> void:
 	# Run-local attachment/replacement/removal; shared content stays immutable.
 	sale_rules = definition
@@ -161,38 +146,6 @@ func sell(id: String, expected_level: int = -1) -> Dictionary:
 	sound_requested.emit("menu_sell", Vector2.INF)
 	return {"refund": refund, "earnings": earnings, "total": refund + earnings}
 
-func spawn_period(id: String) -> float:
-	return Balance.traffic_period(data.regions[id].traffic)
-
-func buy_traffic(id: String, expected_level: int = -1) -> bool:
-	if not VigilWorld.has_rift(id, data.regions, int(data.seed)) or not data.regions.has(id):
-		return false
-	var r: Dictionary = data.regions[id]
-	if (expected_level != -1 and r.traffic != expected_level) or r.traffic >= Balance.MAX_TRAFFIC_LEVEL or not spend(traffic_cost(id)):
-		return false
-	r.traffic += 1
-	sound_requested.emit("menu_traffic", Vector2.INF)
-	return true
-
-func unlock(id: String, kind: String) -> bool:
-	if not VigilWorld.has_rift(id, data.regions, int(data.seed)) or not data.regions.has(id) or kind in data.regions[id].unlocks:
-		return false
-	var costs := Balance.portal_unlock_costs(data.regions[id].get("style", "forest"))
-	if not costs.has(kind):
-		return false
-	if not spend(costs[kind]):
-		return false
-	data.regions[id].unlocks.append(kind)
-	sound_requested.emit("menu_unlock", Vector2.INF)
-	return true
-
-func buy_automation() -> bool:
-	if data.automation or not spend(Balance.AUTOMATION_COST):
-		return false
-	data.automation = true
-	sound_requested.emit("menu_automation", Vector2.INF)
-	return true
-
 func collect(id: String = "") -> float:
 	var amount := 0.0
 	if id == "":
@@ -217,29 +170,7 @@ func credit(id: String, amount: float) -> void:
 
 # Empty identity removes the equipped piece; replacing or selling never destroys it.
 func equip_relic(id: String, relic_id: String, expected_current: String, expected_owner: String = "") -> bool:
-	const Relics = preload("res://scripts/gameplay/progression/relics.gd")
-	if not data.towers.has(id) or data.towers[id].get("relic", "") != expected_current:
-		return false
-	if relic_id != "" and (not data.get("relics", {}).has(relic_id) or Relics.owner(data, relic_id) != expected_owner):
-		return false
-	if relic_id != "":
-		var gear := Balance.Content.gear(data.relics[relic_id])
-		if gear == null or not gear.can_equip_on(Balance.Content.tower(data.towers[id].kind)):
-			return false
-	if relic_id == expected_current:
-		return true
-	if expected_owner != "" and data.towers.has(expected_owner):
-		data.towers[expected_owner].erase("relic")
-		clear_tower_history(expected_owner)
-		relic_changed.emit(expected_owner)
-	if relic_id == "":
-		data.towers[id].erase("relic")
-	else:
-		data.towers[id].relic = relic_id
-	clear_tower_history(id)
-	relic_changed.emit(id)
-	sound_requested.emit("menu_upgrade", Vector2.INF)
-	return true
+	return false
 
 func clear_tower_history(id: String) -> void:
 	# Relearn production after combat power moves between towers.

@@ -12,7 +12,7 @@ cooldown. Godot imports the committed mono 22,050 Hz / 16-bit WAV files.
 | Family | Sound and trigger |
 | --- | --- |
 | Menus | Dry click, rising open, falling close, selection and slider ticks; mouse, touch and keyboard use the same button signals. |
-| Transactions | Separate build, upgrade, sale, relocation, reconstruction-complete, territory purchase, rift traffic, enemy unlock, automation, gold collection, return earnings, reset and notice cues. Automatic collection stays silent. |
+| Transactions | Separate build, upgrade, sale, relocation, reconstruction-complete, gold collection and notice cues. Automatic collection stays silent. |
 | Ashneedle | Muted 260 Hz bowstring and wooden limb release with a short filtered arrow rush; soft 170 Hz arrow impact. Reusable bow and arrow-impact textures keep rapid fire dry without a high whistle. |
 | Pyre | Low filtered flame launch and burst. |
 | Obelisk | Resonant orb launch and impact. |
@@ -55,15 +55,8 @@ sounds below combat. A private mix bus uses a smooth look-ahead limiter at -1 dB
 to prevent clipping at maximum slider settings; the bus is removed on app exit.
 
 Audio signals are independent of the cosmetic effect pool and never use combat
-RNG. Repeated shots, impacts, enemy deaths and boss footsteps receive an independent playback pitch ratio from 0.9 to 1.1. Music, UI and other boss cues retain their assigned pitch. Missing streams are skipped. The audio director rebinds after progress reset. There is no ambient rift
-spawn noise or per-damage-tick sound: those would dominate a developed idle map.
+RNG. Repeated shots, impacts, enemy deaths and boss footsteps receive an independent playback pitch ratio from 0.9 to 1.1. Music, UI and other boss cues retain their assigned pitch. Missing streams are skipped. Campaign audio follows the active battlefield and pauses with the application.
 
 ## Verification
 
-`tests/audio_runner.gd` loads all assets, exercises weapon and boss events,
-checks crowd limits, spatial rejection, live category silence, mute, pause,
-legacy/invalid saves, persistence, reset rebinding, and settings at 540×960,
-360×640 and 390×844. It is part of `launch.ps1 -Tests` / `-Check`; it can also be
-run directly with Godot `--script res://tests/audio_runner.gd` (add `--headless`
-for the non-rendered run). Test saves use the disposable `audio-check.save` name.
-Rendered runs write `artifacts/audio-settings-*.png`.
+`tools/validate_audio.py` checks the committed cue files. `tests/campaign_only_runner.gd` verifies sound preferences persist independently of Campaign slots. Portrait menu and lifecycle interactions run through `./launch.ps1 -MobileTests`. Physical device audio acceptance remains separate.

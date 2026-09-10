@@ -16,7 +16,17 @@ static func description(relic_kind: String, tuning: Dictionary = {}) -> String:
 	return DEFINITIONS[relic_kind].description.format(gear)
 
 static func kind(data: Dictionary, tower: Dictionary) -> String:
-	return data.get("relics", {}).get(tower.get("relic", ""), "")
+	return ""
+
+static func editor_description(relic_kind: String, tuning: Dictionary = {}) -> String:
+	const Explanations = preload("res://scripts/content/catalogs/stat_descriptions.gd")
+	var paragraphs: PackedStringArray = [description(relic_kind, tuning), "How to adjust this gear"]
+	for field in Balance.editable_fields_for("gear", relic_kind):
+		var limits: Dictionary = Balance.field_limits("gear", relic_kind, field)
+		var explanation: String = Explanations.GEAR_FIELDS.get(field, Explanations.FIELDS.get(field, ""))
+		paragraphs.append(limits.label + ": " + explanation)
+	paragraphs.append("Changes apply on the next attack. Shots already launched and effects already active keep their values. Removing or transferring the gear clears its active effects.")
+	return "\n\n".join(paragraphs)
 
 static func owner(data: Dictionary, relic_id: String) -> String:
 	if relic_id == "":
@@ -27,43 +37,24 @@ static func owner(data: Dictionary, relic_id: String) -> String:
 	return ""
 
 static func available(data: Dictionary) -> Array[String]:
-	var result: Array[String] = []
-	for relic_id in data.get("relics", {}):
-		if owner(data, relic_id).is_empty():
-			result.append(relic_id)
-	return result
+	return []
 
 static func migrate(data: Dictionary) -> void:
-	if not data.has("relics"):
-		data.relics = {}
-	# Older progress receives each recorded victory once, without paying gold again.
-	for records in [data.regions, data.get("castles", {})]:
-		for source in records:
-			var boss: Dictionary = records[source].get("boss", {})
-			if boss.get("status", "") == "defeated":
-				award_set(data, source, boss.get("kind", ""))
+	data.relics = {}
+	for tower in data.get("towers", {}).values(): tower.erase("relic")
 
 static func drop_id(source: String, gear_kind: String, boss_kind: String) -> String:
 	return source if gear_kind == boss_kind else source + "#" + gear_kind
 
 static func award_set(data: Dictionary, source: String, boss_kind: String) -> Array[String]:
-	var awarded: Array[String] = []
-	for gear_kind in BOSS_DROPS.get(boss_kind, []):
-		if award(data, drop_id(source, gear_kind, boss_kind), gear_kind):
-			awarded.append(gear_kind)
-	return awarded
+	return []
 
 static func award(data: Dictionary, source: String, boss_kind: String) -> bool:
-	if not data.has("relics"):
-		data.relics = {}
-	if data.relics.has(source) or not DEFINITIONS.has(boss_kind):
-		return false
-	data.relics[source] = boss_kind
-	return true
+	return false
 
 static func prepare(combat: VigilCombat, tower: Dictionary, target: Dictionary, stats: Dictionary) -> Dictionary:
 	var relic_kind := kind(combat.data, tower)
-	if relic_kind == "":
+	if relic_kind == "" or combat.StatComposition.has(tower, "gear_" + relic_kind, combat.tuning):
 		return stats
 	var node := Balance.Content.gear(relic_kind)
 	var progress: Dictionary = combat.relic_progress.get(tower.id, node.make_record())
@@ -86,6 +77,7 @@ static func arrive(combat: VigilCombat, shot: Dictionary) -> void:
 	if not combat.data.towers.has(shot.tower_id) or shot.get("gear_epoch", -1) != combat.relic_epochs.get(shot.tower_id, 0):
 		return
 	for entry in shot.get("gear_effects", []):
+		if entry.config.has("direct_assignment") and not combat.TowerComponents.valid(combat, shot.tower_id, entry.config.tower_epoch): continue
 		entry.attribute.arrive(combat, shot, entry.config)
 
 static func root_target(combat: VigilCombat, shot: Dictionary, enemy: Dictionary) -> void:
@@ -100,7 +92,12 @@ static func apply_root(combat: VigilCombat, shot: Dictionary, enemy: Dictionary,
 	enemy.root_until = maxf(enemy.get("root_until", 0.0), until)
 	enemy.root_immune_until = combat.simulation_time + config.root_immunity
 	if shot.has("tower_id"):
-		add_status(enemy, shot.tower_id, "attribute/root", {"type": "root", "until": until})
+		var status := {"type": "root", "until": until}
+		if config.has("direct_assignment"):
+			status.tower_epoch = config.tower_epoch
+			status.component = config.gear_component
+			enemy.direct_root_owner = shot.tower_id
+		add_status(enemy, shot.tower_id, "attribute/root", status)
 
 static func apply_balance(combat: VigilCombat, previous: Dictionary, tuning: Dictionary) -> void:
 	for id in combat.relic_progress:
@@ -118,6 +115,7 @@ static func impact(combat: VigilCombat, shot: Dictionary, enemy: Dictionary) -> 
 	if shot.get("gear_epoch", -1) != combat.relic_epochs.get(shot.tower_id, 0):
 		return
 	for entry in shot.gear_effects:
+		if entry.config.has("direct_assignment") and not combat.TowerComponents.valid(combat, shot.tower_id, entry.config.tower_epoch): continue
 		entry.attribute.impact(combat, shot, enemy, entry.config)
 
 static func add_status(enemy: Dictionary, tower_id: String, attribute_id: String, status: Dictionary) -> void:
@@ -140,7 +138,7 @@ static func hindered(enemy: Dictionary, now: float) -> bool:
 	return enemy.get("root_until", 0.0) > now or enemy.get("stun_until", 0.0) > now or (enemy.get("slow_until", 0.0) > now and enemy.get("slow_percent", 0.0) > 0.0) or strength(enemy, "slow", now) > 0.0 or strength(enemy, "stun", now) > 0.0
 
 static func push_resistance(combat: VigilCombat, enemy: Dictionary) -> float:
-	return Balance.tuned_value("bosses" if enemy.get("boss", false) else "enemies", enemy.kind, "push_resistance", combat.tuning)
+	return 100.0 * (1.0 - combat.EnemyCapabilities.resistance(enemy, "push_resistance", combat.tuning))
 
 static func advance(combat: VigilCombat, delta: float) -> void:
 	for enemy in combat.enemies:
@@ -154,12 +152,13 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 			if status.has("ability"):
 				var tower: Dictionary = combat.data.towers.get(status.owner, {})
 				var ability := Balance.Content.ability(status.ability)
-				if tower.get("branch", "") != status.ability or ability == null or not ability.owns_effect(status):
+				if tower.is_empty() or not combat.StatComposition.has(tower, status.ability, combat.tuning) or ability == null or not ability.owns_effect(status):
 					statuses.erase(key)
 					continue
 			if not enemy.dead and status.type == "dot" and combat.data.towers.has(status.owner):
 				var elapsed := clampf(status.until - (combat.simulation_time - delta), 0.0, delta)
-				combat.hit(enemy, status.damage * elapsed, status.owner, "", status.fire)
+				var resistance: float = 1.0 if status.fire else combat.EnemyCapabilities.resistance(enemy, "poison_resistance", combat.tuning)
+				combat.hit(enemy, status.damage * elapsed * resistance, status.owner, "", status.fire, false, "fire" if status.fire else "poison")
 			if status.until <= combat.simulation_time or enemy.dead or not combat.data.towers.has(status.owner):
 				statuses.erase(key)
 

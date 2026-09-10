@@ -14,7 +14,7 @@ func run() -> void:
 	check(Catalog.COUNT == 30 and Catalog.CHAPTERS.size() == 6, "Six complete five-level chapters")
 	var styles: Array = []
 	for chapter in Catalog.CHAPTERS: styles.append(chapter.style)
-	check(styles == preload("res://scripts/content/catalogs/world.gd").ALL_STYLES, "Every Infinite biome has one campaign chapter")
+	check(styles == preload("res://scripts/content/catalogs/world.gd").ALL_STYLES, "Every registered biome has one campaign chapter")
 	var progress := Progress.new()
 	progress.path = "user://six-biome-playthrough.save"
 	check(progress.restore_completed_levels(Catalog.LEGACY_COUNT), "Existing twenty-level completion remains readable")

@@ -7,7 +7,7 @@ signal rules_edited(category: String, kind: String, stats: Array)
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Picker = preload("res://scripts/ui/shared/illustrated_picker.gd")
 const Portrait = preload("res://scripts/ui/shared/content_portrait.gd")
-var categories: Array[String] = ["session", "bosses", "rifts", "enemies", "towers", "gear"]
+var categories: Array[String] = ["session", "bosses", "enemies", "towers", "gear"]
 var configuration_only := false
 var authored_spawns := false
 var game: VigilState
@@ -30,6 +30,7 @@ var detail: Label
 var portrait: Control
 var identity_title: Label
 var description: Label
+var stats_editor: VBoxContainer
 
 func _ready() -> void:
 	name = "DeveloperControls"
@@ -68,9 +69,10 @@ func _ready() -> void:
 	move_child(category_list, 0)
 	for section in categories:
 		var tab := UI.button(category_title(section), show_category.bind(section))
+		tab.disabled = section == "gear"
 		tab.name = section.capitalize() + "Category"
 		tabs[section] = tab
-		category_list.add_child(UI.action_row(tab.text, tab, "Open"))
+		category_list.add_child(UI.action_row(tab.text, tab, "Unavailable" if section == "gear" else "Open"))
 	editor = VBoxContainer.new()
 	editor.name = "BalanceEditor"
 	editor.add_theme_constant_override("separation", 12)
@@ -79,20 +81,23 @@ func _ready() -> void:
 	identity.name = "BalanceIdentity"
 	identity.add_theme_stylebox_override("panel", UI.surface(UI.SURFACE, UI.OUTLINE, 12))
 	editor.add_child(identity)
-	var identity_stack := VBoxContainer.new()
+	var identity_stack := HBoxContainer.new()
 	identity_stack.add_theme_constant_override("separation", 8)
 	identity.add_child(identity_stack)
 	identity_title = UI.fitted_heading("")
 	identity_title.name = "BalanceTitle"
 	identity_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	identity_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	identity_title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	identity_stack.add_child(identity_title)
 	portrait = Control.new()
 	portrait.name = "BalancePortrait"
-	portrait.custom_minimum_size = Vector2(0, 96)
+	portrait.custom_minimum_size = Vector2(96, 96)
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	portrait.draw.connect(draw_portrait)
 	portrait.resized.connect(portrait.queue_redraw)
 	identity_stack.add_child(portrait)
+	identity_stack.move_child(portrait, 0)
 	description = UI.paragraph("", UI.CAPTION)
 	description.name = "BalanceDescription"
 	editor.add_child(description)
@@ -130,21 +135,22 @@ func _ready() -> void:
 	editor.add_child(fields)
 	detail = UI.paragraph("", 12)
 	editor.add_child(detail)
-	var reset_selected := UI.button("Reset selected type / tier", func():
+	var reset_selected := UI.button("Reset to Default", func():
 		commit_fields()
 		game.reset_developer_balance(category, editing_kind())
-		rules_edited.emit(category, editing_kind(), selected_fields().keys())
+		rules_edited.emit(category, editing_kind(), Balance.Stats.schema(category).keys() if category in Balance.Stats.CATEGORIES else selected_fields().keys())
 		show_fields()
 		changed.emit()
 	)
 	reset_selected.name = "ResetSelectedBalance"
 	editor.add_child(UI.action_row(reset_selected.text, reset_selected, "Reset"))
+	editor.move_child(reset_selected.get_parent(), fields.get_index())
 	var reset_all := UI.button("Reset all balance values", func():
 		commit_fields()
 		game.reset_developer_balance()
 		for section in categories:
 			for kind in Balance.definitions(section):
-				rules_edited.emit(section, kind, Balance.editable_fields_for(section, kind).keys())
+				rules_edited.emit(section, kind, Balance.Stats.schema(section).keys() if section in Balance.Stats.CATEGORIES else Balance.editable_fields_for(section, kind).keys())
 		show_fields()
 		changed.emit()
 	)
@@ -153,6 +159,7 @@ func _ready() -> void:
 	show_categories()
 
 func commit_fields() -> void:
+	if is_instance_valid(stats_editor): stats_editor.commit_fields()
 	for number in inputs.values():
 		if is_instance_valid(number) and number.is_inside_tree():
 			number.apply()
@@ -236,7 +243,7 @@ func show_fields() -> void:
 		hint.text = "Tier %d · Live changes · Auto-saved" % selected_level
 		detail.text = "Edit this tier independently. Costs are for building tier 1 or purchasing the selected upgrade. Specialization effects appear below combat stats."
 	if category == "bosses":
-		detail.text = "Counter: " + Balance.BOSSES[selected_kind].weakness + ". Values override these defaults. Health, shields, wards and timers preserve their remaining proportion. Rewards apply on defeat."
+		detail.text = "Health changes preserve remaining health percentage. Rewards apply on defeat."
 	if category == "gear":
 		detail.text = "Changes apply on the next attack. Launched shots and active effects keep their values. Root cooldowns retain their remaining proportion; stack limits update immediately. Removing or transferring gear clears its active effects."
 	if category == "rifts":
@@ -248,14 +255,28 @@ func show_fields() -> void:
 	for child in fields.get_children():
 		fields.remove_child(child)
 		child.queue_free()
-	for stat in selected_fields():
-		add_number(stat)
+	stats_editor = null
+	if category in Balance.Stats.CATEGORIES:
+		stats_editor = preload("res://scripts/ui/shared/stats_editor.gd").new()
+		stats_editor.game = game
+		stats_editor.category = category
+		stats_editor.kind = editing_kind()
+		stats_editor.edited = func(section: String, kind: String, stats: Array):
+			rules_edited.emit(section, kind, stats)
+			changed.emit()
+		stats_editor.relayout = refresh_focus
+		fields.add_child(stats_editor)
+		hint.hide()
+		detail.text = "Saving updates existing enemies and towers. Health changes preserve remaining health percentage."
+	else:
+		for stat in selected_fields(): add_number(stat)
 	var reset_selected := find_child("ResetSelectedBalance", true, false) as Button
-	reset_selected.disabled = inputs.is_empty()
+	reset_selected.disabled = inputs.is_empty() and stats_editor == null
 	# Scrolling follows focus as players move between exact-value fields.
 	call_deferred("refresh_focus")
 
 func refresh_identity() -> void:
+	description.visible = category not in Balance.Stats.CATEGORIES
 	var definition: Dictionary = editor_definitions()[editing_kind()]
 	portrait.visible = category != "session"
 	identity_title.text = definition.name
@@ -271,15 +292,8 @@ func refresh_identity() -> void:
 		"gear":
 			const Relics = preload("res://scripts/gameplay/progression/relics.gd")
 			var boss_kind: String = Relics.DEFINITIONS[selected_kind].boss
-			description.text = "From " + Balance.BOSSES[boss_kind].name + " · One of three victory drops\n\n" + Relics.description(selected_kind, game.tuning)
-		"bosses":
-			var summaries := {
-				"warden": "A forest guardian protected by a root shield that does not regenerate. Fire deals extra damage to its protection.",
-				"cindermaw": "An armored fire spirit in a broken vessel. It hastens when wounded; frost can quench its rage.",
-				"bell": "A haunted bell that periodically summons escorts. Delaying its tolls keeps the procession under control.",
-				"prior": "A spectral prior protected by regenerating wards. Curses can bypass its defenses and suppress regrowth."
-			}
-			description.text = definition.get("description", summaries.get(selected_kind, "")) + " Counter: " + definition.weakness + "."
+			description.text = "From " + Balance.BOSSES[boss_kind].name + " · One of three victory drops\n\n" + Relics.editor_description(selected_kind, game.tuning)
+		"bosses": description.text = "Uses its configured health, speed, rewards and core damage."
 	portrait.accessibility_name = identity_title.text + " portrait"
 	UI.fit_heading(identity_title)
 	portrait.queue_redraw()
@@ -299,7 +313,7 @@ func add_number(stat: String) -> void:
 	inputs[stat] = number
 	var baseline: float = Balance.definitions(category)[editing_kind()][stat]
 	var title: String = descriptor.label + "\nDefault: " + format_value(baseline, descriptor)
-	fields.add_child(UI.number_row(title, number))
+	fields.add_child(UI.rule_card(UI.number_row(title, number)) if category in ["gear", "rifts"] else UI.number_row(title, number))
 	# Capture this row's identity so a removed control cannot edit a different type.
 	var section := category
 	var kind := editing_kind()

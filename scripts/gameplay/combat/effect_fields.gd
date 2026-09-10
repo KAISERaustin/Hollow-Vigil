@@ -24,9 +24,11 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 	for field in combat.effect_fields:
 		if not combat.data.towers.has(field.tower_id) or field.epoch != combat.relic_epochs.get(field.tower_id, 0):
 			continue
-		var gear := Balance.Content.gear(combat.Relics.kind(combat.data, combat.data.towers[field.tower_id]))
-		if gear == null or not gear.owns_effect(field.config):
-			continue
+		if field.config.has("direct_assignment"):
+			if not combat.TowerComponents.valid(combat, field.tower_id, field.config.tower_epoch): continue
+		else:
+			var gear := Balance.Content.gear(combat.Relics.kind(combat.data, combat.data.towers[field.tower_id]))
+			if gear == null or not gear.owns_effect(field.config): continue
 		var elapsed := maxf(0.0, minf(field.until, combat.simulation_time) - maxf(field.from, combat.simulation_time - delta))
 		if field.until > combat.simulation_time:
 			survivors.append(field)
@@ -42,4 +44,5 @@ static func advance(combat: VigilCombat, delta: float) -> void:
 				affected[key] = {"enemy": enemy, "damage": damage, "owner": field.tower_id, "fire": field.fire}
 	combat.effect_fields = survivors
 	for effect in affected.values():
-		combat.hit(effect.enemy, effect.damage, effect.owner, "", effect.fire)
+		var resistance: float = 1.0 if effect.fire else combat.EnemyCapabilities.resistance(effect.enemy, "poison_resistance", combat.tuning)
+		combat.hit(effect.enemy, effect.damage * resistance, effect.owner, "", effect.fire, false, "fire" if effect.fire else "poison")

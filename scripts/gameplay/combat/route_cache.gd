@@ -12,8 +12,8 @@ func assign(enemy: Dictionary, route: Array) -> void:
 	var key := route.hash()
 	var bucket: Array = routes.get(key, [])
 	var geometry
-	for reference in bucket:
-		var candidate = reference.get_ref()
+	for route_ref in bucket:
+		var candidate = route_ref.get_ref()
 		if candidate != null and candidate.points == route:
 			geometry = candidate
 			break
@@ -27,6 +27,6 @@ func assign(enemy: Dictionary, route: Array) -> void:
 
 func prune() -> void:
 	for key in routes.keys():
-		var live: Array = routes[key].filter(func(reference): return reference.get_ref() != null)
+		var live: Array = routes[key].filter(func(route_ref): return route_ref.get_ref() != null)
 		if live.is_empty(): routes.erase(key)
 		else: routes[key] = live

@@ -5,6 +5,8 @@ const BG := VigilTerrainArt.BACKDROP
 const PANEL := VigilTerrainArt.PAPER
 const MAIN_MENU_BACKGROUND := Color("283b36")
 const SURFACE := VigilTerrainArt.ROAD
+const ADDED_RULES := Color("95AA83")
+const ADDED_RULE := Color("B49DCC")
 const SAVED_GAMES_PAPER := Color("#B8C4C6")
 const BORDER := VigilTerrainArt.INK
 const GOLD := VigilTerrainArt.GOLD
@@ -67,6 +69,9 @@ static func info_card(content: Control, background: Color = PANEL, padding: int 
 	panel.add_theme_stylebox_override("panel", surface(background, outline, padding))
 	panel.add_child(content)
 	return panel
+
+static func rule_card(content: Control) -> PanelContainer:
+	return info_card(content, ADDED_RULE, CARD_PADDING)
 
 static func fullscreen_parchment() -> TextureRect:
 	var paper := TextureRect.new()
@@ -376,6 +381,19 @@ static func toolbar_action(text: String, action: Callable, primary: bool = false
 		control.add_theme_stylebox_override(state, style)
 	return control
 
+static func info_button(action: Callable, accessible_name: String = "Information") -> Button:
+	var control := toolbar_action("", action)
+	control.custom_minimum_size = Vector2.ONE * TARGET
+	control.accessibility_name = accessible_name
+	control.draw.connect(func():
+		var center := control.size * 0.5
+		var ink := MUTED if control.disabled else TEXT
+		control.draw_arc(center, 10.5, 0, TAU, 48, ink, OUTLINE, true)
+		control.draw_circle(center + Vector2(0, -5), 1.5, ink, true, -1, true)
+		control.draw_line(center + Vector2(0, -1), center + Vector2(0, 6), ink, OUTLINE, true)
+	)
+	return control
+
 static func toggle_button(enabled: bool, action: Callable) -> Button:
 	var control := button("On" if enabled else "Off", func(): pass)
 	control.toggle_mode = true
@@ -431,17 +449,6 @@ static func configure_back_button(back: Button, back_label: String) -> void:
 static func gold_button(text: String, action: Callable, height: float = 50) -> Button:
 	return accent_button(text, action, GOLD, height)
 
-static func enemy_preview(kind: String) -> Control:
-	var preview := Control.new()
-	preview.custom_minimum_size = Vector2(40, 44)
-	preview.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	preview.draw.connect(func():
-		VigilEnemyArt.draw(preview, kind, preview.size * 0.5 + Vector2(0, 4), 1.0)
-	)
-	preview.resized.connect(preview.queue_redraw)
-	return preview
-
 static func action_row(title: String, action: BaseButton, action_text: String = "", preview: Control = null, subtitle: String = "") -> HBoxContainer:
 	# Only the trailing control handles taps. Text and row gaps pass drags to
 	# the surrounding ScrollContainer, including when the action is disabled.
@@ -488,44 +495,33 @@ static func number_row(title: String, number: SpinBox, preview: Button = null, i
 	row.set_meta("scroll_number_row", true)
 	row.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_theme_constant_override("separation", GAP)
-	row.custom_minimum_size.y = 120
+	row.custom_minimum_size.y = TARGET + GAP * 2
 	row.draw.connect(func(): row.draw_line(Vector2(0, row.size.y - 1), Vector2(row.size.x, row.size.y - 1), BORDER, OUTLINE))
-	var copy := VBoxContainer.new()
-	copy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	copy.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	copy.add_theme_constant_override("separation", GAP)
-	var identity := HBoxContainer.new()
-	identity.mouse_filter = Control.MOUSE_FILTER_PASS
-	identity.add_theme_constant_override("separation", GAP)
 	if illustration != null:
-		identity.add_child(illustration)
-	var caption := paragraph(title, BODY)
+		illustration.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(illustration)
+	var caption := paragraph(title.replace("\n", " · "), BODY)
 	caption.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	identity.add_child(caption)
-	copy.add_child(identity)
-	row.add_child(copy)
+	caption.minimum_size_changed.connect(func():
+		row.custom_minimum_size.y = maxf(TARGET, caption.get_combined_minimum_size().y) + GAP * 2
+		row.queue_redraw()
+	)
+	row.add_child(caption)
 	if preview != null:
 		preview.size_flags_horizontal = Control.SIZE_SHRINK_END
-		identity.add_child(preview)
-	var controls: BoxContainer
-	if preview != null:
-		controls = HBoxContainer.new()
-	else:
-		controls = VBoxContainer.new()
-	controls.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	controls.custom_minimum_size.x = 112
-	controls.add_theme_constant_override("separation", 8)
-	if preview != null:
-		copy.add_child(controls)
-	else:
-		row.add_child(controls)
+		preview.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(preview)
 	number.custom_minimum_size = Vector2(112, TARGET)
-	number.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	number.size_flags_horizontal = Control.SIZE_SHRINK_END
+	number.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	number.select_all_on_focus = true
-	# Use large explicit +/- controls instead of the built-in tiny arrows.
+	# Keep direct numeric entry without increment/decrement buttons.
 	number.add_theme_constant_override("buttons_width", 0)
 	number.add_theme_constant_override("set_min_buttons_width_from_icons", 0)
 	number.add_theme_constant_override("field_and_buttons_separation", 0)
+	# Zero-width buttons still draw their default arrows outside the field.
+	for icon_name in ["updown", "up", "up_hover", "up_pressed", "up_disabled", "down", "down_hover", "down_pressed", "down_disabled"]:
+		number.add_theme_icon_override(icon_name, ImageTexture.new())
 	var entry := number.get_line_edit()
 	entry.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER_DECIMAL
 	entry.accessibility_name = number.accessibility_name
@@ -535,25 +531,7 @@ static func number_row(title: String, number: SpinBox, preview: Button = null, i
 	entry.add_theme_color_override("font_color", TEXT)
 	entry.add_theme_color_override("caret_color", TEXT)
 	entry.add_theme_font_size_override("font_size", type_size(CAPTION))
-	controls.add_child(number)
-	var buttons := HBoxContainer.new()
-	buttons.add_theme_constant_override("separation", 8)
-	controls.add_child(buttons)
-	var minus := button("−", func(): number.apply(); number.value -= number.step)
-	var plus := button("+", func(): number.apply(); number.value += number.step)
-	minus.name = str(number.name) + "Decrease"
-	plus.name = str(number.name) + "Increase"
-	minus.accessibility_name = "Decrease " + number.accessibility_name
-	plus.accessibility_name = "Increase " + number.accessibility_name
-	minus.custom_minimum_size.x = TARGET
-	plus.custom_minimum_size.x = TARGET
-	buttons.add_child(minus)
-	buttons.add_child(plus)
-	var refresh := func(_value: float):
-		minus.disabled = number.value <= number.min_value
-		plus.disabled = number.value >= number.max_value
-	number.value_changed.connect(refresh)
-	refresh.call(number.value)
+	row.add_child(number)
 	return row
 
 static func accent_button(text: String, action: Callable, accent: Color, height: float = 48) -> Button:

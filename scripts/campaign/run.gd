@@ -30,7 +30,6 @@ func _init(index: int = 0, overrides: Dictionary = {}, game_mode: String = "surv
 	game.economy.set_sale_rules(Balance.Content.level(index))
 	game.data.balance = float(mission.gold)
 	game.data.settings.developer_balance = mission.tuning.duplicate(true)
-	game.data.first_property_required = false
 	game.data.automation = true
 	# These regions only anchor tower sockets. Campaign roads are independent of
 	# the expansion grid, seeded geography, and shortest-route reconstruction.
@@ -53,6 +52,12 @@ static func _prepare_regions(data: Dictionary) -> void:
 
 func start_wave() -> bool:
 	if phase != "planning" or wave >= mission.waves.size():
+		return false
+	while wave < mission.waves.size() and mission.waves[wave].is_empty(): wave += 1
+	if wave >= mission.waves.size():
+		phase = "victory"
+		finish_pending = true
+		changed.emit()
 		return false
 	wave_checkpoint = _capture_checkpoint("wave")
 	# This setup exception ends permanently for this run at the first wave start.
@@ -83,10 +88,13 @@ func tick(delta: float) -> void:
 		var route: Array[Vector2] = mission.routes[spawn.lane]
 		if Balance.BOSSES.has(spawn.kind):
 			var boss: Dictionary = game.combat.Bosses.create(game.combat, "0,0", spawn.kind, route)
+			boss.portal_effect_style = mission.style
+			if spawn.has("payout"): boss.campaign_payout = spawn.payout
 			# Stable encounter identity keeps later levels' drops distinct and replay rewards idempotent.
 			boss.drop_source = "%d,%d" % [(int(mission.index) + 1) * 1000 + wave, group_id * 100000 + int(spawn.member)]
 		else:
-			game.combat.spawn_on_path(spawn.kind, route, mission.style)
+			var enemy: Dictionary = game.combat.spawn_on_path(spawn.kind, route, mission.style)
+			if spawn.has("payout"): enemy.campaign_payout = spawn.payout
 		next_spawn += 1
 	game.combat.tick(delta)
 	if health <= 0:
@@ -98,6 +106,8 @@ func tick(delta: float) -> void:
 		wave += 1
 		# A single transition pays each cleared wave exactly once.
 		game.data.balance += mission.wave_rules[wave - 1].reward
+		var cleared_wave := wave
+		while wave < mission.waves.size() and mission.waves[wave].is_empty(): wave += 1
 		phase = "victory" if wave == mission.waves.size() else "planning"
 		game.combat.pending_shots.clear()
 		game.combat.line_projectiles.clear()
@@ -109,7 +119,7 @@ func tick(delta: float) -> void:
 		game.combat.relic_progress.clear()
 		for tower in game.data.towers.values():
 			tower.cooldown = 0.0
-		wave_cleared.emit(wave, float(mission.wave_rules[wave - 1].reward))
+		wave_cleared.emit(cleared_wave, float(mission.wave_rules[cleared_wave - 1].reward))
 		changed.emit()
 		if phase == "victory":
 			finish_pending = true
@@ -121,7 +131,7 @@ func _finish_when_effects_end() -> void:
 		finished.emit()
 
 func _escaped(enemy: Dictionary) -> void:
-	var damage := Balance.Content.enemy(enemy.kind, enemy.get("boss", false)).escape_damage()
+	var damage := int(Balance.tuned_value("bosses" if enemy.get("boss", false) else "enemies", enemy.kind, "escape_damage", game.tuning))
 	health = maxi(0, health - damage)
 
 func editable() -> bool:
@@ -130,10 +140,11 @@ func editable() -> bool:
 func can_author() -> bool:
 	return Balance.Content.catalog().get_node("level/campaign/" + mode).rule("developer_controls", false)
 
-func apply_configuration(overrides: Dictionary) -> bool:
+func apply_configuration(overrides: Dictionary, removed_wave: int = -1) -> bool:
 	if not can_author() or not editable() or not Configuration.valid_level(mission.index, overrides): return false
 	var next := Configuration.resolve(mission.index, overrides)
-	if phase == "wave" and next.waves[wave].size() < mission.waves[wave].size(): return false
+	# Live content-rule edits may still update stats, but wave composition is locked.
+	if phase == "wave" and next.waves != mission.waves: return false
 	# Already spawned enemies keep their health/effects. Only outstanding group members change.
 	if phase == "wave":
 		var pending: Array[Dictionary] = []
@@ -147,11 +158,16 @@ func apply_configuration(overrides: Dictionary) -> bool:
 			game.data.balance = maxf(0.0, game.data.balance + next.gold - mission.gold)
 			health = int(next.flame)
 	mission = next
+	if removed_wave >= 0 and removed_wave < wave: wave -= 1
+	wave = mini(wave, mission.waves.size())
+	if phase == "planning" and wave == mission.waves.size():
+		phase = "victory"
+		finish_pending = true
 	game.combat.authored_roads = mission.routes
 	game.economy.placement_roads = mission.routes
 	game.economy.placement_bounds = preload("res://scripts/content/nodes/ground_placement.gd").campaign_bounds(mission)
 	rules = overrides.duplicate(true)
-	game.data.settings.developer_balance = (mission.wave_rules[wave].tuning if phase == "wave" else mission.tuning).duplicate(true)
+	game.apply_balance((mission.wave_rules[wave].tuning if phase == "wave" else mission.tuning).duplicate(true))
 	changed.emit()
 	return true
 

@@ -150,6 +150,7 @@ func _has_point(point: Vector2) -> bool:
 	return Rect2(Vector2.ZERO, size).has_point(point)
 
 func open_action(action: String, branch: String = "") -> void:
+	if action.begins_with("equipment"): return
 	app.field.selected_tower_range_visible = true
 	if dismissal: dismissal.kill()
 	dismissing = false
@@ -168,7 +169,7 @@ func open_action(action: String, branch: String = "") -> void:
 		branch_cards = null
 	identity_card.show()
 	var id: String = app.field.selected_tower
-	if not action in ["info", "preview", "upgrade", "sell", "move", "target", "equipment"] or not app.game.data.towers.has(id):
+	if not action in ["info", "preview", "upgrade", "sell", "move", "target"] or not app.game.data.towers.has(id):
 		return
 	opener = get_viewport().gui_get_focus_owner()
 	revision += 1
@@ -182,7 +183,10 @@ func open_action(action: String, branch: String = "") -> void:
 	identity_card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER if action == "info" else HORIZONTAL_ALIGNMENT_LEFT
 	portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	level_holder.reparent(identity if action == "info" else layout)
+	if action == "info":
+		level_holder.reparent(identity)
+	else:
+		level_holder.reparent(layout)
 	if action == "info": identity.move_child(level_holder, 0)
 	level_holder.visible = action == "info"
 	identity_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 8) if action == "info" else UI.surface(UI.PANEL, 0, 0))
@@ -397,6 +401,7 @@ func management_button(action: String, label: String, callback: Callable) -> But
 	return button
 
 func configure_management_button(button: Button, action: String, label: String) -> void:
+	button.disabled = action == "equipment"
 	button.custom_minimum_size = Vector2(48, 48)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -496,8 +501,8 @@ func fit_dialog() -> void:
 	if not visible or dismissing:
 		return
 	if mode == "info":
-		var safe := UI.safe_rect(app).grow(-12)
-		card.size.x = minf(520.0, safe.size.x)
+		var info_safe := UI.safe_rect(app).grow(-12)
+		card.size.x = minf(520.0, info_safe.size.x)
 		heading.set_meta("fitted_heading_max", 18)
 		heading.set_meta("fitted_heading_min", 14)
 		UI.fit_heading(heading)
@@ -505,10 +510,10 @@ func fit_dialog() -> void:
 		scroll.custom_minimum_size.y = 0
 		card.size.y = 0
 		# Preserve the compact level/cards/actions row inside narrow portrait safe areas.
-		var fitted_scale := minf(1.0, safe.size.x / card.size.x)
+		var fitted_scale := minf(1.0, info_safe.size.x / card.size.x)
 		card.scale = Vector2.ONE * fitted_scale
-		var bottom := minf(safe.end.y, app.field.get_global_rect().end.y - 8)
-		card.position = Vector2(safe.position.x + (safe.size.x - card.size.x * fitted_scale) * 0.5, maxf(safe.position.y, bottom - card.size.y * fitted_scale))
+		var bottom := minf(info_safe.end.y, app.field.get_global_rect().end.y - 8)
+		card.position = Vector2(info_safe.position.x + (info_safe.size.x - card.size.x * fitted_scale) * 0.5, maxf(info_safe.position.y, bottom - card.size.y * fitted_scale))
 		return
 	if mode == "preview":
 		# Stat cards use the modal's safe area, with navigation and purchase pinned.
@@ -639,7 +644,6 @@ func commit(opened_revision: int) -> void:
 			dismiss(false)
 			app.panels.close_sheet()
 			app.persist()
-			app.collection_effect(result.total)
 	elif mode == "move":
 		refresh()
 		if not visible or confirm.disabled:

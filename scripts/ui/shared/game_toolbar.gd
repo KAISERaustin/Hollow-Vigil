@@ -1,5 +1,5 @@
 extends HBoxContainer
-## Shared gameplay control geometry for Campaign and Infinite.
+## Shared gameplay control geometry for Campaign.
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const SPEEDS := [1.0, 2.0, 4.0]
 var pause_button: Button
@@ -45,12 +45,6 @@ func append_actions(actions: Array[Control]) -> void:
 		control.custom_minimum_size = Vector2.ONE * UI.TARGET
 	for action in actions:
 		add_child(action)
-
-func update_controls(paused: bool, speed: float) -> void:
-	pause_button.set_meta("paused", paused)
-	pause_button.accessibility_name = "Resume game" if paused else "Pause game"
-	pause_button.queue_redraw()
-	update_speed_button(speed_button, speed)
 
 static func next_speed(speed: float) -> float:
 	return SPEEDS[(SPEEDS.find(speed) + 1) % SPEEDS.size()]

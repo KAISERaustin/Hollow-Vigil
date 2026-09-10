@@ -62,6 +62,12 @@ const TUNING_FIELDS := {
 		"curse_threshold": {"label": "Doomstone stacks to suppress regrowth", "suffix": " stacks", "min": 0.0, "max": 100.0, "step": 1.0, "integer": true}
 	},
 	"rifts": {
+		"electric_resistance": {"label": "Electric resistance", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
+		"ice_resistance": {"label": "Slow resistance", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
+		"poison_resistance": {"label": "Poison resistance", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
+		"push_resistance": {"label": "Knockback resistance", "suffix": "%", "min": 0.0, "max": 100.0, "step": 1.0},
+		"armor_percent": {"label": "Enemy armor (damage reduction %)", "suffix": "%", "min": 0.0, "max": 100.0, "step": 0.25},
+		"health_regen_percent": {"label": "Enemy health restored (% per second)", "suffix": "% / s", "min": 0.0, "max": 100.0, "step": 0.25},
 		"strength": {"label": "Effect strength", "suffix": "%", "min": 0.0, "max": 100.0, "step": 0.25}
 	},
 	"enemies": {
@@ -71,6 +77,7 @@ const TUNING_FIELDS := {
 		"payout": {"label": "Gold per defeat", "suffix": " gold", "min": 0.0, "max": 10000.0, "step": 1.0}
 	},
 	"towers": {
+		"aura_damage_percent": {"label": "Nearby tower damage bonus", "suffix": "%", "min": 0, "max": 100, "step": 1},
 		"pierce_count": {"label": "Victims per pass", "suffix": "", "min": 1, "max": 50, "step": 1,"integer":true},
 		"pierce_loss": {"label": "Damage lost per victim", "suffix": "×", "min": 0, "max": 1, "step": 0.05},
 		"pierce_floor": {"label": "Minimum pierce damage", "suffix": "×", "min": 0, "max": 1, "step": 0.05},

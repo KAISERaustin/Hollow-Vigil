@@ -47,20 +47,20 @@ func run() -> void:
 	if OS.get_name() in ["macOS", "Linux"]:
 		check(FileAccess.get_unix_permissions(path) == (FileAccess.UNIX_READ_OWNER | FileAccess.UNIX_WRITE_OWNER), "Desktop credential file is readable and writable only by owner")
 	var returning := service()
-	returning.responses = [response(), {"ok": true, "code": 200, "data": []}]
+	returning.responses = [response()]
 	returning.enabled = true
 	var original: Dictionary = returning.game.data.duplicate(true)
 	root.add_child(returning)
 	await process_frame
 	await process_frame
 	check(returning.signed_in() and returning.player_id == PLAYER and returning.email == "fixture@example.invalid" and returning.display_name == "Returning player", "Startup restores verified account identity and profile")
-	check(returning.requests.size() == 2 and returning.requests[0].path.contains("refresh_token") and returning.requests[1].path.ends_with("list_saves"), "Startup refreshes credentials and only lists backups")
+	check(returning.requests.size() == 1 and returning.requests[0].path.contains("refresh_token"), "Startup restores account credentials")
 	check(store.read_session(PROJECT) == "rotated-token", "Rotated refresh token replaces saved credential")
 	check(returning.game.data == original, "Restoration does not change or upload gameplay")
 	var saved := JSON.parse_string(JSON.parse_string(FileAccess.get_file_as_string(path)).payload) as Dictionary
 	check(saved.size() == 3 and saved.has("refresh_token") and not saved.has("access_token") and not saved.has("player_id"), "Persistence contains only version, service and refresh credential")
 	var encoded := preload("res://scripts/persistence/stat_configuration.gd").encode({}, "Fixture", "")
-	check(not encoded.contains("refresh_token") and not JSON.stringify(returning.codec.encode(returning.game.snapshot(1000), Service.Codec.uuid(), false)).contains("refresh_token"), "Configuration and world exports exclude session credentials")
+	check(not encoded.contains("refresh_token") and not JSON.stringify(returning.game.snapshot(1000)).contains("refresh_token"), "Configuration and gameplay data exclude session credentials")
 	var progress := Progress.new()
 	progress.path = path + ".campaign"
 	progress.restore_completed_levels(10)

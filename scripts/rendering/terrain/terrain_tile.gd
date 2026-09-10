@@ -21,11 +21,6 @@ func configure(data: Dictionary, seed_value: int, authored: Dictionary = {}) -> 
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pads = authored.get("pads", VigilWorld.PADS)
 	render_roads = authored.get("render_roads", true)
-	for side in range(4) if authored.is_empty() else []:
-		var points := PackedVector2Array()
-		for point in VigilWorld.spoke(region, side):
-			points.append(point - world_center)
-		roads.append(points)
 	for route in authored.get("roads", []):
 		var points := PackedVector2Array()
 		for point in route:

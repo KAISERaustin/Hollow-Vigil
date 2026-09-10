@@ -9,7 +9,7 @@ const GROUPS = preload("res://scripts/content/catalogs/build_groups.gd")
 const STAT_GROUPS := ["enemies", "bosses", "towers", "gear", "rifts"]
 
 static func groups(game_type: String) -> Array:
-	return Balance.Content.catalog().children("build_contents").filter(func(node): return node.rule("export_game_type", node.rule("game_type")) in ["both", game_type])
+	return Balance.Content.catalog().children("build_contents").filter(func(node): return node.id.get_slice("/", 1) not in ["gear", "rifts"] and node.rule("export_game_type", node.rule("game_type")) in ["both", game_type])
 
 static func all_contents(game_type: String, option: String = "") -> Dictionary:
 	var selected := {}
@@ -51,7 +51,6 @@ static func summary(value: Dictionary) -> String:
 	return "\n".join(items)
 
 static func scope_label(value: Dictionary) -> String:
-	if value.game_type == "infinite": return "Infinite"
 	return "Whole campaign" if value.scope == "all" else "Level %d · %s" % [int(value.level) + 1, Configuration.Catalog.level(int(value.level)).name]
 
 static func has_stats(value: Dictionary) -> bool:
@@ -60,16 +59,16 @@ static func has_stats(value: Dictionary) -> bool:
 	return false
 
 static func compatible(value: Dictionary, target: String) -> bool:
-	return value.get("game_type") == target or has_stats(value)
+	return target == "campaign" and value.get("game_type") == "campaign"
 
 static func dependencies(value: Dictionary) -> String:
 	var notes: PackedStringArray = []
 	if value.contents.get("layout", false):
-		notes.append("Layout includes compatible equipment and its " + ("placement tiles and connecting paths." if value.game_type == "infinite" else "authored level ground."))
+		notes.append("Layout includes compatible equipment and its " + "authored level ground.")
 	if value.contents.get("timing", false) != value.contents.get("composition", false):
 		notes.append("Wave groups must match the original group count. Select both wave groups if you added or removed spawn groups.")
 	if value.game_type == "campaign" and has_stats(value):
-		notes.append("Level defaults can travel between game types. Wave-specific stat changes stay in Campaign.")
+		notes.append("Level defaults can be reused across levels. Wave-specific stat changes stay with their waves.")
 	return "\n".join(notes)
 
 static func clean_loadout(data: Dictionary) -> Dictionary:
@@ -80,30 +79,7 @@ static func clean_loadout(data: Dictionary) -> Dictionary:
 		tower.erase("rebuild_remaining")
 	return result
 
-static func clean_regions(data: Dictionary, all_tiles: bool) -> Dictionary:
-	var wanted := {"0,0": true}
-	if all_tiles:
-		for key in data.regions: wanted[key] = true
-	else:
-		for tower in data.towers.values():
-			var key: String = tower.region
-			while not wanted.has(key) and data.regions.has(key):
-				wanted[key] = true
-				key = data.regions[key].parent
-	var result := {}
-	for key in wanted:
-		var region: Dictionary = data.regions[key].duplicate(true)
-		region.history = {}
-		region.history_time = 0.0
-		region.timer = 0.0
-		region.erase("boss")
-		if not all_tiles:
-			region.unlocks = []
-			region.traffic = 0
-		result[key] = region
-	return result
-
-static func capture(game_type: String, source: VigilState, levels: Dictionary, scope: String, level: int, contents: Dictionary, title: String, description: String) -> Dictionary:
+static func capture(game_type: String, _source: VigilState, levels: Dictionary, scope: String, level: int, contents: Dictionary, title: String, description: String) -> Dictionary:
 	# Export availability is separate from validation so old builds stay readable.
 	contents = contents.duplicate(true)
 	var available := all_contents(game_type)
@@ -114,31 +90,28 @@ static func capture(game_type: String, source: VigilState, levels: Dictionary, s
 		"contents": contents.duplicate(true), "data": {}}
 	for key in value.contents.keys():
 		if (value.contents[key] is bool and not value.contents[key]) or (value.contents[key] is Array and value.contents[key].is_empty()): value.contents.erase(key)
-	if game_type == "infinite":
-		value.data.stats = selected_stats(source.tuning, contents)
-		if contents.get("resources", false): value.data.resources = {"gold": source.tuning.get("session", {}).get("start", {}).get("starting_gold", source.data.balance)}
-		if contents.get("layout", false): value.data.layout = clean_loadout(source.data)
-		if contents.get("terrain", false) or contents.get("layout", false):
-			value.data.map = {"seed": source.data.seed, "regions": clean_regions(source.data, contents.get("terrain", false))}
-	else:
-		value.data.levels = {}
-		for index in ([level] if scope == "level" else range(Configuration.Catalog.COUNT)):
-			var source_level: Dictionary = levels.get(str(index), {})
-			var mission := Configuration.resolve(index, source_level.get("overrides", {}))
-			var entry := {"stats": selected_stats(mission.tuning, contents), "waves": {}}
-			if contents.get("resources", false): entry.resources = {"gold": mission.gold, "flame": mission.flame}
-			if contents.get("layout", false) and source_level.has("loadout"): entry.layout = clean_loadout(source_level.loadout)
-			for wave in mission.waves.size():
-				var part := {"stats": selected_stats(mission.wave_rules[wave].tuning, contents)}
-				if contents.get("timing", false):
-					part.timing = []
-					for group in mission.waves[wave]: part.timing.append([group[1], group[3], group[4]])
-				if contents.get("composition", false):
-					part.composition = []
-					for group in mission.waves[wave]: part.composition.append([group[0], group[2]])
-				if contents.get("rewards", false): part.reward = mission.wave_rules[wave].reward
-				entry.waves[str(wave)] = part
-			value.data.levels[str(index)] = entry
+	value.data.levels = {}
+	for index in ([level] if scope == "level" else range(Configuration.Catalog.COUNT)):
+		var source_level: Dictionary = levels.get(str(index), {})
+		var mission := Configuration.resolve(index, source_level.get("overrides", {}))
+		var entry := {"stats": selected_stats(mission.tuning, contents), "waves": {}}
+		if contents.get("resources", false): entry.resources = {"gold": mission.gold, "flame": mission.flame}
+		if contents.get("layout", false) and source_level.has("loadout"): entry.layout = clean_loadout(source_level.loadout)
+		for wave in mission.waves.size():
+			var part := {"stats": selected_stats(mission.wave_rules[wave].tuning, contents)}
+			if contents.get("timing", false):
+				part.timing = []
+				for group in mission.waves[wave]: part.timing.append([group[1], group[3], group[4]])
+			if contents.get("composition", false):
+				part.composition = []
+				for group in mission.waves[wave]: part.composition.append([group[0], group[2]])
+			if contents.get("rewards", false):
+				part.reward = mission.wave_rules[wave].reward
+				if mission.waves[wave].any(func(group: Array): return group.size() == 6):
+					part.defeat_gold = []
+					for group in mission.waves[wave]: part.defeat_gold.append(group[5] if group.size() == 6 else null)
+			entry.waves[str(wave)] = part
+		value.data.levels[str(index)] = entry
 	return value if valid(value) else {}
 
 static func encode(value: Dictionary) -> String:
@@ -159,10 +132,10 @@ static func decode(code: String) -> Dictionary:
 	return value if value is Dictionary and valid(value) else {}
 
 static func valid(value: Dictionary) -> bool:
-	if value.size() != 7 or value.get("version") != 2 or value.get("game_type") not in ["campaign", "infinite"]: return false
+	if value.size() != 7 or value.get("version") != 2 or value.get("game_type") != "campaign": return false
 	if not Stats.valid({"version": 1, "setup": value.get("setup"), "tuning": {}}): return false
 	if value.get("scope") not in ["all", "level"] or not Configuration._number(value.get("level"), -1, Configuration.Catalog.COUNT - 1, true): return false
-	if (value.scope == "level") != (int(value.level) >= 0) or (value.game_type == "infinite" and value.scope != "all"): return false
+	if (value.scope == "level") != (int(value.level) >= 0): return false
 	if not value.get("contents") is Dictionary or value.contents.is_empty() or not value.get("data") is Dictionary: return false
 	for key in value.contents:
 		if not GROUPS.DEFINITIONS.has(key) or GROUPS.DEFINITIONS[key].get("game_type", value.game_type) != value.game_type: return false
@@ -175,10 +148,6 @@ static func valid(value: Dictionary) -> bool:
 				seen[kind] = true
 		elif selection != true: return false
 	var required_stats := _required_stats(value.contents)
-	if value.game_type == "infinite":
-		if not _valid_stats(value.data.get("stats"), value.contents, required_stats): return false
-		var composed := infinite_snapshot(value, {}, "creative")
-		return composed.get("ok", false)
 	if value.data.size() != 1 or not value.data.get("levels") is Dictionary: return false
 	if value.scope == "all" and value.data.levels.size() not in [Configuration.Catalog.LEGACY_COUNT, Configuration.Catalog.COUNT]: return false
 	var indices: Array = [int(value.level)] if value.scope == "level" else range(value.data.levels.size())
@@ -187,8 +156,8 @@ static func valid(value: Dictionary) -> bool:
 		var entry: Variant = value.data.levels.get(str(index))
 		if not entry is Dictionary or not _valid_stats(entry.get("stats"), value.contents, required_stats) or not entry.get("waves") is Dictionary: return false
 		var defaults := Configuration.Catalog.level(index)
-		if entry.waves.size() != defaults.waves.size(): return false
-		for wave in defaults.waves.size():
+		if not Configuration._number(entry.waves.size(), 1, 10000, true): return false
+		for wave in entry.waves.size():
 			var part: Variant = entry.waves.get(str(wave))
 			if not part is Dictionary or not _valid_stats(part.get("stats"), value.contents, required_stats): return false
 			if not _valid_wave_part(part, value.contents, defaults.roads.size()): return false
@@ -224,12 +193,16 @@ static func _valid_stats(tuning: Variant, contents: Dictionary, required: Dictio
 
 static func _valid_wave_part(part: Dictionary, contents: Dictionary, lanes: int) -> bool:
 	for key in part:
-		if key not in ["stats", "timing", "composition", "reward"]: return false
+		if key not in ["stats", "timing", "composition", "reward", "defeat_gold"]: return false
+	if part.has("defeat_gold"):
+		if not contents.get("rewards", false) or not part.defeat_gold is Array or part.defeat_gold.size() > 32: return false
+		for gold in part.defeat_gold:
+			if gold != null and not Configuration._number(gold, 0, Configuration.Fields.CONFIGURATION_FIELDS.reward.max): return false
 	if part.has("reward") != contents.get("rewards", false) or part.has("timing") != contents.get("timing", false) or part.has("composition") != contents.get("composition", false): return false
 	if part.has("reward") and not Configuration._number(part.reward, 0, Configuration.Fields.CONFIGURATION_FIELDS.reward.max): return false
 	for key in ["timing", "composition"]:
 		if not part.has(key): continue
-		if not part[key] is Array or part[key].is_empty() or part[key].size() > 32: return false
+		if not part[key] is Array or part[key].size() > 32: return false
 		for group in part[key]:
 			if not group is Array: return false
 			if key == "timing":
@@ -251,9 +224,13 @@ static func campaign_level(value: Dictionary, index: int) -> Dictionary:
 		if not entry.resources is Dictionary or entry.resources.size() != 2: return {"ok": false}
 		overrides.merge(entry.resources, true)
 	var defaults := Configuration.Catalog.level(index)
-	for wave in defaults.waves.size():
+	var full_waves: bool = value.contents.get("timing", false) and value.contents.get("composition", false)
+	if entry.waves.size() != defaults.waves.size() and not full_waves:
+		return {"ok": false, "dependency": true, "error": "Save both Wave timing and counts and Enemy types and entrances to preserve added or removed waves."}
+	if full_waves: overrides.wave_count = entry.waves.size()
+	for wave in entry.waves.size():
 		var part: Dictionary = entry.waves[str(wave)]
-		var spawn_groups: Array = defaults.waves[wave].duplicate(true)
+		var spawn_groups: Array = defaults.waves[wave].duplicate(true) if wave < defaults.waves.size() else []
 		if part.has("timing") and part.has("composition"):
 			if part.timing.size() != part.composition.size(): return {"ok": false}
 			spawn_groups = []
@@ -269,6 +246,12 @@ static func campaign_level(value: Dictionary, index: int) -> Dictionary:
 					spawn_groups[group][0] = part.composition[group][0]
 					spawn_groups[group][2] = part.composition[group][1]
 		var custom := {"tuning": part.stats.duplicate(true)}
+		if part.has("defeat_gold"):
+			if part.defeat_gold.size() != spawn_groups.size():
+				return {"ok": false, "dependency": true, "error": "Save both wave groups with gold rewards to preserve each enemy group's reward."}
+			for group in spawn_groups.size():
+				if part.defeat_gold[group] != null: spawn_groups[group].append(part.defeat_gold[group])
+			custom.groups = spawn_groups
 		if part.has("timing") or part.has("composition"): custom.groups = spawn_groups
 		if part.has("reward"): custom.reward = part.reward
 		overrides.waves[str(wave)] = custom
@@ -280,7 +263,6 @@ static func campaign_level(value: Dictionary, index: int) -> Dictionary:
 	return {"ok": LevelBuild.valid(level), "level": level}
 
 static func portable_stats(value: Dictionary, choices: Dictionary) -> Dictionary:
-	if value.game_type == "infinite": return {"ok": true, "tuning": value.data.stats.duplicate(true)}
 	var index := int(value.level)
 	if value.scope == "all":
 		if not choices.has("source_level"): return {"ok": false, "error": "Choose which level's starting stats to use."}
@@ -288,44 +270,11 @@ static func portable_stats(value: Dictionary, choices: Dictionary) -> Dictionary
 	if not value.data.levels.has(str(index)): return {"ok": false, "error": "Choose a level included in this build."}
 	return {"ok": true, "tuning": value.data.levels[str(index)].stats.duplicate(true)}
 
-static func infinite_snapshot(value: Dictionary, choices: Dictionary, mode: String) -> Dictionary:
-	var stats := portable_stats(value, choices)
-	if not stats.ok: return stats
-	var data: Dictionary = value.data if value.game_type == "infinite" else {}
-	for key in data:
-		if key not in ["stats", "resources", "layout", "map"]: return {"ok": false}
-	if value.game_type == "infinite":
-		if data.has("resources") != value.contents.get("resources", false) or data.has("layout") != value.contents.get("layout", false): return {"ok": false}
-		if data.has("map") != (value.contents.get("terrain", false) or value.contents.get("layout", false)): return {"ok": false}
-	var seed_value := 0
-	if data.has("map"):
-		if not data.map is Dictionary or data.map.size() != 2 or not Configuration._number(data.map.get("seed"), 0, 1e15, true) or not data.map.get("regions") is Dictionary: return {"ok": false}
-		seed_value = int(data.map.seed)
-	var game := VigilState.new(seed_value, mode, stats.tuning)
-	var snapshot := game.data.duplicate(true)
-	snapshot.setup = value.setup.duplicate(true)
-	if data.has("resources"):
-		if not data.resources is Dictionary or data.resources.size() != 1 or not Configuration._number(data.resources.get("gold")): return {"ok": false}
-		snapshot.balance = data.resources.gold
-	if data.has("map"):
-		snapshot.regions = data.map.regions.duplicate(true)
-		snapshot.first_property_required = snapshot.regions.size() <= 1
-	if data.has("layout"):
-		if not data.layout is Dictionary or data.layout.size() != 3 or not data.layout.has_all(["towers", "next_tower", "relics"]): return {"ok": false}
-		snapshot.merge(data.layout.duplicate(true), true)
-	return {"ok": VigilSaveStore.new().valid_data(snapshot), "snapshot": snapshot}
-
-static func compose_campaign(value: Dictionary, choices: Dictionary) -> Dictionary:
+static func compose_campaign(value: Dictionary, _choices: Dictionary) -> Dictionary:
 	var levels := {}
-	if value.game_type == "campaign":
-		for key in value.data.levels:
-			var composed := campaign_level(value, int(key))
-			if not composed.ok: return composed
-			levels[key] = {"overrides": composed.level.overrides}
-			if composed.level.has("loadout"): levels[key].loadout = composed.level.loadout
-	else:
-		if choices.get("apply_to", "") not in ["all", "level"]: return {"ok": false, "error": "Choose Whole campaign or One level for these stats."}
-		if choices.apply_to == "level" and not Configuration._number(choices.get("target_level"), 0, Configuration.Catalog.COUNT - 1, true): return {"ok": false, "error": "Choose the level that will use these stats."}
-		for index in ([int(choices.target_level)] if choices.apply_to == "level" else range(Configuration.Catalog.COUNT)):
-			levels[str(index)] = {"overrides": {"tuning": value.data.stats.duplicate(true)}}
+	for key in value.data.levels:
+		var composed := campaign_level(value, int(key))
+		if not composed.ok: return composed
+		levels[key] = {"overrides": composed.level.overrides}
+		if composed.level.has("loadout"): levels[key].loadout = composed.level.loadout
 	return {"ok": true, "levels": levels}

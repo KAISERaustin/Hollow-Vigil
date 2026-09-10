@@ -1,4 +1,4 @@
-extends "res://scripts/content/nodes/content_node.gd"
+extends "res://scripts/content/nodes/stats_node.gd"
 
 ## One constructor resets reused records for all ordinary enemy subtypes.
 func create_into(record: Dictionary, serial: int, source: String, route: Array[Vector2], style: String, tuning: Dictionary = {}, health_multiplier: float = 1.0) -> Dictionary:

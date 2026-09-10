@@ -4,6 +4,7 @@ extends RefCounted
 ## One discoverable tree for every gameplay content family. Stable IDs are
 ## namespaced (tower/heavy and enemy/heavy are intentionally different nodes).
 const ContentNode = preload("res://scripts/content/nodes/content_node.gd")
+const StatsNode = preload("res://scripts/content/nodes/stats_node.gd")
 const TowerNode = preload("res://scripts/content/nodes/tower_node.gd")
 const EnemyNode = preload("res://scripts/content/nodes/enemy_node.gd")
 const BossNode = preload("res://scripts/content/nodes/boss_node.gd")
@@ -58,6 +59,7 @@ func register_node(entry: ContentNode, category: String = "", kind: String = "")
 		if not _definitions.has(category):
 			_definitions[category] = {}
 		_definitions[category][kind] = entry
+		StatsNode.Stats.register_baseline(category, kind, entry.attributes())
 		_tables.erase(category)
 	return true
 
@@ -134,13 +136,22 @@ func _add(entry: ContentNode, category: String = "", kind: String = "") -> Conte
 
 func _populate() -> void:
 	var root := _add(ContentNode.new("content"))
-	var entity := _add(ContentNode.new("entity", root))
+	var stats_root := _add(StatsNode.new("stats", root))
+	var entity := _add(StatsNode.new("entity", stats_root))
+	for category in StatsNode.Stats.CATEGORIES:
+		for field in StatsNode.Stats.schema(category):
+			if not StatsNode.Stats.control(field):
+				_add(ContentNode.new("stats/" + category + "/" + field, stats_root, StatsNode.Stats.schema(category)[field]), "stats", category + "/" + field)
 	_add(TowerNode.new("tower", entity, {"targets": 1}, {"placement": "ground", "equipment_slots": ["relic"], "target_modes": ["first", "last", "most_hp"], "max_level": 4, "tuning_category": "towers"},
 		{"level": 1, "earnings": 0.0, "cooldown": 0.0, "angle": 0.0, "rebuild_remaining": 0.0, "target_mode": "first"}))
 	_add(EnemyNode.new("enemy", entity, {}, {"tuning_category": "enemies", "escape_damage": 1, "movement": "road", "authored_paths": true, "targetable": true}, {"segment": 1, "dead": false}))
 	_add(BossNode.new("boss", get_node("enemy"), {}, {"tuning_category": "bosses", "escape_damage": 20, "movement": "patrol"}, {"boss": true, "path": [], "previous": "", "steps": 0, "toll_delayed": false}))
 	_add(GearNode.new("gear", entity, {}, {"tuning_category": "gear", "slot": "relic", "equipped_on": "tower"}, {"attacks": 0, "target": -1, "last": -100.0, "components": {}}))
 	_add(AttributeNode.new("attribute", root))
+	for capability in StatsNode.Stats.Capabilities.ENEMY:
+		_add(preload("res://scripts/content/nodes/enemy_capability.gd").new("enemy_ability/" + capability, get_node("attribute"), {}, {"behavior": capability}), "enemy_abilities", capability)
+	for field in StatsNode.Stats.Capabilities.RESISTANCES:
+		_add(preload("res://scripts/content/nodes/resistance_node.gd").new("resistance/" + field, get_node("attribute"), {}, {"stat": field}), "resistances", field)
 	for kind in Attributes.TYPES:
 		_add(Attributes.TYPES[kind].new("attribute/" + kind, get_node("attribute"), {}, Attributes.RULES.get(kind, {})), "attributes", kind)
 	_add(ProjectileNode.new("projectile", root, {}, {}, {"kind": "shot"}))
@@ -165,7 +176,7 @@ func _populate_towers() -> void:
 			for slot in Towers.ATTACHMENTS.get(branch, {}):
 				branch_attachments[branch][slot] = find("attributes", Towers.ATTACHMENTS[branch][slot])
 		var tower_type := TowerNode.new("tower/" + kind, get_node("tower"), Towers.TOWERS[kind],
-			{"kind": kind, "components": attachments, "branch_attachments": branch_attachments, "upgrade_sound": Towers.UPGRADE_SOUNDS.get(kind, ""), "upgrades": Towers.TOWER_UPGRADES[kind], "branches": Towers.BRANCHES[kind], "abilities": Towers.ABILITIES, "multipliers": Towers.BRANCH_STAT_MULTIPLIERS})
+			{"kind": kind, "damage_type": Towers.DAMAGE_TYPES.get(kind, "physical"), "components": attachments, "branch_attachments": branch_attachments, "upgrade_sound": Towers.UPGRADE_SOUNDS.get(kind, ""), "upgrades": Towers.TOWER_UPGRADES[kind], "branches": Towers.BRANCHES[kind], "abilities": Towers.ABILITIES, "multipliers": Towers.BRANCH_STAT_MULTIPLIERS})
 		_add(tower_type, "towers", kind)
 		_add(ProjectileNode.new("projectile/" + kind, get_node("projectile"), Towers.PROJECTILES[kind], {"kind": kind}), "projectiles", kind)
 		var previous: ContentNode = tower_type
@@ -202,6 +213,7 @@ func _populate_world(root: ContentNode) -> void:
 	var world := _add(ContentNode.new("world", root))
 	var presentation := _add(ContentNode.new("presentation", root))
 	var portal_visual := _add(PortalVisualNode.new("presentation/portal", presentation, {}, {"rate_parts": PortalVisuals.RATE_PARTS, "max_level": 12}))
+	var portal_effects := _add(preload("res://scripts/content/nodes/attributes/portal_enemy_effects.gd").new("attribute/portal_enemy_effects", get_node("attribute")))
 	_add(RegionNode.new("region", world, {}, {}, World.REGION_DEFAULTS))
 	_add(PortalNode.new("portal", world, {}, {"tuning_category": "rifts", "exclusive": true, "allow_escorts": true}))
 	var socket := _add(ContentNode.new("socket", world, {}, {"occupants": ["tower"], "capacity": 1}))
@@ -212,23 +224,24 @@ func _populate_world(root: ContentNode) -> void:
 	for style in World.ALL_STYLES:
 		_add(RegionNode.new("region/" + style, get_node("region"), {}, {"kind": style, "portal": "portal/" + style, "boss": World.BIOME_BOSSES[style]}))
 		var config: Dictionary = World.PORTALS[style]
-		var attributes: Dictionary = World.RIFTS.get(style, {"name": config.name})
+		var attributes: Dictionary = World.RIFTS.get(style, {"name": config.name}).duplicate(true)
+		attributes.merge({"armor_percent": 0.0, "health_regen_percent": 0.0})
+		for field in preload("res://scripts/content/nodes/attributes/portal_enemy_effects.gd").RESISTANCES:
+			attributes[field] = 0.0
 		var rules: Dictionary = config.merged({"kind": style, "enemy_kinds": Actors.FAMILIES[style]})
 		var ornaments := {}
 		for kind in Actors.FAMILIES[style]:
 			ornaments[kind] = PortalVisuals.ORNAMENTS[kind]
 		rules["components"] = [{"slot": "appearance", "component": portal_visual, "config": {"order": Actors.FAMILIES[style], "ornaments": ornaments, "mounts": PortalVisuals.PIT_MOUNTS if style == "castle_ruin" else PortalVisuals.MOUNTS}}]
-		_add(PortalNode.new("portal/" + style, get_node("portal"), attributes, rules), "rifts" if World.RIFTS.has(style) else "portals", style)
+		rules.components.append({"slot": "enemy_effects", "component": portal_effects, "config": {}})
+		_add(PortalNode.new("portal/" + style, get_node("portal"), attributes, rules), "rifts", style)
 
 func _populate_levels(root: ContentNode) -> void:
 	var level_root := _add(LevelNode.new("level", root))
-	var open_world := _add(LevelNode.new("level/open_world", level_root, {}, {"finite_waves": false, "expansion": true, "starter_radius": 2, "starter_style": "forest"}))
-	_add(LevelNode.new("level/session", open_world, Levels.SESSION, {"kind": "start", "tuning_category": "session"}), "session", "start")
-	_add(LevelNode.new("level/creative", open_world, {}, {"developer_controls": true}))
-	_add(LevelNode.new("level/survival", open_world, {}, {"developer_controls": false}))
 	var campaign := _add(LevelNode.new("level/campaign", level_root, {}, {"finite_waves": true, "expansion": false, "max_health": Levels.MAX_HEALTH, "components": [{"slot": "setup_refund", "component": get_node("attribute/investment_refund"), "config": {"ratio": 1.0}}]}))
+	_add(LevelNode.new("level/session", campaign, Levels.SESSION, {"kind": "start", "tuning_category": "session"}), "session", "start")
 	for mode in ["creative", "survival"]:
-		_add(LevelNode.new("level/campaign/" + mode, campaign, {}, {"developer_controls": get_node("level/" + mode).rule("developer_controls", false)}))
+		_add(LevelNode.new("level/campaign/" + mode, campaign, {}, {"developer_controls": mode == "creative"}))
 	var wave_root := _add(WaveNode.new("wave", root))
 	var landscape := _add(MapLandscapeNode.new("presentation/map_landscape", root))
 	for chapter in range(Levels.CHAPTERS.size()):
@@ -240,7 +253,7 @@ func _populate_levels(root: ContentNode) -> void:
 		attributes.chapter = int(index / 5.0)
 		attributes.style = Levels.CHAPTERS[int(index / 5.0)].style
 		attributes.reward = 35 + index * 4
-		attributes.tuning = {"bosses": {"warden": {"hp": 1800.0, "shield": 300.0, "regen_period": 12.0}}} if index == 4 else {}
+		attributes.tuning = {}
 		_add(LevelNode.new("level/" + str(index), get_node("level/chapter/" + str(int(index / 5.0))), attributes), "levels", str(index))
 		for wave_index in range(attributes.waves.size()):
 			_add(WaveNode.new("wave/" + str(index) + "/" + str(wave_index), wave_root, {"groups": attributes.waves[wave_index]}, {"level": index, "wave": wave_index}))

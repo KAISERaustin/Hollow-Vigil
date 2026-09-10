@@ -9,10 +9,6 @@ const ConstructionEffect = preload("res://scripts/rendering/effects/construction
 
 signal picked(region: String, pad: int)
 signal relocation_picked(region: String, pad: int)
-signal expansion_picked(region: String)
-signal entrance_picked(region: String)
-signal earnings_picked(tower_id: String)
-signal core_picked
 signal empty_picked
 signal camera_changed
 signal tower_selection_changed
@@ -51,19 +47,9 @@ var previous := Vector2.ZERO
 var touches := {}
 var gesture_consumed := false
 var font := ThemeDB.fallback_font
-var terrain_layer: VigilTerrainLayer
-var frontier_cache: Dictionary = {}
-var frontier_signature: Array = []
 
-func expansion_frontier() -> Dictionary:
-	var signature := [state, state.terrain_revision, state.data.seed, state.data.regions.size()]
-	if frontier_signature != signature:
-		frontier_signature = signature
-		frontier_cache = VigilWorld.frontier(state.data.regions, int(state.data.seed))
-	return frontier_cache
 const GOLD := VigilTerrainArt.GOLD
 const TEXT := VigilTerrainArt.PAPER
-const EXPANSION_HIT_RADIUS := 38.0
 
 func _ready() -> void:
 	bind_upgrade_effects()
@@ -78,9 +64,6 @@ func _ready() -> void:
 	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	backdrop.show_behind_parent = true
 	add_child(backdrop)
-	terrain_layer = VigilTerrainLayer.new()
-	terrain_layer.show_behind_parent = true
-	add_child(terrain_layer)
 
 func background_color() -> Color:
 	return VigilTerrainArt.BACKDROP
@@ -294,62 +277,12 @@ func tap(pos: Vector2) -> void:
 		var destination := VigilWorld.ground_location(world(pos))
 		relocation_picked.emit(destination.region, destination.pad)
 		return
-	for t in state.data.towers.values():
-		if earnings_badge_visible(t) and earnings_rect(t).has_point(pos):
-			earnings_picked.emit(t.id)
-			return
 	var point := world(pos)
 	for tower in state.data.towers.values():
 		if point.distance_to(VigilWorld.pad_position(tower.region, tower.pad)) < maxf(26.0, 25.0 / zoom):
 			picked.emit(tower.region, tower.pad)
 			return
-	if core_is_visible() and pos.distance_to(screen(VigilWorld.CORE_POSITION)) <= maxf(36.0 * zoom, 22.0):
-		core_picked.emit()
-		return
-	# Prefer the closest visible control if a densely surrounded frontier crowds
-	# the touch padding at minimum zoom. A button's center always belongs to it.
-	var nearest := ""
-	var is_entrance := false
-	var distance := INF
-	for id in state.data.regions:
-		if not VigilWorld.has_rift(id, state.data.regions, int(state.data.seed)):
-			continue
-		var gate: Vector2 = screen(state.paths[id][0])
-		var candidate := pos.distance_to(gate) / entrance_hit_radius()
-		if candidate < 1.0 and candidate < distance:
-			nearest = id
-			is_entrance = true
-			distance = candidate
-	for id in VigilWorld.frontier(state.data.regions, int(state.data.seed)):
-		var c := screen(expansion_marker(id))
-		var candidate := pos.distance_to(c) / (EXPANSION_HIT_RADIUS * zoom)
-		if candidate < 1.0 and candidate < distance:
-			nearest = id
-			is_entrance = false
-			distance = candidate
-	if nearest != "":
-		if is_entrance:
-			entrance_picked.emit(nearest)
-		else:
-			expansion_picked.emit(nearest)
-		return
-	# Invisible collection padding must not steal taps from map controls.
-	for t in state.data.towers.values():
-		if earnings_badge_visible(t) and earnings_rect(t).grow(9.0 * zoom).has_point(pos):
-			earnings_picked.emit(t.id)
-			return
 	empty_picked.emit()
-
-func entrance_scale() -> float:
-	# Keep the artwork the same size relative to its tile at every zoom.
-	return zoom
-
-func entrance_hit_radius() -> float:
-	return 32.0 * entrance_scale()
-
-func expansion_marker(id: String) -> Vector2:
-	# Anchor both drawing and hit testing to the future territory's center.
-	return VigilWorld.center(id)
 
 func earnings_badge_visible(_tower: Dictionary) -> bool:
 	# Tower earnings are collected through the HUD; overhead badges stay hidden.
@@ -360,14 +293,6 @@ func earnings_local_rect(t: Dictionary) -> Rect2:
 	var text := "+" + Balance.money(t.earnings)
 	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 18.0
 	return Rect2(Vector2(-width / 2.0, -68), Vector2(width, 23))
-
-func earnings_rect(t: Dictionary) -> Rect2:
-	var rect := earnings_local_rect(t)
-	var anchor := screen(VigilWorld.pad_position(t.region, t.pad))
-	return Rect2(anchor + rect.position * zoom, rect.size * zoom)
-
-func core_is_visible() -> bool:
-	return Rect2(Vector2.ZERO, size).has_point(screen(VigilWorld.CORE_POSITION))
 
 func update_view(_delta: float, tick_remainder: float = 0.0) -> void:
 	effect_offset = tick_remainder
@@ -468,47 +393,7 @@ func _draw() -> void:
 
 
 func draw_map() -> void:
-	if terrain_layer != null:
-		terrain_layer.synchronize(state, camera, zoom, size)
-	var visible_rect := Rect2(Vector2(-100, -100), size + Vector2(200, 200))
-	var world_view := Rect2(world(visible_rect.position), visible_rect.size / zoom)
-	var visible_regions := RegionQuery.in_view(state.data.regions, world_view, Balance.TILE * 0.5)
-	for id in visible_regions:
-		var c := screen(VigilWorld.center(id))
-		if not visible_rect.intersects(Rect2(c - Vector2.ONE * 150.0 * zoom, Vector2.ONE * 300.0 * zoom)):
-			continue
-		draw_region(state.data.regions[id])
-	# Draw portals after every tile, so newly purchased terrain cannot cover them.
-	for id in visible_regions:
-		if VigilWorld.has_rift(id, state.data.regions, int(state.data.seed)) and visible_rect.has_point(screen(state.paths[id][0])):
-			draw_entrance(id)
-	for id in RegionQuery.in_view(expansion_frontier(), world_view):
-		var c := screen(expansion_marker(id))
-		if not visible_rect.has_point(c):
-			continue
-		draw_set_transform(c, 0, Vector2.ONE * zoom)
-		VigilTerrainArt.disk(self, Vector2.ZERO, 24.0, GOLD if show_expansion else VigilTerrainArt.PAPER, 4.0)
-		draw_line(-Vector2(7, 0), Vector2(7, 0), Color.BLACK, 3.0, true)
-		draw_line(-Vector2(0, 7), Vector2(0, 7), Color.BLACK, 3.0, true)
-		centered(Balance.money(Balance.expansion_cost(state.data.regions.size())) + " g", Vector2(0, 43), 13, GOLD)
-		draw_set_transform(Vector2.ZERO)
-	draw_core()
-
-
-func draw_region(_region: Dictionary) -> void:
 	pass
-
-func draw_entrance(id: String) -> void:
-	var gate := screen(VigilWorld.center(id))
-	var z := entrance_scale()
-	var region: Dictionary = state.data.regions[id]
-	preload("res://scripts/rendering/actors/rift_art.gd").draw(self, region.get("style", "forest"), gate, z, int(region.get("traffic", 0)), region.get("unlocks", []))
-
-func draw_core() -> void:
-	var gate := screen(VigilWorld.CORE_POSITION)
-	if not Rect2(Vector2.ZERO, size).grow(60.0 * zoom).has_point(gate):
-		return
-	preload("res://scripts/rendering/actors/rift_art.gd").draw_core(self, gate, zoom)
 
 var actor_images := preload("res://scripts/rendering/actors/actor_images.gd").new()
 
@@ -518,6 +403,8 @@ func draw_tower(t: Dictionary) -> void:
 	var p := screen(VigilWorld.pad_position(t.region, t.pad))
 	var z := zoom
 	actor_images.tower(self, t.kind, p, z, int(t.level), t.get("branch", ""), float(t.angle))
+	if t.get("rebuild_remaining", 0.0) <= 0.0 and state.combat.tower_aura_bonus(t) > 0.0:
+		preload("res://scripts/rendering/effects/hex_art.gd").base(self, p, z, state.combat.simulation_time)
 	var relic_kind := preload("res://scripts/gameplay/progression/relics.gd").kind(state.data, t)
 	if relic_kind != "":
 		preload("res://scripts/rendering/actors/relic_art.gd").draw(self, relic_kind, p + Vector2(20, -17) * z, z * 0.8)

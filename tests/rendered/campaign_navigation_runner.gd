@@ -9,7 +9,8 @@ func run() -> void:
 	app.set_process(false)
 	app.private_backups.enabled = false
 	app.audio.set_suspended(true)
-	check(app.show_save_slots(), "Open isolated slots: " + app.game.save_error)
+	app.slot_menu.show_slots()
+	check(app.slot_menu.visible, "Open isolated Campaign slots")
 	app.slot_menu.campaign_slots.base_path = app.game.save_path + ".campaign"
 	for mode in ["creative", "survival"]:
 		for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
@@ -66,6 +67,21 @@ func run() -> void:
 			check(campaign.page == "briefing", "Reopening level never skips information")
 			await press(named("BeginCampaignMission"))
 			check(campaign.run.game.data.towers.is_empty() and campaign.run.wave == 0, "Map round trip starts fresh")
+			campaign.run.phase = "defeat"
+			campaign.show_result()
+			for button in campaign.dialog_body.find_children("*", "Button", true, false):
+				if button.text == "Restart level":
+					await press(button)
+					break
+			check(campaign.page == "briefing" and not campaign.dialog.visible, "Restart opens level setup")
+			check(campaign.run.game.data.towers.is_empty() and campaign.run.wave == 0, "Restart setup clears the attempt")
+			check(campaign.run.health == campaign.run.mission.flame and campaign.run.game.data.balance == campaign.run.mission.gold, "Restart setup restores starting values")
+			await capture("restart-setup-" + mode)
+			await press(named("PreviewCampaignWaves"))
+			check(campaign.dialog.visible, "Restart setup offers wave preview")
+			await back()
+			await press(named("BeginCampaignMission"))
+			check(campaign.page == "battle" and campaign.run.phase == "planning", "Restart waits for Begin level")
 			campaign.close()
 			await settle()
 	print("CAMPAIGN_NAVIGATION: %d checks, %d failures" % [checks, failures.size()])

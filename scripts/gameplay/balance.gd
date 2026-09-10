@@ -2,31 +2,21 @@ class_name Balance
 extends RefCounted
 
 const Content = preload("res://scripts/content/registry.gd")
+const Stats = preload("res://scripts/content/catalogs/stats.gd")
 
 const VERSION := 2
 const TARGET_MODES := {"first": "First", "last": "Last", "most_hp": "Most HP"}
 const TILE := 300.0
 const MAX_MONEY := 1.0e150
 const STEP := 0.05
-const HISTORY_SECONDS := 180.0
-const OFFLINE_FACTOR := 0.8
-const MAX_OFFLINE_SECONDS := 604800.0 # Seven-day guard against large forward clock jumps.
 const STARTING_GOLD = preload("res://scripts/content/catalogs/levels.gd").STARTING_GOLD
-const BASE_SPAWN_PERIOD := 4.25 # 40% of the former 1.7-second spawn rate at every traffic tier.
-const TRAFFIC_INCREMENT := 0.25
 const MAX_TRAFFIC_LEVEL := 12
 const MAX_TOWER_LEVEL := 4
-const TRAFFIC_BASE_COST := 80.0
-const TRAFFIC_COST_GROWTH := 1.8
-const AUTOMATION_COST := 600.0
 const SELL_REFUND_RATIO := 0.5
 const MOVE_COST_RATIO := 0.2
 const MAX_REBUILD_SECONDS := 180.0
 const REBUILD_SECONDS_PER_LEVEL := 15.0
-const MIN_PRODUCTION_SAMPLE := 60.0
-const UNLOCK_COSTS = preload("res://scripts/content/catalogs/actors.gd").UNLOCK_COSTS
 
-const ENEMY_SHARES = preload("res://scripts/content/catalogs/actors.gd").ENEMY_SHARES
 
 const NORMAL_KINDS = preload("res://scripts/content/catalogs/actors.gd").NORMAL_KINDS
 
@@ -66,11 +56,8 @@ static func tower_stats(tower: Dictionary, tuning: Dictionary = {}, inventory: D
 	return equipment_stats(result, tower, tuning, inventory)
 
 static func equipment_stats(base: Dictionary, tower: Dictionary, tuning: Dictionary, inventory: Dictionary) -> Dictionary:
-	var gear := Content.gear(inventory.get(tower.get("relic", ""), ""))
-	return gear.modify_stats(base, tuning) if gear != null else base
+	return base
 
-# One schema drives the editor and save validation. Overrides belong to a save,
-# never to these shared defaults. Tower keys may identify a tier or branch.
 const RIFTS = preload("res://scripts/content/catalogs/world.gd").RIFTS
 
 static func rift_strength(style: String, tuning: Dictionary = {}) -> float:
@@ -79,18 +66,6 @@ static func rift_strength(style: String, tuning: Dictionary = {}) -> float:
 static func portal_kinds(style: String) -> Array:
 	var node := Content.portal(style)
 	return node.enemy_kinds() if node != null else NORMAL_KINDS.duplicate()
-
-static func exclusive_portal(style: String) -> bool:
-	var node := Content.portal(style)
-	return node != null and node.is_exclusive()
-
-static func portal_unlock_costs(style: String) -> Dictionary:
-	var node := Content.portal(style)
-	return node.unlock_costs() if node != null else UNLOCK_COSTS.duplicate()
-
-static func portal_available_kinds(style: String, unlocks: Array) -> Array:
-	var node := Content.portal(style)
-	return node.available_kinds(unlocks) if node != null else NORMAL_KINDS.duplicate()
 
 static func rift_name(style: String) -> String:
 	var node := Content.portal(style)
@@ -103,20 +78,15 @@ static func portal_definitions() -> Dictionary:
 		result[node.rule("kind")] = node.attributes()
 	return result
 
-static func rift_description(style: String, tuning: Dictionary = {}, authored_spawns: bool = false) -> String:
-	var portal := Content.portal(style)
-	if portal == null:
-		return ""
+static func rift_description(style: String, tuning: Dictionary = {}, _authored_spawns: bool = true) -> String:
+	if Content.portal(style) == null: return ""
 	var effect := portal_effect_description(style, tuning)
-	if authored_spawns:
-		return "Used at every campaign entrance in this biome. Enemies and timing follow the authored waves. " + (effect if not effect.is_empty() else "No additional portal effect.")
-	var inhabitants: Array[String] = []
-	for kind in portal.enemy_kinds():
-		inhabitants.append(ENEMIES[kind].name)
-	var roster := "Summons only " + ", ".join(inhabitants) + ". "
-	var availability := "All three are active immediately, with equal chances." if portal.unlock_costs().is_empty() else "Attune the other inhabitants to add them to this portal's spawns."
-	var placement := "One dungeon portal per castle ruin. " if style == "castle_ruin" else ""
-	return placement + roster + availability + (" " + effect if not effect.is_empty() else "")
+	var portal := Content.portal(style).definition(tuning)
+	if portal.armor_percent > 0.0: effect += " Armor: " + String.num(portal.armor_percent, 2) + "% damage reduction."
+	if portal.health_regen_percent > 0.0: effect += " Additional regeneration: " + String.num(portal.health_regen_percent, 2) + "% maximum health per second."
+	for field in preload("res://scripts/content/nodes/attributes/portal_enemy_effects.gd").RESISTANCES:
+		if portal[field] > 0.0: effect += " " + preload("res://scripts/content/nodes/attributes/portal_enemy_effects.gd").RESISTANCES[field] + ": " + String.num(portal[field], 2) + "%."
+	return "Used at every campaign entrance in this biome. Enemies and timing follow the authored waves. " + (effect if not effect.is_empty() else "No additional portal effect.")
 
 static func portal_effect_description(style: String, tuning: Dictionary = {}) -> String:
 	var amount := String.num(rift_strength(style, tuning), 2)
@@ -126,15 +96,20 @@ static func portal_effect_description(style: String, tuning: Dictionary = {}) ->
 		"bloodmoon_sanctuary": return "Regeneration: restores " + amount + "% of maximum health each second throughout the journey."
 	return ""
 
-static func enemy_portal_style(kind: String) -> String:
-	var node := Content.enemy(kind)
-	return node.rule("portal_style", "forest") if node != null else "forest"
-
 const GEAR = preload("res://scripts/content/catalogs/gear.gd").GEAR
 
 const TUNING_FIELDS = preload("res://scripts/content/catalogs/tuning.gd").TUNING_FIELDS
 
 static func fields_for(category: String, kind: String) -> Dictionary:
+	if category in Stats.CATEGORIES:
+		var fields := {}
+		var base := Stats.baseline(category, kind)
+		var order: Array = ["hp", "speed", "payout", "cost", "damage", "period", "range", "splash", "targets"]
+		for field in base:
+			if field not in order: order.append(field)
+		for field in order:
+			if base.has(field): fields[field] = field_limits(category, kind, field)
+		return fields
 	var result := {}
 	var schema: Dictionary = TUNING_FIELDS[category]
 	var defaults: Dictionary = definitions(category)[kind]
@@ -160,7 +135,7 @@ static func field_limits(category: String, kind: String, stat: String) -> Dictio
 	return _resolved_field_limits(category, kind, stat)
 
 static func _resolved_field_limits(category: String, kind: String, stat: String, defaults: Dictionary = {}) -> Dictionary:
-	var limits: Dictionary = TUNING_FIELDS[category][stat].duplicate()
+	var limits: Dictionary = (Stats.schema(category) if category in Stats.CATEGORIES else TUNING_FIELDS[category])[stat].duplicate()
 	if category == "towers" and kind.contains(":") and stat in ["cost", "damage", "range", "splash"]:
 		var base: float = TOWERS[kind.get_slice(":", 0)][stat]
 		if base > 0.0:
@@ -174,10 +149,10 @@ static func definitions(category: String) -> Dictionary:
 static func tier_key(kind: String, level: int, branch: String = "") -> String:
 	return kind if level == 1 else kind + ":" + (branch if level == 4 else str(level))
 
-static func tower_definitions() -> Dictionary:
-	return definitions("towers")
-
 static func tuned_value(category: String, kind: String, stat: String, tuning: Dictionary = {}) -> float:
+	if category in Stats.CATEGORIES:
+		if Stats.control(stat): return Stats.value(category, kind, stat, tuning)
+		return float(definition(category, kind, tuning).get(stat, Stats.default_value(category, kind, stat)))
 	var node := Content.catalog().find(category, kind)
 	return tuning.get(category, {}).get(kind, {}).get(stat, node.attribute(stat))
 
@@ -198,15 +173,21 @@ static func valid_tuning(value: Variant) -> bool:
 			return false
 		# Resolve this call's catalog once; later calls still see newly registered
 		# nodes. Validation only needs membership and limits, not editor ordering.
-		var schema: Dictionary = TUNING_FIELDS[category]
+		var schema: Dictionary = Stats.schema(category) if category in Stats.CATEGORIES else TUNING_FIELDS[category]
 		var catalog: Dictionary = definitions(category)
 		for kind in value[category]:
 			if not catalog.has(kind) or not value[category][kind] is Dictionary:
 				return false
 			var defaults: Dictionary = catalog[kind]
+			if category == "towers":
+				var primary_count := 0
+				for ability in Stats.Capabilities.TOWER:
+					if Stats.Capabilities.TOWER[ability].get("primary", false) and Stats.ability_enabled(category, kind, ability, value): primary_count += 1
+				if primary_count > 1: return false
 			for stat in value[category][kind]:
-				if not schema.has(stat) or not defaults.has(stat):
+				if not schema.has(stat) or (category not in Stats.CATEGORIES and not defaults.has(stat)):
 					return false
+				if category in Stats.CATEGORIES and stat.begins_with("enabled_") and stat.trim_prefix("enabled_") in Stats.REQUIRED and value[category][kind][stat] != 1: return false
 				var number: Variant = value[category][kind][stat]
 				var limits := _resolved_field_limits(category, kind, stat, defaults)
 				if not (number is float or number is int):
@@ -266,8 +247,7 @@ static func upgrade_cost(tower: Dictionary, tuning: Dictionary = {}, branch: Str
 	var key := tier_key(tower.kind, level + 1, selected)
 	if tuning.get("towers", {}).get(key, {}).has("cost"):
 		return tuning.towers[key].cost
-	var price: float = tower_definitions()[key].cost
-	return ceil(price * (tuned_value("towers", tower.kind, "cost", tuning) / TOWERS[tower.kind].cost))
+	return Stats.default_value("towers", key, "cost")
 
 static func invested_cost(tower: Dictionary, tuning: Dictionary = {}) -> float:
 	var invested := tuned_value("towers", tower.kind, "cost", tuning)
@@ -288,31 +268,6 @@ static func rebuild_time_text(seconds: float) -> String:
 	var whole := ceili(maxf(0.0, seconds))
 	return "%d:%02d" % [floori(whole / 60.0), whole % 60]
 
-static func expansion_cost(count: int) -> float:
-	return ceil(100.0 * pow(float(count), 1.35))
-
-static func traffic_period(level: int) -> float:
-	return BASE_SPAWN_PERIOD / (1.0 + level * TRAFFIC_INCREMENT)
-
-static func enemy_mix(unlocks: Array) -> Dictionary:
-	var mix := {}
-	var remaining := 1.0
-	for kind in ENEMY_SHARES:
-		if kind in unlocks:
-			mix[kind] = ENEMY_SHARES[kind]
-			remaining -= ENEMY_SHARES[kind]
-	mix["basic"] = maxf(0.0, remaining)
-	return mix
-
-static func enemy_kind(unlocks: Array, roll: float) -> String:
-	var cumulative := 0.0
-	var mix := enemy_mix(unlocks)
-	for kind in mix:
-		cumulative += mix[kind]
-		if roll < cumulative:
-			return kind
-	return "basic"
-
 static func merge_tuning(defaults: Dictionary, overrides: Dictionary) -> Dictionary:
 	var result := defaults.duplicate(true)
 	for category in overrides:
@@ -324,6 +279,7 @@ static func merge_tuning(defaults: Dictionary, overrides: Dictionary) -> Diction
 
 # Editor, override comparison and exports share the same resolved tier values.
 static func configuration_value(category: String, kind: String, stat: String, tuning: Dictionary = {}) -> float:
+	if category in Stats.CATEGORIES: return Stats.value(category, kind, stat, tuning)
 	if category != "towers": return tuned_value(category, kind, stat, tuning)
 	var node := Content.catalog().find("towers", kind)
 	var base: String = node.rule("base_kind", kind)

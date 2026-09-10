@@ -58,7 +58,7 @@ static func draw_base(canvas: CanvasItem, style: String, at: Vector2, zoom: floa
 			Art.shape(canvas, [Vector2(-7, -35), Vector2(0, -44), Vector2(7, -35), Vector2(0, -30)], at, z, Art.PAPER, w)
 	Art.shape(canvas, [Vector2(-27, 11), Vector2(27, 11), Vector2(24, 17), Vector2(-24, 17)], at, z, Art.PAPER, w)
 
-# Campaign has authored waves rather than purchased attunements. Reuse the same
+# Campaign entrances compose the shared portal appearance. Reuse the same
 # kit, but show only ordinary inhabitants actually assigned to this lane/wave.
 static func wave_parts(style: String, groups: Array, lane: int) -> Dictionary:
 	var visuals = preload("res://scripts/content/catalogs/portal_visuals.gd")

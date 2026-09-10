@@ -15,7 +15,7 @@ func run() -> void:
 		board.run = preload("res://scripts/campaign/run.gd").new(index)
 		board.size = Vector2(390, 530)
 		# The campaign host owns selection in response to board input signals.
-		board.socket_picked.connect(board.select_socket)
+		board.picked.connect(func(region, pad): board.selected_region = region; board.selected_pad = pad)
 		board.empty_picked.connect(board.clear_selection)
 		root.add_child(board)
 		check(board is Battlefield, "Campaign inherits the original battlefield")
@@ -32,8 +32,9 @@ func run() -> void:
 		board.set_zoom(board.zoom * 1.25, pivot)
 		check(board.world(pivot).is_equal_approx(before), "Zoom keeps its world anchor")
 		var socket: Dictionary = board.run.mission.sockets[0]
+		check(board.run.build(socket.index, "rapid"), "Place a tower at the authored anchor")
 		board.pick(board.screen(socket.position))
-		check(board.selected == socket.index, "Authored socket remains selectable")
+		check(board.selected_region == socket.region and board.selected_pad == socket.pad, "Placed tower remains selectable")
 		board.tap(Vector2(-10000, -10000))
 		check(board.selected == -1, "Empty tap clears selection")
 		var press := InputEventScreenTouch.new()

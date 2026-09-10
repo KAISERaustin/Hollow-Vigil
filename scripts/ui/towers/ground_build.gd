@@ -1,5 +1,5 @@
 extends Control
-## One pointer-owned build interaction, shared by Campaign and Infinite.
+## One pointer-owned build interaction, shared by Campaign.
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Choice = preload("res://scripts/ui/towers/tower_choice.gd")
 var layout_owner: Control
@@ -16,6 +16,9 @@ var pointer := -2
 var origin := Vector2.ZERO
 var point := Vector2.ZERO
 var dragging := false
+var hovering := false
+var reposition_pending := false
+var drag_offset := Vector2.ZERO
 var valid := false
 var allowed_to_build: Callable
 
@@ -25,7 +28,9 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	z_index = 0
 	palette = PanelContainer.new()
-	var drawer_style := StyleBoxEmpty.new()
+	var drawer_style := UI.surface(UI.PANEL, 0, 0)
+	drawer_style.border_width_top = UI.OUTLINE
+	drawer_style.set_corner_radius_all(0)
 	palette.add_theme_stylebox_override("panel", drawer_style)
 	add_child(palette)
 	banner = PanelContainer.new()
@@ -56,8 +61,8 @@ func fit() -> void:
 	# The outside gutters match the spacing between tower cards.
 	style.content_margin_left = UI.CARD_GAP
 	style.content_margin_right = UI.CARD_GAP
-	style.content_margin_top = 0
-	style.content_margin_bottom = size.y - safe.end.y
+	style.content_margin_top = UI.CARD_PADDING
+	style.content_margin_bottom = size.y - safe.end.y + UI.CARD_PADDING
 	palette.size = Vector2(safe.size.x, 0)
 	banner.size = Vector2(maxf(1, safe.size.x - UI.CARD_GAP * 2), 0)
 	palette.position = Vector2(safe.position.x, size.y - palette.size.y)
@@ -68,7 +73,10 @@ func fit() -> void:
 func open() -> void:
 	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
 	cancel()
-	host.clear_selection() if host.has_method("clear_selection") else host.panels.close_sheet()
+	if host.has_method("clear_selection"):
+		host.clear_selection()
+	else:
+		host.panels.close_sheet()
 	show()
 	for child in palette.get_children():
 		palette.remove_child(child)
@@ -88,10 +96,11 @@ func open() -> void:
 
 func arm(value: String) -> void:
 	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
-	if field.state.economy.needs_first_property():
-		host.toast("Claim your first territory before placing towers.")
 	var active_pointer := pointer
-	host.clear_selection() if host.has_method("clear_selection") else host.panels.close_sheet()
+	if host.has_method("clear_selection"):
+		host.clear_selection()
+	else:
+		host.panels.close_sheet()
 	pointer = active_pointer
 	kind = value
 	for child in preview_body.get_children():
@@ -110,11 +119,14 @@ func arm(value: String) -> void:
 	if slide != null: slide.kill()
 	reveal = 0.0
 	slide = create_tween()
-	slide.tween_method(func(value: float):
-		reveal = value
+	slide.tween_method(func(progress: float):
+		reveal = progress
 		fit()
 	, 0.0, 1.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	dragging = false
+	hovering = false
+	reposition_pending = false
+	drag_offset = Vector2.ZERO
 	valid = false
 	queue_redraw()
 	fit()
@@ -165,7 +177,7 @@ func _input(event: InputEvent) -> void:
 			up = not down
 		elif event is InputEventMouseMotion: motion = true
 	if id == -2: return
-	if dragging and id != pointer:
+	if (dragging or reposition_pending) and id != pointer:
 		get_viewport().set_input_as_handled()
 		return
 	if not candidate.is_empty() and id == pointer:
@@ -177,18 +189,35 @@ func _input(event: InputEvent) -> void:
 		elif up:
 			candidate = ""
 	if kind.is_empty(): return
-	if not dragging and palette.get_global_rect().has_point(pos): return
+	if not dragging and not reposition_pending and palette.get_global_rect().has_point(pos): return
 	# Keep portrait drags inside the card; consume outside dismissal before world input.
-	if not dragging and banner.get_global_rect().has_point(pos): return
+	if not dragging and not reposition_pending and banner.get_global_rect().has_point(pos): return
+	if hovering and not dragging:
+		if down:
+			pointer = id
+			origin = pos
+			# Keep the tower anchored to its retained position, not the new finger.
+			drag_offset = point - field.world(pos - field.global_position)
+			reposition_pending = true
+		elif reposition_pending and motion and pos.distance_to(origin) > 12:
+			reposition_pending = false
+			dragging = true
+		elif reposition_pending and up:
+			cancel(true)
+		if not dragging:
+			get_viewport().set_input_as_handled()
+			return
 	if not dragging:
-		if down: cancel()
+		if down: cancel(true)
 		get_viewport().set_input_as_handled()
 		return
 	if id == pointer and (motion or down or up):
-		point = field.world(pos - field.global_position)
+		point = field.world(pos - field.global_position) + drag_offset
 		refresh()
 		if up and dragging:
 			dragging = false
+			hovering = true
+			pointer = -2
 			if valid:
 				var location := VigilWorld.ground_location(point)
 				var built := field.state.economy.build(kind, location.region, location.pad)
@@ -205,15 +234,17 @@ func refresh() -> void:
 	valid = field.get_global_rect().has_point(screen_point) and not banner.get_global_rect().has_point(screen_point)
 	valid = valid and not palette.get_global_rect().has_point(screen_point)
 	valid = valid and field.state.economy.can_place(kind, location.region, location.pad)
-	valid = valid and not field.state.economy.needs_first_property()
 	valid = valid and field.state.data.balance >= Balance.definition("towers", kind, field.state.tuning).cost
 	if allowed_to_build.is_valid(): valid = valid and allowed_to_build.call()
 	queue_redraw()
 
-func cancel() -> void:
+func cancel(animate: bool = false) -> void:
 	kind = ""
 	candidate = ""
 	dragging = false
+	hovering = false
+	reposition_pending = false
+	drag_offset = Vector2.ZERO
 	pointer = -2
 	if is_instance_valid(field):
 		field.touches.clear()
@@ -221,7 +252,16 @@ func cancel() -> void:
 		field.gesture_consumed = true
 	if is_instance_valid(palette): palette.show()
 	if slide != null: slide.kill()
-	if is_instance_valid(banner): banner.hide()
+	if is_instance_valid(banner):
+		if animate and banner.visible:
+			slide = create_tween()
+			slide.tween_method(func(progress: float):
+				reveal = progress
+				fit()
+			, reveal, 0.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			slide.tween_callback(banner.hide)
+		else:
+			banner.hide()
 	show()
 	queue_redraw()
 
@@ -229,7 +269,7 @@ func _notification(what: int) -> void:
 	if what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED]: cancel()
 
 func _draw() -> void:
-	if kind.is_empty() or not dragging: return
+	if kind.is_empty() or not (dragging or hovering): return
 	var at := field.global_position - global_position + field.screen(point)
 	var tint := Color("368149") if valid else Color("cc3030")
 	draw_set_transform(at, 0, Vector2.ONE * field.zoom)

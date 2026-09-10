@@ -6,11 +6,9 @@ const SessionStore = preload("res://scripts/cloud/session_store.gd")
 var session_store := SessionStore.new()
 var session_notice := ""
 var refreshing_session := false
-signal restore_requested(snapshot: Dictionary, world_id: String, revision: int)
 const Codec = preload("res://scripts/cloud/cloud_codec.gd")
 const CONFIG_PATH := "res://supabase/client.cfg"
 var game: VigilState
-var codec := Codec.new()
 var url := ""
 var key := ""
 var access_token := ""
@@ -22,11 +20,6 @@ var display_name := ""
 const MAX_NAME_LENGTH := 32
 var busy := false
 var status := "Your progress saves on this device. Sign in for automatic private backups."
-var worlds: Array = []
-var backup_slot := -1
-var conflict: Dictionary = {}
-var pending: Dictionary = {}
-var include_audio := false
 var generation := 0
 var enabled := true
 
@@ -35,7 +28,6 @@ func _ready() -> void:
 	if url.is_empty() and cfg.load(CONFIG_PATH) == OK:
 		url = str(cfg.get_value("supabase", "url", "")).trim_suffix("/")
 		key = str(cfg.get_value("supabase", "publishable_key", ""))
-	include_audio = game.data.get("cloud", {}).get("include_audio", false)
 	if not enabled and session_store.path == SessionStore.DEFAULT_PATH:
 		session_store.path = game.save_path + ".account-session-test"
 	if enabled and configured():
@@ -46,13 +38,6 @@ func configured() -> bool:
 
 func signed_in() -> bool:
 	return not player_id.is_empty() and not refresh_token.is_empty()
-
-func linked() -> bool:
-	return signed_in() and game.data.get("cloud", {}).get("player_id", "") == player_id
-
-# Legacy world uploads stay manual. PrivateBackups owns the new automatic service.
-func _process(_delta: float) -> void:
-	pass
 
 func _say(message: String) -> void:
 	status = message + ("\n" + session_notice if signed_in() and not session_notice.is_empty() else "")
@@ -101,9 +86,8 @@ func verify_link(link: String) -> void:
 	var result := await _request("/auth/v1/verify", credentials, false)
 	if epoch != generation: return
 	if result.ok and _accept_session(result.data):
-		_load_pending()
 		busy = false
-		await refresh_worlds()
+		_say("Signed in. Campaign saves and My builds back up automatically.")
 	else:
 		busy = false
 		_say(_error(result))
@@ -187,123 +171,8 @@ func sign_out() -> void:
 	refresh_token = ""
 	player_id = ""
 	display_name = ""
-	worlds.clear()
-	conflict.clear()
-	pending.clear()
 	busy = false
 	_say("Signed out. Your local progress is safe and cloud uploads are stopped." if session_store.last_error.is_empty() else session_store.last_error)
-
-func refresh_worlds() -> void:
-	if busy or not signed_in():
-		return
-	busy = true
-	var epoch := generation
-	var result := await _rpc("list_saves", {})
-	if epoch != generation: return
-	busy = false
-	if result.ok and result.data is Array:
-		worlds = result.data
-		_say("Signed in. Saved games and My builds back up automatically. Open Backups to check their status or restore a game.")
-	else:
-		_say(_error(result))
-
-func start_backup() -> void:
-	if busy or not signed_in():
-		return
-	if not linked():
-		pending.clear()
-		var previous: Variant = game.data.get("cloud")
-		game.data.cloud = {"player_id": player_id, "world_id": Codec.uuid(), "revision": 0, "include_audio": include_audio}
-		if not game.save():
-			if previous == null: game.data.erase("cloud")
-			else: game.data.cloud = previous
-			_say(game.save_error)
-			return
-	await sync_now()
-
-func sync_now() -> void:
-	if busy or not linked() or not conflict.is_empty() or game.save_blocked:
-		return
-	busy = true
-	var epoch := generation
-	_say("Saving to cloud…")
-	var meta: Dictionary = game.data.cloud
-	if pending.is_empty():
-		if not game.save():
-			busy = false
-			_say(game.save_error)
-			return
-		var payload := codec.encode(game.snapshot(), meta.world_id, include_audio)
-		if payload.is_empty():
-			busy = false
-			_say(codec.error)
-			return
-		pending = {"player_id": player_id, "payload": payload, "expected_revision": int(meta.revision), "mutation": Codec.uuid()}
-		if not _save_pending():
-			pending.clear()
-			busy = false
-			_say("Couldn't queue the cloud save. Local progress is safe.")
-			return
-	var result := await _rpc("publish_save", {"payload": pending.payload, "expected_revision": pending.expected_revision, "mutation": pending.mutation})
-	if epoch != generation: return
-	if result.ok and result.data is Dictionary and result.data.get("status") == "ok":
-		meta.revision = int(result.data.revision)
-		meta.include_audio = include_audio
-		if game.save():
-			pending.clear()
-			_save_pending()
-			_say("Saved to cloud · revision %d. You can continue on another device." % int(meta.revision))
-		else:
-			_say("Cloud save succeeded, but local sync confirmation could not be saved. Choose Retry upload to confirm this attempt.")
-	elif result.ok and result.data is Dictionary and result.data.get("status") == "conflict":
-		conflict = {"world_id": meta.world_id, "revision": int(result.data.revision)}
-		_say("Another device saved this world. Choose which progress to continue. Neither balance will be added to the other.")
-	else:
-		_say(_error(result))
-	busy = false
-	changed.emit()
-
-func keep_local() -> void:
-	if busy or conflict.is_empty() or not linked():
-		return
-	# Explicit conflict choice; compare-and-swap still prevents racing a third save.
-	game.data.cloud.revision = conflict.revision
-	if not game.save():
-		_say(game.save_error)
-		return
-	pending.clear()
-	_save_pending()
-	conflict.clear()
-	await sync_now()
-
-func restore_world(world_id: String) -> void:
-	if busy or not signed_in() or not Codec.valid_uuid(world_id):
-		return
-	busy = true
-	var epoch := generation
-	_say("Reading cloud save…")
-	var result := await _rpc("read_save", {"world": world_id})
-	if epoch != generation: return
-	if result.ok and result.data is Dictionary and result.data.get("payload") is Dictionary:
-		var snapshot := codec.decode(result.data.payload, game.data.settings, game.data.camera, include_audio)
-		if not snapshot.is_empty():
-			snapshot.cloud = {"player_id": player_id, "world_id": world_id, "revision": int(result.data.revision), "include_audio": include_audio}
-			restore_requested.emit(snapshot, world_id, int(result.data.revision))
-		else:
-			_say(codec.error)
-	else:
-		_say("Cloud save is unavailable. Your local progress is safe." if result.ok else _error(result))
-	busy = false
-	changed.emit()
-
-func restore_completed(ok: bool) -> void:
-	if ok:
-		pending.clear()
-		_save_pending()
-		conflict.clear()
-		_say("Cloud progress restored. Your previous local save has a recovery copy.")
-	else:
-		_say("Couldn't restore the cloud save. Your previous progress is preserved.")
 
 func restore_session() -> void:
 	if busy or signed_in() or not configured(): return
@@ -320,8 +189,7 @@ func restore_session() -> void:
 	if epoch != generation: return
 	busy = false
 	if result.ok:
-		_load_pending()
-		await refresh_worlds()
+		_say("Signed in. Campaign saves and My builds back up automatically.")
 	else:
 		_say("Couldn't restore sign-in right now. Your saved sign-in is kept. Choose Retry sign-in when you're online." if int(result.get("code", 0)) not in [400, 401, 403] else _error(result))
 
@@ -403,25 +271,3 @@ func _error(result: Dictionary) -> String:
 		401, 403: return "Sign in again to use cloud saves. Offline play is available."
 		429: return "Cloud service is temporarily rate-limited. Wait a little before trying again."
 		_: return "Cloud request failed. Your local progress is safe; please try again."
-
-func _pending_path() -> String:
-	return game.save_path + ".cloud-outbox"
-
-func _save_pending() -> bool:
-	var cfg := ConfigFile.new()
-	cfg.set_value("sync", "outbox", pending)
-	var path := _pending_path()
-	if cfg.save(path + ".tmp") != OK:
-		return false
-	return DirAccess.rename_absolute(path + ".tmp", path) == OK
-
-func _load_pending() -> void:
-	pending.clear()
-	var cfg := ConfigFile.new()
-	if cfg.load(_pending_path()) != OK:
-		return
-	var saved: Variant = cfg.get_value("sync", "outbox", {})
-	if saved is Dictionary and saved.get("player_id") == player_id and saved.get("payload") is Dictionary and linked():
-		if saved.payload.get("world", {}).get("id") == game.data.cloud.world_id and Codec.valid_uuid(saved.get("mutation")) and saved.get("expected_revision") is int:
-			if not codec.decode(saved.payload).is_empty():
-				pending = saved

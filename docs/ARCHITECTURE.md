@@ -1,94 +1,29 @@
-# Architecture and extension guide
+# Campaign architecture
 
-## Ownership
+Hollow Vigil has 30 authored Campaign levels across six chapters. Creative and Survival share three saved-game slots. The application shell owns navigation, account services and sound preferences. It does not run a background battle.
 
-Reusable content definitions and family behavior live in the [content node hierarchy](NODE_SYSTEM.md). Services own mutable instances and transactions.
+## Content and simulation
 
-`VigilState` owns one shared data dictionary and coordinates `VigilEconomy`, `VigilCombat`, world routes and `VigilSaveStore`. The state/economy/combat services can run without an active scene or GPU. `VigilApp` connects those services to the interface and owns timing, notifications and save calls. `VigilHUD` builds and updates the persistent header/footer and emits user intent through signals.
+`scripts/content/registry.gd` owns reusable definitions. Towers, enemies, bosses, gear, levels, waves, targeting, projectiles and attachable attributes provide common rules with per-type configuration. Runtime timers, effects and mutable state belong to each instance. See [NODE_SYSTEM.md](NODE_SYSTEM.md).
 
-UI panels and tower dialogs have typed `VigilApp` references. That dependency is deliberate for this small application. When adding an independent screen, pass its model and use signals for user actions rather than adding more access through the scene tree. Keep purchases in the economy service, never inside draw functions or animation callbacks.
+`campaign/run.gd` owns authored wave scheduling and mission outcomes. `gameplay/combat/` handles enemies, targeting, attacks, component effects and route-distance caches. `gameplay/progression/economy.gd` owns tower purchases, upgrades, sale, relocation and equipment. Campaign supplies placement roads and bounds. Simulation remains independent of drawing and camera visibility.
 
-`Battlefield` handles map drawing, hit testing and camera gestures. Terrain is cached in one node per territory; the shared grid only draws visible rows and columns. Appearance changes increment `terrain_revision`. The retired blending adjacency cache, shader and image atlases have been removed.
+`world/world.gd` provides coordinate conversion and stable ground-placement keys. Legacy socket keys remain readable. Authored roads determine movement; chapter definitions determine the environment and portal effects.
 
-Cosmetic attack effects track enemy centers by serial ID, refreshing their position after movement and attacks. When a target dies or escapes, its last position is frozen before its dictionary is recycled. Effects never retain pooled enemy objects or issue delayed damage or payouts. `gameplay/combat/shot_factory.gd` owns projectile flight timing and creates effect records; `rendering/effects/attack_effects.gd` only draws them. Gameplay never imports presentation modules. Camera position cannot affect spawn, targeting or rewards.
+## Presentation and input
 
-## Source boundaries
+`campaign/board.gd` supplies the authored map, scenery and selection. `rendering/battlefield.gd` supplies shared actor drawing, camera gestures and effects. Tower menus, placement and equipment use shared components in `ui/`. Follow [UI_STYLE_GUIDE.md](UI_STYLE_GUIDE.md) and [ART_DIRECTION.md](ART_DIRECTION.md).
 
-- `content/catalogs/` owns authored definitions and tuning schemas; `content/nodes/` owns inherited rules, constructors and specialized boss/gear behavior. `content/registry.gd` builds the content tree without importing simulation, persistence or presentation.
-- `gameplay/game_state.gd` coordinates the shared snapshot, live services and storage lifecycle. `gameplay/balance.gd` preserves the balance API and source-table aliases while resolving runtime definitions and tower stats through content nodes.
-- `gameplay/combat/combat.gd` owns the simulation clock, enemy pool, pending shots, effects, target locks and transient ability/relic state. Its public methods remain stable for callers and tests.
-- `gameplay/combat/targeting.gd` ranks supplied candidates using path distance, health and deterministic spawn-order ties; it needs no scene or game-state reference.
-- `gameplay/combat/projectiles.gd` handles launch, flight, impact, fragments and ballistic arrows. `tower_abilities.gd` handles on-hit branch effects, displacement and persistent fire. These stateless helpers receive the owning combat service explicitly; they do not store a second copy of its state or retain it in a reference cycle.
-- `gameplay/encounters/bosses.gd` owns encounter behavior. `gameplay/progression/` owns economy transactions and relic rules. Relocation, selling and equipment changes use one production-history invalidation helper.
-- `world/` owns deterministic geography and routes. `persistence/` owns schema validation, migrations and recovery. Neither belongs in a screen or draw callback.
-- `rendering/terrain/` owns map tiles, grids, clouds and castle scenery; `rendering/actors/` owns towers, enemies, bosses, rifts and relic icons; `rendering/effects/` consumes transient visual records.
-- `ui/towers/` owns tower actions, dialogs, movement and equipment; `ui/developer/` owns tuning controls; `ui/shared/` owns reusable styling and widgets. Application composition stays in `app/`.
+The main menu offers Campaign and Settings. The game menu pauses the held Campaign session and restores its prior pause state on resume. Full-page headers and actions frame scrolling content. Android Back follows the active navigation owner. All app layouts are upright portrait.
 
-Keep each `.uid` alongside its script and update explicit `res://` references when moving files. Run `python3 tools/check_structure.py`, import with Godot, then run affected headless and rendered suites. A directory move does not change save keys, tower IDs, class names or resource UIDs.
+## Persistence and account boundaries
 
-## Invariants
+Campaign saves preserve completed levels, current map selection, equipment and authored rules. Leaving an unfinished level starts a fresh attempt on reentry, following the current gameplay policy. Legacy checkpoint validation remains available for older saved payloads. Checksummed storage validates before writes and preserves recovery candidates.
 
-- Economy methods validate an action before spending. Upgrades and sales accept an expected level; panels also invalidate stale callbacks when navigation changes.
-- A kill marks the enemy dead before issuing its one payout. Invalid damage and unknown enemy definitions are rejected.
-- Every owned rift runs on the fixed 20 Hz simulation clock. Visibility only affects drawing. Live enemies retain their route when territory changes.
-- Connected territory uses breadth-first shortest routes. Equal exits are chosen independently; decorative road bends do not change route choice.
-- Offline income derives from actual historical earnings and a monotonically increasing accounting timestamp. Backward clocks cannot replay an interval.
-- Relocation validates ownership, vacancy, affordability and the expected tower level before charging. It keeps the tower ID, level and earnings, clears only that tower's old production history, and reserves its new socket immediately. `rebuild_remaining` advances on active ticks and accounted offline intervals; rebuilding towers cannot attack, upgrade or relocate. Older saves without that optional field load ready to fire.
-- Terrain configuration is reusable: configuring a node again replaces roads and scenery.
+`persistence/reusable_build.gd` composes Campaign rules into new games. `persistence/save_slots.gd` stores the private build library; `campaign_slots.gd` owns playable Campaign slots. Unsupported build types are rejected. Sound preferences live independently in `vigil-preferences.cfg`.
 
-## Save contract
+Account credentials belong to `cloud/session_store.gd`. Private backups enumerate only Campaign slots, filter remote listings, validate restores and synchronize compatible private builds. Community publication remains explicit. See [CLOUD_SAVES.md](CLOUD_SAVES.md).
 
-Version 2 snapshots are JSON inside a checksummed envelope. The primary, `.tmp`, and `.bak` candidates are validated independently and the highest valid sequence wins. Validate data before touching the temporary file; flush and verify it before rotating the primary. An invalid attempted write must not destroy a newer interrupted save.
+## Validation
 
-Version 1 candidates are validated against their original level limit, then migrated without changing the input or disk. Towers above level 3 become level 3; the full original rounded costs of levels 4+ return to spendable gold. Tower IDs, regions, stored earnings, settings, and levels 1–3 survive. Production history for capped towers is cleared so obsolete high-level output cannot fund future offline rewards; other history remains. Loading commits the migrated version, making refunds idempotent across reloads and recovery. Missing appearance fields receive the established defaults. Legacy road version 1 remains supported. Fields such as road side and tower angle remain in the schema to preserve existing snapshots.
-
-When all existing candidates are unreadable, loading reports the problem and blocks automatic overwrites. The player can restore a recovery file or explicitly reset. A successful reset writes fresh progress and replaces the recovery copy. Never silently reinterpret an unsupported save version as a new game.
-
-For a future schema change, add a pure migration at the storage boundary and test old fixtures, round trips, interrupted writes and rejection of unknown versions. Keep unrelated settings when loading. Do not add live enemies, rendering nodes or cached terrain to saves.
-
-## Permanent castle ruins
-
-`world/hidden_areas.gd` retains the original seeded four/five-cell sector footprints. Unowned footprints are excluded from the seeded expansion frontier; they never enter `regions`, so they have no ordinary portals, sockets, traffic or gameplay roads. Any footprint overlapping existing owned terrain is exempt as a whole, preserving legacy terrain, towers and boss records. The core and starter choices remain clear.
-
-`world/castle_plan.gd` plans a complete structure in local coordinates, with courtyard, great-hall, keep and chamber-range variants. Its 60-unit architectural lattice crosses the 300-unit terrain boundaries. Only exposed footprint edges receive exterior walls; damage removes spans without moving shared vertices. Floors, corner foundations, fallen beams, rubble and the gate corridor share the same deterministic plan. Keep the versioned decoration stream stable for reload consistency. `rendering/hidden_areas.gd` draws complete nearby clusters above the terrain lattice, masking internal grid lines. Cloud banks do not cover the boundary against an ordinary region.
-
-The gate chooses a seeded exposed side on one encounter tile and meets the neighboring road's exact endpoint. Purchasing that reachable neighbor awakens the encounter once. Boss movement samples run from 65 units inside, through the threshold, along that neighbor's road, then into existing patrol routing. Interior partitions reserve the approach clearance. Bosses never route back through decorative tiles.
-
-Optional `castles` save records retain active, defeated and escaped encounters independently of terrain. Active positions and sampled routes are validated against either the authored emergence path or an ordinary patrol leg before writing or loading. Legacy region-based encounters retain their existing paths and statuses. `castle_checks.gd` verifies seed stability, outlines, expansion, movement and persistence; `castle_art_checks.gd` renders four plans at three zooms and checks identical offscreen returns. The latter runs under `launch.ps1 -TerrainTests` and `-Check`.
-
-## Adding content
-
-Developer balance is stored as sparse `settings.developer_balance` overrides per enemy/tower type. `Balance.TUNING_FIELDS` defines editable fields and finite bounds for both sliders and save validation; `Balance.definition`, `tuned_value`, and `stats` resolve values with defaults. Runtime consumers must pass the owning game's tuning instead of changing shared constants. `VigilState` applies edits, preserving live health and cooldown fractions and clearing stale production samples. `scripts/ui/developer/developer_controls.gd` owns the editor; the app debounces saves and flushes when leaving it. Saves without overrides keep the defaults.
-
-- **Tower:** add its level-one definition, two `TOWER_UPGRADES` rows and two level-four `BRANCHES` entries in `scripts/content/catalogs/towers.gd`. Each upgrade row contains its purchase cost and complete combat stats; branch ability parameters live in `ABILITIES` and tier multipliers in `BRANCH_STAT_MULTIPLIERS`. Projectile muzzle, speed and timing live in `PROJECTILES`; ordinary shots and specialization projectiles use `ShotFactory`. `Balance.stats()` caps levels and applies developer overrides in proportion to the tier's base values. The build menu reads the definitions and upgrade prices. Add its artwork in `scripts/rendering/terrain/terrain_art.gd`. Implement new projectile mechanics in `gameplay/combat/projectiles.gd` and on-hit or persistent effects in `tower_abilities.gd`, with behavior tests; adding a display field alone does not implement behavior.
-- **Enemy:** add its definition, unlock cost and spawn share in `scripts/content/catalogs/actors.gd`. Unlock validation, spawning and rift text read those tables. Shares must leave room for the basic enemy. Add artwork and test distribution, movement and rewards.
-- **Biome:** update world style lists and its drawing palette/scenery. Save validation and GPU tests use the same world style names. Existing territories must keep their saved appearance.
-- **Shared tower consumers:** resolve an existing tower with `Balance.tower_stats(tower, game.tuning)`, build definitions with `Balance.definition("towers", kind, game.tuning)`, and upgrade/sell quotes with the balance cost helpers and the same tuning. Campaign and open-world menus must use these APIs just as their shared economy and combat do. Change targeting through `VigilState.set_tower_target()` so validation and lock invalidation remain identical. Ability handlers consume resolved stats; do not copy numeric fallback defaults from the catalog into handlers.
-- **Displayed statistic:** resolve tower prose through `Balance.tower_description(stats)`; templates interpolate actual ability values instead of repeating balance numbers. Keep string formatting out of combat ticks. Preserve fractional values. Use balance data for text instead of copying gameplay numbers into panels.
-- **Progression limit:** use the shared constants, including `MAX_TOWER_LEVEL`, in gameplay, validation and UI.
-- **New feature:** add a focused module with a clear owner. Reuse the content node family when a feature shares its rules; add a new family only for distinct reusable behavior. Keep public service methods typed and add boundary tests for state-changing behavior.
-
-## Sweep decisions
-
-The September 2026 organization pass removed the unreferenced `UI.content_box()` helper and `UI.TITLE` constant. Native boss drawings made the old matte shader and empty frame hooks unnecessary; their call sites were removed as well. Reference checks included scripts, scenes and tests, including string-based references.
-
-Legacy automation, appearance fields, save migrations, diagnostic runners and preview scripts remain intentional. Tests and saved progress still depend on them; absence from the current player interface does not make them dead code. Asset files remain available to the art/export workflows. No player saves or generated runtime directories were cleared.
-
-## Scaling and future work
-
-The shared dictionaries are a pragmatic serialized model for this size of game. Keep mutations inside the owning services. If state grows substantially, introduce typed records and conversion at the save boundary incrementally rather than replacing every dictionary at once.
-
-World size and active enemies remain uncapped by design. Very large worlds need profiling on target hardware; likely hotspots include route rebuilding, full-world scans and recent-income event storage. Do not suppress offscreen simulation as a performance shortcut.
-
-Gold uses finite floating-point values capped at `1e150`. It is not suitable for exact single-unit accounting at astronomical values. The existing automation flag and collection behavior are retained for saved games and tests; a steward purchase is not exposed by the current interface.
-
-Use `.editorconfig` and keep files focused by responsibility. Keep future features in focused version-control commits. A CI job can install the pinned engine, import the project and invoke `tests/test_runner.gd`; rendered suites require a real graphics environment.
-
-## Configuration and account boundaries
-
-- `persistence/stat_configuration.gd` validates the stats-only transfer envelope. `VigilSaveSlots` stores its `.hvstats` library beside existing `.hvbuild` files; it starts a fresh world when these rules are selected. Existing world-build decoding remains separate.
-- `campaign/configuration.gd` owns local authoring overrides, recovery and per-level exports. The campaign editor reuses `DeveloperControls` against a draft state; saving changes affects the next mission. `campaign/progress.gd` owns completed-level progression, including archived replacement/reset transactions.
-- Campaign Board owns socket selection. The screen clears selection and associated actions at navigation, dialog and phase boundaries. Shared touch-scroll observers act only within their owning scroll container; reparenting content restores its original input filter.
-- Equipment choices derive from `Relics.owner()` through `Relics.available()`. Upgrade quotes and purchases both call `Balance.upgrade_cost()` with the selected tower and current rules.
-- `cloud/session_store.gd` persists only a refresh credential bound to the configured service URL, independently of gameplay saves and exports. `CloudService` restores identity only after successful server refresh, shares concurrent refresh requests and guards asynchronous callbacks against sign-out. Retryable transport errors keep the stored credential. Successful sign-in rotates it; sign-out clears it. Restoring a session never initiates a gameplay upload.
-- `AudioDirector` uses its own random generator for accepted repeated combat playbacks, with pitch ratios from 0.9 to 1.1. Music, UI and dramatic boss cues retain their assigned pitch. Asset definitions and simulation randomness are unchanged by playback variation.
+Use `launch.ps1 -Check` for the supported Campaign, account, portrait navigation, touch and artwork suites. `tools/check_structure.py` checks resource links, script identities and dependency boundaries. Physical device acceptance is separate from desktop tests.

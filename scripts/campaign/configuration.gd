@@ -16,8 +16,11 @@ func valid_data(value: Dictionary) -> bool:
 static func valid_level(index: int, value: Variant) -> bool:
 	if index < 0 or index >= Catalog.COUNT or not value is Dictionary: return false
 	var mission := Catalog.level(index)
+	var count: Variant = value.get("wave_count", mission.waves.size())
+	if not _number(count, 1, 10000, true): return false
 	for key in value:
-		if Fields.CONFIGURATION_FIELDS.has(key):
+		if key == "wave_count": continue
+		elif Fields.CONFIGURATION_FIELDS.has(key):
 			var limits: Dictionary = Fields.CONFIGURATION_FIELDS[key]
 			if not _number(value[key], limits.min, limits.max, limits.get("integer", false)): return false
 		elif key == "tuning":
@@ -27,9 +30,13 @@ static func valid_level(index: int, value: Variant) -> bool:
 			for wave_key in value.waves:
 				if not wave_key is String or not wave_key.is_valid_int() or str(int(wave_key)) != wave_key: return false
 				var wave_index := int(wave_key)
-				if wave_index < 0 or wave_index >= mission.waves.size() or not valid_wave(value.waves[wave_key], mission.routes.size()): return false
+				if wave_index < 0 or wave_index >= int(count) or not valid_wave(value.waves[wave_key], mission.routes.size()): return false
 		else: return false
-	return true
+	# Empty waves are editable placeholders; an entirely empty level is never saved.
+	for wave in int(count):
+		var fallback: Array = mission.waves[wave] if wave < mission.waves.size() else []
+		if not value.get("waves", {}).get(str(wave), {}).get("groups", fallback).is_empty(): return true
+	return false
 
 static func valid_wave(value: Variant, lanes: int) -> bool:
 	if not value is Dictionary: return false
@@ -40,10 +47,11 @@ static func valid_wave(value: Variant, lanes: int) -> bool:
 			"tuning":
 				if not Balance.valid_tuning(value.tuning) or value.tuning.has("session"): return false
 			"groups":
-				if not value.groups is Array or value.groups.is_empty() or value.groups.size() > 32: return false
+				if not value.groups is Array or value.groups.size() > 32: return false
 				var total := 0
 				for group in value.groups:
-					if not group is Array or group.size() != 5: return false
+					if not group is Array or group.size() not in [5, 6]: return false
+					if group.size() == 6 and not _number(group[5], 0, Fields.CONFIGURATION_FIELDS.reward.max): return false
 					if not group[0] is String or group[0] not in spawn_kinds(): return false
 					for column in Fields.GROUP_FIELDS:
 						var limits: Dictionary = Fields.GROUP_FIELDS[column]
@@ -128,11 +136,16 @@ static func resolve(index: int, level_overrides: Dictionary = {}) -> Dictionary:
 	for key in Fields.CONFIGURATION_FIELDS: attributes[key] = level_overrides.get(key, defaults.get(key, Catalog.MAX_HEALTH))
 	attributes.tuning = Balance.merge_tuning(defaults.tuning, level_overrides.get("tuning", {}))
 	attributes.waves = defaults.waves.duplicate(true)
+	attributes.waves.resize(int(level_overrides.get("wave_count", attributes.waves.size())))
+	for wave in attributes.waves.size():
+		if attributes.waves[wave] == null: attributes.waves[wave] = []
 	var wave_rules := []
 	for wave in range(attributes.waves.size()):
 		var custom: Dictionary = level_overrides.get("waves", {}).get(str(wave), {})
 		if custom.has("groups"): attributes.waves[wave] = custom.groups.duplicate(true)
-		wave_rules.append({"tuning": Balance.merge_tuning(attributes.tuning, custom.get("tuning", {})), "reward": custom.get("reward", attributes.reward)})
+		var wave_tuning: Dictionary = custom.get("tuning", {}).duplicate(true)
+		for category in Balance.Stats.CATEGORIES: wave_tuning.erase(category)
+		wave_rules.append({"tuning": Balance.merge_tuning(attributes.tuning, wave_tuning), "reward": custom.get("reward", attributes.reward)})
 	var node = Balance.Content.level(index).derive("level/configured/" + str(index), attributes)
 	var mission: Dictionary = node.layout()
 	mission.sockets = defaults.sockets
@@ -140,7 +153,9 @@ static func resolve(index: int, level_overrides: Dictionary = {}) -> Dictionary:
 	return mission
 
 static func schedule(mission: Dictionary, wave: int) -> Array[Dictionary]:
-	var node = Balance.Content.wave(mission.index, wave).derive("wave/configured", {"groups": mission.waves[wave]})
+	var base = Balance.Content.wave(mission.index, wave)
+	if base == null: base = Balance.Content.wave(mission.index, 0)
+	var node = base.derive("wave/configured", {"groups": mission.waves[wave]})
 	return node.schedule()
 
 # Differences are sparse, but compare against authored defaults as well as inherited overrides.
@@ -176,6 +191,8 @@ static func gameplay_values(tuning: Dictionary) -> Dictionary:
 			var stats := {}
 			for stat in Balance.editable_fields_for(category, kind):
 				stats[stat] = Balance.configuration_value(category, kind, stat, tuning)
+			if category in Balance.Stats.CATEGORIES:
+				stats.merge(tuning.get(category, {}).get(kind, {}), true)
 			result[category][kind] = stats
 	return result
 
@@ -195,8 +212,9 @@ static func wave_report(mission: Dictionary, wave: int) -> Dictionary:
 			speed *= Balance.rift_speed_multiplier(mission.style, tuning)
 		counts[group[0]] = int(counts.get(group[0], 0)) + int(group[1])
 		health += hp * group[1]
-		reward += stats.payout * group[1]
-		groups.append({"kind": group[0], "name": stats.name, "count": int(group[1]), "lane": int(group[2]), "delay_seconds": group[3], "interval_seconds": group[4], "spawn_health": hp, "move_speed": speed, "gold_per_defeat": stats.payout})
+		var payout: float = group[5] if group.size() == 6 else stats.payout
+		reward += payout * group[1]
+		groups.append({"kind": group[0], "name": stats.name, "count": int(group[1]), "lane": int(group[2]), "delay_seconds": group[3], "interval_seconds": group[4], "spawn_health": hp, "move_speed": speed, "gold_per_defeat": payout})
 	var spawn_schedule := schedule(mission, wave)
 	return {"wave": wave + 1, "completion_gold": mission.wave_rules[wave].reward, "groups": groups, "schedule": spawn_schedule,
 		"enemy_counts": counts, "spawn_count": spawn_schedule.size(), "last_spawn_seconds": spawn_schedule[-1].at if not spawn_schedule.is_empty() else 0.0,
@@ -238,6 +256,6 @@ static func export_level(index: int, level_overrides: Dictionary = {}) -> String
 	var baseline := {"gold": defaults.gold, "flame": defaults.flame, "reward": defaults.reward, "tuning": defaults.tuning, "waves": defaults.waves}
 	var report := {"version": 1, "level": index + 1, "name": mission.name, "style": mission.style, "defaults": baseline,
 		"overrides": level_overrides.duplicate(true), "effective": {"gold": mission.gold, "flame": mission.flame, "reward": mission.reward, "stats": gameplay_values(mission.tuning)},
-		"wave_group_columns": ["kind", "count", "lane", "delay_seconds", "interval_seconds"], "lanes": mission.roads, "waves": wave_reports(mission)}
+		"wave_group_columns": ["kind", "count", "lane", "delay_seconds", "interval_seconds", "optional_gold_per_defeat"], "lanes": mission.roads, "waves": wave_reports(mission)}
 	var payload := JSON.stringify(report, "", true, true)
 	return JSON.stringify({"format": FORMAT, "payload": payload, "checksum": payload.sha256_text()}, "", true, true)

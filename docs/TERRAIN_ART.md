@@ -23,8 +23,4 @@ stream; it does not change road geometry, combat randomness, or saved state.
 `scripts/rendering/terrain/terrain_tile.gd` owns decoration placement. No external
 textures or generated raster assets are needed for gameplay.
 
-Use `./launch.ps1 -TerrainPreview` to render the four-biome comparison, a
-16-tile mixed map, matching biomes, and a starter view under `artifacts/`.
-`-TerrainTests` checks palette continuity at road mouths, seams, clipping,
-and the grid across biome combinations, fractional camera positions, and zooms.
-`-ArtSmoke` checks build controls and actor artwork at phone-sized viewports.
+Use `./launch.ps1 -TerrainTests` (or `-TerrainPreview`) to check all 30 authored Campaign boards for ground seams and continuous roads at portrait board sizes, fractional camera offsets and multiple zooms. Captures are written under `artifacts/`. `-ArtSmoke` checks Hex and construction effects; choose individual art runners from `tests/README.md` for other changes.

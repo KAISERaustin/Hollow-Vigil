@@ -21,7 +21,7 @@ func run() -> void:
 	for i in range(positions.size()):
 		var location := VigilWorld.ground_location(positions[i])
 		var id := str(i + 1)
-		game.data.towers[id] = {"id": id, "region": location.region, "pad": location.pad, "kind": "hex" if i < 4 else "rapid", "level": 1, "angle": 0.0, "earnings": 0.0}
+		game.data.towers[id] = {"id": id, "region": location.region, "pad": location.pad, "kind": "hex_lantern" if i < 4 else "rapid", "level": 1, "angle": 0.0, "earnings": 0.0}
 	var field := DepthField.new()
 	field.state = game
 	field.unrestricted_camera = true

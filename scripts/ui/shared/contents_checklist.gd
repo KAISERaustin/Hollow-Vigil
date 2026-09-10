@@ -3,7 +3,7 @@ extends VBoxContainer
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const Build = preload("res://scripts/persistence/reusable_build.gd")
 signal changed
-var game_type := "infinite"
+var game_type := "campaign"
 var selection := {}
 
 func _ready() -> void:
