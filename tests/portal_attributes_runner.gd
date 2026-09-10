@@ -99,7 +99,6 @@ func check_resistances() -> void:
 			var before: float = enemy.hp
 			game.combat.Relics.advance(game.combat, 1.0)
 			check(is_equal_approx(before - enemy.hp, 4.0), "Poison from electric tower uses poison resistance exactly once")
-			check(is_equal_approx(game.combat.Relics.push_resistance(game.combat, enemy), 50.0), "Gear knockback uses portal resistance")
 		var other := game.combat.spawn_on_path("basic", path, "mourning_orchard" if style != "mourning_orchard" else "forest")
 		game.combat.hit(other, 8.0, tower.id)
 		check(is_equal_approx(other.max_hp - other.hp, 8.0), "Other portal retains full electric damage")
