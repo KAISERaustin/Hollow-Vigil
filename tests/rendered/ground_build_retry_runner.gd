@@ -34,8 +34,32 @@ func run() -> void:
 		root.content_scale_size = viewport
 		build.arm("rapid")
 		for i in 20: await process_frame
-		build.dragging = true
-		build.pointer = 0
+		check(build.banner.visible, "Tap selection shows tower details")
+		var covered: Rect2 = build.banner.get_global_rect().intersection(app.field.get_global_rect())
+		var card: Control = build.palette.find_child("Build_rapid", true, false)
+		var card_press := InputEventScreenTouch.new()
+		card_press.pressed = true
+		card_press.position = card.size * 0.5
+		build.card_input(card_press, "rapid", card)
+		var inventory_drag := InputEventScreenDrag.new()
+		inventory_drag.position = card.global_position + card_press.position - Vector2(0, 30)
+		build._input(inventory_drag)
+		check(build.dragging and not build.banner.visible, "Inventory drag dismisses tower details immediately")
+		var lower_destination := Vector2.ZERO
+		for y in range(int(covered.position.y) + 8, int(covered.end.y), 12):
+			for x in range(int(covered.position.x) + 8, int(covered.end.x), 12):
+				build.point = app.field.world(Vector2(x, y) - app.field.global_position)
+				build.refresh()
+				if build.valid:
+					lower_destination = Vector2(x, y)
+					break
+			if lower_destination != Vector2.ZERO: break
+		check(lower_destination != Vector2.ZERO, "Hidden details no longer block lower battlefield placement")
+		inventory_drag.position = lower_destination
+		build._input(inventory_drag)
+		await process_frame
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://artifacts/build-drag-%d.png" % viewport.x)
 		var blocked := Vector2(100, -20)
 		touch(build, blocked, false)
 		check(build.hovering and not build.dragging and not build.valid, "Invalid release retains preview")
@@ -65,6 +89,10 @@ func run() -> void:
 		touch(build, Vector2(80, 100), true)
 		touch(build, Vector2(80, 100), false)
 		check(build.kind.is_empty() and not build.hovering, "Tap away dismisses retained preview")
+		check(not build.banner.visible, "Invalid release and retry keep details dismissed")
+		build.arm("rapid")
+		await create_timer(0.22).timeout
+		touch(build, Vector2(80, 100), true)
 		check(build.banner.visible, "Dismissal keeps the card visible during its exit")
 		var open_y: float = build.banner.position.y
 		build.slide.pause()

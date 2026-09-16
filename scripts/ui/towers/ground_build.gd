@@ -183,7 +183,7 @@ func _input(event: InputEvent) -> void:
 	if not candidate.is_empty() and id == pointer:
 		if motion and pos.y < origin.y - 12 and absf(pos.y - origin.y) > absf(pos.x - origin.x):
 			arm(candidate)
-			dragging = true
+			begin_drag()
 		elif motion and absf(pos.x - origin.x) > 16:
 			candidate = ""
 		elif up:
@@ -191,7 +191,7 @@ func _input(event: InputEvent) -> void:
 	if kind.is_empty(): return
 	if not dragging and not reposition_pending and palette.get_global_rect().has_point(pos): return
 	# Keep portrait drags inside the card; consume outside dismissal before world input.
-	if not dragging and not reposition_pending and banner.get_global_rect().has_point(pos): return
+	if not dragging and not reposition_pending and banner.visible and banner.get_global_rect().has_point(pos): return
 	if hovering and not dragging:
 		if down:
 			pointer = id
@@ -201,7 +201,7 @@ func _input(event: InputEvent) -> void:
 			reposition_pending = true
 		elif reposition_pending and motion and pos.distance_to(origin) > 12:
 			reposition_pending = false
-			dragging = true
+			begin_drag()
 		elif reposition_pending and up:
 			cancel(true)
 		if not dragging:
@@ -227,11 +227,17 @@ func _input(event: InputEvent) -> void:
 				else: refresh()
 	get_viewport().set_input_as_handled()
 
+func begin_drag() -> void:
+	dragging = true
+	# Details belong to a tap selection; free the battlefield during placement.
+	if slide != null: slide.kill()
+	banner.hide()
+
 func refresh() -> void:
 	var location := VigilWorld.ground_location(point)
 	point = VigilWorld.pad_position(location.region, location.pad)
 	var screen_point := field.global_position + field.screen(point)
-	valid = field.get_global_rect().has_point(screen_point) and not banner.get_global_rect().has_point(screen_point)
+	valid = field.get_global_rect().has_point(screen_point) and not (banner.visible and banner.get_global_rect().has_point(screen_point))
 	valid = valid and not palette.get_global_rect().has_point(screen_point)
 	valid = valid and field.state.economy.can_place(kind, location.region, location.pad)
 	valid = valid and field.state.data.balance >= Balance.definition("towers", kind, field.state.tuning).cost
