@@ -250,10 +250,10 @@ func _populate_levels(root: ContentNode) -> void:
 	for index in range(Levels.MISSIONS.size()):
 		var attributes: Dictionary = Levels.MISSIONS[index].duplicate(true)
 		attributes.index = index
-		attributes.chapter = int(index / 5.0)
-		attributes.style = Levels.CHAPTERS[int(index / 5.0)].style
-		attributes.reward = 35 + index * 4
+		attributes.chapter = int(index / float(Levels.LEVELS_PER_CHAPTER))
+		attributes.style = Levels.CHAPTERS[int(index / float(Levels.LEVELS_PER_CHAPTER))].style
+		attributes.reward = attributes.get("reward", 35 + index * 4)
 		attributes.tuning = {}
-		_add(LevelNode.new("level/" + str(index), get_node("level/chapter/" + str(int(index / 5.0))), attributes), "levels", str(index))
+		_add(LevelNode.new("level/" + str(index), get_node("level/chapter/" + str(int(index / float(Levels.LEVELS_PER_CHAPTER)))), attributes), "levels", str(index))
 		for wave_index in range(attributes.waves.size()):
 			_add(WaveNode.new("wave/" + str(index) + "/" + str(wave_index), wave_root, {"groups": attributes.waves[wave_index]}, {"level": index, "wave": wave_index}))

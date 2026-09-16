@@ -169,7 +169,6 @@ func _ready() -> void:
 	else:
 		mode = campaign_save.mode
 		progress = SessionProgress.new()
-		progress.allow_all = can_author()
 		progress.data.completed_levels = int(campaign_save.completed)
 		progress.data.relics = campaign_save.get("relics", {}).duplicate(true)
 		# Recover equipment from older saves before their attempt is cleared.
@@ -320,7 +319,6 @@ func load_context() -> void:
 		progress = Progress.new()
 		progress.path = default_progress.path + "." + mode + "." + identity
 		progress.load_progress()
-	progress.allow_all = can_author()
 	shared_setups.clear()
 
 func select_campaign(next_mode: String, code: String) -> bool:
@@ -478,6 +476,8 @@ func show_briefing(index: int, include_loadout: bool = true) -> void:
 	stats.name = "CampaignLevelStats"
 	stats.add_theme_constant_override("separation", 8)
 	layout.add_child(stats)
+	var unlock := preload("res://scripts/content/nodes/campaign_unlocks.gd").introduction(index)
+	if not unlock.is_empty(): layout.add_child(UI.paragraph(unlock, 16))
 	stats.add_child(UI.stat_card("Waves", str(run.mission.waves.size())))
 	stats.add_child(UI.stat_card("Starting gold", UI.exact_money(run.mission.gold)))
 	stats.add_child(UI.stat_card(Configuration.Fields.CONFIGURATION_FIELDS.flame.label, str(run.mission.flame)))
@@ -1140,9 +1140,9 @@ func configured_run(index: int, include_loadout: bool = true) -> RefCounted:
 	var setup := level_setup(index)
 	active_overrides = setup.overrides.duplicate(true)
 	var next := Run.new(index, active_overrides, mode)
+	progress.apply_equipment(next)
 	if include_loadout:
 		VigilSaveSlots.CampaignBuild.apply_loadout(next, setup)
-	progress.apply_equipment(next)
 	return next
 
 func save_configuration(index: int, rules: Dictionary, removed_wave: int = -1) -> bool:

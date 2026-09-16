@@ -1,4 +1,5 @@
 extends RefCounted
+const Migration = preload("res://scripts/persistence/campaign_catalog_migration.gd")
 ## Three independent Campaign sessions. Level/Wave nodes still own gameplay rules.
 const Configuration = preload("res://scripts/campaign/configuration.gd")
 const LevelBuild = preload("res://scripts/persistence/campaign_build.gd")
@@ -11,6 +12,7 @@ var storage := preload("res://scripts/persistence/document_store.gd").new()
 
 func _init() -> void:
 	storage.validator = valid
+	storage.transformer = func(value: Dictionary): return Migration.document(value, "slot")
 
 func path_for(slot: int) -> String:
 	return base_path + "-campaign-slot-" + str(slot + 1) + ".save"
@@ -27,6 +29,8 @@ func summary(slot: int) -> Dictionary:
 	return value
 
 static func valid(value: Dictionary) -> bool:
+	value = Migration.document(value, "slot")
+	if value.is_empty(): return false
 	if value.has("stats_version") and value.stats_version != 1: return false
 	if not preload("res://scripts/campaign/progress.gd").valid_map_progress(value): return false
 	if value.get("version") != 1 or value.get("game_type") != "campaign": return false
@@ -51,7 +55,7 @@ func create(slot: int, mode: String, title: String, levels: Dictionary = {}) -> 
 	if slot < 0 or slot >= COUNT or occupied(slot):
 		error = "Choose an empty Campaign slot or confirm which game to replace."
 		return {}
-	var value := {"version": 1, "sequence": 0, "game_type": "campaign", "id": Codec.uuid(), "name": title.strip_edges(), "mode": mode,
+	var value := {"catalog_revision": 2, "version": 1, "sequence": 0, "game_type": "campaign", "id": Codec.uuid(), "name": title.strip_edges(), "mode": mode,
 		"saved_at": Time.get_unix_time_from_system(), "completed": 0, "stats_version": 1, "levels": preload("res://scripts/persistence/stats_migration.gd").levels(levels), "checkpoint": {}}
 	return value if save_slot(slot, value) else {}
 
@@ -59,7 +63,7 @@ func save_slot(slot: int, value: Dictionary) -> bool:
 	if slot < 0 or slot >= COUNT or not valid(value):
 		error = "This Campaign could not be saved. Your previous game is safe."
 		return false
-	var next := value.duplicate(true)
+	var next := Migration.document(value, "slot").duplicate(true)
 	next.sequence += 1
 	next.saved_at = Time.get_unix_time_from_system()
 	if not storage.write(path_for(slot), next):
@@ -91,6 +95,6 @@ func preserve(slot: int) -> bool:
 func replace(slot: int, value: Dictionary) -> bool:
 	if not valid(value) or slot < 0 or slot >= COUNT: return false
 	if occupied(slot) and not preserve(slot): return false
-	var next := value.duplicate(true)
+	var next := Migration.document(value, "slot").duplicate(true)
 	next.sequence = maxi(int(next.sequence), int(summary(slot).get("sequence", 0)))
 	return save_slot(slot, next)

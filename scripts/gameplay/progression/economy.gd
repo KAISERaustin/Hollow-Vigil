@@ -8,6 +8,16 @@ signal tower_changed(tower_id: String)
 
 signal tower_upgraded(region: String, pad: int, kind: String)
 
+const Unlocks = preload("res://scripts/content/nodes/campaign_unlocks.gd")
+# -1 leaves non-Campaign service fixtures independent of Campaign progression.
+var campaign_completed := -1
+
+func tower_available(kind: String, tier: int = 1) -> bool:
+	return campaign_completed < 0 or Unlocks.available(campaign_completed, kind, tier)
+
+func unlock_reason(kind: String, tier: int = 1) -> String:
+	return "" if tower_available(kind, tier) else Unlocks.reason(kind, tier)
+
 var data: Dictionary
 var sale_rules: VigilContentNode
 var placement_roads: Array = []
@@ -61,7 +71,7 @@ func tower_at(region: String, pad: int) -> String:
 
 func can_place(kind: String, region: String, pad: int) -> bool:
 	var node := Balance.Content.tower(kind)
-	if node == null or pad < 0 or pad > VigilWorld.MAX_GROUND_PAD:
+	if node == null or not tower_available(kind) or pad < 0 or pad > VigilWorld.MAX_GROUND_PAD:
 		return false
 	return node.can_place("ground", data.regions.has(region), tower_at(region, pad) != "") and (pad < 4 or ground_allowed(VigilWorld.pad_position(region, pad)))
 
@@ -81,6 +91,7 @@ func upgrade(id: String, expected_level: int = -1, branch: String = "") -> bool:
 	if not data.towers.has(id):
 		return false
 	var t: Dictionary = data.towers[id]
+	if not tower_available(t.kind, int(t.level) + 1): return false
 	if (t.level == 3 and not Balance.valid_branch(t.kind, branch)) or (t.level != 3 and branch != ""):
 		return false
 	if expected_level != -1 and t.level != expected_level:

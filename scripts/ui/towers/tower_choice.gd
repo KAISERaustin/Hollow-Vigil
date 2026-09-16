@@ -243,7 +243,7 @@ static func _ignore_mouse(control: Control) -> void:
 static func first_kind() -> String:
 	return str(Balance.TOWERS.keys()[0])
 
-static func build_list(tuning: Dictionary, action: Callable, selected_kind: String = "", balance: float = INF, prefix: String = "Build_", fit_row: bool = false) -> ScrollContainer:
+static func build_list(tuning: Dictionary, action: Callable, selected_kind: String = "", balance: float = INF, prefix: String = "Build_", fit_row: bool = false, economy: VigilEconomy = null) -> ScrollContainer:
 	var scroll := ScrollContainer.new()
 	scroll.name = "TowerCards"
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -292,7 +292,14 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 			button.custom_minimum_size = Vector2(1, UI.TARGET)
 		button.name = prefix + kind
 		button.set_meta("tower_kind", kind)
-		button.disabled = balance < definition.cost
+		button.disabled = balance < definition.cost or (economy != null and not economy.tower_available(kind))
+		if economy != null and not economy.tower_available(kind):
+			button.accessibility_name += " · " + economy.unlock_reason(kind)
+			var lock := UI.label("Locked", 12, UI.TEXT)
+			lock.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+			lock.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			button.add_child(lock)
 		button.toggle_mode = not selected_kind.is_empty()
 		button.set_pressed_no_signal(selected_kind == kind)
 		choices.add_child(button)

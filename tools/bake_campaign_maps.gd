@@ -2,7 +2,7 @@ extends SceneTree
 ## Offline only: run with a rendering driver, never --headless.
 const Map = preload("res://scripts/campaign/world_map.gd")
 const WIDTH := 540
-const HEIGHT := 960
+const HEIGHT := int(Map.CHAPTER_HEIGHT)
 
 class BakeMap extends Map:
 	var landscapes: Array[Dictionary] = []
@@ -35,7 +35,7 @@ func run() -> void:
 	root.add_child(viewport)
 	var map := BakeMap.new()
 	map.progress = preload("res://scripts/campaign/progress.gd").new()
-	map.progress.allow_all = true
+	map.progress.data.completed_levels = Map.Catalog.COUNT
 	viewport.add_child(map)
 	# Reserve the union of live text and fixed-size touch targets after mapping
 	# supported portrait widths into the image's coordinate system.
@@ -44,7 +44,7 @@ func run() -> void:
 	for width in [280, 320, 360, 390, 430, 540, 768]:
 		map.size.x = width
 		for index in map.labels.size():
-			map.labels[index].get_child(1).text = "Cleared · Lit · Boss" if index % 5 == 4 else "Cleared · Lit"
+			map.labels[index].get_child(1).text = "Cleared · Lit · Boss" if index % Map.Catalog.LEVELS_PER_CHAPTER == Map.Catalog.LEVELS_PER_CHAPTER - 1 else "Cleared · Lit"
 		await frame()
 		for chapter in reserved.size():
 			for rect in map.chapter_reserved(chapter):
@@ -80,5 +80,5 @@ func run() -> void:
 			return
 	var file := FileAccess.open("res://assets/campaign/baked/layout.cfg", FileAccess.WRITE)
 	file.store_string(var_to_str(metadata))
-	print("BAKED CAMPAIGN MAPS: six 540x1920 atlases saved")
+	print("BAKED CAMPAIGN MAPS: six 540x2904 atlases saved")
 	quit()

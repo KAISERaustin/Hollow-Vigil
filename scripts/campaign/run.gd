@@ -27,6 +27,7 @@ func _init(index: int = 0, overrides: Dictionary = {}, game_mode: String = "surv
 	mission = Configuration.resolve(index, overrides)
 	health = int(mission.flame)
 	game = VigilState.new(81000 + index, mode)
+	game.economy.campaign_completed = index
 	game.economy.set_sale_rules(Balance.Content.level(index))
 	game.data.balance = float(mission.gold)
 	game.data.settings.developer_balance = mission.tuning.duplicate(true)

@@ -85,7 +85,7 @@ func open() -> void:
 	var body := VBoxContainer.new()
 	body.add_theme_constant_override("separation", UI.GAP)
 	palette.add_child(body)
-	var cards := Choice.build_list(field.state.tuning, arm, "", field.state.data.balance, "Build_", true)
+	var cards := Choice.build_list(field.state.tuning, arm, "", field.state.data.balance, "Build_", true, field.state.economy)
 	body.add_child(cards)
 	for button in cards.get_node("Cards").get_children():
 		var tower_kind: String = button.get_meta("tower_kind")
@@ -97,6 +97,7 @@ func open() -> void:
 
 func arm(value: String, for_drag: bool = false) -> void:
 	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
+	if not field.state.economy.tower_available(value): return
 	var active_pointer := pointer
 	var details_visible := banner.visible
 	var details_reveal := reveal

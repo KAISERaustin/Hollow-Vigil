@@ -1,4 +1,5 @@
 extends RefCounted
+const Migration = preload("res://scripts/persistence/campaign_catalog_migration.gd")
 ## Composes selected content nodes into fresh games. Never applies to a live game.
 const FORMAT := "hollow-vigil-reusable-build-v2"
 const MAX_BYTES := 16 * 1024 * 1024
@@ -85,7 +86,7 @@ static func capture(game_type: String, _source: VigilState, levels: Dictionary, 
 	var available := all_contents(game_type)
 	for key in contents.keys():
 		if not available.has(key): contents.erase(key)
-	var value := {"version": 2, "setup": {"name": title.strip_edges(), "description": description}, "game_type": game_type,
+	var value := {"catalog_revision": 2, "version": 2, "setup": {"name": title.strip_edges(), "description": description}, "game_type": game_type,
 		"scope": scope if game_type == "campaign" else "all", "level": level if game_type == "campaign" and scope == "level" else -1,
 		"contents": contents.duplicate(true), "data": {}}
 	for key in value.contents.keys():
@@ -132,7 +133,7 @@ static func decode(code: String) -> Dictionary:
 	return value if value is Dictionary and valid(value) else {}
 
 static func valid(value: Dictionary) -> bool:
-	if value.size() != 7 or value.get("version") != 2 or value.get("game_type") != "campaign": return false
+	if value.size() != (8 if value.has("catalog_revision") else 7) or value.get("version") != 2 or value.get("game_type") != "campaign": return false
 	if not Stats.valid({"version": 1, "setup": value.get("setup"), "tuning": {}}): return false
 	if value.get("scope") not in ["all", "level"] or not Configuration._number(value.get("level"), -1, Configuration.Catalog.COUNT - 1, true): return false
 	if (value.scope == "level") != (int(value.level) >= 0): return false

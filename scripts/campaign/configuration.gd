@@ -1,14 +1,15 @@
 extends VigilSaveStore
+const Migration = preload("res://scripts/persistence/campaign_catalog_migration.gd")
 ## Campaign authoring data is independent of account and completion saves.
 const Catalog = preload("res://scripts/campaign/catalog.gd")
 const Fields = preload("res://scripts/content/catalogs/levels.gd")
 const FORMAT := "hollow-vigil-campaign-level-v1"
 var path := "user://vigil-campaign-configuration.save"
-var data := {"version": 1, "sequence": 0, "levels": {}}
+var data := {"catalog_revision": 2, "version": 1, "sequence": 0, "levels": {}}
 var blocked := false
 
 func valid_data(value: Dictionary) -> bool:
-	if value.size() != 3 or value.get("version") != 1 or not _number(value.get("sequence"), 0, 1e15, true) or not value.get("levels") is Dictionary: return false
+	if value.size() != (4 if value.has("catalog_revision") else 3) or value.get("version") != 1 or not _number(value.get("sequence"), 0, 1e15, true) or not value.get("levels") is Dictionary: return false
 	for key in value.levels:
 		if not key is String or not key.is_valid_int() or str(int(key)) != key or int(key) < 0 or int(key) >= Catalog.COUNT or not valid_level(int(key), value.levels[key]): return false
 	return true
@@ -68,8 +69,9 @@ func read_candidate(candidate_path: String) -> Dictionary:
 	if parser.parse(FileAccess.get_file_as_string(candidate_path)) != OK or not parser.data is Dictionary: return {}
 	var envelope: Dictionary = parser.data
 	if not envelope.get("payload") is String or envelope.get("checksum") != envelope.payload.sha256_text(): return {}
-	if parser.parse(envelope.payload) != OK or not parser.data is Dictionary or not valid_data(parser.data): return {}
-	return parser.data
+	if parser.parse(envelope.payload) != OK or not parser.data is Dictionary: return {}
+	var value := Migration.document(parser.data, "configuration")
+	return value if valid_data(value) else {}
 
 func load_configuration() -> void:
 	var best := {}
@@ -254,7 +256,7 @@ static func export_level(index: int, level_overrides: Dictionary = {}) -> String
 	var mission := resolve(index, level_overrides)
 	var defaults := resolve(index)
 	var baseline := {"gold": defaults.gold, "flame": defaults.flame, "reward": defaults.reward, "tuning": defaults.tuning, "waves": defaults.waves}
-	var report := {"version": 1, "level": index + 1, "name": mission.name, "style": mission.style, "defaults": baseline,
+	var report := {"catalog_revision": 2, "version": 1, "level": index + 1, "name": mission.name, "style": mission.style, "defaults": baseline,
 		"overrides": level_overrides.duplicate(true), "effective": {"gold": mission.gold, "flame": mission.flame, "reward": mission.reward, "stats": gameplay_values(mission.tuning)},
 		"wave_group_columns": ["kind", "count", "lane", "delay_seconds", "interval_seconds", "optional_gold_per_defeat"], "lanes": mission.roads, "waves": wave_reports(mission)}
 	var payload := JSON.stringify(report, "", true, true)

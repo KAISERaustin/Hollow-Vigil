@@ -1,11 +1,11 @@
 extends VigilSaveStore
+const Migration = preload("res://scripts/persistence/campaign_catalog_migration.gd")
 
 const Catalog = preload("res://scripts/campaign/catalog.gd")
 var path := "user://vigil-campaign.save"
-var data := {"version": 2, "sequence": 0, "completed_levels": 0}
+var data := {"catalog_revision": 2, "version": 2, "sequence": 0, "completed_levels": 0}
 var blocked := false
 var legacy_candidates := {}
-var allow_all := false
 
 func valid_data(value: Dictionary) -> bool:
 	return valid_map_progress(value) and value.get("version") == 2 and number(value.get("sequence"), 0, 1e15, true) and number(value.get("completed_levels"), 0, Catalog.COUNT, true)
@@ -27,19 +27,15 @@ static func valid_equipment(inventory: Variant) -> bool:
 	return VigilSaveStore.new().valid_loadout(snapshot)
 
 func apply_equipment(run: RefCounted) -> void:
+	run.game.economy.campaign_completed = int(data.completed_levels)
 	run.game.data.relics.merge(data.get("relics", {}).duplicate(true))
 
 func level_completed(index: int) -> bool:
 	if index < int(data.completed_levels): return true
-	if allow_all:
-		for beaten in data.get("beaten_levels", []):
-			if int(beaten) == index: return true
 	return false
 
 func current_level() -> int:
-	if allow_all and int(data.get("current_level", -1)) >= 0:
-		return int(data.current_level)
-	return int(data.completed_levels)
+	return mini(int(data.completed_levels), Catalog.COUNT - 1)
 
 func read_candidate(candidate_path: String) -> Dictionary:
 	legacy_candidates.erase(candidate_path)
@@ -66,7 +62,8 @@ func read_candidate(candidate_path: String) -> Dictionary:
 			if medal > 0: completed += 1
 		# Legacy checkpoints are deliberately discarded; only victories migrate.
 		legacy_candidates[candidate_path] = true
-		parsed = {"version": 2, "sequence": parsed.sequence, "completed_levels": completed}
+		parsed = {"catalog_revision": 2, "version": 2, "sequence": parsed.sequence, "completed_levels": completed}
+	parsed = Migration.document(parsed, "progress")
 	return parsed if valid_data(parsed) else {}
 
 func load_progress() -> void:
@@ -92,7 +89,7 @@ func load_progress() -> void:
 				blocked = true
 
 func unlocked(index: int) -> bool:
-	return not blocked and index >= 0 and index < Catalog.COUNT and (allow_all or index <= int(data.completed_levels))
+	return not blocked and index >= 0 and index < Catalog.COUNT and index <= int(data.completed_levels)
 
 func save_run(run: RefCounted) -> bool:
 	if blocked:
@@ -101,18 +98,6 @@ func save_run(run: RefCounted) -> bool:
 	inventory.merge(run.game.data.relics)
 	var equipment_changed: bool = inventory != data.get("relics", {})
 	data.relics = inventory
-	if allow_all:
-		var index := int(run.mission.index)
-		data.current_level = index
-		if run.phase == "victory":
-			var beaten: Array = []
-			for saved_index in data.get("beaten_levels", []): beaten.append(int(saved_index))
-			if index not in beaten: beaten.append(index)
-			data.beaten_levels = beaten
-			while int(data.completed_levels) < Catalog.COUNT and level_completed(int(data.completed_levels)):
-				data.completed_levels += 1
-			data.current_level = int(data.completed_levels) if int(data.completed_levels) < Catalog.COUNT else -1
-		return flush()
 	if run.phase != "victory":
 		return flush() if equipment_changed else true
 	var completed := int(run.mission.index) + 1
@@ -146,7 +131,7 @@ func _replace_progress(completed: int, reason: String) -> bool:
 		if FileAccess.file_exists(path + suffix) and DirAccess.copy_absolute(path + suffix, archive + suffix) != OK:
 			last_error = "Couldn't preserve the current campaign. Your progress is unchanged."
 			return false
-	var replacement := {"version": 2, "sequence": sequence + 1, "completed_levels": completed}
+	var replacement := {"catalog_revision": 2, "version": 2, "sequence": sequence + 1, "completed_levels": completed}
 	replacement.relics = data.get("relics", {}).duplicate(true)
 	if not write(path, replacement):
 		return false

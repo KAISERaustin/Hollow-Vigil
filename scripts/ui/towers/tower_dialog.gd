@@ -339,6 +339,7 @@ func open_action(action: String, branch: String = "") -> void:
 	UI.trap_focus(card)
 
 func arm_upgrade(branch: String = "") -> void:
+	if not app.game.economy.tower_available(tower_kind, tower_level + 1): return
 	if tower_level >= Balance.MAX_TOWER_LEVEL:
 		return
 	var selected_branch := branch if tower_level == 3 else tower_branch
@@ -390,7 +391,7 @@ func build_branch_cards() -> void:
 				arm_upgrade(option)
 		)
 		choice.name = "Branch_" + option
-		choice.disabled = tower_level >= 4 or app.game.data.balance < price or app.game.data.towers[tower_id].get("rebuild_remaining", 0.0) > 0.0
+		choice.disabled = not app.game.economy.tower_available(tower_kind, 4) or tower_level >= 4 or app.game.data.balance < price or app.game.data.towers[tower_id].get("rebuild_remaining", 0.0) > 0.0
 		branch_cards.add_child(choice)
 	confirm.show()
 	confirm.disabled = true
@@ -421,7 +422,7 @@ func configure_management_button(button: Button, action: String, label: String) 
 			preload("res://scripts/ui/towers/tower_action_icon.gd").draw(button, action, equipped, true, "", center)
 			return
 		if action == "upgrade":
-			var caption := "Max" if tower_level >= Balance.MAX_TOWER_LEVEL else UI.exact_money(cost if upgrade_armed else Balance.upgrade_cost(app.game.data.towers[tower_id], app.game.tuning))
+			var caption := "Max" if tower_level >= Balance.MAX_TOWER_LEVEL else ("Locked" if not app.game.economy.tower_available(tower_kind, tower_level + 1) else UI.exact_money(cost if upgrade_armed else Balance.upgrade_cost(app.game.data.towers[tower_id], app.game.tuning)))
 			var font := button.get_theme_font("font")
 			var font_size := UI.type_size(14)
 			var width := font.get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
@@ -564,7 +565,7 @@ func refresh() -> void:
 	if mode == "info" and is_instance_valid(branch_cards) and tower_level == 3:
 		for choice in branch_cards.get_children():
 			var option := String(choice.name).trim_prefix("Branch_")
-			choice.disabled = remaining > 0.0 or app.game.data.balance < Balance.upgrade_cost(tower, app.game.tuning, option)
+			choice.disabled = not app.game.economy.tower_available(tower_kind, 4) or remaining > 0.0 or app.game.data.balance < Balance.upgrade_cost(tower, app.game.tuning, option)
 	if mode == "info" and upgrade_armed:
 		if Balance.upgrade_cost(tower, app.game.tuning, tower_branch) != cost:
 			open_action("info")
@@ -577,6 +578,9 @@ func refresh() -> void:
 		disabled = tower_level >= 3 or remaining > 0.0 or app.game.data.balance < Balance.upgrade_cost(tower, app.game.tuning, tower_branch)
 	if mode in ["equipment", "equipment_detail"]:
 		disabled = relic_choice == relic_original
+	if mode in ["info", "preview", "upgrade"] and not app.game.economy.tower_available(tower_kind, tower_level + 1):
+		disabled = true
+		confirm.accessibility_description = app.game.economy.unlock_reason(tower_kind, tower_level + 1)
 	if disabled != confirm.disabled:
 		confirm.disabled = disabled
 		UI.trap_focus(card)

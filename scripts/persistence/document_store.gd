@@ -1,6 +1,7 @@
 extends VigilSaveStore
 ## Checksummed, recoverable storage for composed documents with an owning validator.
 var validator: Callable
+var transformer: Callable
 
 func valid_data(value: Dictionary) -> bool:
 	return validator.is_valid() and validator.call(value)
@@ -14,6 +15,7 @@ func read_candidate(path: String) -> Dictionary:
 	if envelope.get("checksum") != envelope.payload.sha256_text(): return {}
 	if parser.parse(envelope.payload) != OK: return {}
 	var value: Variant = parser.data
+	if value is Dictionary and transformer.is_valid(): value = transformer.call(value)
 	return value if value is Dictionary and valid_data(value) else {}
 
 func latest(path: String) -> Dictionary:

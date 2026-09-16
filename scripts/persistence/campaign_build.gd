@@ -1,4 +1,5 @@
 extends RefCounted
+const Migration = preload("res://scripts/persistence/campaign_catalog_migration.gd")
 ## A reusable campaign setup; progress and live combat never travel with it.
 const FORMAT := "hollow-vigil-campaign-build-v1"
 const Configuration = preload("res://scripts/campaign/configuration.gd")
@@ -6,7 +7,7 @@ const Run = preload("res://scripts/campaign/run.gd")
 const Stats = preload("res://scripts/persistence/stat_configuration.gd")
 
 static func encode(index: int, overrides: Dictionary, game: VigilState, title: String, description: String, stats_only: bool) -> String:
-	var value := {"version": 1, "setup": {"name": title.strip_edges(), "description": description}, "level": index, "overrides": overrides.duplicate(true)}
+	var value := {"catalog_revision": 2, "version": 1, "setup": {"name": title.strip_edges(), "description": description}, "level": index, "overrides": overrides.duplicate(true)}
 	if not stats_only:
 		value.loadout = {}
 		for key in ["towers", "next_tower", "relics", "balance"]:
@@ -24,11 +25,11 @@ static func decode(code: String) -> Dictionary:
 	if not envelope is Dictionary or envelope.size() != 3 or envelope.get("format") != FORMAT or not envelope.get("payload") is String: return {}
 	if envelope.get("checksum") != envelope.payload.sha256_text(): return {}
 	if parser.parse(envelope.payload) != OK: return {}
-	var value: Variant = parser.data
+	var value: Variant = Migration.document(parser.data, "level") if parser.data is Dictionary else {}
 	return value if valid(value) else {}
 
 static func valid(value: Variant) -> bool:
-	if not value is Dictionary or value.get("version") != 1 or value.size() != (5 if value.has("loadout") else 4): return false
+	if not value is Dictionary or value.get("version") != 1 or value.size() != (5 if value.has("loadout") else 4) + (1 if value.has("catalog_revision") else 0): return false
 	if not Stats.valid({"version": 1, "setup": value.get("setup"), "tuning": {}}): return false
 	if not Configuration._number(value.get("level"), 0, Configuration.Catalog.COUNT - 1, true): return false
 	if not Configuration.valid_level(int(value.level), value.get("overrides")): return false
