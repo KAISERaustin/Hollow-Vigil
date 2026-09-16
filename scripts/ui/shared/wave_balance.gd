@@ -25,7 +25,7 @@ static func content(report: Dictionary) -> VBoxContainer:
 		groups.add_child(group_card)
 	var changes: Dictionary = report.changes_from_previous_wave
 	var summary := column()
-	var summary_card := UI.info_card(summary, UI.SURFACE, UI.CARD_PADDING)
+	var summary_card := UI.info_card(summary, UI.PANEL, UI.CARD_PADDING)
 	summary_card.name = "WaveChanges"
 	body.add_child(summary_card)
 	summary.add_child(UI.heading("Changes from wave %d" % (report.wave - 1) if report.wave > 1 else "Opening wave", 18))
@@ -71,7 +71,7 @@ static func spawn_card(group: Dictionary) -> PanelContainer:
 	body.add_child(stats)
 	for metric in [["Health / enemy", group.spawn_health, ""], ["Speed", group.move_speed, " / s"], ["Gold / defeat", group.gold_per_defeat, ""], ["Spawn interval", group.interval_seconds, " s"]]:
 		stats.add_child(UI.info_card(UI.stat(metric[0], Comparison.number(metric[1], metric[2]))))
-	return UI.info_card(body, UI.SURFACE, UI.CARD_PADDING)
+	return UI.info_card(body, UI.PANEL, UI.CARD_PADDING)
 
 static func tuning_card(category: String, kind: String, changes: Dictionary) -> PanelContainer:
 	var body := column()
@@ -91,7 +91,7 @@ static func tuning_card(category: String, kind: String, changes: Dictionary) -> 
 		var tile := Comparison.card(limits.label, changes[field], limits.get("suffix", ""))
 		tile.name = "TuningChange_" + field
 		stats.add_child(tile)
-	var panel := UI.info_card(body, UI.SURFACE, UI.CARD_PADDING)
+	var panel := UI.info_card(body, UI.PANEL, UI.CARD_PADDING)
 	panel.name = "TuningChanges_" + category + "_" + kind
 	return panel
 

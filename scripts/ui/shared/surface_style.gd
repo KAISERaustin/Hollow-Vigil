@@ -1,12 +1,19 @@
 extends StyleBox
-## Reusable textured fill; retain StyleBoxFlat's layout and border API.
+## Quiet iron grain on an opaque semantic base; never tint text, frames or art.
 
-const PAPER = preload("res://assets/ui/welcome-parchment.png")
-const YELLOW_PAPER = preload("res://assets/ui/yellow-parchment.png")
-const RED_PAPER = preload("res://assets/ui/red-parchment.png")
+static var grain: Texture2D
 
-var paper: Texture2D = PAPER
-var base_color := VigilTerrainArt.PAPER
+static func material_grain() -> Texture2D:
+	if grain == null:
+		var pixels := Image.create(128, 128, false, Image.FORMAT_RGB8)
+		var random := RandomNumberGenerator.new()
+		random.seed = 7162026
+		for y in 128:
+			for x in 128:
+				var value := random.randf_range(0.97, 1.0)
+				pixels.set_pixel(x, y, Color(value, value, value))
+		grain = ImageTexture.create_from_image(pixels)
+	return grain
 
 var bg_color := Color.WHITE
 var border_color := Color.BLACK
@@ -37,7 +44,7 @@ func set_corner_radius_all(radius: int) -> void:
 
 func _draw(canvas_item: RID, rect: Rect2) -> void:
 	# Match the rim's fully opaque edge, including its antialiasing radius.
-	# Paper must cover the inner edge even on a one-pixel rim, without reaching
+	# The fill must cover the inner edge even on a one-pixel rim, without reaching
 	# the softened outer edge where it would show through the rounded corners.
 	var fill_rect := rect
 	var radii := [corner_radius_top_left, corner_radius_top_right, corner_radius_bottom_right, corner_radius_bottom_left]
@@ -51,8 +58,9 @@ func _draw(canvas_item: RID, rect: Rect2) -> void:
 		var uvs := PackedVector2Array()
 		var corners := [fill_rect.position, Vector2(fill_rect.end.x, fill_rect.position.y), fill_rect.end, Vector2(fill_rect.position.x, fill_rect.end.y)]
 		var directions := [Vector2.ONE, Vector2(-1, 1), -Vector2.ONE, Vector2(1, -1)]
-		# Cover instead of stretching: paper grain keeps the same proportions.
-		var texture_size := Vector2(paper.get_size())
+		# Keep grain quiet and proportional on all shared reading surfaces.
+		var texture := material_grain()
+		var texture_size := Vector2(texture.get_size())
 		var scale_factor := maxf(rect.size.x / texture_size.x, rect.size.y / texture_size.y)
 		var covered_size := texture_size * scale_factor
 		for corner in range(4):
@@ -63,11 +71,8 @@ func _draw(canvas_item: RID, rect: Rect2) -> void:
 				var point := center + Vector2(cos(angle), sin(angle)) * radius
 				points.append(point)
 				uvs.append((point - rect.position + (covered_size - rect.size) * 0.5) / covered_size)
-		var tint := Color.WHITE
-		# Preserve darker tan roles while using the reference paper for panels.
-		var base := base_color
-		tint = Color(bg_color.r / base.r, bg_color.g / base.g, bg_color.b / base.b, bg_color.a)
-		RenderingServer.canvas_item_add_polygon(canvas_item, points, PackedColorArray([tint]), uvs, paper.get_rid())
+		var tint := Color(bg_color.r / 0.985, bg_color.g / 0.985, bg_color.b / 0.985, bg_color.a)
+		RenderingServer.canvas_item_add_polygon(canvas_item, points, PackedColorArray([tint]), uvs, texture.get_rid())
 	var rim := StyleBoxFlat.new()
 	rim.draw_center = false
 	rim.border_color = border_color

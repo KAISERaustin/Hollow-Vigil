@@ -1,5 +1,11 @@
 # Replaceable actor images
 
+Before generating or editing replacement images, read
+[APP_STYLE_THEME.md](APP_STYLE_THEME.md) for the image-asset style and its two
+visual references. The technical replacement rules below preserve dimensions,
+anchors, transparency, and gameplay integration; they do not replace that art
+direction or require reproducing the older native palette in new commissions.
+
 Each ordinary enemy, tower tier, tower specialization, and Ironspike bow has its
 own transparent PNG under `assets/artwork/`. These are individual source images,
 not cells in a shipped sprite sheet. Matching instances reuse a loaded texture.

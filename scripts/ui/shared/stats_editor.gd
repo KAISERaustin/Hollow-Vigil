@@ -79,7 +79,7 @@ func rebuild() -> void:
 			section_body = VBoxContainer.new()
 			section_body.name = "AddedRules" if added else "DefaultRules"
 			section_body.add_theme_constant_override("separation", 12)
-			body.add_child(UI.info_card(section_body, UI.ADDED_RULES if added else UI.SURFACE, 12))
+			body.add_child(UI.info_card(section_body, UI.ADDED_RULES if added else UI.PANEL, 12))
 			section_body.add_child(UI.heading(("Added " if added else "Default ") + group.to_lower(), 18))
 			section_body.add_child(UI.paragraph("Extras added to this item." if added else "Built into this item. Required stats cannot be disabled; their values can be edited.", 14))
 			if group == "Stats":

@@ -17,6 +17,6 @@ func _draw() -> void:
 		return
 	var center := size * 0.5
 	for side in [-1, 1]:
-		draw_line(center + Vector2(side * 18, 0), center + Vector2(side * 52, 0), UI.PANEL, UI.OUTLINE)
+		draw_line(center + Vector2(side * 18, 0), center + Vector2(side * 52, 0), UI.TEXT, UI.OUTLINE)
 	var points := PackedVector2Array([center + Vector2(0, -7), center + Vector2(4, 0), center + Vector2(0, 7), center + Vector2(-4, 0), center + Vector2(0, -7)])
-	draw_polyline(points, UI.PANEL, UI.OUTLINE, true)
+	draw_polyline(points, UI.TEXT, UI.OUTLINE, true)

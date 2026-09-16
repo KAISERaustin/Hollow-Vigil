@@ -33,6 +33,7 @@ func _ready() -> void:
 	badge.add_theme_stylebox_override("panel", UI.surface(UI.GOLD, UI.OUTLINE, 12))
 	rows.add_child(badge)
 	reward_label = UI.value("", 24)
+	reward_label.add_theme_color_override("font_color", UI.ON_PRIMARY)
 	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	reward_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	badge.add_child(reward_label)
@@ -96,4 +97,4 @@ func _update_visuals() -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, 0.38))
+	draw_rect(Rect2(Vector2.ZERO, size), UI.SCRIM)

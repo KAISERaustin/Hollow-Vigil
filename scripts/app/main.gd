@@ -73,6 +73,7 @@ func build_interface() -> void:
 	toast_label.offset_top = -80
 	toast_label.offset_bottom = -20
 	toast_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	toast_label.add_theme_stylebox_override("normal", UI.surface(UI.PANEL, UI.OUTLINE, UI.INSET_PADDING))
 	toast_label.z_index = 300
 	toast_label.hide()
 	add_child(toast_label)

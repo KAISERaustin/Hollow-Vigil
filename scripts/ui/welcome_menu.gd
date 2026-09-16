@@ -25,9 +25,9 @@ func configure(campaign: Callable, settings: Callable = Callable()) -> void:
 	var title_font: FontVariation = UI.font(600, true).duplicate()
 	title_font.spacing_glyph = 4
 	title.add_theme_font_override("font", title_font)
-	title.add_theme_color_override("font_color", UI.PANEL)
+	title.add_theme_color_override("font_color", UI.TEXT)
 	add_child(title)
-	subtitle = UI.label("THE KNIGHT", 12, UI.PANEL)
+	subtitle = UI.label("THE KNIGHT", 12, UI.TEXT)
 	var motto_font: FontVariation = UI.font(600).duplicate()
 	motto_font.spacing_glyph = 3
 	subtitle.add_theme_font_override("font", motto_font)
@@ -44,7 +44,7 @@ func configure(campaign: Callable, settings: Callable = Callable()) -> void:
 	campaign_button.accessibility_description = "Join Pickard the knight in the Campaign."
 	modes.add_child(campaign_button)
 	if settings.is_valid():
-		var settings_button := UI.gold_button("Settings", settings, 56)
+		var settings_button := UI.button("Settings", settings, 56)
 		settings_button.name = "MainSettings"
 		modes.add_child(settings_button)
 	resized.connect(arrange, CONNECT_DEFERRED)

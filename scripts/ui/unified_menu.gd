@@ -103,12 +103,12 @@ func reveal_notice(label: Label, revision: int) -> void:
 
 func clear(title: String, header_action: Button = null) -> void:
 	super.clear(title, header_action)
-	welcome_paper.show()
+	page_backdrop.show()
 	if is_instance_valid(main_menu_art): main_menu_art.hide()
 
 func show_main_menu() -> void:
 	page_view("main", "Pickard", Callable())
-	welcome_paper.hide()
+	page_backdrop.hide()
 	if not is_instance_valid(main_menu_art):
 		main_menu_art = preload("res://scripts/ui/shared/welcome_art.gd").new()
 		main_menu_art.name = "PickardBackdrop"
@@ -161,7 +161,6 @@ func progress_text(value: Dictionary, type: String = "") -> String:
 
 func show_slots() -> void:
 	page_view("slots", "Saved games", leave_saved_games)
-	UI.tint_parchment(welcome_paper, UI.SAVED_GAMES_PAPER)
 	content.add_child(UI.paragraph(game_type.capitalize() + " · Three slots shared by Creative and Survival."))
 	for slot in 3:
 		var value := slot_summary(slot)

@@ -17,7 +17,7 @@ var layout: VBoxContainer
 var page_scroll: ScrollContainer
 var map_navigation: ColorRect
 var map_heading: VBoxContainer
-var parchment: TextureRect
+var page_backdrop: Panel
 var board: Control
 var status: Label
 var gold: Label
@@ -153,8 +153,8 @@ func _ready() -> void:
 	name = "Campaign"
 	color = UI.PANEL
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	parchment = UI.fullscreen_parchment()
-	add_child(parchment)
+	page_backdrop = UI.page_background()
+	add_child(page_backdrop)
 	theme = UI.theme()
 	if active_campaign_slot < 0: progress.load_progress()
 	if is_instance_valid(app) and not app.load_saved_progress:
@@ -262,7 +262,7 @@ func clear_page(next: String) -> void:
 	clear_selection()
 	clear_tower_ui()
 	page = next
-	parchment.visible = next not in ["map", "battle"]
+	page_backdrop.visible = next not in ["map", "battle"]
 	map_navigation.visible = next == "map"
 	color = VigilTerrainArt.ground_color(Catalog.CHAPTERS[-1].style) if next == "map" else UI.PANEL
 	for child in map_heading.get_children():
@@ -906,7 +906,7 @@ func show_result() -> void:
 func _build_dialog() -> void:
 	dialog = ColorRect.new()
 	dialog.z_index = 101
-	dialog.color = Color(0.03,0.04,0.05,0.8)
+	dialog.color = UI.SCRIM
 	dialog.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(dialog)
 	dialog_card = PanelContainer.new()
@@ -960,7 +960,7 @@ func close_dialog() -> void:
 func confirm_level_exit() -> void:
 	open_dialog("Exit level?")
 	exit_confirmation = true
-	dialog.color = Color(0, 0, 0, 0.65)
+	dialog.color = UI.SCRIM
 	dialog_body.add_child(UI.paragraph("Are you sure you want to exit? Your progress in this level will not be saved. All placed towers and wave progress will be lost. The level will start over next time.", 16))
 	dialog_body.add_child(UI.paragraph("Previously completed levels remain saved.", 14))
 	var cancel := UI.button("Cancel", close_dialog)
@@ -1004,7 +1004,7 @@ func open_dialog(title: String, for_socket: bool = false) -> void:
 	socket_dialog = for_socket
 	dialog_card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 0))
 	dialog_body.add_theme_constant_override("separation", 6 if for_socket else 12)
-	dialog.color = Color(0, 0, 0, 0) if for_socket else Color(0.03, 0.04, 0.05, 0.8)
+	dialog.color = Color(0, 0, 0, 0) if for_socket else UI.SCRIM
 	dialog.mouse_filter = Control.MOUSE_FILTER_IGNORE if for_socket else Control.MOUSE_FILTER_STOP
 	for child in dialog_body.get_children():
 		dialog_body.remove_child(child)

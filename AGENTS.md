@@ -13,7 +13,8 @@
 
 ## Pickard art identity
 
-- The game now centers on Pickard the knight. The user-supplied reference in `assets/ui/pickard-reference.jpg` is the core art direction for future work; read docs/ART_DIRECTION.md. Preserve the angular iron armor, closed helmet, muted red cloak, sword, diamond shield and moonlit charcoal-green world. Existing Campaign mechanics and save identities remain compatible.
+- Before generating, editing, or commissioning image assets, read [docs/APP_STYLE_THEME.md](docs/APP_STYLE_THEME.md). It is the image-asset style authority, grounded in the supplied tier-one tower sheet and Pickard main-menu artwork; it covers palette, shapes, materials, lighting, texture, atmosphere, and generation prompts. It is separate from the UI specification.
+- The game now centers on Pickard the knight. The user-supplied reference in `assets/ui/pickard-reference.jpg` preserves his character identity; read docs/ART_DIRECTION.md for implementation context. Preserve the angular iron armor, closed helmet, muted red cloak, sword, diamond shield and moonlit charcoal-green world. Existing Campaign mechanics and save identities remain compatible.
 
 ## UI standard for all future work
 

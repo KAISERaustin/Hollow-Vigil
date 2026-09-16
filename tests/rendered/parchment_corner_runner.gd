@@ -74,13 +74,13 @@ func run() -> void:
 								if target.a >= 0.99 and pixel.a < 0.99:
 									gaps += 1
 						var context := "%s border %d radius %d scale %.2f offset %s" % [color, width, radius, factor, offset]
-						check(bleed == 0, "%d parchment pixels outside the solid rim: %s" % [bleed, context])
+						check(bleed == 0, "%d surface pixels outside the solid rim: %s" % [bleed, context])
 						check(gaps == 0, "%d transparent seams inside the panel: %s" % [gaps, context])
 						var center := rendered.get_pixelv(Vector2i(bounds.get_center()))
-						check(center.a == 1.0 and center.r > 0.4, "Parchment remains visible: " + context)
+						check(center.a == 1.0 and absf(center.r - color.r) < 0.025 and absf(center.g - color.g) < 0.025 and absf(center.b - color.b) < 0.025, "Semantic surface remains opaque and matches its palette: " + context)
 						if color == UI.PANEL and width == 4 and radius == 4 and factor == 1.0 and offset == Vector2.ZERO:
 							rendered.save_png("res://artifacts/parchment-corner-sample.png")
 	actual_view.free()
 	reference_view.free()
-	print("PARCHMENT_CORNERS: %d checks, %d failures" % [checks, failures.size()])
+	print("SURFACE_CORNERS: %d checks, %d failures" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)

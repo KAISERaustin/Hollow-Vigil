@@ -4,7 +4,7 @@ const UI = preload("res://scripts/ui/shared/interface.gd")
 
 static func draw(button: Button, action: String, equipment_kind: String = "", upgrade_maxed: bool = false, pending_tower: String = "", icon_center: Vector2 = Vector2.INF) -> void:
 	var center := button.size * 0.5 if icon_center == Vector2.INF else icon_center
-	var color := UI.TEXT
+	var color := UI.button_ink(button)
 	if action == "equipment":
 		if equipment_kind != "":
 			preload("res://scripts/rendering/actors/relic_art.gd").draw(button, equipment_kind, center)
@@ -18,8 +18,8 @@ static func draw(button: Button, action: String, equipment_kind: String = "", up
 		button.draw_line(center + Vector2(0, -1), center + Vector2(0, 6), color, 3, true)
 	elif action == "upgrade":
 		if upgrade_maxed:
-			button.draw_arc(center + Vector2(0, -4), 7, PI, TAU, 24, UI.MUTED, 3, true)
-			button.draw_rect(Rect2(center + Vector2(-10, -4), Vector2(20, 17)), UI.MUTED)
+			button.draw_arc(center + Vector2(0, -4), 7, PI, TAU, 24, color, 3, true)
+			button.draw_rect(Rect2(center + Vector2(-10, -4), Vector2(20, 17)), color)
 			button.draw_circle(center + Vector2(0, 2), 2, UI.PANEL)
 			button.draw_line(center + Vector2(0, 3), center + Vector2(0, 7), UI.PANEL, 2, true)
 			return

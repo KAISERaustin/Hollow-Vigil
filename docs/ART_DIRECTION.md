@@ -1,8 +1,21 @@
 # Pickard art direction
 
+## Image-asset style authority
+
+Read [APP_STYLE_THEME.md](APP_STYLE_THEME.md) before generating or revising image
+assets. It describes both the supplied tier-one tower sheet and Pickard main-menu
+image in detail, including palette, shape language, materials, lighting, texture,
+atmosphere, asset-specific guidance, and reusable prompts. Those two references
+jointly define the style for future images. It is an artwork specification,
+separate from the UI theme. Where older notes below describe pastel palettes or
+textureless primitives, the new image-asset reference takes precedence for future
+art; existing implementation and gameplay contracts remain intact.
+
+## Character identity and implementation context
+
 Current direction, revised September 16, 2026: the game centers on **Pickard the
 knight**. The user-supplied [canonical reference](../assets/ui/pickard-reference.jpg)
-is the primary art authority for future work. Preserve the closed angular iron
+preserves his character identity. Preserve the closed angular iron
 helmet and dark visor, broad faceted armor, weathered muted red cloak, upright
 sword, dark shield with pale diamond, heavy near-black silhouette contours,
 parchment moon and layered charcoal-green ruins. Use restrained material facets
@@ -66,7 +79,7 @@ subtitle. Health, root shield and ward indicators remain separate.
 - Campaign play: one compact control bar above edge-to-edge terrain. Level identity and live values sit in compact floating cards with the shared 3-unit black border and 4-unit corners. Fill one row below the toolbar with three cards: numbered level title (1. Briar Bend), gold and wave count; no shadows, glow, battlefield enclosure or bottom action panel. Reuse the shared toolbar and floating HUD; respect safe areas for text and controls. Their existing parchment fills are legacy presentation; future UI styling follows the dark theme.
 Collection feedback is an ochre outlined badge centered over the visible Unclaimed earnings caption, using its measured text width rather than its container width; it rises 36 pixels over 0.95 seconds and fades after a brief hold.
 
-The artwork implementation lives in scripts/rendering/terrain/terrain_art.gd, scripts/rendering/terrain/terrain_tile.gd, scripts/rendering/terrain/terrain_grid.gd and scripts/rendering/battlefield.gd. The shared UI theme is scripts/ui/shared/interface.gd; bundled fonts and licenses are in assets/fonts. The app icon uses a deep plum moonlit landscape with an ivory crowned watchtower and mint crystal gateway, as documented in docs/APP_ICON.md. Current UI captures are artifacts/style-*.png, regenerated with `./launch.ps1 -StyleTests`.
+The artwork implementation lives in scripts/rendering/terrain/terrain_art.gd, scripts/rendering/terrain/terrain_tile.gd, scripts/rendering/terrain/terrain_grid.gd and scripts/rendering/battlefield.gd. The shared UI theme is scripts/ui/shared/interface.gd; bundled fonts and licenses are in assets/fonts. The app icon uses a close-up of Pickard's angular iron helmet and muted red cloak against a parchment moon and charcoal-green ruins, as documented in docs/APP_ICON.md. Current UI captures are artifacts/style-*.png, regenerated with `./launch.ps1 -StyleTests`.
 
 ## Extension contract
 

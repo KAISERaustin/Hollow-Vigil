@@ -1,18 +1,22 @@
 class_name VigilInterface
 extends RefCounted
 
-const BG := VigilTerrainArt.BACKDROP
-const PANEL := VigilTerrainArt.PAPER
+## UI roles are independent of terrain, currency and content-portrait colors.
+const BG := Color("141B1A")
+const PANEL := Color("2B3533")
 const MAIN_MENU_BACKGROUND := Color("192322")
-const SURFACE := VigilTerrainArt.ROAD
-const ADDED_RULES := Color("95AA83")
-const ADDED_RULE := Color("B49DCC")
-const SAVED_GAMES_PAPER := Color("#B8C4C6")
-const BORDER := VigilTerrainArt.INK
-const GOLD := VigilTerrainArt.GOLD
-const TEXT := VigilTerrainArt.INK
-const MUTED := VigilTerrainArt.BACKDROP
-const DANGER := VigilTerrainArt.CORAL
+const INSET := Color("222A29")
+const SURFACE := Color("46514D")
+const ADDED_RULES := INSET
+const ADDED_RULE := PANEL
+const BORDER := Color.BLACK
+const GOLD := Color("B8AA87") # Retained helper name; primary actions use aged metal.
+const ON_PRIMARY := BG
+const TEXT := Color("E8DDBD")
+const MUTED := Color("B8B5A7")
+const DANGER := Color("623F39")
+const DISABLED := Color("303936")
+const SCRIM := Color(0, 0, 0, 0.65)
 ## All UI enclosure borders and dividers share this width. See docs/UI_STYLE_GUIDE.md.
 const OUTLINE := 3
 const RADIUS := 4
@@ -73,20 +77,13 @@ static func info_card(content: Control, background: Color = PANEL, padding: int 
 static func rule_card(content: Control) -> PanelContainer:
 	return info_card(content, ADDED_RULE, CARD_PADDING)
 
-static func fullscreen_parchment() -> TextureRect:
-	var paper := TextureRect.new()
-	paper.name = "FullscreenParchment"
-	paper.texture = preload("res://assets/ui/welcome-parchment.png")
-	paper.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	paper.stretch_mode = TextureRect.STRETCH_SCALE
-	paper.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	paper.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	paper.add_child(rounded_viewport_frame())
-	return paper
-
-static func tint_parchment(paper: TextureRect, background: Color = PANEL) -> void:
-	# Tint the paper and its corner fill together; black frame ink stays black.
-	paper.modulate = Color(background.r / PANEL.r, background.g / PANEL.g, background.b / PANEL.b, background.a)
+static func page_background() -> Panel:
+	var panel := Panel.new()
+	panel.name = "MoonlitBackground"
+	panel.add_theme_stylebox_override("panel", surface(BG, OUTLINE, 0))
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	return panel
 
 static func rounded_viewport_frame(background: Color = PANEL, outline: int = OUTLINE) -> Control:
 	var frame := Control.new()
@@ -209,12 +206,13 @@ static func theme() -> Theme:
 	# Pointer entry must not change icon tint, including toggled buttons.
 	for type in ["Button", "OptionButton", "CheckButton", "CheckBox", "MenuButton"]:
 		for state in ["icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_hover_pressed_color", "icon_focus_color"]:
-			t.set_color(state, type, Color.WHITE)
+			t.set_color(state, type, TEXT)
+		t.set_color("icon_disabled_color", type, MUTED)
 	t.set_stylebox("normal", "Button", box(SURFACE))
 	t.set_stylebox("hover", "Button", box(SURFACE))
 	t.set_stylebox("pressed", "Button", box(SURFACE))
 	t.set_stylebox("hover_pressed", "Button", box(SURFACE))
-	t.set_stylebox("disabled", "Button", box(SURFACE))
+	t.set_stylebox("disabled", "Button", box(DISABLED))
 	for type in ["Button", "OptionButton", "CheckButton", "CheckBox", "MenuButton", "LinkButton", "LineEdit", "TextEdit", "ScrollContainer"]:
 		t.set_stylebox("focus", type, focus_box())
 	# OptionButton popups are separate windows and need their own theme roles.
@@ -227,6 +225,14 @@ static func theme() -> Theme:
 	t.set_color("font_disabled_color", "PopupMenu", MUTED)
 	t.set_constant("v_separation", "PopupMenu", maxi(12, TARGET - ceili(font(600).get_height(type_size(BODY)))))
 	t.set_stylebox("panel", "PanelContainer", surface(PANEL, OUTLINE, 0))
+	for type in ["LineEdit", "TextEdit"]:
+		for state in ["normal", "read_only"]:
+			t.set_stylebox(state, type, box(INSET))
+		for state in ["font_color", "font_readonly_color", "caret_color"]:
+			t.set_color(state, type, TEXT)
+		t.set_color("font_placeholder_color", type, MUTED)
+		t.set_color("selection_color", type, GOLD)
+		t.set_color("font_selected_color", type, ON_PRIMARY)
 	for type in ["VScrollBar", "HScrollBar"]:
 		var track := box(SURFACE)
 		track.set_content_margin_all(3)
@@ -249,15 +255,7 @@ static func theme() -> Theme:
 	return t
 
 static func box(bg: Color, border: Color = BORDER, radius: int = RADIUS) -> StyleBox:
-	var style: StyleBox = StyleBoxFlat.new()
-	# Semantic accents and tan surfaces share the same paper renderer.
-	var gold := Color(bg, 1.0).is_equal_approx(GOLD)
-	var danger := Color(bg, 1.0).is_equal_approx(DANGER)
-	if bg.a > 0.0 and (gold or danger or (bg.r >= bg.g and bg.g > bg.b and bg.b >= 0.55)):
-		style = preload("res://scripts/ui/shared/parchment_style.gd").new()
-		if gold or danger:
-			style.paper = style.YELLOW_PAPER if gold else style.RED_PAPER
-			style.base_color = GOLD if gold else DANGER
+	var style: StyleBox = preload("res://scripts/ui/shared/surface_style.gd").new() if bg.a > 0.0 else StyleBoxFlat.new()
 	style.bg_color = bg
 	style.border_color = border
 	style.set_border_width_all(OUTLINE)
@@ -325,6 +323,9 @@ static func button(text: String, action: Callable, height: float = 48, highlight
 	b.accessibility_name = text
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.pressed.connect(action)
+	if highlight_selection:
+		b.add_theme_color_override("font_pressed_color", ON_PRIMARY)
+		b.add_theme_color_override("font_hover_pressed_color", ON_PRIMARY)
 	var pressed := box(GOLD if highlight_selection else SURFACE)
 	pressed.content_margin_top += 1
 	pressed.content_margin_bottom -= 1
@@ -333,7 +334,7 @@ static func button(text: String, action: Callable, height: float = 48, highlight
 	b.add_theme_stylebox_override("focus", focus_box())
 	b.draw.connect(func():
 		if b.toggle_mode and b.button_pressed and not highlight_selection:
-			b.draw_line(Vector2(12, b.size.y - 8), Vector2(b.size.x - 12, b.size.y - 8), BORDER, OUTLINE)
+			b.draw_line(Vector2(12, b.size.y - 8), Vector2(b.size.x - 12, b.size.y - 8), button_ink(b), OUTLINE)
 	)
 	return b
 
@@ -372,7 +373,7 @@ static func toolbar_action(text: String, action: Callable, primary: bool = false
 	control.add_theme_font_size_override("font_size", type_size(CAPTION))
 	control.autowrap_mode = TextServer.AUTOWRAP_OFF
 	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
-		var style := box(GOLD if primary and state != "disabled" else SURFACE)
+		var style := box(DISABLED if state == "disabled" else (GOLD if primary else SURFACE))
 		style.content_margin_left = INSET_PADDING
 		style.content_margin_right = INSET_PADDING
 		if state in ["pressed", "hover_pressed"]:
@@ -443,7 +444,7 @@ static func configure_back_button(back: Button, back_label: String) -> void:
 	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	back.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
-		back.add_theme_stylebox_override(state, box(SURFACE))
+		back.add_theme_stylebox_override(state, box(DISABLED if state == "disabled" else SURFACE))
 	back.add_theme_stylebox_override("focus", focus_box())
 
 static func gold_button(text: String, action: Callable, height: float = 50) -> Button:
@@ -526,16 +527,14 @@ static func number_row(title: String, number: SpinBox, preview: Button = null, i
 	entry.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER_DECIMAL
 	entry.accessibility_name = number.accessibility_name
 	entry.alignment = HORIZONTAL_ALIGNMENT_CENTER
-	entry.add_theme_stylebox_override("normal", box(SURFACE))
-	entry.add_theme_stylebox_override("focus", focus_box())
-	entry.add_theme_color_override("font_color", TEXT)
-	entry.add_theme_color_override("caret_color", TEXT)
+	style_entry(entry)
 	entry.add_theme_font_size_override("font_size", type_size(CAPTION))
 	row.add_child(number)
 	return row
 
 static func accent_button(text: String, action: Callable, accent: Color, height: float = 48) -> Button:
 	var b := button(text, action, height)
+	style_button_ink(b, ON_PRIMARY if accent == GOLD else TEXT)
 	b.add_theme_stylebox_override("normal", box(accent))
 	b.add_theme_stylebox_override("hover", box(accent))
 	var pressed := box(accent)
@@ -544,6 +543,16 @@ static func accent_button(text: String, action: Callable, accent: Color, height:
 	b.add_theme_stylebox_override("pressed", pressed)
 	b.add_theme_stylebox_override("hover_pressed", pressed)
 	return b
+
+static func style_button_ink(control: Button, ink: Color = TEXT) -> void:
+	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color", "icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_hover_pressed_color", "icon_focus_color"]:
+		control.add_theme_color_override(state, ink)
+	control.add_theme_color_override("font_disabled_color", MUTED)
+	control.add_theme_color_override("icon_disabled_color", MUTED)
+
+## Custom-drawn button icons use the same state-aware ink as their captions.
+static func button_ink(control: Button) -> Color:
+	return control.get_theme_color("font_disabled_color" if control.disabled else ("font_pressed_color" if control.button_pressed else "font_color"))
 
 static func paragraph(text: String, pixels: int = 14) -> Label:
 	var l := label(text, maxi(CAPTION, pixels), MUTED)
@@ -575,7 +584,7 @@ static func stat_card(caption: String, text: String, pixels: int = 24) -> PanelC
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for entry: Label in column.get_children():
 		entry.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	return info_card(column, SURFACE)
+	return info_card(column, INSET)
 
 static func rule() -> HSeparator:
 	var r := HSeparator.new()
@@ -599,10 +608,12 @@ static func margin(parent: Node, padding: int = 16) -> VBoxContainer:
 
 static func style_entry(entry: Control) -> void:
 	for state in ["normal", "read_only"]:
-		entry.add_theme_stylebox_override(state, box(SURFACE))
+		entry.add_theme_stylebox_override(state, box(INSET))
 	entry.add_theme_stylebox_override("focus", focus_box())
 	entry.add_theme_color_override("font_color", TEXT)
 	entry.add_theme_color_override("font_readonly_color", TEXT)
 	entry.add_theme_color_override("font_placeholder_color", MUTED)
 	entry.add_theme_color_override("caret_color", TEXT)
+	entry.add_theme_color_override("selection_color", GOLD)
+	entry.add_theme_color_override("font_selected_color", ON_PRIMARY)
 	entry.add_theme_font_size_override("font_size", type_size(14))

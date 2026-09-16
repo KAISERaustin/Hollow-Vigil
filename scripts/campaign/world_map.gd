@@ -26,6 +26,7 @@ func _ready() -> void:
 	for chapter in Catalog.CHAPTERS.size():
 		backgrounds.append(chapter_presentation(chapter).get("background"))
 		var heading := VBoxContainer.new()
+		add_label_surface(heading)
 		heading.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		heading.add_theme_constant_override("separation", 4)
 		heading.add_child(UI.label("CHAPTER " + CHAPTER_NUMERALS[chapter], UI.META, UI.TEXT))
@@ -53,6 +54,7 @@ func _ready() -> void:
 		add_child(button)
 		nodes.append(button)
 		var identity := VBoxContainer.new()
+		add_label_surface(identity)
 		identity.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		identity.add_theme_constant_override("separation", 4)
 		var title := UI.heading(Catalog.MISSIONS[index].name, 14)
@@ -67,6 +69,13 @@ func _ready() -> void:
 	for group in headings + labels:
 		group.minimum_size_changed.connect(arrange)
 	arrange()
+
+func add_label_surface(group: VBoxContainer) -> void:
+	group.set_meta("ui_surface", UI.PANEL)
+	group.draw.connect(func():
+		group.draw_style_box(UI.surface(UI.PANEL, UI.OUTLINE, 0), Rect2(Vector2(-UI.INSET_PADDING, -4), Vector2(group.size.x + UI.INSET_PADDING * 2, group.get_combined_minimum_size().y + 8)))
+	)
+	group.resized.connect(group.queue_redraw)
 
 func chapter_rect(chapter: int) -> Rect2:
 	return Rect2(0, chapter * CHAPTER_HEIGHT, size.x, CHAPTER_HEIGHT)

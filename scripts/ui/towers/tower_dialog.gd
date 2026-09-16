@@ -53,7 +53,7 @@ var branch_cards: VBoxContainer
 func _ready() -> void:
 	name = "TowerDialog"
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	color = Color(UI.BORDER, 0.65)
+	color = UI.SCRIM
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	card = PanelContainer.new()
 	card.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 0))
@@ -279,6 +279,8 @@ func open_action(action: String, branch: String = "") -> void:
 			choice.button_group = group
 			choice.add_theme_stylebox_override("pressed", UI.box(UI.GOLD))
 			choice.add_theme_stylebox_override("hover_pressed", UI.box(UI.GOLD))
+			choice.add_theme_color_override("font_pressed_color", UI.ON_PRIMARY)
+			choice.add_theme_color_override("font_hover_pressed_color", UI.ON_PRIMARY)
 			choice.button_pressed = key == target_choice
 			body.add_child(UI.action_row(Balance.TARGET_MODES[key] + "\n" + descriptions[key], choice, "Select"))
 	if action == "move":
@@ -407,8 +409,9 @@ func configure_management_button(button: Button, action: String, label: String) 
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	button.accessibility_name = label
 	button.accessibility_description = label
-	for state in ["normal", "hover", "pressed", "disabled"]:
-		var style := UI.box(UI.GOLD if action == "upgrade" else UI.SURFACE)
+	UI.style_button_ink(button, UI.ON_PRIMARY if action == "upgrade" else UI.TEXT)
+	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
+		var style := UI.box(UI.DISABLED if state == "disabled" else (UI.GOLD if action == "upgrade" else UI.SURFACE))
 		style.set_content_margin_all(0)
 		button.add_theme_stylebox_override(state, style)
 	button.draw.connect(func():
@@ -424,7 +427,7 @@ func configure_management_button(button: Button, action: String, label: String) 
 			var width := font.get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 			var left := (button.size.x - width - 32.0) * 0.5
 			center.x = left + 12
-			button.draw_string(font, Vector2(left + 32, (button.size.y - font.get_height(font_size)) * 0.5 + font.get_ascent(font_size)), caption, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, UI.TEXT)
+			button.draw_string(font, Vector2(left + 32, (button.size.y - font.get_height(font_size)) * 0.5 + font.get_ascent(font_size)), caption, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, UI.button_ink(button))
 			button.accessibility_description = "Upgrade tower: " + caption
 		preload("res://scripts/ui/towers/tower_action_icon.gd").draw(button, action, equipped, tower_level >= Balance.MAX_TOWER_LEVEL, tower_id if upgrade_armed else "", center)
 	)

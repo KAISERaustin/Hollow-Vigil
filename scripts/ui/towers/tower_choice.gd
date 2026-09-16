@@ -15,12 +15,10 @@ static func create(kind: String, title: String, cost: float, action: Callable, l
 	button.custom_minimum_size = CARD_SIZE
 	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	button.accessibility_name = "%s · %s gold" % [title, UI.exact_money(cost)]
-	var definition := Balance.definition("towers", kind)
-	var tint := Color(str(definition.get("color", "e0b568")))
 	for state in ["normal", "hover", "disabled"]:
-		button.add_theme_stylebox_override(state, UI.surface(UI.PANEL.lerp(tint, 0.12), UI.OUTLINE, 8))
+		button.add_theme_stylebox_override(state, UI.surface(UI.DISABLED if state == "disabled" else UI.SURFACE, UI.OUTLINE, 8))
 	for state in ["pressed", "hover_pressed"]:
-		button.add_theme_stylebox_override(state, UI.surface(UI.PANEL.lerp(UI.GOLD, 0.45), UI.OUTLINE, 8))
+		button.add_theme_stylebox_override(state, UI.surface(UI.GOLD, UI.OUTLINE, 8))
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "right", "top", "bottom"]:
@@ -43,7 +41,7 @@ static func create(kind: String, title: String, cost: float, action: Callable, l
 	)
 	_ignore_mouse(margin)
 	button.draw.connect(func():
-		layout.modulate.a = 0.45 if button.disabled else 1.0
+		portrait.self_modulate.a = 0.65 if button.disabled else 1.0
 	)
 	return button
 
@@ -53,7 +51,7 @@ static func branch_card(kind: String, title: String, price: float, branch: Strin
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.accessibility_name = "%s · %s gold · %s" % [title, UI.exact_money(price), state]
 	for style in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
-		button.add_theme_stylebox_override(style, UI.surface(UI.GOLD if selected else UI.PANEL, UI.OUTLINE, 8))
+		button.add_theme_stylebox_override(style, UI.surface(UI.SURFACE if selected else UI.PANEL, UI.OUTLINE, 8))
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "right", "top", "bottom"]:
@@ -95,7 +93,7 @@ static func details(kind: String, tuning: Dictionary, tier: int = 1, branch: Str
 	var stats := Balance.stats(kind, tier, tuning, branch) if effective.is_empty() else effective
 	var summary := VBoxContainer.new()
 	summary.add_theme_constant_override("separation", UI.GAP)
-	var summary_card := UI.info_card(summary, UI.SURFACE, UI.CARD_PADDING)
+	var summary_card := UI.info_card(summary, UI.PANEL, UI.CARD_PADDING)
 	summary_card.name = "TowerSummary"
 	body.add_child(summary_card)
 	var header := HBoxContainer.new()
@@ -224,7 +222,7 @@ static func build_preview(kind: String, tuning: Dictionary) -> VBoxContainer:
 	description.name = "BuildDescription"
 	description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	description.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	identity.add_child(UI.info_card(description, UI.SURFACE))
+	identity.add_child(UI.info_card(description, UI.INSET))
 	_ignore_mouse(body)
 	return body
 

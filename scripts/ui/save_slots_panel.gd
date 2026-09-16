@@ -8,7 +8,7 @@ var footer: VBoxContainer
 var content: VBoxContainer
 var card: PanelContainer
 var scroll: ScrollContainer
-var welcome_paper: TextureRect
+var page_backdrop: Panel
 var message: Label
 var upload_revision := -1
 var view_revision := 0
@@ -20,8 +20,8 @@ func _ready() -> void:
 	name = "SaveSlots"
 	color = UI.BG
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	welcome_paper = UI.fullscreen_parchment()
-	add_child(welcome_paper)
+	page_backdrop = UI.page_background()
+	add_child(page_backdrop)
 	card = PanelContainer.new()
 	card.add_theme_stylebox_override("panel", UI.plain())
 	add_child(card)
@@ -56,7 +56,6 @@ func fit() -> void:
 
 func clear(title: String, header_action: Button = null) -> void:
 	view_revision += 1
-	UI.tint_parchment(welcome_paper)
 	header.get_parent().add_theme_constant_override("separation", UI.GAP)
 	header.show()
 	footer.show()
@@ -79,7 +78,7 @@ func clear(title: String, header_action: Button = null) -> void:
 
 func add_card(title: String) -> VBoxContainer:
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", UI.box(UI.SURFACE))
+	panel.add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 0))
 	content.add_child(panel)
 	var body := UI.margin(panel, 12)
 	body.add_theme_constant_override("separation", 10)

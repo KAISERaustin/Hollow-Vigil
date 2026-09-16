@@ -15,14 +15,14 @@ static func total_time_card(reports: Array[Dictionary]) -> PanelContainer:
 	body.move_child(body.get_child(1), 0)
 	for entry: Label in body.get_children():
 		entry.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var panel := UI.info_card(body, UI.GOLD, UI.CARD_PADDING)
+	var panel := UI.info_card(body, UI.PANEL, UI.CARD_PADDING)
 	panel.name = "TotalWaveTime"
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return panel
 
 static func card(report: Dictionary, status: String, details: Callable, edit: Callable = Callable(), authoring: Dictionary = {}) -> PanelContainer:
 	var body := VBoxContainer.new()
-	var panel := UI.info_card(body, UI.SURFACE, UI.CARD_PADDING)
+	var panel := UI.info_card(body, UI.PANEL, UI.CARD_PADDING)
 	panel.name = "WaveSummary" + str(report.wave)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.add_theme_constant_override("separation", UI.GAP)
@@ -121,7 +121,7 @@ static func enemy_identity(kind: String, count: int, detail: String = "") -> HBo
 	var quantity := UI.value("×%d" % count, 18)
 	quantity.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	quantity.accessibility_name = "%d %s" % [count, definition.name]
-	var badge := UI.info_card(quantity, UI.SURFACE, 6)
+	var badge := UI.info_card(quantity, UI.INSET, 6)
 	badge.size_flags_horizontal = Control.SIZE_SHRINK_END
 	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(badge)

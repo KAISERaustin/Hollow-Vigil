@@ -181,11 +181,11 @@ func build_branches() -> void:
 		button.draw.connect(func():
 			var center := button.size * 0.5
 			if button.get_meta("armed", false):
-				button.draw_polyline(PackedVector2Array([center + Vector2(-10, 0), center + Vector2(-3, 7), center + Vector2(11, -8)]), UI.TEXT, 3, true)
+				button.draw_polyline(PackedVector2Array([center + Vector2(-10, 0), center + Vector2(-3, 7), center + Vector2(11, -8)]), UI.button_ink(button), 3, true)
 			else:
 				var direction := -1 if index == 0 else 1
-				button.draw_line(center - Vector2(10 * direction, 0), center + Vector2(10 * direction, 0), UI.TEXT, 3, true)
-				button.draw_polyline(PackedVector2Array([center + Vector2(2 * direction, -8), center + Vector2(10 * direction, 0), center + Vector2(2 * direction, 8)]), UI.TEXT, 3, true)
+				button.draw_line(center - Vector2(10 * direction, 0), center + Vector2(10 * direction, 0), UI.button_ink(button), 3, true)
+				button.draw_polyline(PackedVector2Array([center + Vector2(2 * direction, -8), center + Vector2(10 * direction, 0), center + Vector2(2 * direction, 8)]), UI.button_ink(button), 3, true)
 		)
 		branch_bar.add_child(button)
 	branch_bar.hide()

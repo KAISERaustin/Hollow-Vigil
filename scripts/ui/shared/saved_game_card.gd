@@ -8,7 +8,7 @@ static func card(slot: int, title: String, mode: String, description: String, st
 	var body := VBoxContainer.new()
 	body.name = "GameSlot" + str(slot + 1)
 	body.add_theme_constant_override("separation", UI.GAP)
-	var panel := UI.info_card(body, UI.SURFACE, UI.CARD_PADDING)
+	var panel := UI.info_card(body, UI.PANEL, UI.CARD_PADDING)
 	panel.name = "SavedGameCard" + str(slot + 1)
 	var slot_label := UI.heading("Slot %d" % (slot + 1), UI.CAPTION)
 	body.add_child(slot_label)

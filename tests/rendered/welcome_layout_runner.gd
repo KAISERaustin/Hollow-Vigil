@@ -40,7 +40,7 @@ func run() -> void:
 	var settings: Button = app.slot_menu.find_child("MainSettings", true, false)
 	settings.pressed.emit()
 	check(app.slot_menu.screen == "settings", "Settings opens")
-	check(not app.slot_menu.main_menu_art.visible and app.slot_menu.welcome_paper.visible, "Settings restores parchment and hides hero artwork")
+	check(not app.slot_menu.main_menu_art.visible and app.slot_menu.page_backdrop.visible, "Settings restores the dark foundation and hides hero artwork")
 	app.slot_menu.go_back()
 	for i in 20: await process_frame
 	check(app.slot_menu.screen == "main", "Settings returns to main")

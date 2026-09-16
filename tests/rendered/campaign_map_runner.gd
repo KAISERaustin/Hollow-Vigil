@@ -47,7 +47,7 @@ func run() -> void:
 		var map: Control = campaign.find_child("CampaignWorldMap", true, false)
 		var back: Button = campaign.find_child("CampaignBack", true, false)
 		var back_bounds := back.get_global_rect()
-		check(not campaign.parchment.visible, "Map removes the parchment backdrop")
+		check(not campaign.page_backdrop.visible, "Map removes the page_backdrop backdrop")
 		check(map.size.x == viewport.x and campaign.page_scroll.position.x == 0, "Biomes fill the available width")
 		check(campaign.page_scroll.get_global_rect().end.y == viewport.y, "Biomes fill to the bottom edge")
 		check(map.nodes.size() == Catalog.COUNT, "Every authored level remains on the map")
@@ -95,7 +95,7 @@ func run() -> void:
 		map.nodes[0].pressed.emit()
 		await frame()
 		check(campaign.page == "briefing" and campaign.run.mission.index == 0, "Map opens the selected level")
-		check(campaign.parchment.visible and not campaign.map_navigation.visible, "Briefing restores the shared page presentation")
+		check(campaign.page_backdrop.visible and not campaign.map_navigation.visible, "Briefing restores the shared page presentation")
 		campaign.show_map()
 		await frame()
 	campaign.progress.allow_all = false
@@ -131,7 +131,7 @@ func run() -> void:
 		var saved_map: Control = campaign.find_child("CampaignWorldMap", true, false)
 		check(saved_map.nodes[4].completed and saved_map.nodes[7].completed and saved_map.nodes[2].current and not saved_map.nodes[0].completed, "Saved Creative slot restores skipped victories and active marker")
 		check(saved_map.nodes[-1].get_global_rect().end.y <= viewport.y, "Final level remains reachable at the bottom of a saved map")
-		check(is_equal_approx(saved_map.get_global_rect().end.y, viewport.y), "Last biome fills the bottom with no parchment footer")
+		check(is_equal_approx(saved_map.get_global_rect().end.y, viewport.y), "Last biome fills the bottom with no page_backdrop footer")
 	app.queue_free()
 	await process_frame
 	print("CAMPAIGN MAP: %d checks, %d failures" % [checks, failures])
