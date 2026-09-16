@@ -17,12 +17,13 @@ func run() -> void:
 		for i in 20: await process_frame
 		var welcome: Control = app.slot_menu.find_child("WelcomeMenu", true, false)
 		var bounds := Rect2(Vector2.ZERO, welcome.size)
-		for element in [welcome.crest, welcome.title, welcome.subtitle, welcome.modes, welcome.battlefield, welcome.footer_rule, welcome.caption]:
+		check(app.slot_menu.main_menu_art.get_global_rect() == app.slot_menu.get_global_rect(), "Generated artwork fills the entire menu viewport")
+		for element in [welcome.title, welcome.subtitle, welcome.modes, welcome.hero_space, welcome.footer_rule]:
 			check(bounds.encloses(element.get_rect()), "Composition contains %s at %s" % [element.name, dimensions])
-		check(welcome.battlefield.position.y >= welcome.subtitle.get_rect().end.y + 8, "Landscape clears the subtitle")
-		check(not welcome.modes.get_rect().intersects(welcome.battlefield.get_rect()), "Landscape clears the actions")
-		check(welcome.battlefield.size.y >= 100, "Landscape remains readable")
-		for art in [welcome.crest, welcome.battlefield, welcome.footer_rule]:
+		check(welcome.hero_space.position.y >= welcome.footer_rule.get_rect().end.y + 8, "Title clears the central knight")
+		check(not welcome.modes.get_rect().intersects(welcome.hero_space.get_rect()), "Portrait clears the actions")
+		check(welcome.hero_space.size.y >= 240, "Pickard remains readable")
+		for art in [app.slot_menu.main_menu_art, welcome.hero_space, welcome.footer_rule]:
 			check(art.mouse_filter == Control.MOUSE_FILTER_IGNORE, "Decorative art never owns input")
 		var buttons: Array[Node] = welcome.modes.get_children()
 		check(buttons.size() == 2 and buttons[1].text == "Settings", "Campaign and Settings are the two actions")
@@ -39,6 +40,7 @@ func run() -> void:
 	var settings: Button = app.slot_menu.find_child("MainSettings", true, false)
 	settings.pressed.emit()
 	check(app.slot_menu.screen == "settings", "Settings opens")
+	check(not app.slot_menu.main_menu_art.visible and app.slot_menu.welcome_paper.visible, "Settings restores parchment and hides hero artwork")
 	app.slot_menu.go_back()
 	for i in 20: await process_frame
 	check(app.slot_menu.screen == "main", "Settings returns to main")

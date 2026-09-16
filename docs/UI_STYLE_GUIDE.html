@@ -61,7 +61,7 @@ th { background: var(--inset); } code { overflow-wrap: anywhere; font-size: .9em
 </tr>
 <tr>
 <td>main-menu.background</td>
-<td>#283B36</td>
+<td>#192322</td>
 <td>Deep forest tint on the main menu's shared parchment texture</td>
 </tr>
 <tr>
@@ -324,13 +324,23 @@ th { background: var(--inset); } code { overflow-wrap: anywhere; font-size: .9em
 </table>
 <p>Focus can coexist with selected states. Pointer entry must not change fills, outlines, icon colors, cursors, or text. An unaffordable action reads Need 125 more gold nearby rather than relying on fading the control. Disabled elements remain legible without lowering the opacity of the whole subtree.</p>
 <h3 id="main-menu">Main menu</h3>
-<p>The main menu is an illustrated night-watch cover: a stacked parchment-colored
-serif wordmark, a small mint seal, a moonlit sanctuary landscape above the actions,
-and compact footer lettering. Its artwork uses the native drawing library and
-never owns input or starts a simulation. Campaign and Settings keep
-their existing gold-paper treatment, 56-unit height, up-to-320-unit width and
-14-unit vertical gaps. Keep the identity and illustration above the actions in
-upright portrait; keep the complete composition scrollable on small screens.</p>
+<p>The main menu is Pickard's full-screen illustrated character cover, revised
+September 16, 2026. The user-supplied <a href="../assets/ui/pickard-reference.jpg">Pickard reference</a>
+is the character and style authority. Use the newly generated
+<a href="../assets/ui/pickard-menu-background.png">background</a> edge to edge through the
+stateless <code>welcome_art.gd</code> component, with aspect-preserving centered cover
+scaling. The standing knight dominates the middle of the screen; his face,
+sword, shield and boots stay clear of controls. The world extends to every edge,
+without a separate image panel or surrounding paper background.</p>
+<p>Place the live parchment serif PICKARD title, THE KNIGHT subtitle and diamond
+ornament in the dark sky. Anchor Campaign and Settings over the dark foreground
+below the knight. Retain shared gold-paper buttons, 56-unit height,
+up-to-320-unit width and 14-unit gaps. Controls remain in the safe-area scroll
+container while the illustration fills the viewport behind them. Only this
+opening page uses the generated background; other pages retain parchment.
+Art never owns input or starts gameplay. Keep upright portrait sizing,
+reachable actions on short screens and existing Campaign save compatibility.
+Generation provenance and the exact prompt are in <code>assets/ui/PICKARD_ART.md</code>.</p>
 <h3 id="campaign-world-map">Campaign world map</h3>
 <p>The detailed landscape revision uses 960-unit chapters with illustrated level
 destinations and the existing short chapter story. Compose the Chapter node's

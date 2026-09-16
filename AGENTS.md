@@ -11,6 +11,10 @@
 - Test app layouts only at upright portrait phone/tablet sizes. Remove sideways, landscape, reverse-portrait and rotation-driven app viewport cases; do not reintroduce them. Keep responsive portrait sizing, safe-area, touch and scroll coverage (normally 360x640, 390x844 and 540x960). Physical release acceptance checks should confirm that turning an iPhone and an Android phone leaves the app upright.
 - Landscape scenery artwork, world-coordinate directions, square asset renders and wide contact sheets are not device-orientation tests. Preserve their content and rendering coverage.
 
+## Pickard art identity
+
+- The game now centers on Pickard the knight. The user-supplied reference in `assets/ui/pickard-reference.jpg` is the core art direction for future work; read docs/ART_DIRECTION.md. Preserve the angular iron armor, closed helmet, muted red cloak, sword, diamond shield and moonlit charcoal-green world. Existing Campaign mechanics and save identities remain compatible.
+
 ## UI standard for all future work
 
 - Before adding or changing UI, read [docs/UI_STYLE_GUIDE.md](docs/UI_STYLE_GUIDE.md). Version 2, **Parchment cards**, is the default for future UI requests unless the user explicitly changes the direction. Its visual reference is [docs/references/ui-waves-reference.png](docs/references/ui-waves-reference.png), supplied by the user on September 7, 2026.

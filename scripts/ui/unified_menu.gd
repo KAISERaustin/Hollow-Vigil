@@ -30,6 +30,7 @@ var editor_game: VigilState
 var rules_editor: Control
 var campaign_rule_changes := {}
 var wave_rules := false
+var main_menu_art: Control
 var root_layout: VBoxContainer
 var restore_choice := {}
 
@@ -100,9 +101,21 @@ func reveal_notice(label: Label, revision: int) -> void:
 	if revision == view_revision and visible and is_instance_valid(label) and label.visible:
 		scroll.ensure_control_visible(label)
 
+func clear(title: String, header_action: Button = null) -> void:
+	super.clear(title, header_action)
+	welcome_paper.show()
+	if is_instance_valid(main_menu_art): main_menu_art.hide()
+
 func show_main_menu() -> void:
-	page_view("main", "Hollow Vigil", Callable())
-	UI.tint_parchment(welcome_paper, UI.MAIN_MENU_BACKGROUND)
+	page_view("main", "Pickard", Callable())
+	welcome_paper.hide()
+	if not is_instance_valid(main_menu_art):
+		main_menu_art = preload("res://scripts/ui/shared/welcome_art.gd").new()
+		main_menu_art.name = "PickardBackdrop"
+		add_child(main_menu_art)
+		move_child(main_menu_art, card.get_index())
+		main_menu_art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	main_menu_art.show()
 	header.hide()
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var welcome := preload("res://scripts/ui/welcome_menu.gd").new()

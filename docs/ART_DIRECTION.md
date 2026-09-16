@@ -1,6 +1,25 @@
-# Minimal palette artwork
+# Pickard art direction
 
-Current direction: extremely simple flat drawings with solid black outlines. No painted textures, lighting, gradients, noise or decorative particles. Active artwork is native Godot drawing code; no image generation is needed for these elementary shapes.
+Current direction, revised September 16, 2026: the game centers on **Pickard the
+knight**. The user-supplied [canonical reference](../assets/ui/pickard-reference.jpg)
+is the primary art authority for future work. Preserve the closed angular iron
+helmet and dark visor, broad faceted armor, weathered muted red cloak, upright
+sword, dark shield with pale diamond, heavy near-black silhouette contours,
+parchment moon and layered charcoal-green ruins. Use restrained material facets
+and quiet weathering, with strong silhouettes readable at phone size. This
+supersedes the earlier extremely-simple-flat-shapes-only direction for new art.
+Do not add glow, glossy bevels, bright saturation or decorative particles.
+
+The main menu uses a newly generated full-screen composition based on the
+supplied knight, with live accessible title text in the sky and actions over
+the dark foreground. `assets/ui/pickard-menu-background.png` fills the viewport;
+`assets/ui/PICKARD_ART.md` records the generation prompt. The original reference
+JPEG stays unchanged. The standing knight remains the central focus, with
+sword, shield and boots visible above the buttons. Existing gameplay art remains
+in place until requested revisions apply the reference to its reusable families.
+Parchment cards, shared black 3-unit UI borders and portrait-only layouts remain
+in force. Historical implementation notes below describe existing assets;
+where their visual direction conflicts, the Pickard reference takes precedence.
 
 Gear direction, revised September 7, 2026: the user requested the greater detail
 shown in the upgraded portal references. All eighteen gear objects use layered
@@ -15,8 +34,8 @@ UI texture direction, extended September 7, 2026: tan UI backgrounds use
 The shared style applies it to menus, cards, buttons, fields and chrome, with
 yellow/red parchment variants for semantic actions; world artwork remains flat.
 The asset and generation prompt are documented in `assets/ui/WELCOME_ART.md`.
-The main menu is a night-watch cover with deep forest paper (#283b36), a large
-stacked parchment wordmark, a mint seal and a moonlit sanctuary landscape.
+The main menu uses generated edge-to-edge moonlit Pickard artwork with a live
+parchment serif wordmark in the sky and actions over the dark foreground.
 Its two gold buttons retain their exact existing treatment and dimensions.
 
 Boss direction, revised September 6, 2026: use native flat drawings in
@@ -51,13 +70,12 @@ renderer, and the line-attack component records the actual muzzle-based bearing.
 All tiers and both branches reuse the same rotating bow assembly. Portraits and
 build previews retain the upright default.
 
-The opening page composes `scripts/ui/shared/welcome_art.gd` illustrations in
-`scripts/ui/welcome_menu.gd`: a mint seal, a moonlit valley with a solitary
-watchtower, winding road and core sanctuary, and a compact footer rule.
-These reusable, stateless Controls call the existing terrain,
-tower, enemy and portal drawing library without starting a simulation. Keep the
-mode actions centered, the title readable and the art non-interactive. The
-welcome-menu rendered checks cover phone layouts and both navigation paths.
+The opening page composes the reusable stateless `scripts/ui/shared/welcome_art.gd`
+background and diamond ornament. `scripts/ui/unified_menu.gd` owns the viewport
+background; `scripts/ui/welcome_menu.gd` owns the safe-area title and actions. Artwork scales
+proportionally and never receives input or starts gameplay. Keep the title live,
+actions centered and safe-area scrolling available. The welcome layout runner
+checks upright phone sizes, artwork clearance, touch targets and navigation.
 
 Add a biome to `VigilWorld.STYLES` and `VigilWorld.NEW_STYLES`, then give it a ground color and scenery in `scripts/rendering/terrain/terrain_art.gd`. New tower/enemy drawings live in the same file. Game statistics stay in `scripts/gameplay/balance.gd`. Preserve road and socket geometry when changing artwork.
 
