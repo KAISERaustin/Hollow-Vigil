@@ -192,7 +192,7 @@ func _ready() -> void:
 	add_child(page_scroll)
 	map_navigation = ColorRect.new()
 	map_navigation.name = "CampaignMapNavigation"
-	map_navigation.color = VigilTerrainArt.ground_color("forest")
+	map_navigation.color = UI.BG
 	add_child(map_navigation)
 	map_heading = UI.margin(map_navigation, UI.SCREEN_PADDING)
 	map_navigation.draw.connect(func():

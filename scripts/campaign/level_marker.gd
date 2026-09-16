@@ -37,7 +37,7 @@ func _draw() -> void:
 		ClearedArt.draw(self, offset+rubble_offset, is_gate())
 		if is_gate():
 			var plaque := Rect2(size.x * 0.5 - 18, size.y - 21, 36, 22)
-			draw_style_box(UI.surface(paper, UI.OUTLINE, 4), plaque)
+			draw_style_box(UI.button_surface(paper, 4), plaque)
 			draw_string(UI.font(600), plaque.position + Vector2(6, 16), str(number), HORIZONTAL_ALIGNMENT_CENTER, 24, 14, ink)
 		else:
 			draw_string(UI.font(600), Vector2(9,40)+offset+rubble_offset, str(number), HORIZONTAL_ALIGNMENT_CENTER, 26, 16, VigilTerrainArt.INK)
@@ -52,19 +52,19 @@ func _draw() -> void:
 		elif gate != null:
 			draw_texture_rect(gate, Rect2(Vector2.ZERO, size), false)
 		var plaque := Rect2(size.x * 0.5 - 18, size.y - 21, 36, 22)
-		draw_style_box(UI.surface(paper, UI.OUTLINE, 4), plaque)
+		draw_style_box(UI.button_surface(paper, 4), plaque)
 		draw_string(UI.font(600), plaque.position + Vector2(6, 16), str(number), HORIZONTAL_ALIGNMENT_CENTER, 24, 14, ink)
 		return
 	if not landmark_kind.is_empty():
 		preload("res://scripts/rendering/terrain/map_landmark_art.gd").draw(self,landmark_kind,Rect2(offset,Vector2(size.x,size.x*0.9)),landscape_profile)
 		var plaque := Rect2(size.x*0.5-19,size.y-29,38,26)
-		draw_style_box(UI.surface(paper,UI.OUTLINE,4),plaque)
+		draw_style_box(UI.button_surface(paper,4),plaque)
 		draw_string(UI.font(600),plaque.position+Vector2(4,19),str(number),HORIZONTAL_ALIGNMENT_CENTER,30,17,ink)
 		return
 	var outline := PackedVector2Array([Vector2(8,8), Vector2(16,2), Vector2(39,2), Vector2(47,10), Vector2(45,47), Vector2(9,47), Vector2(6,38), Vector2(8,8)])
 	for i in range(outline.size()): outline[i] += offset
-	draw_colored_polygon(outline, paper)
-	draw_polyline(outline, Color.BLACK, 3, true)
+	draw_colored_polygon(outline, UI.button_color(paper))
+	draw_polyline(outline, Color.BLACK, UI.BUTTON_OUTLINE, true)
 	draw_line(Vector2(12,40)+offset, Vector2(40,40)+offset, UI.MUTED, 2)
 	draw_line(Vector2(14,10)+offset, Vector2(20,6)+offset, UI.MUTED, 2)
 	draw_string(UI.font(600), Vector2(11,33)+offset, str(number), HORIZONTAL_ALIGNMENT_CENTER, 30, 18, ink)

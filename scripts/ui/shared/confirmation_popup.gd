@@ -12,6 +12,7 @@ var popup_width := 380
 func configure(heading_text: String, description: String, action: String, callback: Callable) -> void:
 	exclusive = true
 	transient = true
+	UI.popup_scrim(self)
 	add_theme_stylebox_override("panel", UI.surface(UI.PANEL, UI.OUTLINE, 16))
 	body = VBoxContainer.new()
 	body.add_theme_constant_override("separation", 14)

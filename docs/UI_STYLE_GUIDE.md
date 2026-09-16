@@ -1,6 +1,6 @@
 # Hollow Vigil UI style guide
 
-Version 3 · Pickard / Moonlit iron · September 16, 2026
+Version 3.1 · Pickard / Moonlit iron · September 16, 2026
 
 ## Start with the theme
 
@@ -12,15 +12,16 @@ Both describe one style, grounded in **the dark Pickard image on the main menu**
 ![Primary style authority: the Pickard main-menu image](../assets/ui/pickard-menu-background.png)
 
 The image's charcoal-green night, angular iron, muted cloak red, parchment moon,
-weathered surfaces and strong silhouettes define the UI. The bright Campaign and
-Settings buttons currently placed over the image do not define the new palette.
+weathered surfaces and strong silhouettes define the UI. The historical bright
+Campaign and Settings buttons do not define the palette.
 The opening image is the largest source of truth for every future screen.
 
 Version 3 supersedes Version 2's parchment-first backgrounds, yellow primary
 buttons and pastel panel defaults. Keep the useful existing card hierarchy,
-compact spacing, 3-unit black borders, 4-unit corners and mobile input behavior.
-Use dark reading surfaces and warm light text as defined in the theme. Existing
-screens have not all been migrated merely because the documentation has changed.
+compact spacing, 2-unit black button borders, 3-unit panel/divider borders,
+4-unit corners and mobile input behavior.
+Use dark reading surfaces and warm light text as defined in the theme. The shared
+runtime now applies these roles across menus and gameplay UI.
 
 ## Reference roles
 
@@ -39,8 +40,9 @@ Use `scripts/ui/shared/interface.gd` for primitives and semantic roles. Extend i
 and the reusable components before creating local variants. Existing helpers such
 as `info_card`, `stat`, `rule`, `action_row`, `number_row`, `button`, `style_entry`
 and `keyboard_scroll` preserve structure while their semantic presentation evolves.
-The theme's new palette values describe the intended implementation; they are not
-all present in the current runtime yet.
+The theme's palette roles are implemented in that owner. Button colors can be
+changed in Settings using Moonlit Iron, Ashen Steel, Dusk Violet or Ember Bronze;
+use `UI.button_surface()` so both live palette changes and 2-unit rims apply.
 
 Keep text separate from surface tint. Shared world ink/paper/gold constants also
 serve artwork, so a UI restyle must not globally recolor terrain or currency.
@@ -59,8 +61,8 @@ including helmet, sword, shield and boots. Actions sit below him over quiet grou
 
 Current title size responds from 32 to 52; current actions are 56 high, up to 320
 wide, with a 14-unit vertical gap. Preserve their layout during future styling.
-The theme defines their color treatment; their existing bright yellow fill is
-not a universal rule. The live controls respect safe areas and remain reachable
+The theme defines their color treatment; the selected palette supplies an aged
+primary and a muted secondary. The live controls respect safe areas and stay reachable
 through scrolling at short portrait heights. Artwork never owns input and must
 not bake text or buttons into its pixels.
 
@@ -82,8 +84,8 @@ multiple controls at the right and reflow them without reducing 48-unit targets.
 Fields remain directly editable; toggles show On/Off. Use the shared form and
 numeric rows and preserve a passive area from which to swipe.
 
-Settings, Sound, Account, Bug report, Change log, My builds, Community, Save build
-and Backups share this structure. Keep form errors visible after fixed-footer
+Settings, Button colors, Sound, Account, Bug report, Change log, My builds,
+Community, Save build and Backups share this structure. Keep form errors visible after fixed-footer
 actions, and preserve first/last-item access when a page rebuilds. Keep Save
 privately before Share to Community, and keep publication an explicit action.
 
@@ -198,10 +200,9 @@ selected/disabled/modal states and safe-area behavior. Run the focused tests in
 [tests/README.md](../tests/README.md). Desktop simulation does not establish
 physical iOS/Android acceptance.
 
-A future implementation must check the actual rendered dark palette, not merely
-reuse a legacy helper that still paints tan paper or black text. This documentation
-update records direction and existing layout behavior; it is not proof that the
-whole game already has the new colors.
+Check the actual rendered dark palette in every state, including all four button
+color presets. Use `moonlit_theme_runner.gd` for the complete menu inventory and
+contrast/border checks, plus the relevant interaction runners.
 
 Keep this guide, `UI_THEME.md`, `ART_DIRECTION.md` and `AGENTS.md` aligned. After
 editing this guide, run `./tools/render_ui_style_guide.ps1` in PowerShell 7 to

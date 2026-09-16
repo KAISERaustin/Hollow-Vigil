@@ -35,10 +35,10 @@ dark charcoal-green foundations, iron surfaces, parchment-colored text, muted
 cloak red and restrained aged-metal accents. The current Campaign/Settings button
 colors do not define that style. Read [UI_THEME.md](UI_THEME.md) and Version 3 of
 [UI_STYLE_GUIDE.md](UI_STYLE_GUIDE.md) for layout and interaction rules. The opening
-screen establishes the common theme, not an exception. Preserve black 3-unit UI
-borders and portrait layouts. Historical notes below describe existing assets;
-their tan/yellow/pastel UI fills do not override the new dark theme. Existing
-screens still require implementation work to adopt its palette.
+screen establishes the common theme, not an exception. Preserve black 2-unit
+button borders, 3-unit other UI borders and portrait layouts. Historical notes below describe existing assets;
+their tan/yellow/pastel UI fills do not override the new dark theme. Shared runtime
+UI now uses this palette; Settings offers four compatible button color sets without recoloring world artwork.
 
 Gear direction, revised September 7, 2026: the user requested the greater detail
 shown in the upgraded portal references. All eighteen gear objects use layered
@@ -55,8 +55,8 @@ yellow/red parchment variants for semantic actions; world artwork remains flat.
 The asset and generation prompt are documented in `assets/ui/WELCOME_ART.md`.
 The main menu uses generated edge-to-edge moonlit Pickard artwork with a live
 parchment serif wordmark in the sky and actions over the dark foreground.
-Its two gold buttons record the current implementation, not the future color
-authority. Preserve their layout when styling them through the shared dark theme.
+Campaign uses the selected palette's aged-metal primary; Settings uses its muted
+secondary. Their geometry remains shared.
 
 Boss direction, revised September 6, 2026: use native flat drawings in
 `boss_art.gd`, referenced against the current tiles, core/rift portals and enemy
@@ -75,7 +75,7 @@ subtitle. Health, root shield and ward indicators remain separate.
 - Terrain: Campaign landscapes use the authored level geometry and shared biome art. Roads follow the authored paths continuously and remain legible beneath battlefield objects and controls.
 - Scenery: at most three tiny outlined symbols per tile. Reserve roads, sockets, and full tower silhouettes.
 - Towers: pointed tower, fire-crowned masonry watchtower, obelisk and lightning spire. Pyre uses a tall stone shaft, crenellated parapet, black arched furnace and layered flat flames, borrowing the portals' cut-stone construction. Its tiers and both final branches compose `scripts/rendering/actors/fire_tower_art.gd`; preserve the common socket anchor and attack outlet. Enemies: circle, small ghost, block shape; each has two eyes.
-- UI: follow [UI_THEME.md](UI_THEME.md) and [UI_STYLE_GUIDE.md](UI_STYLE_GUIDE.md) Version 3. The Pickard main image defines the dark color/material direction. Keep 3-unit black enclosures/dividers, 0/4-unit corners, 12-unit card padding, 8-unit inset padding/cell gaps and 12-unit section/action gaps. Preserve bold values above labels, native portraits, right-side row actions, fixed navigation and scrolling. Noto Sans carries controls; Noto Serif carries large titles. Use light text on dark surfaces and explicit state/consequence wording. World artwork retains its own palette and outlines.
+- UI: follow [UI_THEME.md](UI_THEME.md) and [UI_STYLE_GUIDE.md](UI_STYLE_GUIDE.md) Version 3. The Pickard main image defines the dark color/material direction. Keep 2-unit black button borders and 3-unit other enclosures/dividers, 0/4-unit corners, 12-unit card padding, 8-unit inset padding/cell gaps and 12-unit section/action gaps. Preserve bold values above labels, native portraits, right-side row actions, fixed navigation and scrolling. Noto Sans carries controls; Noto Serif carries large titles. Use light text on dark surfaces and explicit state/consequence wording. World artwork retains its own palette and outlines.
 - Campaign play: one compact control bar above edge-to-edge terrain. Level identity and live values sit in compact floating cards with the shared 3-unit black border and 4-unit corners. Fill one row below the toolbar with three cards: numbered level title (1. Briar Bend), gold and wave count; no shadows, glow, battlefield enclosure or bottom action panel. Reuse the shared toolbar and floating HUD; respect safe areas for text and controls. Their existing parchment fills are legacy presentation; future UI styling follows the dark theme.
 Collection feedback is an ochre outlined badge centered over the visible Unclaimed earnings caption, using its measured text width rather than its container width; it rises 36 pixels over 0.95 seconds and fades after a brief hold.
 
@@ -138,4 +138,4 @@ Currency text uses a centered ochre coin with black rim, inset ring and diamond,
 
 Effects read live status/strength and the shared combat aura query, without visual timers or persistent state. Expired, removed and zero-strength effects disappear; rebuilding towers do not display the boost. `tests/rendered/hex_effect_runner.gd` exports all eight boosted tower families, poison/ice/hex comparisons and combined effects at two animation phases in 360x640, 390x844 and 540x960 portrait views. Run it through `launch.ps1 -ArtSmoke` or `-Check`.
 
-Existing rule presentation groups added fields into purple cards inside a green Added section. Preserve one headed card per related rule and keep its fields/disable action together. In future dark-theme implementations, retain the labeled Default/Added hierarchy through restrained semantic markers instead of those legacy pastel fills. Use the shared rule-card owner, 3-unit black borders, 4-unit corners and 12-unit padding. Do not restore retired editable capabilities to demonstrate the theme.
+Rule presentation uses dark cards inside a recessed Added section. Preserve one headed card per related rule and keep its fields/disable action together. Retain the labeled Default/Added hierarchy through restrained semantic markers. Use the shared rule-card owner, 3-unit black borders, 4-unit corners and 12-unit padding. Do not restore retired editable capabilities to demonstrate the theme.

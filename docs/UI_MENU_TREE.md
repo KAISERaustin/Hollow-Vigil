@@ -10,6 +10,6 @@ Main menu offers Campaign and Settings. Campaign opens Saved games when a slot i
 - Game Menu: Edit rules in Creative, Save build, Backups, Settings and Exit game. Opening the menu pauses the held session; Resume restores its prior pause state.
 - My builds / Community: browse, inspect and select compatible Campaign content. Save privately precedes explicit Community publication.
 - Backups: three Campaign slots, private build recovery, reviewed conflict choices and local recovery copies.
-- Settings: Account and Sound. Main-menu Settings also offers Bug report and Change log.
+- Settings: Account, Sound and Button colors (Moonlit Iron, Ashen Steel, Dusk Violet, Ember Bronze). Main-menu Settings also offers Bug report and Change log.
 
 Every full page keeps its title/Back header fixed above scrolling content and its primary actions below. Android Back follows the same current-page route. Test upright portrait sizes 360×640, 390×844 and 540×960.

@@ -25,7 +25,7 @@ const BUTTON_PALETTES := {
 }
 static var button_palette := "moonlit_iron"
 static var button_styles: Array[WeakRef] = []
-## All UI enclosure borders and dividers share this width. See docs/UI_STYLE_GUIDE.md.
+## Shared black rims: buttons are one unit thinner than panels and dividers.
 const OUTLINE := 3
 const BUTTON_OUTLINE := 2
 const RADIUS := 4
@@ -160,6 +160,29 @@ static func trap_focus(root: Control) -> void:
 		# Sliders consume left/right for precise value changes.
 		controls[i].focus_neighbor_left = controls[i].get_path() if controls[i] is Slider else before
 		controls[i].focus_neighbor_right = controls[i].get_path() if controls[i] is Slider else after
+
+## Embedded popup windows draw above this one shared viewport scrim. Their
+## native modal input remains responsible for dismissal and tap shielding.
+static func popup_scrim(popup: PopupPanel) -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 100
+	popup.get_parent().get_viewport().add_child(layer)
+	var shade := ColorRect.new()
+	shade.color = SCRIM
+	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(shade)
+	layer.hide()
+	popup.about_to_popup.connect(func():
+		var ancestor := popup.get_parent()
+		while ancestor != null:
+			if ancestor is PopupPanel and ancestor.visible: return
+			if ancestor is ColorRect and ancestor.color == SCRIM: return
+			ancestor = ancestor.get_parent()
+		layer.show()
+	)
+	popup.popup_hide.connect(layer.hide)
+	popup.tree_exiting.connect(layer.queue_free)
 
 static func keyboard_scroll(scroll: ScrollContainer, description: String, horizontal: bool = false) -> void:
 	# Retain wheel, touch and keyboard scrolling without visible menu rails.

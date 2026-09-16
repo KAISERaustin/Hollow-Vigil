@@ -2,6 +2,11 @@ extends "res://tests/rendered/mobile_campaign_controls_runner.gd"
 ## Render the complete menu families with isolated local data and audit contrast.
 var pages := 0
 
+class OfflineCloud extends "res://scripts/cloud/cloud_service.gd":
+	func _request(_path: String, _body: Dictionary, _authenticated: bool) -> Dictionary:
+		return {"ok": false, "code": 0, "data": null}
+
+
 func luminance(color: Color) -> float:
 	var linear := color.srgb_to_linear()
 	return linear.r * 0.2126 + linear.g * 0.7152 + linear.b * 0.0722
@@ -67,7 +72,13 @@ func run() -> void:
 	app.set_process(false)
 	app.private_backups.enabled = false
 	app.audio.set_suspended(true)
-	app.cloud.url = "" # Offline service states; no account or Community writes.
+	var original_cloud := app.cloud
+	app.cloud = OfflineCloud.new()
+	app.cloud.enabled = false
+	app.cloud.game = app.game
+	app.add_child(app.cloud)
+	for service in [app.public_builds, app.private_backups, app.bug_reports, app.change_log]: service.cloud = app.cloud
+	original_cloud.queue_free()
 	app.change_log.busy = true
 	Engine.max_fps = 240
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
@@ -75,6 +86,8 @@ func run() -> void:
 	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = dimensions
 		root.content_scale_size = dimensions
+		menu.campaign_slots.base_path = app.game.save_path + str(dimensions.x)
+		menu.slots.base_path = app.game.save_path + str(dimensions.x)
 		var saved: Dictionary = menu.campaign_slots.create(0, "creative", "Pickard's long campaign name")
 		menu.begin_new(1)
 		for route in ["show_main_menu", "show_home", "show_slots", "show_play_style"]:
@@ -190,13 +203,18 @@ func run() -> void:
 			var browser = menu.rules_editor
 			browser.show_category(category)
 			await inspect("rules-" + category)
-			var definitions: Dictionary = Balance.definitions(category)
+			var definitions: Dictionary = Balance.TOWERS if category == "towers" else Balance.definitions(category)
 			for kind in definitions:
 				browser.open_item(category, kind)
 				await inspect(category + "-" + kind)
 				browser.open_group("Stats")
 				await inspect(category + "-" + kind + "-stats")
 				if category == "towers":
+					for tier in browser.tier_selector.item_count:
+						browser.tier_selector.select(tier)
+						browser.tier_selector.item_selected.emit(tier)
+						await inspect("tower-%s-tier-%d" % [kind, tier])
+					await inspect_picker("BalanceTier", "tower-%s-tier-picker" % kind)
 					browser.stats_editor.choosing = true
 					browser.stats_editor.rebuild()
 					await inspect(category + "-" + kind + "-add-stat")
