@@ -17,16 +17,6 @@ The launcher accepts `-GodotPath C:\path\to\godot.exe`, then checks `GODOT_PATH`
 
 Player saves launched this way remain in `.runtime/Roaming/Godot/app_userdata/Hollow Vigil/`. Opening the project directly uses Godot's normal per-user save directory. Test runs use a separate `.runtime/tests/` directory. Do not delete `.runtime` as a whole: it contains player progress.
 
-## Windows build
-
-Run `./build-windows.ps1` with matching Godot 4.7.2 Windows export templates installed. Use `-GodotPath` or `GODOT_PATH` to select another installation. The output is `exports/windows/Hollow Vigil.exe`, with a portable copy in `exports/Hollow-Vigil-Windows.zip`.
-
-Windows opens a resizable 1280×800 window. The shared mobile game fills a 9:16 portrait panel against the far left edge; the remaining dark area is reserved for future desktop features. Resizing scales the portrait panel with the window height. Menus, popups, gameplay and saves continue to use the mobile application.
-
-The Windows preset alone enables `windows_shell` and selects `scenes/desktop.tscn`. The shell embeds the existing `scenes/main.tscn` at 540×960 logical units. Add future desktop controls under `DesktopWorkspace` in `scripts/app/desktop_shell.gd`; keep shared game changes in their existing owners. Android/iOS exports and ordinary editor play retain the portrait entry point. To preview the shell in the editor, run `scenes/desktop.tscn`.
-
-Verify with `./launch.ps1 -TestScript tests/rendered/desktop_shell_runner.gd`. These wide windows test the Windows shell, while the embedded game stays upright portrait.
-
 ## Test on the Samsung tablet
 
 Connect the tablet with USB, unlock it, enable USB debugging, and accept the authorization prompt. From the project folder, run:
@@ -54,6 +44,8 @@ Drag to pan and pinch to zoom. The app stays upright in portrait on iOS and Andr
 Use **Menu → Edit rules** for shared content rules and each level's starting resources. Use **Waves** to edit the selected wave. Changes remain a draft until Apply changes. My builds stores reusable Campaign rules; Community sharing is an explicit action.
 
 ## Project layout
+
+Before creating or changing UI, read the [UI theme](docs/UI_THEME.md) and [style guide](docs/UI_STYLE_GUIDE.md). They define the shared Pickard identity, parchment surfaces, layout, right-aligned row actions, dividers and mobile scrolling behavior.
 
 - `scripts/app/`: Campaign application and navigation services.
 - `scripts/campaign/`: authored levels, wave simulation, progress, map and battlefield.

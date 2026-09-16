@@ -11,7 +11,6 @@ Omit `-Headless` for rendering, screenshots and input tests. Each launcher invoc
 
 | Changed area | Focused coverage |
 | --- | --- |
-| Windows shell and portrait embedding | `rendered/desktop_shell_runner.gd` (resizing, scaled mouse, embedded picker, keyboard focus, Creative/Survival) |
 | Campaign simulation, routes, progression | `campaign_runner.gd`; `campaign_balance_runner.gd` only for difficulty changes |
 | Content nodes and shared stats | `content_node_runner.gd`, `stats_system_runner.gd`, `tuning_schema_runner.gd`, `simplified_rules_runner.gd` |
 | Hex support and portal gameplay | `hex_support_runner.gd`, `portal_attributes_runner.gd` |

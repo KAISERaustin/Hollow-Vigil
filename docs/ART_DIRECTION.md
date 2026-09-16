@@ -17,8 +17,12 @@ the dark foreground. `assets/ui/pickard-menu-background.png` fills the viewport;
 JPEG stays unchanged. The standing knight remains the central focus, with
 sword, shield and boots visible above the buttons. Existing gameplay art remains
 in place until requested revisions apply the reference to its reusable families.
-Parchment cards, shared black 3-unit UI borders and portrait-only layouts remain
-in force. Historical implementation notes below describe existing assets;
+The opening composition and parchment cards share one UI theme: charcoal-green
+illustrated foundations, parchment lettering and reading surfaces, sparse diamond
+identity marks, gold-paper actions and black 3-unit borders. Read
+[UI_THEME.md](UI_THEME.md) for its reusable layout and interaction rules. The
+opening screen belongs to that style rather than being an exception; preserve
+portrait-only layouts. Historical implementation notes below describe existing assets;
 where their visual direction conflicts, the Pickard reference takes precedence.
 
 Gear direction, revised September 7, 2026: the user requested the greater detail
@@ -106,7 +110,7 @@ artwork bounds, and exports every full chapter at 360, 390 and 540 units plus
 `artifacts/campaign-landscape-gallery.png`. The map runner also checks landscape
 clearance, portrait-phone navigation and both ends of every chapter.
 
-The campaign world map uses six edge-to-edge biome sections with native scenery, winding ink-bordered trails and one shared 3-unit divider between sections. This user-requested map exception removes the parchment page background and chapter cards. Keep title/Back navigation fixed above the scroll viewport. See the Campaign world map recipe in `UI_STYLE_GUIDE.md`; ordinary dialogs still use the shared parchment system.
+The campaign world map uses six edge-to-edge biome sections with native scenery, winding ink-bordered trails and one shared 3-unit divider between sections. This is the shared theme's illustrated map composition, with scenery as its foundation and no parchment page background or chapter cards. Keep title/Back navigation fixed above the scroll viewport. See the Campaign world map recipe in `UI_STYLE_GUIDE.md`; dialogs compose the same theme's parchment reading surfaces.
 
 Completed levels use `scripts/campaign/cleared_level_art.gd`, a stateless shared drawing component composed by `level_marker.gd`. Broken parchment stone, scattered masonry and an ochre beacon replace the intact marker; chapter bosses use collapsed gate jambs with the same beacon. Numbers remain readable and completion comes only from campaign progress. Flames are flat and static, with no glow or particles. Unfinished destinations retain their existing artwork. Regenerate mobile reference captures with `--script res://tools/previews/cleared_map_preview.gd`.
 
