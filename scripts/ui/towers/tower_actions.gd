@@ -70,7 +70,7 @@ func _ready() -> void:
 		button.focus_mode = Control.FOCUS_ALL
 		for state in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
 			var color := UI.GOLD if action == "upgrade" else UI.SURFACE
-			var style := UI.focus_box() if state == "focus" else UI.box(color)
+			var style := UI.focus_box() if state == "focus" else UI.button_surface(color)
 			style.set_content_margin_all(0)
 			button.add_theme_stylebox_override(state, style)
 		button.draw.connect(draw_icon.bind(button, action))

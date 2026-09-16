@@ -277,8 +277,8 @@ func open_action(action: String, branch: String = "") -> void:
 			choice.name = "Target_" + key
 			choice.toggle_mode = true
 			choice.button_group = group
-			choice.add_theme_stylebox_override("pressed", UI.box(UI.GOLD))
-			choice.add_theme_stylebox_override("hover_pressed", UI.box(UI.GOLD))
+			choice.add_theme_stylebox_override("pressed", UI.button_surface(UI.GOLD))
+			choice.add_theme_stylebox_override("hover_pressed", UI.button_surface(UI.GOLD))
 			choice.add_theme_color_override("font_pressed_color", UI.ON_PRIMARY)
 			choice.add_theme_color_override("font_hover_pressed_color", UI.ON_PRIMARY)
 			choice.button_pressed = key == target_choice
@@ -411,7 +411,7 @@ func configure_management_button(button: Button, action: String, label: String) 
 	button.accessibility_description = label
 	UI.style_button_ink(button, UI.ON_PRIMARY if action == "upgrade" else UI.TEXT)
 	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
-		var style := UI.box(UI.DISABLED if state == "disabled" else (UI.GOLD if action == "upgrade" else UI.SURFACE))
+		var style := UI.button_surface(UI.DISABLED if state == "disabled" else (UI.GOLD if action == "upgrade" else UI.SURFACE))
 		style.set_content_margin_all(0)
 		button.add_theme_stylebox_override(state, style)
 	button.draw.connect(func():

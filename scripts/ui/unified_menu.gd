@@ -694,9 +694,21 @@ func show_settings(return_to: Callable = Callable()) -> void:
 	page_view("settings", "Settings", settings_return)
 	content.add_child(action("Account", func(): show_account(show_settings), "SettingsAccount"))
 	content.add_child(action("Sound", show_sound, "SettingsSound"))
+	content.add_child(action("Button colors", show_button_colors, "SettingsButtonColors"))
 	if settings_return == show_main_menu:
 		content.add_child(action("Bug report", show_bug_report, "SettingsBugReport"))
 		content.add_child(action("Change log", show_change_log, "SettingsChangeLog"))
+
+func show_button_colors() -> void:
+	page_view("button_colors", "Button colors", show_settings)
+	content.add_child(UI.paragraph("Choose a color set for buttons throughout the game. Changes are saved on this device."))
+	var choices := preload("res://scripts/ui/shared/button_colors.gd").new()
+	choices.palette_selected.connect(func(key: String):
+		app.set_button_colors(key)
+		show_button_colors()
+	)
+	content.add_child(choices)
+	footer.add_child(action("Done", show_settings, "ButtonColorsDone", true))
 
 func show_change_log() -> void:
 	if settings_return != show_main_menu: return

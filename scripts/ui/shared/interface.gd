@@ -17,8 +17,17 @@ const MUTED := Color("B8B5A7")
 const DANGER := Color("623F39")
 const DISABLED := Color("303936")
 const SCRIM := Color(0, 0, 0, 0.65)
+const BUTTON_PALETTES := {
+	"moonlit_iron": {"name": "Moonlit Iron", "description": "Forest iron and aged bone.", "secondary": Color("46514D"), "primary": Color("B8AA87")},
+	"ashen_steel": {"name": "Ashen Steel", "description": "Storm-blue steel and worn silver.", "secondary": Color("414C5D"), "primary": Color("B3B5AF")},
+	"dusk_violet": {"name": "Dusk Violet", "description": "Smoky violet and weathered rose.", "secondary": Color("514652"), "primary": Color("B8A1A6")},
+	"ember_bronze": {"name": "Ember Bronze", "description": "Charred brown and aged bronze.", "secondary": Color("5B473E"), "primary": Color("BCA082")},
+}
+static var button_palette := "moonlit_iron"
+static var button_styles: Array[WeakRef] = []
 ## All UI enclosure borders and dividers share this width. See docs/UI_STYLE_GUIDE.md.
 const OUTLINE := 3
+const BUTTON_OUTLINE := 2
 const RADIUS := 4
 const BODY := 16
 const CAPTION := 14
@@ -208,11 +217,11 @@ static func theme() -> Theme:
 		for state in ["icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_hover_pressed_color", "icon_focus_color"]:
 			t.set_color(state, type, TEXT)
 		t.set_color("icon_disabled_color", type, MUTED)
-	t.set_stylebox("normal", "Button", box(SURFACE))
-	t.set_stylebox("hover", "Button", box(SURFACE))
-	t.set_stylebox("pressed", "Button", box(SURFACE))
-	t.set_stylebox("hover_pressed", "Button", box(SURFACE))
-	t.set_stylebox("disabled", "Button", box(DISABLED))
+	t.set_stylebox("normal", "Button", button_surface(SURFACE))
+	t.set_stylebox("hover", "Button", button_surface(SURFACE))
+	t.set_stylebox("pressed", "Button", button_surface(SURFACE))
+	t.set_stylebox("hover_pressed", "Button", button_surface(SURFACE))
+	t.set_stylebox("disabled", "Button", button_surface(DISABLED))
 	for type in ["Button", "OptionButton", "CheckButton", "CheckBox", "MenuButton", "LinkButton", "LineEdit", "TextEdit", "ScrollContainer"]:
 		t.set_stylebox("focus", type, focus_box())
 	# OptionButton popups are separate windows and need their own theme roles.
@@ -265,6 +274,33 @@ static func box(bg: Color, border: Color = BORDER, radius: int = RADIUS) -> Styl
 	style.content_margin_top = 8
 	style.content_margin_bottom = 8
 	return style
+
+static func button_color(role: Color) -> Color:
+	if role == SURFACE: return BUTTON_PALETTES[button_palette].secondary
+	if role == GOLD: return BUTTON_PALETTES[button_palette].primary
+	return role
+
+## Track only weak references so existing dialogs update without retaining pages.
+static func button_surface(role: Color, padding: int = -1) -> StyleBox:
+	var style := box(button_color(role))
+	style.set_border_width_all(BUTTON_OUTLINE)
+	if padding >= 0: style.set_content_margin_all(padding)
+	style.set_meta("button_color_role", role)
+	button_styles.append(weakref(style))
+	if button_styles.size() % 256 == 0:
+		button_styles = button_styles.filter(func(reference: WeakRef): return reference.get_ref() != null)
+	return style
+
+static func set_button_palette(key: String) -> void:
+	button_palette = key if BUTTON_PALETTES.has(key) else "moonlit_iron"
+	var retained: Array[WeakRef] = []
+	for reference in button_styles:
+		var style = reference.get_ref()
+		if style == null: continue
+		style.bg_color = button_color(style.get_meta("button_color_role"))
+		style.emit_changed()
+		retained.append(reference)
+	button_styles = retained
 
 static func focus_box() -> StyleBoxEmpty:
 	# Focus navigation stays active without drawing a ring on any control.
@@ -326,7 +362,7 @@ static func button(text: String, action: Callable, height: float = 48, highlight
 	if highlight_selection:
 		b.add_theme_color_override("font_pressed_color", ON_PRIMARY)
 		b.add_theme_color_override("font_hover_pressed_color", ON_PRIMARY)
-	var pressed := box(GOLD if highlight_selection else SURFACE)
+	var pressed := button_surface(GOLD if highlight_selection else SURFACE)
 	pressed.content_margin_top += 1
 	pressed.content_margin_bottom -= 1
 	b.add_theme_stylebox_override("pressed", pressed)
@@ -373,7 +409,7 @@ static func toolbar_action(text: String, action: Callable, primary: bool = false
 	control.add_theme_font_size_override("font_size", type_size(CAPTION))
 	control.autowrap_mode = TextServer.AUTOWRAP_OFF
 	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
-		var style := box(DISABLED if state == "disabled" else (GOLD if primary else SURFACE))
+		var style := button_surface(DISABLED if state == "disabled" else (GOLD if primary else SURFACE))
 		style.content_margin_left = INSET_PADDING
 		style.content_margin_right = INSET_PADDING
 		if state in ["pressed", "hover_pressed"]:
@@ -444,7 +480,7 @@ static func configure_back_button(back: Button, back_label: String) -> void:
 	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	back.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
-		back.add_theme_stylebox_override(state, box(DISABLED if state == "disabled" else SURFACE))
+		back.add_theme_stylebox_override(state, button_surface(DISABLED if state == "disabled" else SURFACE))
 	back.add_theme_stylebox_override("focus", focus_box())
 
 static func gold_button(text: String, action: Callable, height: float = 50) -> Button:
@@ -535,9 +571,9 @@ static func number_row(title: String, number: SpinBox, preview: Button = null, i
 static func accent_button(text: String, action: Callable, accent: Color, height: float = 48) -> Button:
 	var b := button(text, action, height)
 	style_button_ink(b, ON_PRIMARY if accent == GOLD else TEXT)
-	b.add_theme_stylebox_override("normal", box(accent))
-	b.add_theme_stylebox_override("hover", box(accent))
-	var pressed := box(accent)
+	b.add_theme_stylebox_override("normal", button_surface(accent))
+	b.add_theme_stylebox_override("hover", button_surface(accent))
+	var pressed := button_surface(accent)
 	pressed.content_margin_top += 1
 	pressed.content_margin_bottom -= 1
 	b.add_theme_stylebox_override("pressed", pressed)

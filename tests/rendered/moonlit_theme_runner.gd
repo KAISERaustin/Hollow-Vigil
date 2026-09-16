@@ -34,7 +34,7 @@ func audit_colors(node: Node, background: Color = UI.BG) -> void:
 		for state in states:
 			var style: StyleBox = node.get_theme_stylebox(state)
 			if style.get("bg_color") == null: continue # Native illustrated map landmarks.
-			check(style.border_width_left == UI.OUTLINE and style.border_color == Color.BLACK, "Shared button rim: " + str(node.name))
+			check(style.border_width_left == UI.BUTTON_OUTLINE and style.border_color == Color.BLACK, "Shared button rim: " + str(node.name))
 			if not node.text.is_empty():
 				check(contrast(node.get_theme_color(states[state]), style.bg_color) >= 4.5, "Readable button %s / %s" % [node.name, state])
 		var state := "disabled" if node.disabled else ("pressed" if node.button_pressed else "normal")
@@ -87,6 +87,11 @@ func run() -> void:
 		await inspect_picker("SaveSlotChoice", "save-slot-picker")
 		menu.show_settings(menu.show_main_menu)
 		await inspect("settings")
+		for palette in UI.BUTTON_PALETTES:
+			app.set_button_colors(palette)
+			menu.show_button_colors()
+			await inspect("button-colors-" + palette)
+		app.set_button_colors("moonlit_iron")
 		menu.show_sound()
 		await inspect("sound")
 		menu.scroll.scroll_vertical = 100000
