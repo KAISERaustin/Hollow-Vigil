@@ -10,6 +10,7 @@ var banner: PanelContainer
 var preview_body: VBoxContainer
 var slide: Tween
 var reveal := 1.0
+var details_dismissing := false
 var kind := ""
 var candidate := ""
 var pointer := -2
@@ -94,15 +95,23 @@ func open() -> void:
 	palette.reset_size()
 	fit.call_deferred()
 
-func arm(value: String) -> void:
+func arm(value: String, for_drag: bool = false) -> void:
 	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
 	var active_pointer := pointer
+	var details_visible := banner.visible
+	var details_reveal := reveal
 	if host.has_method("clear_selection"):
 		host.clear_selection()
 	else:
 		host.panels.close_sheet()
 	pointer = active_pointer
 	kind = value
+	if for_drag:
+		# Keep the existing card and its current position for a smooth exit.
+		banner.visible = details_visible
+		reveal = details_reveal
+		fit()
+		return
 	for child in preview_body.get_children():
 		if child.name == "TowerDetails":
 			preview_body.remove_child(child)
@@ -182,7 +191,7 @@ func _input(event: InputEvent) -> void:
 		return
 	if not candidate.is_empty() and id == pointer:
 		if motion and pos.y < origin.y - 12 and absf(pos.y - origin.y) > absf(pos.x - origin.x):
-			arm(candidate)
+			arm(candidate, true)
 			begin_drag()
 		elif motion and absf(pos.x - origin.x) > 16:
 			candidate = ""
@@ -191,7 +200,7 @@ func _input(event: InputEvent) -> void:
 	if kind.is_empty(): return
 	if not dragging and not reposition_pending and palette.get_global_rect().has_point(pos): return
 	# Keep portrait drags inside the card; consume outside dismissal before world input.
-	if not dragging and not reposition_pending and banner.visible and banner.get_global_rect().has_point(pos): return
+	if not dragging and not reposition_pending and banner.visible and not details_dismissing and banner.get_global_rect().has_point(pos): return
 	if hovering and not dragging:
 		if down:
 			pointer = id
@@ -230,14 +239,13 @@ func _input(event: InputEvent) -> void:
 func begin_drag() -> void:
 	dragging = true
 	# Details belong to a tap selection; free the battlefield during placement.
-	if slide != null: slide.kill()
-	banner.hide()
+	if not details_dismissing: dismiss_details(true)
 
 func refresh() -> void:
 	var location := VigilWorld.ground_location(point)
 	point = VigilWorld.pad_position(location.region, location.pad)
 	var screen_point := field.global_position + field.screen(point)
-	valid = field.get_global_rect().has_point(screen_point) and not (banner.visible and banner.get_global_rect().has_point(screen_point))
+	valid = field.get_global_rect().has_point(screen_point) and not (banner.visible and not details_dismissing and banner.get_global_rect().has_point(screen_point))
 	valid = valid and not palette.get_global_rect().has_point(screen_point)
 	valid = valid and field.state.economy.can_place(kind, location.region, location.pad)
 	valid = valid and field.state.data.balance >= Balance.definition("towers", kind, field.state.tuning).cost
@@ -257,7 +265,13 @@ func cancel(animate: bool = false) -> void:
 		field.mouse_down = false
 		field.gesture_consumed = true
 	if is_instance_valid(palette): palette.show()
+	dismiss_details(animate)
+	show()
+	queue_redraw()
+
+func dismiss_details(animate: bool) -> void:
 	if slide != null: slide.kill()
+	details_dismissing = animate
 	if is_instance_valid(banner):
 		if animate and banner.visible:
 			slide = create_tween()
@@ -268,8 +282,6 @@ func cancel(animate: bool = false) -> void:
 			slide.tween_callback(banner.hide)
 		else:
 			banner.hide()
-	show()
-	queue_redraw()
 
 func _notification(what: int) -> void:
 	if what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED]: cancel()

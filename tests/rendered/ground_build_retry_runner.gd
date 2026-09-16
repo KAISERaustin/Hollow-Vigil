@@ -44,7 +44,9 @@ func run() -> void:
 		var inventory_drag := InputEventScreenDrag.new()
 		inventory_drag.position = card.global_position + card_press.position - Vector2(0, 30)
 		build._input(inventory_drag)
-		check(build.dragging and not build.banner.visible, "Inventory drag dismisses tower details immediately")
+		check(build.dragging and build.banner.visible, "Inventory drag keeps details visible for their slide down")
+		check(is_equal_approx(build.banner.position.y, covered.position.y), "Drag dismissal starts from the open card position")
+		build.slide.pause()
 		var lower_destination := Vector2.ZERO
 		for y in range(int(covered.position.y) + 8, int(covered.end.y), 12):
 			for x in range(int(covered.position.x) + 8, int(covered.end.x), 12):
@@ -54,7 +56,13 @@ func run() -> void:
 					lower_destination = Vector2(x, y)
 					break
 			if lower_destination != Vector2.ZERO: break
-		check(lower_destination != Vector2.ZERO, "Hidden details no longer block lower battlefield placement")
+		check(lower_destination != Vector2.ZERO, "Dismissing details immediately allow lower battlefield placement")
+		build.slide.custom_step(0.09)
+		check(build.banner.visible and build.banner.position.y > covered.position.y, "Drag dismissal slides the card downward")
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://artifacts/build-drag-slide-%d.png" % viewport.x)
+		build.slide.custom_step(0.15)
+		check(not build.banner.visible, "Drag dismissal hides details after the slide")
 		inventory_drag.position = lower_destination
 		build._input(inventory_drag)
 		await process_frame
