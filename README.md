@@ -45,7 +45,7 @@ Use **Menu → Edit rules** for shared content rules and each level's starting r
 
 ## Project layout
 
-Before creating or changing UI, read the [UI theme](docs/UI_THEME.md) and [style guide](docs/UI_STYLE_GUIDE.md). They define the shared Pickard identity, parchment surfaces, layout, right-aligned row actions, dividers and mobile scrolling behavior.
+Before creating or changing UI, read the [UI theme](docs/UI_THEME.md) and [style guide](docs/UI_STYLE_GUIDE.md). They make the dark Pickard main-menu image the style authority and define colors, surfaces, layout, right-aligned row actions, dividers and mobile scrolling behavior.
 
 - `scripts/app/`: Campaign application and navigation services.
 - `scripts/campaign/`: authored levels, wave simulation, progress, map and battlefield.

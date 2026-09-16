@@ -1,261 +1,209 @@
-# Hollow Vigil UI Style Guide
+# Hollow Vigil UI style guide
 
-Version 2.1 · Parchment cards · September 7, 2026
+Version 3 · Pickard / Moonlit iron · September 16, 2026
 
-## Purpose and authority
+## Start with the theme
 
-This guide defines the visual and interaction system for future Hollow Vigil interfaces. Use it when designing screens, adding controls, reviewing UI changes, or giving an implementation agent context. The chosen direction is **ink and parchment dark fantasy**: stark silhouettes, warm parchment, near-square panels, restrained color, and readable information against a bleak world.
+Read [UI_THEME.md](UI_THEME.md) before creating or changing UI. It is the primary
+specification for palette, materials, type, borders, spacing, row actions,
+scrolling and review. This guide adds screen recipes and reference interpretation.
+Both describe one style, grounded in **the dark Pickard image on the main menu**.
 
-The game should feel like a compact illustrated field manual for defending a haunted frontier. Its character comes from native game portraits, warm parchment, uniform black frames, and clear information inside comfortably spaced cards.
+![Primary style authority: the Pickard main-menu image](../assets/ui/pickard-menu-background.png)
 
-This is the ongoing design specification and the default for every future UI request in this repository. Version 2 replaces the older mixed border weights, flat UI fill requirement, and prohibition on individual stat cards. Read it before implementing UI, as required by `AGENTS.md`. `ART_DIRECTION.md` governs terrain and world artwork. Gameplay values and rules remain owned by the game model.
+The image's charcoal-green night, angular iron, muted cloak red, parchment moon,
+weathered surfaces and strong silhouettes define the UI. The bright Campaign and
+Settings buttons currently placed over the image do not define the new palette.
+The opening image is the largest source of truth for every future screen.
 
-## Approved reference and interpretation
+Version 3 supersedes Version 2's parchment-first backgrounds, yellow primary
+buttons and pastel panel defaults. Keep the useful existing card hierarchy,
+compact spacing, 3-unit black borders, 4-unit corners and mobile input behavior.
+Use dark reading surfaces and warm light text as defined in the theme. Existing
+screens have not all been migrated merely because the documentation has changed.
 
-The user supplied the Waves screenshot below on September 7, 2026 and approved its clean cards, information arrangement, illustrations, and spacing. Preserve those qualities across menus, content lists, settings groups, summaries, and detail screens. The requested refinement is one consistent border around every UI enclosure.
+## Reference roles
 
-![User-approved Waves card layout](references/ui-waves-reference.png)
-
-The image records the original layout, including its mixed border widths. The standard is **3 UI units of opaque black on every side**, revised at the user's request on September 7, 2026 because the initial 1-unit standard was too thin. Buttons, main sheets, wave cards, badges, and dividers use that same width. Establish hierarchy with spacing, typography, alignment, and restrained fill differences. A passive card remains read-only; its frame does not make it a button. The screenshot's words and values are examples, not instructions or gameplay changes.
-
-## Visual principles
-
-1. Keep the battlefield dominant during ordinary play. Put extended explanations in contextual panels.
-2. Give each active task one primary action. In a modal, its confirmation takes priority over the underlying Collect all button, which is blocked and dimmed.
-3. Use ink for structure, parchment for reading, and ochre for action. Keep semantic accents small and purposeful.
-4. Use the existing shared parchment texture for UI surfaces, including the yellow and red variants for semantic accents. Keep the native portraits flat. Avoid new decorative textures, gradients, metallic bevels, shadows, glow, glass blur, or decorative particles.
-5. Make the theme readable at phone size. Short labels, clear silhouettes, and uncluttered grouping carry the fantasy character.
-
-## Color roles
-
-Use semantic names in UI code. The hex values are sRGB; default fills and text are opaque. World colors and UI roles may share a value without sharing a meaning.
-
-| Token | Value | Use |
-| --- | --- | --- |
-| ink | #000000 | Primary text, structural outlines, icons |
-| backdrop | #222A30 | Unowned world and surrounding dark canvas |
-| main-menu.background | #192322 | Deep forest tint on the main menu's shared parchment texture |
-| paper | #E8DDBD | Main panels, dialogs |
-| paper.saved-games | #B8C4C6 | Campaign saved-games page background; retain parchment cards and ink text |
-| inset | #DFD0AB | Secondary controls and grouped information |
-| text.secondary | #222A30 | Supporting text on paper or inset |
-| text.inverse | #E8DDBD | Labels on backdrop; never use black here |
-| action.primary | #E0B568 | Primary buttons, active tabs, collection badges |
-| action.danger | #DB8D73 | Sell and reset confirmations; always include an explicit verb |
-| identity.arcane | #B49DCC | Rifts and arcane identity markers |
-| identity.core | #93C9BC | Core identity and recovery illustrations |
-| focus.light | #000000 | Reserved ink color; no focus ring |
-| focus.dark | #E8DDBD | Reserved paper color; no focus ring |
-| scrim | #000000 at 65% | One modal overlay over the inactive scene |
-
-Forest #95AA83, forge #BB8C76, crypt #7FA6AA, and sanctuary #AE879B belong to world identity. Do not recolor the entire UI when the biome changes. Reuse the actual tower and enemy drawings in portraits.
-
-Color needs context. Coral on a flame-tower portrait means tower identity; coral on a button labeled Sell tower means a destructive action. Lavender does not imply rarity, and mint does not mean every positive outcome. Successful actions use a clear message and, for earnings, an ochre badge. Warning text remains ink on a light panel with an icon and explanation. Do not set small text in pale accent colors on parchment.
-
-Target at least 4.5:1 contrast for all essential text and 3:1 for meaningful control boundaries. Check final composited colors, including disabled states. These are project design targets; device accessibility still needs testing.
-
-## Typography
-
-Use **Noto Sans Regular, SemiBold, and Bold** for body copy, controls, and numbers. Use **Noto Serif SemiBold** for screen titles and major object headings at 24 units and above. The serif adds a restrained book-like character; ordinary interface text remains simple. Variable font files and their license notices are bundled in `assets/fonts`; the shared theme selects weights 400, 600, and 700. Keep license notices in exported builds.
-
-| Role | Size / target line height | Weight | Examples |
-| --- | --- | --- | --- |
-| Compact sheet title | 22 / 28 | Sans 700 | Waves |
-| Large screen title | 30 / 36 | Serif 600 | Settings |
-| Panel or object title | 24 / 30 | Serif 600 | Ashneedle, Waves |
-| Section heading | 18 / 24 | Sans 700 | Upgrade effects |
-| Card value | 18 / 24 | Sans 700 | Enemies, wave gold, total health |
-| Featured value | 24 / 30 | Sans 700 | Spendable gold, unclaimed total |
-| Body and controls | 16 / 24 | Sans 400 / 600 | Descriptions, button labels |
-| Supporting label | 14 / 20 | Sans 400 or 600 | Damage per hit, current level |
-| Compact metadata | 12 / 16 | Sans 600 | Tower class, secondary counts |
-
-Sizes are UI layout units at 1×, not physical panel pixels. Never go below 12 for readable UI text. Costs, error reasons, and action labels use at least 14. Use sentence case; reserve short uppercase labels for metadata such as RAPID. Do not use all caps for long descriptions or buttons. Avoid distressed fonts, blackletter, italics for statistics, and outlined text.
-
-Left-align explanations. Align comparable numbers consistently and enable tabular figures where available. Show units with values: 376 gold, 3.58 / sec, 0.28 sec. Use a stable number formatter and compact large balances consistently. Purchase prices must be unambiguous; show the full exact price in the confirmation even if the HUD abbreviates large totals. Wrapping and reflow take priority over shrinking fonts.
-
-## Spacing and sizing
-
-Use a 4-unit base grid. Approved spaces are **4, 8, 12, 16, 24, 32, and 48**. The compact card recipe uses 4 between value and label, 8 between stat cells or icon and text, 8–12 between sibling cards, 12 inside the outer card, and 12 between its header, stats, illustrated rows, and action row. Use 16 for page padding, 24 inside a spacious dialog, 32 between major page groups, and 48 only for large screen separation. Existing tightly fitted quantity badges may retain 6-unit padding; use the shared 8-unit inset default for new ones.
-
-Screen edge padding is 16 at normal widths and 12 on compact screens, plus device safe-area insets. Main panels use 16 padding; compact summary cards use 12 and their stat cells or illustrated rows use 8. Specify padding in one owning container so StyleBox margins and MarginContainer padding do not accidentally double it.
-
-Standard buttons are at least 48 high, primary footer actions 52, and icon buttons at least 48 by 48. Allow height to grow when text wraps. Maintain at least 8 between touch targets; 12 is preferred in action rows. Icons are 24 by 24 inside their larger hit targets, with 3-unit strokes. Use 48 or 64 portraits for tower and enemy identity.
-
-## Corners and surfaces
-
-| Component | Corner radius | Outline | Fill and treatment |
-| --- | --- | --- | --- |
-| Edge-to-edge header and footer | 0 | 3 ink | Paper; shared edges drawn once |
-| Main sheet or modal | 4 | 3 ink | Paper; no shadow |
-| Standard button, tab, or field | 4 | 3 ink | Inset; semantic fill for active action |
-| Content card | 4 | 3 ink | Paper or inset; 12 padding |
-| Stat cell or illustrated row | 4 | 3 ink | Paper; 8 padding |
-| Small badge | 4 | 3 ink | Paper or ochre with ink text |
-| Separator | 0 | 3 ink line | Use only between distinct sections |
-| Layout-only group | 0 | None | Transparent; no extra frame |
-
-Four units is the maximum corner radius for rectangular UI. Circular core, socket, and expansion markers remain circles because their shape is part of world interaction. Avoid capsule buttons and rounded dashboard styling. The approved nesting is sheet → content card → stat cells or illustrated rows, with a small trailing quantity badge when useful. Add frames only to meaningful groups. A plain HUD value or layout container can remain borderless.
-
-`VigilInterface.OUTLINE = 3` is the single border token. Never introduce a different local border width, including in selected, pressed, disabled, or focused states. Draw abutting shared edges once and keep borders inside their allotted rectangles. These are logical UI units at 1×; display density may map a unit to several device pixels. Use one scale for neighboring controls. Artwork contours and map geometry keep their own stroke rules; an image inside a card is not UI chrome.
-
-Depth comes from occlusion and contrast. A modal has an opaque paper surface over one scrim. Contextual panels do not dim the world. Do not use hover tooltips; show explanations in the interface and retain accessible descriptions.
-
-## Component hierarchy
-
-Build components in this order: **tokens → primitives → reusable groups → screen patterns**. Primitives are text, icon, button, separator, and surface. Groups are a label with a value, a price action, a portrait with identity, a comparison row, and a notification. Screens compose those groups rather than inventing local colors and spacing.
-
-The visual stack, from back to front, is world artwork, world interaction markers, persistent HUD, contextual controls or sheets, modal scrim, modal panel, and modal-local feedback. Only the top active layer receives input. An ordinary world toast must not appear above an unrelated modal or cover its confirmation.
-
-Within a panel, order information as identity, current state, decision-relevant values, cost or consequence, then actions. Body text supports that sequence. A useful hierarchy does not require making every heading larger or every container darker.
-
-## Component recipes
-
-### Standard information card
-
-Use this recipe whenever a screen presents a content item or related summary. Omit blocks that have no useful information; do not add dummy artwork or empty cells to imitate the screenshot.
-
-1. **Header:** left-aligned bold title, with brief status aligned right when applicable. Follow with one standard divider when the body needs separation.
-2. **Values:** equally sized stat cells, bold value above its plain-language label. Keep units with values. Reflow four columns to two when the available grid width is below 400 units; stack further for longer content instead of shrinking essential text.
-3. **Identity:** native portrait on the left, bold name and supporting role in the middle, compact count or state at the right. Use a 48-unit portrait in a compact row; allow 64–96 for a detail view. Preserve its aspect ratio and show the actual content artwork without a decorative background frame unless needed for contrast.
-4. **Actions:** explicit text buttons at the bottom, separated by 12 units and at least 48 high. A longer action may take more width, as Balancing details does in the reference. Stack actions if their labels cannot fit. Passive card content passes drag gestures to the owning scroll container.
-
-Compose `UI.info_card()`, `UI.stat()`, `UI.rule()`, `UI.button()`, and `content_portrait.gd`. `wave_summary.gd` is the implemented reference composition. Reuse this structure for towers, enemies, gear, levels, and other content; keep reports and callbacks supplied by their existing model/service owners. Shared styles contain configuration only; live values and interaction state belong to each control instance.
-
-Saved games uses the shared `saved_game_card.gd` composition in Campaign. Put the save name and game mode in separate parchment cards with an 8-unit gap; allow the name to wrap while the mode stays content-sized. Use the muted blue-gray `paper.saved-games` background behind the slot cards, with the existing paper texture and ink text. Other menu pages retain their existing backgrounds.
-
-### Buttons and control states
-
-Primary buttons use ochre, ink text, the same 3-unit border as the surrounding cards, and semibold labels. Secondary buttons use inset. Destructive confirmation uses coral and a specific verb. A simple informational dismissal can use a paper button. Avoid vague labels such as Yes or OK when an action changes gold or progress.
-
-| State | Required presentation |
+| Reference | Authority |
 | --- | --- |
-| Default | Semantic fill, ink label and outline |
-| Hover | Identical to the resting state; no visual response or tooltip |
-| Pressed | No added ring; offset contents down 1 unit without moving the hit area |
-| Keyboard focus | No ring or outline; retain keyboard navigation |
-| Selected tab | Ochre plus a visible underline or selection marker; not color alone |
-| Disabled | Inset fill, secondary text, no hover or pressed response; show reason nearby |
-| Pending | Preserve button width, show action-specific progress text, prevent duplicate activation |
+| [Pickard menu background](../assets/ui/pickard-menu-background.png) | Primary mood, palette, material, illustration and composition reference |
+| [Original Pickard reference](../assets/ui/pickard-reference.jpg) | Character identity: closed angular helmet, armor, cloak, sword and diamond shield |
+| [Waves reference](references/ui-waves-reference.png) | Information hierarchy, compact cards, native portraits and spacing; historical colors and mixed border weights are superseded |
+| Current shared UI code | Existing reusable structure, behavior and sizes; old color literals do not override Version 3 |
 
-Focus can coexist with selected states. Pointer entry must not change fills, outlines, icon colors, cursors, or text. An unaffordable action reads Need 125 more gold nearby rather than relying on fading the control. Disabled elements remain legible without lowering the opacity of the whole subtree.
+![Historical Waves layout reference — use its structure, not its palette](references/ui-waves-reference.png)
 
-### Main menu
+## Shared implementation
 
-The main menu is Pickard's full-screen illustrated character cover, revised
-September 16, 2026. The user-supplied [Pickard reference](../assets/ui/pickard-reference.jpg)
-is the character and style authority. Use the newly generated
-[background](../assets/ui/pickard-menu-background.png) edge to edge through the
-stateless `welcome_art.gd` component, with aspect-preserving centered cover
-scaling. The standing knight dominates the middle of the screen; his face,
-sword, shield and boots stay clear of controls. The world extends to every edge,
-without a separate image panel or surrounding paper background.
+Use `scripts/ui/shared/interface.gd` for primitives and semantic roles. Extend it
+and the reusable components before creating local variants. Existing helpers such
+as `info_card`, `stat`, `rule`, `action_row`, `number_row`, `button`, `style_entry`
+and `keyboard_scroll` preserve structure while their semantic presentation evolves.
+The theme's new palette values describe the intended implementation; they are not
+all present in the current runtime yet.
 
-Place the live parchment serif PICKARD title, THE KNIGHT subtitle and diamond
-ornament in the dark sky. Anchor Campaign and Settings over the dark foreground
-below the knight. Retain shared gold-paper buttons, 56-unit height,
-up-to-320-unit width and 14-unit gaps. Controls remain in the safe-area scroll
-container while the illustration fills the viewport behind them. Only this
-opening page uses the generated background; other pages retain parchment.
-Art never owns input or starts gameplay. Keep upright portrait sizing,
-reachable actions on short screens and existing Campaign save compatibility.
-Generation provenance and the exact prompt are in `assets/ui/PICKARD_ART.md`.
+Keep text separate from surface tint. Shared world ink/paper/gold constants also
+serve artwork, so a UI restyle must not globally recolor terrain or currency.
+Update relevant shared consumers and all button/field/popup states together when
+implementing dark roles. Keep model values, transactions, save rules and simulation
+outside presentation code.
 
-### Campaign world map
+## Screen recipes
 
-The detailed landscape revision uses 960-unit chapters with illustrated level
-destinations and the existing short chapter story. Compose the Chapter node's
-`map_landscape` recipe with the shared architectural and natural drawing kits.
-Keep readable text clear of the full scenery bounds, riverbanks and trail
-crossings. Artwork may be denser than chapter terrain; its detail follows the
-portals, Moonwheel and Caltrop Keep. Number plaques retain the shared 3-unit border,
-and all destinations retain at least 48-unit touch targets. Cleared rubble/beacons,
-current pointers, locked labels and fixed Back/Menu controls keep their meaning.
-See `ART_DIRECTION.md` for the drawing and rendered validation contract.
+### Main menu and illustrated title compositions
 
-The September 7 campaign-map revision is an explicit exception to parchment page backgrounds. Fill the scrolling map edge to edge with the six native chapter biome colors and scenery. Adjoining chapters share one 3-unit black divider, drawn over trail crossings; omit card frames, rounded chapter corners, parchment gutters and mode availability subtitles. Keep the title and 48-unit Back control in a fixed, safe-area-aware header. Use winding trails that avoid readable level labels and preserve completed, current and locked states. `biome_map_art.gd` owns reusable trail and scenery drawing; `world_map.gd` supplies the authored Level catalog and progression. Validate return navigation, scrolling and label clearance at upright portrait phone sizes with `tests/rendered/campaign_map_runner.gd`.
+The image fills the viewport with proportional centered cover scaling. Keep live
+text above the art: the PICKARD serif wordmark, short THE KNIGHT subtitle and
+spare diamond ornament occupy the dark sky. Reserve the middle for the full knight,
+including helmet, sword, shield and boots. Actions sit below him over quiet ground.
 
-### Persistent HUD
+Current title size responds from 32 to 52; current actions are 56 high, up to 320
+wide, with a 14-unit vertical gap. Preserve their layout during future styling.
+The theme defines their color treatment; their existing bright yellow fill is
+not a universal rule. The live controls respect safe areas and remain reachable
+through scrolling at short portrait heights. Artwork never owns input and must
+not bake text or buttons into its pixels.
 
-Campaign levels use one edge-to-edge parchment bar containing Back, Pause, Speed, Waves and Start wave, with 48-unit touch targets and 8-unit gaps/insets. The battlefield fills both sides and the entire remaining screen below it, without an outer parchment frame or footer. Place numbered level identity (for example, "1. Briar Bend"), gold and wave count in three parchment cards filling one row below the toolbar through the shared floating HUD. Use the shared 3-unit ink border, 4-unit corners, 12-unit identity padding and 8-unit value padding. Let gestures pass through passive cards and wrap long text within the safe width. Reserve space for the row in the opening camera view. Omit the remaining-enemies card; retain full wave action accessibility labels. Creative sharing remains available inside Waves. Put level identity below the toolbar. Menu opens the same full-page navigation and pauses the held session. Resume preserves that live session and its prior pause state.
+Reuse `welcome_menu.gd` and stateless `welcome_art.gd`. Keep the original character
+reference unchanged. Asset provenance is in `assets/ui/PICKARD_ART.md`. Other
+screens share this dark visual language through their backgrounds, surfaces and
+accents; they do not require a full-screen duplicate of the hero.
 
-Game home, Saved games, New game, libraries, Save build, Backups, Settings and rule drafts use the shared page shell. Keep Back/title fixed above scrolling content and progression actions fixed below it. Full pages render above gameplay frames and short dialogs. Save privately and Share to Community appear together in that order. Use Apply changes and Cancel for rule drafts; the shared contents checklist remains separate from editing the active game. See `UI_MENU_TREE.md` for the complete implemented navigation.
+### Full pages, settings and forms
 
-Aim to leave at least 60% of screen height to the battlefield during ordinary play at default text size. Keep the toolbar and statistics stable as their values change.
+Use the existing `unified_menu.gd` / `save_slots_panel.gd` shell. Back and title
+stay above the scroll area; progression actions stay below. Use 12-unit safe-area
+insets and 12-unit separation between these major regions. Keep action order and
+current navigation semantics. Do not add feature controls to fill unused space.
 
-### Tower selection and details
+For descriptive setting/option rows, put labels and explanations left and values
+or action controls right, with a black 3-unit divider below each row. Group
+multiple controls at the right and reflow them without reducing 48-unit targets.
+Fields remain directly editable; toggles show On/Off. Use the shared form and
+numeric rows and preserve a passive area from which to swipe.
 
-Building uses permanently visible, bottom-aligned, horizontally scrollable icon-only tower squares (48-by-48 minimum, growing evenly to fill wider rows) in Campaign. The cards form the bottom menu with no outer panel, padding, caret, or slide animation. Preserve 8-unit gaps between cards and bottom safe-area clearance. Outside taps reach the battlefield; Back cancels placement without hiding the cards. Native artwork fills each square without a circular frame. Selecting or dragging a square slides a panel upward from the strip in 180 ms, showing the tower icon, name, exact cost, and four-square horizontal level indicator. The strip stays visible beneath it. Four generated bubble-state images show one through four earned levels: bright faceted gold for earned bubbles and subdued engraved gray-parchment facets for empty bubbles. The artwork forms each bubble itself; never insert tower pictures in these indicators. Vertical indicators fill from the bottom upward: level 1 is the bottom bubble and level 4 is the top. Horizontal indicators fill left to right. All four filled bubbles indicate maximum level. Construction shows level 1. Specialization choices appear only when an existing tower reaches level 3. Full inspection and upgrade comparisons retain their statistics.
+Settings, Sound, Account, Bug report, Change log, My builds, Community, Save build
+and Backups share this structure. Keep form errors visible after fixed-footer
+actions, and preserve first/last-item access when a page rebuilds. Keep Save
+privately before Share to Community, and keep publication an explicit action.
 
-Selecting a tower in Campaign opens the shared tower management menu directly. Use a compact bottom card above the build toolbar: a bordered identity card with its portrait and name vertically centered, plus four illustrated level bubbles, bright gold when earned and muted engraved gray when empty. Stack the four level squares vertically on the far left, center the portrait and tower title in an identity card, and place Equipment, Targeting and Sell in the top row of 48-by-48 icon buttons on the right, with Move below and a 104-by-48 Upgrade button spanning the other two slots. Use shared original action artwork and accessible action names; Upgrade is ochre with its icon and current cost centered together vertically and horizontally. There is no Close button on this card. Tapping the battlefield slides the card downward over 180 ms, clears selection, and consumes the tap without purchasing or acting on the level. Omit descriptions, statistics and redundant metadata from this card, and keep the battlefield undimmed. Upgrade opens the existing comparison and specialization purchase view. Do not show surrounding world-space tower buttons or extra upgrade cost/balance text below the management card. Confirm an upgrade through the existing button changing to a checkmark beside the price, without resizing or shifting the card; retain level-three specialization choices. Nested actions return to the tower menu with Back; closing returns to the battlefield. Moving closes the menu to select a destination. Successful Campaign upgrades clear selection; successful builds open the new tower's management menu. Preserve build-choice memory and model-owned transactions.
+### Cards and saved games
 
-An information panel shows portrait, tower name, class and level, description, then labeled statistics. Upgrade compares current and next values using explicit Current and Next labels; an arrow may reinforce the relationship. At wider sizes use two columns of statistic groups; at compact widths stack them.
+A general card contains a title/status row, optional divider, bold values above
+labels, native identity artwork and relevant actions. Use 12 padding, 8 between
+cells and 12 between sections. Native portraits remain proportional. Do not
+invent empty cells or decorative pictures just to copy a reference layout.
 
-Upgrade confirmation ends with exact cost, projected remaining gold, Cancel, and Upgrade · 376 gold. Values shown in visual examples are illustrative. Read actual values from the model and refresh availability before commit. A sale dialog explains tower removal, refund, and treatment of stored earnings, then presents Cancel and Sell tower. Reset belongs in a separate settings danger section with explicit consequences and confirmation.
+`saved_game_card.gd` separates save name and mode into adjacent cells with an
+8-unit gap, allowing the name to wrap while the mode stays content-sized. Preserve
+slot state, progress values and action order. The previous blue-gray parchment
+page background is an existing color assignment, not the new dark-theme target.
 
-### Sheets and dialogs
+### Choice lists and pickers
 
-Context sheets support exploration. Confirmation dialogs support a single decision. Use centered dialogs with a maximum width of 460 units and at least 16 clearance from safe edges. Cap height to the available safe area. Keep heading, close control, and action footer visible while only the body scrolls. Do not nest scroll regions.
+Use `UI.action_row()` and `illustrated_picker.gd`. Optional artwork and wrapping
+identity stay left; Open or Select stays right, centered vertically. Keep a
+consistent action column wide enough for Selected. Draw the divider once below
+each row, including disabled/selected rows. Never turn the description into a
+full-row tap target that makes scrolling select items.
 
-Give a single active modal keyboard focus, restore focus to its opener on dismissal, and make Escape or system Back cancel or close. Backdrop taps may dismiss informational sheets; a purchase or destructive confirmation requires an explicit Cancel or close action. Never accept backdrop input as confirmation or allow it through to the battlefield. These are interaction requirements for future implementation, not new claims about current pause behavior.
+The picker has a fixed title, Close at the right and a header divider above its
+scrolling choices. Fit it inside the owning safe viewport with 12-unit clearance,
+up to 480 wide and 560 high. The existing direct-choice save-slot variant sizes
+to content and keeps its full-width choices. Reveal the selected item on opening;
+restore focus on dismissal. Closing or dragging must not select accidentally.
 
-### Settings
+### Rules and numeric editing
 
-Settings use labeled rows with the value or toggle on the right; stack the control below the label when needed. A toggle must show On or Off as well as its position.
+Preserve category → item → full-page editor navigation, illustrated identity,
+current tier/branch controls and fixed draft actions. Use the shared numeric row:
+wrapping description left, centered 112×48 minimum input right, no stepper arrows,
+72 minimum row height and the same divider. Keep defaults and units meaningful.
 
-### Developer controls
+Default and Added sections retain explicit labels. Group one added rule's heading,
+related fields and disable control in one card. As those screens adopt the dark
+theme, use restrained semantic markers instead of the older large green/purple
+fills. Preserve independent tier/branch state and current editable-field limits.
+Retired capability tabs and equipment editing are not authorized by their mention
+in historical docs. Back/discard handling must preserve the existing draft model.
 
-All five categories share the same editor and header. Keep Back on the left and Close at the top right, with square 48-unit targets, 8-unit header gaps, and matching 3-unit ink strokes. The home title is Developer Controls; each editor uses its category name. Use `UI.fitted_heading` for these titles and the selected object's name: preserve one line, fit between 16 and 24 units, and call `UI.fit_heading` after changing the text. Descriptions and numeric labels wrap at their normal size.
+### Waves and comparisons
 
-Put the type selector and optional tower tier selector before the portrait and description. The portrait card uses the inset surface, the standard 3-unit outline, 12-unit padding, and a 96-unit art area whose drawing scales proportionally. Keep navigation fixed while the editor scrolls, and return to the top when selecting a new type, tier, or category. Numeric fields, defaults, and reset actions continue to use the shared row components.
+`wave_summary.gd` composes a wave title/status, divider, four stat cells, enemy
+roster and actions. Use four columns at 400 available grid units or more, two
+below, and additional reflow if needed. Values are bold above their labels.
+Roster rows keep portrait and name left, count/state at the right. Editable
+quantities remain separate actions; passive content scrolls.
 
-### Notifications and exceptional states
+Keep wave timing, counts, health, currency and costs supplied by the model.
+Balancing details and editing are separate actions. Comparisons explicitly label
+Current and Next, use columns when space allows, and stack at compact widths.
+No color alone may communicate a purchase consequence.
 
-Use short feedback such as Tower upgraded to level 7. Collection can retain its existing ochre badge: rise 36 units over 0.95 seconds, then disappear. Ordinary messages remain readable for 3–5 seconds; an actionable error remains until dismissed or resolved. Place feedback above the footer without obscuring actions. Aggregate repeated earnings events.
+### Campaign map and battlefield
 
-Empty states say what is empty and what the player can do next. Loading preserves the container size and names the operation. Error states explain the failure and give a recovery action. Locked content states the unlock condition. None of these should invent server loading or progression mechanics that the game does not have.
+The map has fixed Back/title navigation above six edge-to-edge illustrated biome
+sections, separated by one black 3-unit line. Preserve chapter scenery, trails,
+numbered destinations, unlock/completion states and at least 48-unit level targets.
+Keep text clear of full artwork bounds. World illustrations follow the art guide;
+map controls use the theme's common dark surfaces and readable text.
 
-## Responsive layout and accessibility
+The battlefield keeps its compact top toolbar and three passive information cards
+below it: numbered level identity, currency and wave count. Keep those cards in
+one row, wrapping text as needed, while gestures pass through to the world.
+Reserve camera space for that row. Terrain fills the remaining viewport without
+a new outer panel or permanent footer covering play.
 
-Reference layouts are 360 × 640, 390 × 844, and 540 × 960 in effective UI units. At widths below 400, use compact padding, stack comparison columns, and allow footer statistics to wrap. Dialog actions stack when their labels cannot fit; keep the same reading and focus order. Larger windows gain battlefield space rather than stretching text panels indefinitely.
+The build strip stays bottom-aligned with horizontally scrollable icon squares
+at least 48×48, 8-unit gaps and bottom safe-area clearance. Preserve build-choice
+memory, direct tower management and the actual current placement behavior.
+Do not change tower art or level indicator art as an incidental UI color change.
 
-The original build stretched a 540 × 960 canvas. The restyled desktop UI now reflows at the window's size, while mobile uses display-density scaling and safe-area conversion. Do not equate a 48-unit control with a 48-point touch target without checking the final scale on the physical device. World zoom must not shrink HUD text. Tower action controls and gold badges are intentionally anchored in map space and scale with their towers, including their spacing and hit areas. Verify density reporting and touch sizes on supported phones before release.
+### Tower panels and confirmation
 
-Respect safe areas on every overlay as well as the header and footer. Test standard text size, long names, large balances, and translated labels that are roughly 30% longer. Increase vertical space or scroll; do not clip, ellipsize purchase consequences, or reduce essential type below the minimum. Hover tooltips are prohibited; use visible labels and accessible descriptions. Icon-only controls require accessible names. Controller or keyboard focus follows visual reading order without drawing a ring.
+Preserve the current compact bottom tower-management composition, existing action
+availability and identity/level layout. The management card and deeper inspection
+pages differ: do not add a Close to the compact card merely because a detail page
+has one. Keep existing outside-tap, Back and placement-drag dismissal behavior;
+ordinary contextual management leaves the battlefield undimmed.
 
-Hover produces no response anywhere in the app; every action must work by tap and keyboard. Use 120 ms for control feedback and about 180 ms for panel entry or exit. No bounce, camera shake, or continuous pulsing in interface chrome. Use normal motion with a fixed 60 FPS cap; there are no player text-size, power-saving, or reduced-motion settings.
+Detail/upgrade views show identity, current state, relevant statistics, exact cost
+or consequence, then actions. Comparisons retain Current/Next labels. Preserve
+existing upgrade arming, specialization and model-owned purchase validation.
 
-## Implementation and review
+A blocking confirmation is content-sized and centered inside the safe area, with
+consequences above confirm/Cancel. The existing helper normally uses up to 380
+width and 16 padding; its long details scroll while actions stay reachable. Only
+the top modal receives input, with a single scrim where required. Escape/Back
+cancels or closes; a backdrop tap must never confirm or reach gameplay.
 
-Centralize UI colors, type roles, spacing, and surface variants in `scripts/ui/shared/interface.gd` or a dedicated theme resource owned by it. Continue reusing `hud.gd`, `panels.gd`, `tower_actions.gd`, and `tower_dialog.gd`. The shared theme provides structural, content, badge, chrome, and borderless surface helpers. Keep gameplay statistics in `scripts/gameplay/balance.gd`.
+### Feedback, input and motion
 
-Preserve the implemented shared fonts and tokens, readable HUD, responsive comparisons, focus rules, and standard text size and normal motion. Use `./launch.ps1 -StyleTests` for welcome layout and Campaign navigation. Run the focused Waves, rules, or shared-surface runners listed in `tests/README.md` when those screens change. Keep this guide and the UI paragraph in `ART_DIRECTION.md` consistent with intentional changes. After editing this Markdown guide, run `./tools/render_ui_style_guide.ps1` in PowerShell 7 to regenerate its HTML companion.
+Use short, actionable feedback near its task. Empty states explain what is empty;
+locked states explain the condition; errors offer the actual recovery action.
+Keep text legible against dark surfaces without adding warning-color paragraphs.
+Preserve the existing earnings badge motion (36-unit rise over 0.95 seconds).
 
-Before accepting a new screen, confirm:
+No hover feedback or tooltip. Keyboard navigation stays available without adding
+focus rings. Selected states use explicit text or a marker; disabled controls
+remain legible. Preserve tap cancellation on swipes and the shared scroll owner's
+handling of rebuilt controls. Text entry and slider gestures retain their ownership.
+Panel transitions stay restrained, around 180 ms; do not add bounce or pulsing.
 
-- It uses named roles and the 4-unit spacing scale, with no unexplained local styling.
-- Every enclosure and divider uses the same black 3-unit border, including button states; corners and shared edges remain clean at display scaling factors.
-- Cards follow the approved value/label hierarchy, show native illustrations when applicable, and retain 8–12-unit gaps at compact widths.
-- One primary action is obvious in the active task; destructive actions are explicit.
-- Text, cost, state, and consequence are understandable without color or hover.
-- Safe areas, compact screens, enlarged text, and large values remain usable.
-- Focus navigation works without rings, dismissal is predictable, and modal input cannot reach the world.
-- The battlefield, collection flow, tower selection, and model-owned values still behave correctly.
-- Updated rendered screenshots cover default, focused, disabled, selected, and modal states. Run `./launch.ps1 -Smoke` for UI behavior; use the broader project checks when changing shared rendering. Verify physical phones separately.
+## Review and maintenance
 
-## Reference images and interpretation
+Use the checklist and test-owner mapping in [UI_THEME.md](UI_THEME.md). Check
+rendered upright 360×640, 390×844 and 540×960 layouts, long labels, large values,
+selected/disabled/modal states and safe-area behavior. Run the focused tests in
+[tests/README.md](../tests/README.md). Desktop simulation does not establish
+physical iOS/Android acceptance.
 
-The local [Waves reference](references/ui-waves-reference.png) above is the primary layout authority. The older sources below are historical mood references and do not override Version 2's border, texture, or card rules. No third-party artwork is included as a game asset.
+A future implementation must check the actual rendered dark palette, not merely
+reuse a legacy helper that still paints tan paper or black text. This documentation
+update records direction and existing layout behavior; it is not proof that the
+whole game already has the new colors.
 
-- [Darkest Dungeon screenshot in Nintendo Life's review](https://www.nintendolife.com/reviews/switch-eshop/darkest_dungeon): strong outlined silhouettes, dark framing, and controlled warm highlights. Carry over the readable shapes and mood; keep Hollow Vigil's text and controls larger and its fills simpler.
-- [Diablo IV inventory screenshot on MobyGames](https://www.mobygames.com/game/204085/diablo-iv/screenshots/windows/1163325/): clear compartmentalization of inventory and character information, with aligned values and restrained framing. Carry over the grouping discipline, while retaining Hollow Vigil's flat artwork and compact portrait layout.
-
-## Context for future UI work
-
-Default to **Parchment cards**, based on the user-approved Waves layout. Use the existing paper texture and palette, one black 3-unit border for every UI enclosure and divider, and 4-unit corners (0 for edge-to-edge chrome). Compose a bold header, values above labels in compact cells, illustrated identity rows when applicable, and clearly labeled actions. Use 12-unit outer card padding, 8-unit inset padding and cell gaps, 12-unit section/action gaps, and 48-unit minimum screen controls. Reflow at phone widths while preserving readable text and scrolling. Reuse the shared interface and portrait components, preserve model ownership, and keep native world artwork unchanged. This is the default for future UI requests unless the user explicitly revises it.
-
-### Currency icon
-
-Currency text uses the shared colored coin glyph in place of every visible whole word gold (any capitalization). Keep source and accessible wording readable; the shared presentation translation replaces it when drawing. Coin fonts match the surrounding Noto Sans/Serif line center, scale with the text, and retain ochre fill and black detail. Measure translated text for responsive fitting.
-
-Added stats, abilities and attributes each use a separate purple card (VigilInterface.ADDED_RULE, #B49DCC) inside the green Added section. Keep all fields and disable controls for one ability together in that card, including when a dependent field is added from Stats. Give each purple card a bold heading using the owning ability, attribute or standalone stat name. Gear, portal and level rule fields use the same shared rule card. Retain 3-unit black borders, 4-unit corners and 12-unit padding.
+Keep this guide, `UI_THEME.md`, `ART_DIRECTION.md` and `AGENTS.md` aligned. After
+editing this guide, run `./tools/render_ui_style_guide.ps1` in PowerShell 7 to
+regenerate its HTML companion. The theme owns shared visual rules; add screen
+recipes here without creating a second competing palette.
