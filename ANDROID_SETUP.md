@@ -14,8 +14,8 @@ Bundle: `/private/tmp/pickard-release-1.1.6-source/exports/hollow-vigil-1.1.6.aa
 
 
 The Android preset builds a signed Google Play Android App Bundle at
-`exports/hollow-vigil-1.1.4.aab` with package ID `com.kaiser.hollowvigil`,
-version name `1.1.4`, and version code `14`. It targets ARM64 Android phones.
+`exports/hollow-vigil-1.1.6.aab` with package ID `com.kaiser.hollowvigil`,
+version name `1.1.6`, and version code `16`. It targets ARM64 Android phones.
 
 ## Internal testing release 1.1.4 — September 9, 2026
 
