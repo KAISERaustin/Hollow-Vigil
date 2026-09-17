@@ -73,3 +73,5 @@ disabling during combat, manual restart, final victory, and per-attempt state
 isolation across all 48 levels. Inspected 360×640, 390×844 and 540×960 renders;
 Start wave and the On/Off skip toggle stay together with full-size targets.
 Structure checks passed. Physical iOS/Android testing was not performed.
+The runner intermittently reports the existing two retained objects at shutdown;
+no script errors or failed assertions occurred.

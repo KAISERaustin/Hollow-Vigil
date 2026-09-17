@@ -22,7 +22,7 @@ func run() -> void:
 	app.open_campaign_slot(0, saved)
 	campaign = app.campaign
 	campaign.set_process(false)
-	
+
 	for index in Catalog.COUNT:
 		var first := preload("res://scripts/campaign/run.gd").new(index)
 		var second := preload("res://scripts/campaign/run.gd").new(index)
