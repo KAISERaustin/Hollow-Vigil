@@ -9,6 +9,7 @@ const Board = preload("res://scripts/campaign/board.gd")
 const WorldMap = preload("res://scripts/campaign/world_map.gd")
 const WaveSummary = preload("res://scripts/ui/shared/wave_summary.gd")
 const Tutorials = preload("res://scripts/campaign/tutorial_catalog.gd")
+const CreativeOptions = preload("res://scripts/campaign/creative_options.gd")
 var tutorial_history := preload("res://scripts/campaign/tutorial_history.gd").new()
 var tutorial_popup: PopupPanel
 var tutorial_delay := 0.0
@@ -183,6 +184,7 @@ func _ready() -> void:
 		progress.data.relics.merge(campaign_save.checkpoint.get("state", {}).get("relics", {}))
 		progress.data.beaten_levels = campaign_save.get("beaten_levels", []).duplicate()
 		progress.data.current_level = int(campaign_save.get("current_level", -1))
+		apply_creative_options()
 	layout = VBoxContainer.new()
 	layout.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	layout.offset_left = UI.SCREEN_PADDING
@@ -742,6 +744,27 @@ func save_progress() -> void:
 	if is_instance_valid(save_notice) and not ok:
 		save_notice.text = progress.last_error
 		save_notice.show()
+
+func apply_creative_options() -> void:
+	progress.all_levels = CreativeOptions.enabled(campaign_save, "levels")
+	progress.all_towers = CreativeOptions.enabled(campaign_save, "towers")
+	if CreativeOptions.enabled(campaign_save, "tutorials"): tutorials_enabled = false
+	if run != null: progress.apply_equipment(run)
+
+func enable_creative_option(key: String) -> bool:
+	if mode != "creative" or page != "map" or active_campaign_slot < 0 or key not in CreativeOptions.KEYS: return false
+	var previous: Dictionary = campaign_save.get("creative_options", {}).duplicate()
+	var options := previous.duplicate()
+	options[key] = true
+	campaign_save.creative_options = options
+	if not persist_slot():
+		campaign_save.creative_options = previous
+		return false
+	apply_creative_options()
+	var scroll_position := page_scroll.scroll_vertical
+	show_map()
+	page_scroll.set_deferred("scroll_vertical", scroll_position)
+	return true
 
 func persist_slot() -> bool:
 	if active_campaign_slot < 0: return true

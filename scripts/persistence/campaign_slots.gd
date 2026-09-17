@@ -37,6 +37,7 @@ static func valid(value: Dictionary) -> bool:
 	if not value.get("id") is String or not Codec.valid_uuid(value.id): return false
 	if not value.get("name") is String or value.name.strip_edges().is_empty() or value.name.length() > 80: return false
 	if value.get("mode") not in ["creative", "survival"]: return false
+	if not preload("res://scripts/campaign/creative_options.gd").valid(value.get("creative_options", {})): return false
 	if not Configuration._number(value.get("sequence"), 0, 1e15, true): return false
 	if not Configuration._number(value.get("saved_at")) or not Configuration._number(value.get("completed"), 0, Configuration.Catalog.COUNT, true): return false
 	if not value.get("levels") is Dictionary or value.levels.size() > Configuration.Catalog.COUNT: return false

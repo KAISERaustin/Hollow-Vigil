@@ -5,6 +5,8 @@ const Catalog = preload("res://scripts/campaign/catalog.gd")
 var path := "user://vigil-campaign.save"
 var data := {"catalog_revision": 2, "version": 2, "sequence": 0, "completed_levels": 0}
 var blocked := false
+var all_levels := false
+var all_towers := false
 var legacy_candidates := {}
 
 func valid_data(value: Dictionary) -> bool:
@@ -27,7 +29,7 @@ static func valid_equipment(inventory: Variant) -> bool:
 	return VigilSaveStore.new().valid_loadout(snapshot)
 
 func apply_equipment(run: RefCounted) -> void:
-	run.game.economy.campaign_completed = int(data.completed_levels)
+	run.game.economy.campaign_completed = -1 if all_towers else int(data.completed_levels)
 	run.game.data.relics.merge(data.get("relics", {}).duplicate(true))
 
 func level_completed(index: int) -> bool:
@@ -89,7 +91,7 @@ func load_progress() -> void:
 				blocked = true
 
 func unlocked(index: int) -> bool:
-	return not blocked and index >= 0 and index < Catalog.COUNT and index <= int(data.completed_levels)
+	return not blocked and index >= 0 and index < Catalog.COUNT and (all_levels or index <= int(data.completed_levels))
 
 func save_run(run: RefCounted) -> bool:
 	if blocked:
@@ -102,6 +104,7 @@ func save_run(run: RefCounted) -> bool:
 		return flush() if equipment_changed else true
 	var completed := int(run.mission.index) + 1
 	if completed > int(data.completed_levels) + 1:
+		if all_levels: return flush()
 		last_error = "Complete the preceding level first."
 		return false
 	data.completed_levels = maxi(int(data.completed_levels), completed)

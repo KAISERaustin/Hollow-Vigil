@@ -236,7 +236,7 @@ func show_play_style() -> void:
 		choose.toggle_mode = true
 		choose.button_pressed = new_game.mode == mode
 		content.add_child(choose)
-		content.add_child(UI.paragraph("Edit rules while you play. All Campaign levels are available." if mode == "creative" else "Play with the chosen rules locked. Unlock Campaign levels in order."))
+		content.add_child(UI.paragraph("Edit rules while you play. Unlock all levels and towers through the Campaign map settings." if mode == "creative" else "Play with the chosen rules locked. Unlock Campaign levels in order."))
 	var next := action("Next", show_starting_build, "NextPlayStyle", true)
 	next.disabled = new_game.mode.is_empty()
 	footer.add_child(next)
@@ -711,9 +711,33 @@ func show_settings(return_to: Callable = Callable()) -> void:
 	page_view("settings", "Settings", settings_return)
 	content.add_child(action("Account", func(): show_account(show_settings), "SettingsAccount"))
 	content.add_child(action("Sound", show_sound, "SettingsSound", false, UI.VIOLET))
+	if creative_map_settings():
+		content.add_child(UI.heading("Creative", 18))
+		var rows := VBoxContainer.new()
+		rows.add_theme_constant_override("separation", 0)
+		content.add_child(rows)
+		for entry in [["levels", "Unlock all levels"], ["towers", "Unlock all towers"], ["tutorials", "Disable tutorials"]]:
+			var enabled: bool = app.campaign.CreativeOptions.enabled(app.campaign.campaign_save, entry[0])
+			var control := UI.edit_button("Done" if enabled else "Enable", confirm_creative_option.bind(entry[0], entry[1]))
+			control.name = "CreativeOption_" + entry[0]
+			control.disabled = enabled
+			rows.add_child(UI.action_row(entry[1], control))
 	if settings_return == show_main_menu:
 		content.add_child(action("Bug report", show_bug_report, "SettingsBugReport", false, UI.BRONZE))
 		content.add_child(action("Change log", show_change_log, "SettingsChangeLog"))
+
+func creative_map_settings() -> bool:
+	return settings_return == open_game_menu and live_campaign() and app.campaign.mode == "creative" and app.campaign.page == "map" and app.campaign.active_campaign_slot >= 0
+
+func confirm_creative_option(key: String, title: String) -> void:
+	if not creative_map_settings(): return
+	var campaign: Control = app.campaign
+	confirm(title + "?", "Are you sure you want to do this?\n\nThis applies only to this Creative saved game.", "Yes", func():
+		if not creative_map_settings() or app.campaign != campaign: return
+		var ok: bool = campaign.enable_creative_option(key)
+		show_settings()
+		notice("Saved." if ok else "Could not save this option. Please try again.")
+	)
 
 func show_change_log() -> void:
 	if settings_return != show_main_menu: return

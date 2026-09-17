@@ -2,6 +2,11 @@
 
 ## Purpose and reference images
 
+For the user's consolidated generation and revision requirements, also read
+[IMAGE_GENERATION_INSTRUCTIONS.md](IMAGE_GENERATION_INSTRUCTIONS.md). Its later
+Gloamwatch-specific constraints take precedence over older generic examples
+for that family, especially simplicity, exact palette, front view and alignment.
+
 **Hollow Vigil image-asset reference · September 16, 2026**
 
 Read this document before generating, editing, or commissioning image assets for

@@ -67,7 +67,38 @@ func check_campaign_settings(key: String) -> void:
 	if run_before != null:
 		check(run_before.game.data.balance == gold_before, "Settings preserve Campaign gold: " + key)
 	check(button("SettingsAccount") != null and button("SettingsSound") != null, "Campaign retains Account and Sound: " + key)
+	var creative_map: bool = app.campaign.mode == "creative" and app.campaign.page == "map"
+	for option in ["levels", "towers", "tutorials"]:
+		check((button("CreativeOption_" + option) != null) == creative_map, "Creative map-only option: " + option + key)
 	await capture(key + "-settings")
+	if creative_map:
+		var campaign: Control = app.campaign
+		campaign.tutorials_enabled = true
+		var history_before: bool = campaign.tutorial_history.skipped
+		for option in ["levels", "towers", "tutorials"]:
+			var before: Dictionary = campaign.campaign_save.duplicate(true)
+			await press("CreativeOption_" + option)
+			check(button("ConfirmAction").text == "Yes", "Explicit Yes required: " + option)
+			check(campaign.campaign_save == before, "Opening confirmation changes nothing")
+			await capture("confirm-" + option)
+			await press("CancelConfirmation")
+			check(campaign.campaign_save == before, "Cancel changes nothing")
+			await press("CreativeOption_" + option)
+			await press("ConfirmAction")
+			check(button("CreativeOption_" + option).disabled, "Applied option shows Done")
+			var saved: Dictionary = menu.campaign_slots.summary(campaign.active_campaign_slot)
+			check(saved.get("creative_options", {}).get(option, false), "Option persists to disk: " + option)
+			check(saved.completed == 0, "Unlocks do not fabricate completed levels")
+		check(campaign.progress.unlocked(Build.Configuration.Catalog.COUNT - 1), "Final level unlocks")
+		var fresh: RefCounted = campaign.configured_run(0)
+		for kind in Balance.TOWERS:
+			check(fresh.game.economy.tower_available(kind, 4), "All tower families and tiers unlock: " + kind)
+		check(not campaign.tutorials_enabled and campaign.tutorial_history.skipped == history_before, "Tutorial disable is save-local")
+		check(not campaign.show_tutorial({"ids": ["test"]}), "Disabled tutorial cannot open")
+		var stored: Dictionary = menu.campaign_slots.summary(campaign.active_campaign_slot)
+		stored.mode = "survival"
+		check(not campaign.CreativeOptions.enabled(stored, "levels"), "Survival ignores Creative options")
+		await capture("creative-options-enabled")
 	await press("BackButton")
 	check(menu.screen == "game_menu", "Settings return to Campaign menu: " + key)
 

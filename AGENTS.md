@@ -15,6 +15,7 @@
 
 ## Pickard art identity
 
+- Before generating or revising images, also read [docs/IMAGE_GENERATION_INSTRUCTIONS.md](docs/IMAGE_GENERATION_INSTRUCTIONS.md). It consolidates the user's Gloamwatch review instructions: Pickard simplicity, fixed dark family palettes, cumulative tower upgrades, front-facing orientation, black empty firing windows, no baked projectiles, modest crumbly foundations, and measured shared positioning. Preserve approved designs during color-only or position-only corrections; distinguish family-specific details from general style.
 - Before generating, editing, or commissioning image assets, read [docs/APP_STYLE_THEME.md](docs/APP_STYLE_THEME.md). It is the image-asset style authority, grounded in the supplied tier-one tower sheet and Pickard main-menu artwork; it covers palette, shapes, materials, lighting, texture, atmosphere, and generation prompts. It is separate from the UI specification.
 - The game now centers on Pickard the knight. The user-supplied reference in `assets/ui/pickard-reference.jpg` preserves his character identity; read docs/ART_DIRECTION.md for implementation context. Preserve the angular iron armor, closed helmet, muted red cloak, sword, diamond shield and moonlit charcoal-green world. Existing Campaign mechanics and save identities remain compatible.
 
