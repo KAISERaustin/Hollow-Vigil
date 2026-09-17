@@ -1,0 +1,173 @@
+{
+  "canvas": [
+    1024,
+    1536
+  ],
+  "target_anchor": [
+    512,
+    1457
+  ],
+  "method": "integer translation only; no resizing or interpolation",
+  "files": {
+    "level-1": {
+      "before": {
+        "anchor": [
+          455,
+          1457
+        ],
+        "step_center_x": 455.0,
+        "step_edges": [
+          345,
+          565
+        ]
+      },
+      "translation": [
+        57,
+        0
+      ],
+      "after": {
+        "anchor": [
+          512,
+          1457
+        ],
+        "step_center_x": 512.0,
+        "step_edges": [
+          402,
+          622
+        ]
+      },
+      "palette_preserved": true,
+      "retained_pixels_identical": true,
+      "clipped_alpha_at_least_128": 0,
+      "clipped_low_alpha_pixels": 0
+    },
+    "level-2": {
+      "before": {
+        "anchor": [
+          455,
+          1457
+        ],
+        "step_center_x": 455.0,
+        "step_edges": [
+          345,
+          565
+        ]
+      },
+      "translation": [
+        57,
+        0
+      ],
+      "after": {
+        "anchor": [
+          512,
+          1457
+        ],
+        "step_center_x": 512.0,
+        "step_edges": [
+          402,
+          622
+        ]
+      },
+      "palette_preserved": true,
+      "retained_pixels_identical": true,
+      "clipped_alpha_at_least_128": 0,
+      "clipped_low_alpha_pixels": 0
+    },
+    "level-3": {
+      "before": {
+        "anchor": [
+          455,
+          1457
+        ],
+        "step_center_x": 455.0,
+        "step_edges": [
+          345,
+          565
+        ]
+      },
+      "translation": [
+        57,
+        0
+      ],
+      "after": {
+        "anchor": [
+          512,
+          1457
+        ],
+        "step_center_x": 512.0,
+        "step_edges": [
+          402,
+          622
+        ]
+      },
+      "palette_preserved": true,
+      "retained_pixels_identical": true,
+      "clipped_alpha_at_least_128": 0,
+      "clipped_low_alpha_pixels": 87552
+    },
+    "tier-4-frost": {
+      "before": {
+        "anchor": [
+          455,
+          1458
+        ],
+        "step_center_x": 455.0,
+        "step_edges": [
+          344,
+          566
+        ]
+      },
+      "translation": [
+        57,
+        -1
+      ],
+      "after": {
+        "anchor": [
+          512,
+          1457
+        ],
+        "step_center_x": 512.0,
+        "step_edges": [
+          401,
+          623
+        ]
+      },
+      "palette_preserved": true,
+      "retained_pixels_identical": true,
+      "clipped_alpha_at_least_128": 0,
+      "clipped_low_alpha_pixels": 0
+    },
+    "tier-4-poison": {
+      "before": {
+        "anchor": [
+          458,
+          1429
+        ],
+        "step_center_x": 457.5,
+        "step_edges": [
+          348,
+          567
+        ]
+      },
+      "translation": [
+        54,
+        28
+      ],
+      "after": {
+        "anchor": [
+          512,
+          1457
+        ],
+        "step_center_x": 511.5,
+        "step_edges": [
+          402,
+          621
+        ]
+      },
+      "palette_preserved": true,
+      "retained_pixels_identical": true,
+      "clipped_alpha_at_least_128": 0,
+      "clipped_low_alpha_pixels": 21
+    }
+  }
+}

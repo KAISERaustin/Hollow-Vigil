@@ -80,10 +80,28 @@ occlusion and portrait layouts at 360x640, 390x844 and 540x960 when integrating.
 
 ## Provenance
 
+The final placement pass translates the existing fixed-palette images only:
+tier 1/2/3 by (+57, 0), frost by (+57, -1), and poison by (+54, +28) pixels.
+All five remain 1024 by 1536 with the shared placement anchor **(512, 1457)**,
+measured at the center of the lowest front step where its bottom ink stroke begins.
+The poison step has an odd pixel width, so its geometric center is 511.5;
+the integer anchor rounds to 512 (half-pixel tolerance, no interpolation).
+No artwork was regenerated, resized, warped or recolored. Retained RGBA pixels
+are byte-identical after translation. No pixels with alpha 128 or higher were
+clipped; only faint background residue at canvas edges moved out of bounds.
+See [alignment-verification.json](alignment-verification.json).
+
+Use the entire canvas and the same anchor/scale for all upgrades. For a centered
+Godot Sprite2D, offset (0, -689) places this anchor at the node origin.
+Do not auto-crop and independently center each image by its flag or buttress bounds.
+Reproduce with `python tools/gloamwatch_alignment.py SOURCE --output DESTINATION`,
+using the unaligned PNGs from commit `c530677` as SOURCE.
+
 The cumulative images were visually compared for shared shaft, door, window,
 roof and ground placement, along with the flag sequence. They remain generated
-concepts: small registration variations remain, especially in the
-poison branch. Runtime integration must use a single immutable base layer with
+concepts: small internal shape differences remain, especially in the
+poison branch, even though the placement anchors now match. Runtime integration
+must use a single immutable base layer with
 separate upgrade parts to guarantee pixel-identical placement and dimensions.
 
 The final color-only revision uses the user-approved deterministic conversion in
