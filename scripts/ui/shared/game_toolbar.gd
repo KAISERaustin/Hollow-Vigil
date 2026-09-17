@@ -1,4 +1,4 @@
-extends HBoxContainer
+extends HFlowContainer
 ## Shared gameplay control geometry for Campaign.
 const UI = preload("res://scripts/ui/shared/interface.gd")
 const SPEEDS := [1.0, 2.0, 4.0]
@@ -8,7 +8,8 @@ var menu_button: Button
 
 func configure(pause: Callable, speed: Callable, menu: Callable, title: String = "", back_label: String = "") -> void:
 	name = "GameToolbar"
-	add_theme_constant_override("separation", UI.GAP)
+	add_theme_constant_override("h_separation", UI.GAP)
+	add_theme_constant_override("v_separation", UI.CARD_GAP)
 	menu_button = UI.navigation_button("Menu", menu, UI.TOOLBAR_BUTTON_SIZE) if back_label.is_empty() else UI.back_button(back_label, menu)
 	menu_button.name = "GameMenuButton"
 	if back_label.is_empty(): menu_button.custom_minimum_size.x = 88
@@ -40,7 +41,8 @@ func append_actions(actions: Array[Control]) -> void:
 	if spacer != null:
 		remove_child(spacer)
 		spacer.queue_free()
-	add_theme_constant_override("separation", UI.CARD_GAP)
+	add_theme_constant_override("h_separation", UI.CARD_GAP)
+	alignment = FlowContainer.ALIGNMENT_END
 	for control in [menu_button, pause_button, speed_button]:
 		control.custom_minimum_size = Vector2.ONE * UI.TARGET
 	for action in actions:

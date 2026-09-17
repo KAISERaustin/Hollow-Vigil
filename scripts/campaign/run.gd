@@ -10,6 +10,8 @@ var mission: Dictionary
 var game: VigilState
 var phase := "planning"
 var wave := 0
+# Playback preference belongs to this attempt, never the shared level definition.
+var auto_start_waves := false
 var health := Catalog.MAX_HEALTH
 var wave_time := 0.0
 var schedule: Array[Dictionary] = []

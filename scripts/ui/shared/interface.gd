@@ -457,6 +457,31 @@ static func toggle_button(enabled: bool, action: Callable) -> Button:
 	)
 	return control
 
+## Skip-to-next playback toggle, with explicit state alongside its drawn icon.
+static func skip_toggle(enabled: bool, action: Callable) -> Button:
+	var control := button("", func(): pass, TARGET)
+	control.custom_minimum_size = Vector2.ONE * TARGET
+	control.toggle_mode = true
+	control.set_pressed_no_signal(enabled)
+	var update := func(active: bool):
+		control.accessibility_name = "Auto-start waves: " + ("On" if active else "Off")
+		control.queue_redraw()
+	control.toggled.connect(func(active: bool):
+		update.call(active)
+		action.call(active)
+	)
+	control.draw.connect(func():
+		var center := Vector2(control.size.x * 0.5, 16)
+		control.draw_colored_polygon(PackedVector2Array([center + Vector2(-8, -6), center + Vector2(3, 0), center + Vector2(-8, 6)]), TEXT)
+		control.draw_line(center + Vector2(6, -6), center + Vector2(6, 6), TEXT, 2)
+		var caption := "On" if control.button_pressed else "Off"
+		var face := font(600)
+		var width := face.get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, META).x
+		control.draw_string(face, Vector2((control.size.x - width) * 0.5, 39), caption, HORIZONTAL_ALIGNMENT_LEFT, -1, META, TEXT)
+	)
+	update.call(enabled)
+	return control
+
 static func playback_button(action: Callable, fast_forward: bool = false) -> Button:
 	var control := button("", action, TOOLBAR_BUTTON_SIZE)
 	control.custom_minimum_size = Vector2.ONE * TOOLBAR_BUTTON_SIZE

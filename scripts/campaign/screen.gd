@@ -27,6 +27,7 @@ var board: Control
 var status: Label
 var gold: Label
 var wave_button: Button
+var auto_wave_button: Button
 var pause_button: Button
 var speed_button: Button
 var page := "map"
@@ -586,7 +587,15 @@ func show_battle(start_paused: bool = false) -> void:
 	wave_button = UI.toolbar_action("Start wave", begin_wave, true)
 	wave_button.custom_minimum_size.x = 96
 	wave_button.name = "StartCampaignWave"
-	var toolbar_actions: Array[Control] = [waves, wave_button]
+	auto_wave_button = UI.skip_toggle(run.auto_start_waves, func(enabled: bool):
+		run.auto_start_waves = enabled
+	)
+	auto_wave_button.name = "AutoStartCampaignWaves"
+	var wave_actions := HBoxContainer.new()
+	wave_actions.add_theme_constant_override("separation", UI.CARD_GAP)
+	wave_actions.add_child(wave_button)
+	wave_actions.add_child(auto_wave_button)
+	var toolbar_actions: Array[Control] = [waves, wave_actions]
 	game_toolbar.append_actions(toolbar_actions)
 	add_board(true)
 	floating_hud = preload("res://scripts/ui/shared/floating_game_hud.gd").new()
@@ -1072,6 +1081,10 @@ func _process(delta: float) -> void:
 	# Exit decisions freeze the attempt; ordinary information overlays keep playing.
 	if page != "battle" or run == null or paused or exit_confirmation:
 		return
+	# Keep planning safe while rewards, menus, construction or tutorials own input.
+	if run.auto_start_waves and run.wave > 0 and run.phase == "planning" and is_visible_in_tree() and not app.slot_menu.visible and not dialog.visible and not reward_transition.active and not tower_dialog.visible and not tower_move.visible and ground_build.kind.is_empty():
+		begin_wave()
+		if tutorial_active(): return
 	accumulator += minf(delta,0.1) * speed
 	while accumulator >= Balance.STEP:
 		run.tick(Balance.STEP)
