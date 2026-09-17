@@ -68,6 +68,33 @@ shared stateless art owner used by battlefield, build strip, portraits, and
 upgrade previews. Before shipping, check those surfaces at 360x640, 390x844,
 and 540x960, including the longer display name and directional arrow origins.
 
+## Generated progression illustrations
+
+The five standalone illustrations retain the approved gallery, lone archer,
+slate roof, oxblood heraldry, and compact crumbly stone footing. They are concept
+assets, not runtime replacements. Branch labels below map to the existing
+specializations without changing their names, IDs, or mechanics.
+
+| Stage | Illustration | Visual progression |
+| --- | --- | --- |
+| Level 1 | [Gloamwatch](level-1.png) | Essential covered watchtower and simple corbels |
+| Level 2 | [Reinforced Gloamwatch](level-2.png) | Stronger corbels, iron fittings, reinforced lower masonry |
+| Level 3 | [Fortified Gloamwatch](level-3.png) | Broad protected gallery, heavier collar and buttresses |
+| Tier 4: Frostneedle | [Frost branch](tier-4-frost.png) | Cold window fittings, compact frost deposits and ice-tipped arrows |
+| Tier 4: Poison Arrow | [Poison branch](tier-4-poison.png) | Thornlike fittings, protected poison supplies and green-tipped arrows |
+
+The shared foundation guidance and reusable prompt now live in
+[`APP_STYLE_THEME.md`](../../APP_STYLE_THEME.md#tower-foundations-reusable-prompt).
+Keep the stones close and low; the original sheet's scenic hillside is not a
+required tower footprint. Full prompts for these five built-in image-generation
+calls are recorded in [progression-prompts.md](progression-prompts.md).
+
+All five PNGs were visually reviewed together for family resemblance, increasing
+fortification, branch distinctions, and compact foundations. Each is 1024x1536
+with an alpha channel and transparent corner pixels. These are concept-scale
+illustrations; final sprite cleanup, directional firing poses and in-game
+portrait-size verification remain part of future runtime integration.
+
 ## Provenance and review
 
 Created with the built-in image-generation tool using the user collage and the

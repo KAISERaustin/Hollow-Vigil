@@ -11,6 +11,11 @@ separate from the UI theme. Where older notes below describe pastel palettes or
 textureless primitives, the new image-asset reference takes precedence for future
 art; existing implementation and gameplay contracts remain intact.
 
+Future tower foundations follow the compact crumbly-stone buildup and reusable
+prompt in [APP_STYLE_THEME.md](APP_STYLE_THEME.md#tower-foundations-reusable-prompt):
+low rubble builds into the lower walls and tapers into the ground, without a
+large mound, terrain tile, or change to gameplay placement footprints.
+
 ## Character identity and implementation context
 
 Current direction, revised September 16, 2026: the game centers on **Pickard the

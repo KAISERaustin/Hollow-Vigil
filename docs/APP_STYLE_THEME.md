@@ -334,6 +334,24 @@ adding decoration. For a higher tier, strengthen or extend the recognizable
 construction instead of burying it under spikes, gems, and filigree. Visual
 changes do not invent gameplay behavior or alter the content brief.
 
+### Tower foundations: reusable prompt
+
+For future tower artwork, include a restrained buildup of crumbly stone around
+the foot of the structure, as in the approved Gloamwatch concept. Let a few
+irregular rocks and broken masonry pieces build into the lower walls, then
+taper into smaller fragments toward the ground. Keep the rubble low and close
+to the tower so it settles naturally into the terrain without becoming a large
+mound, cliff, pedestal, or scenery tile. Preserve entrances, placement clarity,
+and the tower's readable silhouette; do not enlarge gameplay footprints.
+
+```text
+Ground the tower with a small, low buildup of crumbly angular stone and broken
+masonry against its base. Taper it into a few smaller fragments at the edges to
+blend naturally into the ground. Keep it restrained and close to the structure,
+with clear access steps; no oversized rock mound or opaque patch of terrain.
+For isolated assets, preserve transparency between the outer fragments.
+```
+
 ### Characters, creatures, and enemies
 
 Translate anatomy into readable grouped masses with broad shadow shapes and
