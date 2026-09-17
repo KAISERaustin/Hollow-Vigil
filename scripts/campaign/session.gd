@@ -47,4 +47,8 @@ func identity(mode: String) -> String:
 	var code: String = data.selections[mode]
 	if code.is_empty(): return "default"
 	# Titles do not change which rules a completion belongs to.
-	return JSON.stringify(Playthrough.decode(code).levels, "", true, true).sha256_text()
+	# Keep the original signed level numbering in the identity so catalog migration
+	# does not disconnect an older shared campaign from its progress file.
+	if Playthrough.decode(code).is_empty(): return "default"
+	var original: Dictionary = JSON.parse_string(JSON.parse_string(code).payload)
+	return JSON.stringify(original.levels, "", true, true).sha256_text()

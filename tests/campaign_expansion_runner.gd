@@ -27,6 +27,10 @@ func run() -> void:
 			reusable.data.levels[str(old)].resources.gold = 1000 + old
 		var restored := Playthrough.decode(envelope(portable, Playthrough.FORMAT))
 		check(not restored.is_empty() and restored.levels.size() == 48, "Old playthrough gains missing defaults")
+		var session := preload("res://scripts/campaign/session.gd").new()
+		session.data.selections.survival = envelope(portable, Playthrough.FORMAT)
+		var original: Dictionary = JSON.parse_string(JSON.stringify(portable))
+		check(session.identity("survival") == JSON.stringify(original.levels, "", true, true).sha256_text(), "Legacy shared campaign keeps its existing progress identity")
 		var shared := Build.decode(envelope(reusable, Build.FORMAT))
 		check(not shared.is_empty() and shared.data.levels.size() == 48, "Old reusable campaign gains missing defaults")
 		for old in count:
