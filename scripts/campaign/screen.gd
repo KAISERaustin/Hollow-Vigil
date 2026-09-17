@@ -586,12 +586,16 @@ func show_battle(start_paused: bool = false) -> void:
 	waves.size_flags_horizontal = Control.SIZE_FILL
 	wave_button = UI.toolbar_action("Start wave", begin_wave, true)
 	wave_button.custom_minimum_size.x = 96
+	wave_button.size_flags_horizontal = Control.SIZE_SHRINK_END
 	wave_button.name = "StartCampaignWave"
 	auto_wave_button = UI.skip_toggle(run.auto_start_waves, func(enabled: bool):
 		run.auto_start_waves = enabled
 	)
 	auto_wave_button.name = "AutoStartCampaignWaves"
+	auto_wave_button.size_flags_horizontal = Control.SIZE_SHRINK_END
 	var wave_actions := HBoxContainer.new()
+	wave_actions.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	wave_actions.alignment = BoxContainer.ALIGNMENT_END
 	wave_actions.add_theme_constant_override("separation", UI.CARD_GAP)
 	wave_actions.add_child(wave_button)
 	wave_actions.add_child(auto_wave_button)

@@ -63,3 +63,13 @@ renders and simulated touch; physical iOS/Android acceptance was not performed.
 The host reports its existing root-certificate-store warning. The theme and
 mobile-control runners reported two retained objects at shutdown without a
 script error or failed assertion.
+
+## September 17 — automatic wave playback
+
+`rendered/auto_wave_runner.gd`: 150 checks, zero failures in an isolated fresh
+checkout with Dummy audio. Verified real toolbar taps, manual first wave,
+reward dismissal before automatic subsequent waves, pause/menu blocking,
+disabling during combat, manual restart, final victory, and per-attempt state
+isolation across all 48 levels. Inspected 360×640, 390×844 and 540×960 renders;
+Start wave and the On/Off skip toggle stay together with full-size targets.
+Structure checks passed. Physical iOS/Android testing was not performed.

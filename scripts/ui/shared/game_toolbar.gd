@@ -42,7 +42,8 @@ func append_actions(actions: Array[Control]) -> void:
 		remove_child(spacer)
 		spacer.queue_free()
 	add_theme_constant_override("h_separation", UI.CARD_GAP)
-	alignment = FlowContainer.ALIGNMENT_END
+	alignment = FlowContainer.ALIGNMENT_BEGIN
+	last_wrap_alignment = FlowContainer.LAST_WRAP_ALIGNMENT_END
 	for control in [menu_button, pause_button, speed_button]:
 		control.custom_minimum_size = Vector2.ONE * UI.TARGET
 	for action in actions:

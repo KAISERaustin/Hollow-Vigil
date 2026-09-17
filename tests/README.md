@@ -40,3 +40,7 @@ Historical tower concepts and retained gear artwork are manual generators under 
 When removing a feature, remove its test cases and launcher/documentation references in the same change. Keep mixed runners' active checks. Do not turn a failure into a pass by skipping a still-supported feature.
 
 Phone UI coverage uses upright portrait sizes 360x640, 390x844 and 540x960. Wide artwork contact sheets are asset inspections. Simulated desktop touch does not establish physical iOS/Android acceptance.
+
+`rendered/auto_wave_runner.gd` checks the skip toggle, manual and automatic wave
+starts, reward dismissal, pause/menu blocking, final-wave completion and toolbar
+targets at all three portrait sizes, plus playback-state isolation on 48 levels.
