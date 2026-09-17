@@ -424,7 +424,7 @@ func show_map() -> void:
 	clear_page("map")
 	if active_campaign_slot >= 0:
 		persist_slot()
-		var heading := header(campaign_save.name, app.slot_menu.open_saved_games)
+		var heading := header("Campaign", app.slot_menu.open_saved_games)
 		var back: Button = heading.get_child(0)
 		back.accessibility_name = "Back to saved games"
 		back.name = "CampaignSavedGames"
@@ -437,7 +437,7 @@ func show_map() -> void:
 		menu.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		heading.add_child(menu)
 	else:
-		var heading := header("The Last Procession", show_setup)
+		var heading := header("Campaign", show_setup)
 		var menu := UI.navigation_button("Menu", app.show_game_menu)
 		menu.name = "CampaignMapMenu"
 		heading.add_child(menu)
