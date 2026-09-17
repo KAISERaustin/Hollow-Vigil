@@ -2,7 +2,7 @@
 
 ## TestFlight build 1.1.6 — September 17, 2026
 
-Pickard the Knight **0.1.0 (1.1.6)** was built from main `25d5438` with release metadata advanced to 1.1.6. Xcode Organizer confirmed **App upload complete** and **Uploaded to Apple** at **1:59 PM CDT** through Distribute App → App Store Connect → Distribute. App Store Connect's browser session was signed out; processing and assignment to **Just for Testing** remain pending sign-in and verification. Upload alone does not establish tester availability.
+Pickard the Knight **0.1.0 (1.1.6)** was built from main `25d5438` with release metadata advanced to 1.1.6. Xcode Organizer confirmed **App upload complete** and **Uploaded to Apple** at **1:59 PM CDT** through Distribute App → App Store Connect → Distribute. After sign-in, App Store Connect confirmed processing **Complete**. Build 1.1.6 was assigned to **Just for Testing**, and the group's Builds tab visibly confirmed **Testing** (10 testers, 16 builds).
 
 Fresh import, structure validation and loading of 253 scripts passed. Sixteen gameplay/service suites passed **17,482 checks**, and rendered manual-cloud, auto-wave and mobile Campaign controls passed **1,890 checks**, all with zero failures. Rendered coverage uses 360×640, 390×844 and 540×960; representative cloud-backup and wave-control screenshots were visually inspected. Campaign-only and mobile-control runners each reported two ObjectDB instances at shutdown. No physical-device installation or rotation testing was performed.
 
