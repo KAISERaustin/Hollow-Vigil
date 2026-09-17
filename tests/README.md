@@ -44,3 +44,9 @@ Phone UI coverage uses upright portrait sizes 360x640, 390x844 and 540x960. Wide
 `rendered/auto_wave_runner.gd` checks the skip toggle, manual and automatic wave
 starts, reward dismissal, pause/menu blocking, final-wave completion and toolbar
 targets at all three portrait sizes, plus playback-state isolation on 48 levels.
+
+`campaign_private_backup_runner.gd` verifies explicit private upload/recovery, no
+automatic work at former timer deadlines, no retries, and account isolation.
+`rendered/manual_cloud_runner.gd` exercises real Campaign kills, wave transitions,
+victory and lifecycle saves, then taps Upload build and download-only recovery at
+360x640, 390x844 and 540x960. It uses fake transport and isolated local saves.

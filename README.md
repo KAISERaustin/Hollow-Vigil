@@ -70,4 +70,4 @@ Validation uses isolated test data. Rendered checks use upright portrait sizes 3
 
 ## Account services
 
-Campaign slots and My builds save locally. Sign in for automatic private backups and explicit Community sharing. Existing server data is preserved. See [cloud saves](docs/CLOUD_SAVES.md) for the current client contract. Client configuration is in `supabase/client.cfg`; keep credentials and player saves out of Git.
+Campaign slots and My builds save locally. Cloud uploads are manual: open a saved build and choose **Upload build** for a private cloud copy, or explicitly share it to Community. Local saves, sign-in, reconnecting and gameplay never trigger backups. Existing server data is preserved. See [cloud saves](docs/CLOUD_SAVES.md) for the current client contract. Client configuration is in `supabase/client.cfg`; keep credentials and player saves out of Git.

@@ -14,7 +14,6 @@ func run() -> void:
 	root.add_child(app)
 	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	app.set_process(false)
-	app.private_backups.enabled = false
 	app.audio.set_suspended(true)
 	app.slot_menu.campaign_slots.base_path = app.game.save_path + ".slots"
 	var saved: Dictionary = app.slot_menu.campaign_slots.create(0, "creative", "Auto wave test")

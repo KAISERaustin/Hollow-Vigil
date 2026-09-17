@@ -57,7 +57,6 @@ func _ready() -> void:
 	private_backups = preload("res://scripts/cloud/private_backups.gd").new()
 	private_backups.app = self
 	private_backups.cloud = cloud
-	private_backups.enabled = load_saved_progress
 	if not load_saved_progress:
 		private_backups.slots.base_path = game.save_path + ".unified"
 		private_backups.state_path = game.save_path + ".private-backups-test"
@@ -142,9 +141,6 @@ func show_backups() -> void:
 
 func show_game_menu() -> void:
 	if is_instance_valid(campaign): slot_menu.open_game_menu()
-
-func queue_private_backup() -> void:
-	if is_instance_valid(private_backups): private_backups.queue_backup()
 
 func open_campaign_slot(slot: int, value: Dictionary) -> void:
 	if is_instance_valid(campaign): return

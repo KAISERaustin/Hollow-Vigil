@@ -96,6 +96,8 @@ Settings, Sound, Account, Bug report, Change log, My builds,
 Community, Save build and Backups share this structure. Keep form errors visible after fixed-footer
 actions, and preserve first/last-item access when a page rebuilds. Keep Save
 privately before Share to Community, and keep publication an explicit action.
+My builds details offers Upload build for a private cloud copy. Cloud upload and
+recovery controls are explicit; local saves and account changes never schedule backups.
 
 ### Cards and saved games
 

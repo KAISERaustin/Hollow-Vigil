@@ -101,7 +101,6 @@ func run() -> void:
 	root.add_child(app)
 	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	app.set_process(false)
-	app.private_backups.enabled = false
 	app.audio.set_suspended(true)
 	Engine.max_fps = 240
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)

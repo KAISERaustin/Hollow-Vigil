@@ -1,5 +1,11 @@
 # Android intermittent freeze investigation — September 17, 2026
 
+**Subsequent product decision:** automatic backups were removed at the user's
+request. The evidence below describes the former automatic path. Upload build,
+manual bulk upload, and explicit recovery remain available; no timer or local-save
+event invokes them. The diagnostic probe now measures an explicit sync only.
+See `CLOUD_SAVES.md` for the current contract.
+
 The strongest identified cause is synchronous build-library processing during
 automatic private backup. A synthetic library reproduced 0.75-second stalls for
 one saved build and 3.8-second stalls for five on macOS, without network requests.
@@ -124,5 +130,6 @@ cannot commit stale results. Exercise corrupt files, failed writes, recovery,
 cloud conflicts, deletes, restore, and backgrounding. Check frame-time tails and
 longest frame, not only average FPS. Test at upright portrait phone sizes.
 
-This task supplies diagnosis, measurements, a reproducible probe, and a proposed
-fix. It does not implement or release the runtime optimization.
+The original investigation supplied diagnosis and a proposed optimization. The
+subsequent implementation removes automatic backup scheduling instead; it does
+not implement worker-based parsing or release a new mobile build.

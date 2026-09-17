@@ -19,7 +19,7 @@ var email := ""
 var display_name := ""
 const MAX_NAME_LENGTH := 32
 var busy := false
-var status := "Your progress saves on this device. Sign in for automatic private backups."
+var status := "Your progress saves on this device. Sign in to upload builds manually."
 var generation := 0
 var enabled := true
 
@@ -87,7 +87,7 @@ func verify_link(link: String) -> void:
 	if epoch != generation: return
 	if result.ok and _accept_session(result.data):
 		busy = false
-		_say("Signed in. Campaign saves and My builds back up automatically.")
+		_say("Signed in. Cloud uploads are manual; choose Upload build to save a build to cloud.")
 	else:
 		busy = false
 		_say(_error(result))
@@ -189,7 +189,7 @@ func restore_session() -> void:
 	if epoch != generation: return
 	busy = false
 	if result.ok:
-		_say("Signed in. Campaign saves and My builds back up automatically.")
+		_say("Signed in. Cloud uploads are manual; choose Upload build to save a build to cloud.")
 	else:
 		_say("Couldn't restore sign-in right now. Your saved sign-in is kept. Choose Retry sign-in when you're online." if int(result.get("code", 0)) not in [400, 401, 403] else _error(result))
 

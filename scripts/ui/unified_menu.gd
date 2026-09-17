@@ -474,10 +474,12 @@ func show_detail() -> void:
 	footer.add_child(use)
 	if library_community:
 		footer.add_child(action("Save privately", func():
-			if slots.save_shared(detail_entry.code): notice("Saved privately to My builds."); mark_backup_pending()
+			if slots.save_shared(detail_entry.code): notice("Saved privately to My builds.")
 			else: notice("Couldn't save this build. Please try again.")
 		, "SaveCommunityPrivately", false, UI.BRONZE))
-	else: footer.add_child(action("Share to Community", func(): open_saved_build_form(detail_entry), "SharePrivateBuild"))
+	else:
+		footer.add_child(action("Upload build", upload_detail, "UploadBuild", false, UI.BRONZE))
+		footer.add_child(action("Share to Community", func(): open_saved_build_form(detail_entry), "SharePrivateBuild"))
 
 func use_detail() -> void:
 	if library_from_creation:
@@ -487,11 +489,27 @@ func use_detail() -> void:
 	else: begin_new(-1, detail_entry)
 
 func library_backup_status() -> String:
-	if is_instance_valid(app.private_backups): return app.private_backups.library_status()
-	return "Private backup pending." if app.cloud.signed_in() else "Sign in for automatic private backup."
+	return "Cloud uploads are manual. Choose Upload build to save a private cloud copy."
 
-func mark_backup_pending() -> void:
-	if app.has_method("queue_private_backup"): app.queue_private_backup()
+func upload_detail() -> void:
+	if app.private_backups.busy or app.cloud.busy:
+		notice("Another cloud operation is finishing. Please try again.")
+		return
+	if not app.cloud.signed_in():
+		show_account(show_detail)
+		notice("Sign in, then return and choose Upload build.")
+		return
+	var revision := view_revision
+	var upload := footer.find_child("UploadBuild", true, false) as Button
+	if upload != null: upload.disabled = true
+	notice("Uploading this build to your private cloud storage…")
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if revision != view_revision: return
+	await app.private_backups.upload_build(detail_entry.code)
+	if revision != view_revision: return
+	if is_instance_valid(upload): upload.disabled = false
+	notice(app.private_backups.status)
 
 func live_campaign() -> bool:
 	return is_instance_valid(app.campaign) and not app.campaign.is_queued_for_deletion()
@@ -532,11 +550,10 @@ func exit_game() -> void:
 		return
 	finish_exit(true)
 
-func finish_exit(saved: bool) -> void:
+func finish_exit(_saved: bool) -> void:
 	if live_campaign():
 		# The exit attempt already saved, or the player explicitly chose to leave.
 		app.campaign.close(false)
-	if saved: mark_backup_pending()
 	held = false
 	show_home()
 
@@ -646,8 +663,7 @@ func submit_prepared_build(publish: bool) -> void:
 	var code := Build.encode(build)
 	if not slots.save_shared(code): notice("Couldn't save the private copy. Please try again."); return
 	form_saved_code = code
-	mark_backup_pending()
-	if not publish: notice("Saved privately to My builds. " + library_backup_status()); return
+	if not publish: notice("Saved privately to My builds. Open its details and choose Upload build for a private cloud copy."); return
 	if not app.cloud.signed_in() or app.cloud.display_name.is_empty():
 		show_account(show_build_form)
 		notice("Your private copy and selections are ready. Sign in and choose a player name, then return to Share to Community.")
@@ -743,7 +759,7 @@ func show_account(return_to: Callable = Callable()) -> void:
 		, "SavePlayerName", true, UI.SILVER))
 		content.add_child(action("Sign out", func(): app.cloud.sign_out(); show_account(), "SignOut"))
 	else:
-		content.add_child(UI.paragraph("Sign in for automatic private backups and Community sharing. Private saving is available offline."))
+		content.add_child(UI.paragraph("Sign in to upload builds or share to Community. Saves stay on this device until you choose to upload."))
 		var email := LineEdit.new()
 		email.name = "AccountEmail"
 		email.placeholder_text = "Email address"
@@ -892,19 +908,20 @@ func has_rule_changes() -> bool:
 func show_backups(return_to: Callable = Callable()) -> void:
 	if return_to.is_valid(): backup_return = return_to
 	page_view("backups", "Backups", backup_return)
-	content.add_child(UI.paragraph("Private protection for all three saved-game slots and My builds. Campaign progress and saved rules are protected."))
+	content.add_child(UI.paragraph("Cloud uploads are manual. Local saves remain on this device until you choose to upload them."))
 	content.add_child(action("Account", func(): show_account(show_backups), "BackupAccount"))
 	if not is_instance_valid(app.private_backups): return
 	var backups: Node = app.private_backups
+	backups.refresh_account()
 	notice(backups.status)
-	var backup := action("Back up now", func():
+	var backup := action("Upload to cloud", func():
 		var revision := view_revision
 		await backups.sync_now()
 		if revision == view_revision: show_backups()
 	, "BackUpNow", true, UI.COPPER)
 	backup.disabled = not app.cloud.signed_in() or backups.busy
 	footer.add_child(backup)
-	content.add_child(UI.paragraph("Back up now protects all three slots and every private build. Automatic backups retry when connected; differing versions wait for your choice."))
+	content.add_child(UI.paragraph("Upload to cloud sends all three saved-game slots and My builds to your private account. To upload one build, open it in My builds and choose Upload build. Failed uploads wait for you to retry."))
 	content.add_child(UI.heading("Saved games", 18))
 	for type in ["campaign"]:
 		for slot in 3:
@@ -917,7 +934,7 @@ func show_backups(return_to: Callable = Callable()) -> void:
 		body.add_child(action("Restore backup", begin_restore.bind(remote), "RestoreBackup", false, UI.BRONZE))
 		var account_id: String = app.cloud.player_id
 		body.add_child(action("Delete", func():
-			confirm("Delete cloud backup?", "Permanently delete “%s” from your account? Your local game stays saved; further progress can create a new backup." % remote.get("name", "Saved game"), "Delete", func():
+			confirm("Delete cloud backup?", "Permanently delete “%s” from your account? Your local game stays saved. A new cloud backup requires another manual upload." % remote.get("name", "Saved game"), "Delete", func():
 				var revision := view_revision
 				var ok: bool = await backups.delete_game(remote, account_id)
 				if revision != view_revision: return
@@ -926,10 +943,10 @@ func show_backups(return_to: Callable = Callable()) -> void:
 			)
 		, "DeleteCloudBackup", false, UI.DANGER))
 	content.add_child(UI.heading("My builds", 18))
-	content.add_child(UI.paragraph(backups.library_status() + " Private builds from your account are recovered automatically when connected."))
+	content.add_child(UI.paragraph(backups.library_status() + " Choose Recover My builds to download your private cloud builds and refresh saved-game backups. Nothing is uploaded by recovery."))
 	content.add_child(action("Recover My builds", func():
 		var revision := view_revision
-		await backups.sync_now()
+		await backups.sync_now(false)
 		if revision == view_revision: show_backups()
 	, "RecoverMyBuilds", false, UI.BRONZE))
 	content.add_child(UI.heading("Recovery copies on this device", 18))
@@ -1010,7 +1027,7 @@ func review_restore() -> void:
 		var same_game := session_identity(local, type) == session_identity(remote, type)
 		content.add_child(UI.paragraph("This will recover earlier progress for “%s” in slot %d." % [game_name(local, destination), destination + 1] if same_game else "This will replace the different game “%s” in slot %d." % [game_name(local, destination), destination + 1]))
 		if restore_choice.source == "cloud" and destination == int(restore_choice.slot_number):
-			footer.add_child(action("Keep this device's version", func(): confirm("Replace the cloud game?", "Keep “%s” on this device and replace the cloud backup “%s”?" % [game_name(local, destination), game_name(remote)], "Keep this device's version", keep_device_version), "KeepDeviceVersion"))
+			footer.add_child(action("Keep this device's version", func(): confirm("Keep device version?", "Keep “%s” on this device? The cloud backup “%s” stays unchanged until you choose Upload to cloud." % [game_name(local, destination), game_name(remote)], "Keep this device's version", keep_device_version), "KeepDeviceVersion"))
 	footer.add_child(action("Restore backup", func():
 		var title := "Restore into empty slot?" if local.is_empty() else "Replace “%s”?" % game_name(local, destination)
 		confirm(title, "Restore “%s” into %s slot %d?" % [game_name(remote), type.capitalize(), destination + 1], "Restore backup", apply_restore)
@@ -1021,13 +1038,14 @@ func keep_device_version() -> void:
 	var type: String = restore_choice.game_type
 	var destination := int(restore_choice.destination)
 	var revision := view_revision
-	# Only replace the reviewed cloud slot when this device's corresponding slot
-	# is the one being compared. Choosing local never calls a restore operation.
+	# Remember the reviewed revision; keeping local never uploads or restores.
+	# The next explicit upload may replace this corresponding cloud slot.
 	if destination == int(restore_choice.slot_number):
 		await app.private_backups.keep_local(type, destination, int(restore_choice.revision))
 	if revision != view_revision: return
 	game_type = "campaign"
 	show_slots()
+	notice("Device version kept. Cloud uploads remain manual.")
 
 func apply_restore() -> void:
 	var type: String = restore_choice.game_type

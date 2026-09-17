@@ -105,7 +105,7 @@ playable copy refunds locked towers/upgrades while preserving the saved source.
 
 No active mission or preparation checkpoint is saved. Leaving a level, closing the app or restarting after defeat begins that level again with its initial gold, core integrity and empty sockets. App interruptions pause active play while the process remains alive. Old saves migrate contiguous medal completions into the completed-level count and retain an original recovery copy; old checkpoints and medal scores are discarded. Unreadable files block ordinary writes and preserve existing copies.
 
-Open **Account & backups** to explicitly upload or restore Campaign progress. Signing in, completing a level, restoring or reconnecting never uploads automatically. Failed attempts retry only when requested. See `CAMPAIGN_SAVE_DESIGN.md` for the complete manual backup contract.
+Open **Backups** to explicitly upload or restore Campaign progress, or use **My builds → Details → Upload build** for one private cloud build. Signing in, completing a level, restoring or reconnecting never uploads automatically. Failed attempts retry only when requested. See `CLOUD_SAVES.md` for the manual cloud contract.
 
 ## Code and verification
 

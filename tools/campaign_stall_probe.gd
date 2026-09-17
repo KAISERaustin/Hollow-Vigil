@@ -27,7 +27,6 @@ func measure(label: String, action: Callable, count: int = 5):
 	print(label, " ms=", samples)
 func probe():
 	var backup := Backup.new()
-	backup.enabled = false
 	var cloud := Cloud.new()
 	cloud.player_id = Cloud.Codec.uuid()
 	cloud.refresh_token = "fixture"

@@ -92,7 +92,6 @@ func run() -> void:
 	app.cloud = network
 	app.public_builds.cloud = network
 	app.private_backups.cloud = network
-	app.private_backups.enabled = false
 	previous.queue_free()
 	for viewport in [Vector2i(360,640), Vector2i(390,844), Vector2i(540,960)]:
 		root.size = viewport

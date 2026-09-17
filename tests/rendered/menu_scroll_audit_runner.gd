@@ -8,7 +8,6 @@ func run() -> void:
 	root.add_child(app)
 	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	app.set_process(false)
-	app.private_backups.enabled = false
 	app.audio.set_suspended(true)
 	var menu = app.slot_menu
 	for dimensions in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:

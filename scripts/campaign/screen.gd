@@ -759,7 +759,6 @@ func persist_slot() -> bool:
 	if not ok and is_instance_valid(save_notice):
 		save_notice.text = app.slot_menu.campaign_slots.error
 		save_notice.show()
-	if ok and app.has_method("queue_private_backup"): app.queue_private_backup()
 	return ok
 
 func session_levels() -> Dictionary:
@@ -1186,7 +1185,6 @@ func save_campaign_tuning(changes: Dictionary, level_changes: Dictionary = {}) -
 		next.checkpoint = {}
 		if not app.slot_menu.campaign_slots.save_slot(active_campaign_slot, next): return false
 		campaign_save = next
-		app.queue_private_backup()
 	else:
 		var overrides := {}
 		for key in levels: overrides[key] = levels[key].overrides

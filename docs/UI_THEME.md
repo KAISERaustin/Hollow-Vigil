@@ -288,7 +288,7 @@ section/action gaps. Dark-theme surfaces and text apply throughout the nesting.
 | --- | --- | --- |
 | Saved games | Separate name/mode cells, wrapping name, compact mode, progress cells and actions | `saved_game_card.gd` |
 | Settings, Sound, Account, reports and notes | Fixed header, scrolling forms/notes, inline feedback and reachable actions | `unified_menu.gd`, `save_slots_panel.gd` |
-| My builds, Community, Backups | Scrolling entries/details and state/recovery messages; Save privately before Share to Community | `unified_menu.gd`, `contents_checklist.gd` |
+| My builds, Community, Backups | Scrolling entries/details and state/recovery messages; Save privately, explicit private Upload build, separate Share to Community | `unified_menu.gd`, `contents_checklist.gd` |
 | Illustrated picker | Fixed title/Close and divider; scrollable portraits, descriptions and trailing Select | `illustrated_picker.gd` |
 | Rules | Categories → item → editor, portraits, trailing Open, fixed draft actions | `rules_browser.gd`, `unified_menu.gd` |
 | Stats editor | Distinct labeled Default/Added sections where supported; one headed card per added rule with related fields/disable action together | `stats_editor.gd`, `UI.rule_card()`, `campaign_level_rules.gd` |

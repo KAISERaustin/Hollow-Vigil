@@ -1,5 +1,5 @@
 extends Node
-## Account-private game snapshots and immutable library union. No publication side effects.
+## Explicit account-private uploads and recovery. No timers, queues or automatic retries.
 signal changed
 const Codec = preload("res://scripts/cloud/cloud_codec.gd")
 const CampaignSlots = preload("res://scripts/persistence/campaign_slots.gd")
@@ -12,10 +12,7 @@ var state := {}
 var remote_games: Array = []
 var conflicts := {}
 var busy := false
-var enabled := true
-var due := 3.0
-var retry_delay := 15.0
-var status := "Saved on this device. Sign in for automatic private backups."
+var status := "Saved on this device. Cloud uploads are manual."
 var last_account := ""
 var deleted_builds := {}
 var hidden_builds := {}
@@ -28,26 +25,20 @@ func _ready() -> void:
 		var hidden: Variant = config.get_value("backups", "hidden_builds", {})
 		if hidden is Dictionary: hidden_builds = hidden
 
-func _process(delta: float) -> void:
-	if not enabled or busy: return
-	if cloud.player_id != last_account:
-		last_account = cloud.player_id
-		remote_games.clear()
-		conflicts.clear()
-		due = 1.0
-	if not cloud.signed_in(): return
-	due -= delta
-	if due <= 0 and not cloud.busy: sync_now()
-
-func queue_backup() -> void:
-	due = minf(due, 3.0)
-	changed.emit()
+# Called only by explicit account/library actions, never by frame polling.
+func refresh_account() -> void:
+	if cloud.player_id == last_account: return
+	last_account = cloud.player_id
+	remote_games.clear()
+	conflicts.clear()
+	status = "Saved on this device. Cloud uploads are manual."
 
 static func fingerprint(snapshot: Dictionary) -> String:
 	# Parse once to normalize StringName keys and JSON numeric representations.
 	return JSON.stringify(JSON.parse_string(JSON.stringify(snapshot)), "", true).sha256_text()
 
 func _account() -> Dictionary:
+	refresh_account()
 	if not state.has(cloud.player_id): state[cloud.player_id] = {"games": {}, "builds": {}}
 	return state[cloud.player_id]
 
@@ -73,21 +64,50 @@ func unreadable_games() -> int:
 	return count
 
 func game_status(type: String, slot: int) -> String:
-	if not cloud.signed_in(): return "Saved on this device · Sign in for automatic backups"
+	refresh_account()
+	if not cloud.signed_in(): return "Saved on this device · Sign in to upload manually"
 	var key := type + ":" + str(slot)
 	if conflicts.has(key): return "Saved on this device · Choose which version to keep in Backups"
 	var saved: Dictionary = campaign_slots.summary(slot)
 	var known: Dictionary = _account().games.get(key, {})
-	if known.get("revision", -1) == 0 and not saved.is_empty() and known.get("hash") == fingerprint(saved): return "Saved on this device · Cloud backup deleted; new progress will back up"
+	if known.get("revision", -1) == 0 and not saved.is_empty() and known.get("hash") == fingerprint(saved): return "Saved on this device · Cloud backup deleted; upload manually to save again"
 	if not saved.is_empty() and known.get("hash") == fingerprint(saved): return "Saved on this device · Private backup up to date"
-	return "Saved on this device · Private backup pending"
+	return "Saved on this device · Upload manually to update cloud"
 
 func library_status() -> String:
-	if not cloud.signed_in(): return "Sign in for automatic private backup."
-	var pending := 0
-	for entry in cloud_entries():
-		if not _account().builds.has(entry.code.sha256_text()): pending += 1
-	return "Private library backup up to date." if pending == 0 else "%d private build backups pending." % pending
+	return "Cloud uploads are manual. Open a build and choose Upload build." if cloud.signed_in() else "Sign in, then choose Upload build to save it to cloud."
+
+func upload_build(code: String) -> bool:
+	if busy or cloud.busy: return false
+	refresh_account()
+	if not cloud.signed_in():
+		status = "Sign in, then choose Upload build again."
+		return false
+	var entry := slots.reusable_entry(slots.shared_entry(code))
+	if entry.is_empty():
+		status = "This build could not be uploaded. Your local copy is safe."
+		return false
+	busy = true
+	cloud.busy = true
+	var account_id: String = cloud.player_id
+	var epoch: int = cloud.generation
+	var account := _account()
+	var build_hash: String = entry.code.sha256_text()
+	status = "Uploading build…"
+	changed.emit()
+	var response: Dictionary = await cloud._rpc("put_private_build", {"build_hash": build_hash, "configuration": entry.code})
+	busy = false
+	if epoch == cloud.generation: cloud.busy = false
+	if account_id != cloud.player_id or epoch != cloud.generation:
+		refresh_account()
+		return false
+	var ok: bool = response.get("ok", false) and response.get("data") == true
+	if ok:
+		account.builds[build_hash] = true
+		ok = _save_state()
+	status = "Build uploaded to your private cloud storage." if ok else "Upload did not finish. Your local copy is safe. Choose Upload build to retry."
+	changed.emit()
+	return ok
 
 func cloud_entries() -> Array:
 	var entries := []
@@ -98,36 +118,34 @@ func cloud_entries() -> Array:
 		entries.append(entry)
 	return entries
 
-func sync_now() -> void:
+# Only explicit upload/recovery controls invoke this operation.
+func sync_now(upload: bool = true) -> void:
 	if busy or cloud.busy: return
-	if not cloud.signed_in(): status = "Sign in to back up saved games and My builds."; changed.emit(); return
-	if last_account != cloud.player_id:
-		last_account = cloud.player_id
-		remote_games.clear()
-		conflicts.clear()
+	if not cloud.signed_in(): status = "Sign in to upload or recover saved games and My builds."; changed.emit(); return
+	refresh_account()
 	busy = true
 	cloud.busy = true
 	var account_id: String = cloud.player_id
 	var epoch: int = cloud.generation
 	var account := _account()
 	var ok := true
-	status = "Backing up saved games and My builds…"
+	status = "Uploading saved games and My builds…" if upload else "Recovering cloud saves and My builds…"
 	changed.emit()
 	var deleted: Dictionary = await cloud._rpc("list_deleted_private_builds", {})
-	if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
-	if not deleted.get("ok", false) or not deleted.get("data") is Array: _finish(false, epoch); return
+	if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch, upload); return
+	if not deleted.get("ok", false) or not deleted.get("data") is Array: _finish(false, epoch, upload); return
 	deleted_builds.clear()
 	for build_hash in deleted.data: deleted_builds[build_hash] = true
 	for entry in cloud_entries():
-		if deleted_builds.has(entry.code.sha256_text()) and not slots.delete_shared(entry.source_code): _finish(false, epoch); return
-	for item in local_games():
+		if deleted_builds.has(entry.code.sha256_text()) and not slots.delete_shared(entry.source_code): _finish(false, epoch, upload); return
+	for item in (local_games() if upload else []):
 		var key: String = item.game_type + ":" + str(item.slot)
 		if conflicts.has(key): continue
 		var known: Dictionary = account.games.get(key, {})
 		if known.get("hash") == item.hash: continue
 		var response: Dictionary = await cloud._rpc("put_private_game", {"game_type": item.game_type, "slot_number": item.slot,
 			"snapshot": item.snapshot, "expected_revision": int(known.get("revision", 0)), "content_hash": item.hash})
-		if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
+		if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch, upload); return
 		if not response.get("ok", false) or not response.get("data") is Dictionary: ok = false; break
 		var data: Dictionary = response.data
 		if data.get("conflict", false):
@@ -135,18 +153,18 @@ func sync_now() -> void:
 		else:
 			account.games[key] = {"revision": int(data.revision), "hash": item.hash}
 			if not _save_state(): ok = false; break
-	if ok:
+	if ok and upload:
 		for entry in cloud_entries():
 			var build_hash: String = entry.code.sha256_text()
 			if account.builds.has(build_hash): continue
 			var response: Dictionary = await cloud._rpc("put_private_build", {"build_hash": build_hash, "configuration": entry.code})
-			if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
+			if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch, upload); return
 			if not response.get("ok", false): ok = false; break
 			account.builds[build_hash] = true
 			if not _save_state(): ok = false; break
 	if ok:
 		var response: Dictionary = await cloud._rpc("list_private_games", {})
-		if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
+		if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch, upload); return
 		ok = response.get("ok", false) and response.get("data") is Array
 		if ok:
 			remote_games = response.data.filter(func(remote): return remote.get("game_type") == "campaign")
@@ -161,7 +179,7 @@ func sync_now() -> void:
 		var page := 0
 		while true:
 			var response: Dictionary = await cloud._rpc("list_private_builds", {"page_number": page})
-			if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch); return
+			if account_id != cloud.player_id or epoch != cloud.generation: _finish(false, epoch, upload); return
 			if not response.get("ok", false) or not response.get("data") is Array: ok = false; break
 			for entry in response.data:
 				if not entry.get("configuration") is String or entry.get("build_hash") != entry.configuration.sha256_text(): ok = false; break
@@ -173,20 +191,17 @@ func sync_now() -> void:
 			if not _save_state(): ok = false
 			if not ok or response.data.is_empty(): break
 			page += 1
-	_finish(ok, epoch)
+	_finish(ok, epoch, upload)
 
-func _finish(ok: bool, epoch: int) -> void:
+func _finish(ok: bool, epoch: int, upload: bool = true) -> void:
 	busy = false
 	if cloud.generation == epoch: cloud.busy = false
 	if ok:
-		retry_delay = 15.0
-		due = 60.0
 		status = "Saved games and My builds are backed up." if conflicts.is_empty() else "Some games have different cloud versions. Choose which version to keep below."
+		if not upload: status = "Cloud saves refreshed and My builds recovered. Nothing was uploaded."
 		if unreadable_games() > 0: status += " Some local games need recovery before they can be backed up."
 	else:
-		due = retry_delay
-		retry_delay = minf(retry_delay * 2.0, 300.0)
-		status = "Private backup pending. Your local saves are safe; we'll retry when connected."
+		status = "Cloud operation did not finish. Your local saves are safe. Choose the action again to retry."
 	changed.emit()
 
 func read_backup(type: String, slot: int) -> Dictionary:
@@ -207,13 +222,14 @@ func read_backup(type: String, slot: int) -> Dictionary:
 	return value if valid else {}
 
 func keep_local(type: String, slot: int, cloud_revision: int) -> void:
-	# This is an explicit player decision; retain the local game and replace only
-	# the reviewed remote revision. A further remote change conflicts again.
+	# Retain the local game and remember the reviewed remote revision for the
+	# next explicit upload. A further remote change still conflicts.
 	var key := type + ":" + str(slot)
 	_account().games[key] = {"revision": cloud_revision, "hash": ""}
 	conflicts.erase(key)
 	if not _save_state(): status = "Couldn't remember this choice. Please try again."; changed.emit(); return
-	await sync_now()
+	status = "Device version kept. Choose Upload to cloud to send it."
+	changed.emit()
 
 func accept_restored(type: String, destination: int, source_slot: int, revision: int) -> void:
 	var key := type + ":" + str(destination)
@@ -223,7 +239,8 @@ func accept_restored(type: String, destination: int, source_slot: int, revision:
 	else: _account().games.erase(key)
 	conflicts.erase(key)
 	_save_state()
-	queue_backup()
+	status = "Backup restored on this device. Cloud uploads remain manual."
+	changed.emit()
 
 func recovery_games() -> Array:
 	var result := []
