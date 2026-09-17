@@ -1,0 +1,117 @@
+{
+  "level-1": {
+    "size": [
+      1024,
+      1536
+    ],
+    "visible_rgb_colors": 9,
+    "alpha_unchanged": true,
+    "resampled": false,
+    "colors": [
+      "#000000",
+      "#151E1D",
+      "#222A29",
+      "#293633",
+      "#392724",
+      "#3D3025",
+      "#41423C",
+      "#56564E",
+      "#624B35"
+    ]
+  },
+  "level-2": {
+    "size": [
+      1024,
+      1536
+    ],
+    "visible_rgb_colors": 11,
+    "alpha_unchanged": true,
+    "resampled": false,
+    "colors": [
+      "#000000",
+      "#151E1D",
+      "#222A29",
+      "#293633",
+      "#392724",
+      "#3D3025",
+      "#41423C",
+      "#56564E",
+      "#613B34",
+      "#624B35",
+      "#BFB295"
+    ]
+  },
+  "level-3": {
+    "size": [
+      1024,
+      1536
+    ],
+    "visible_rgb_colors": 11,
+    "alpha_unchanged": true,
+    "resampled": false,
+    "colors": [
+      "#000000",
+      "#151E1D",
+      "#222A29",
+      "#293633",
+      "#392724",
+      "#3D3025",
+      "#41423C",
+      "#56564E",
+      "#613B34",
+      "#624B35",
+      "#BFB295"
+    ]
+  },
+  "tier-4-frost": {
+    "size": [
+      1024,
+      1536
+    ],
+    "visible_rgb_colors": 13,
+    "alpha_unchanged": true,
+    "resampled": false,
+    "colors": [
+      "#000000",
+      "#151E1D",
+      "#222A29",
+      "#293633",
+      "#392724",
+      "#3D3025",
+      "#41423C",
+      "#435862",
+      "#56564E",
+      "#613B34",
+      "#624B35",
+      "#758F9E",
+      "#BFB295"
+    ]
+  },
+  "tier-4-poison": {
+    "size": [
+      1024,
+      1536
+    ],
+    "visible_rgb_colors": 14,
+    "alpha_unchanged": true,
+    "resampled": false,
+    "colors": [
+      "#000000",
+      "#151E1D",
+      "#222A29",
+      "#293633",
+      "#392724",
+      "#39442B",
+      "#3D3025",
+      "#41423C",
+      "#56564E",
+      "#566333",
+      "#613B34",
+      "#624B35",
+      "#788346",
+      "#BFB295"
+    ]
+  },
+  "family_color_count": 16,
+  "allowed_color_count": 16
+}

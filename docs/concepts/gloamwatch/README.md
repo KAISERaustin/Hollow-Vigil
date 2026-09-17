@@ -47,6 +47,13 @@ stone watchtower with black windows and a clear doorway.
 
 ## Pickard style authority
 
+The [16-color master palette](PALETTE.md) fixes material colors across all five
+stages. Eleven shared colors cover structure, wood, cloth and insignia; two
+frost and three poison accents complete the family. Upgrades must not brighten
+the stone. Pale bone is reserved for small insignia rather than roof, door or
+window framing. The palette specification supersedes color drift in earlier
+generated concepts and prompts.
+
 The final pass uses [Pickard's main-menu artwork](../../../assets/ui/pickard-menu-background.png)
 directly as an image reference. Match its dark foreground rocks, iron and ruins:
 charcoal-green and soot foundations, broad angular matte planes, heavy black
@@ -75,9 +82,18 @@ occlusion and portrait layouts at 360x640, 390x844 and 540x960 when integrating.
 
 The cumulative images were visually compared for shared shaft, door, window,
 roof and ground placement, along with the flag sequence. They remain generated
-concepts: small registration and color variations remain, especially in the
+concepts: small registration variations remain, especially in the
 poison branch. Runtime integration must use a single immutable base layer with
 separate upgrade parts to guarantee pixel-identical placement and dimensions.
+
+The final color-only revision uses the user-approved deterministic conversion in
+`tools/gloamwatch_palette.py`, applied to the cumulative PNGs from commit
+`956745537dda81dd1e0cfbfc21aecec3c40817c5`. It preserves each original alpha channel,
+canvas and pixel position without resampling. All nontransparent pixels use a
+subset of the fixed palette; the family uses exactly 16 RGB colors in total.
+See [palette-verification.json](palette-verification.json) for per-image results.
+Alpha blending against a background can produce intermediate displayed colors.
+The exploratory AI color edits were not selected because they shifted geometry.
 
 Built-in image generation revised each prior tower's architecture, then used
 that revision plus the Pickard image for the final dark, projectile-free pass.
