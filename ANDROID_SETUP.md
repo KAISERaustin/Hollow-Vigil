@@ -1,5 +1,18 @@
 # Android invited testing
 
+## Published build 1.1.6 — September 17, 2026
+
+Google Play confirmed **Available to internal testers** for **1.1.6 (16) - Pickard the Knight** at **2:00 PM CDT**. The existing **just for testing** email list is selected with six users. This is an Internal testing release, not production.
+
+Built from main `25d5438` with release metadata advanced to 1.1.6. Fresh import, structure checks, 253-script loading, **17,482 gameplay/service checks** and **1,890 rendered checks** passed with zero failures. Rendered checks cover manual uploads, automatic waves and mobile Campaign controls at three upright portrait sizes. Two runners reported two ObjectDB instances at shutdown. No physical-device installation or rotation testing was performed.
+
+Bundletool validation and JAR signature verification passed. The manifest declares version code 16, version name 1.1.6, upright portrait and a non-resizable activity. Play's only release warnings were missing deobfuscation mapping and native debug symbols; device support was unchanged from the previous release.
+
+Bundle: `/private/tmp/pickard-release-1.1.6-source/exports/hollow-vigil-1.1.6.aab`. SHA-256: `f477ebbeb3c17b627f7e6685e327a3854411049adf3337efbbe1b65382ad0345`. Logs: `/private/tmp/pickard-release-1.1.6-source/artifacts/`.
+
+[Release details](https://play.google.com/console/u/0/developers/8488140280625083251/app/4976066018708949593/tracks/4699447376683851190/releases/8/details).
+
+
 The Android preset builds a signed Google Play Android App Bundle at
 `exports/hollow-vigil-1.1.4.aab` with package ID `com.kaiser.hollowvigil`,
 version name `1.1.4`, and version code `14`. It targets ARM64 Android phones.

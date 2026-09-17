@@ -1,5 +1,16 @@
 # Hollow Vigil on iPhone
 
+## TestFlight build 1.1.6 — September 17, 2026
+
+Pickard the Knight **0.1.0 (1.1.6)** was built from main `25d5438` with release metadata advanced to 1.1.6. Xcode Organizer confirmed **App upload complete** and **Uploaded to Apple** at **1:59 PM CDT** through Distribute App → App Store Connect → Distribute. App Store Connect's browser session was signed out; processing and assignment to **Just for Testing** remain pending sign-in and verification. Upload alone does not establish tester availability.
+
+Fresh import, structure validation and loading of 253 scripts passed. Sixteen gameplay/service suites passed **17,482 checks**, and rendered manual-cloud, auto-wave and mobile Campaign controls passed **1,890 checks**, all with zero failures. Rendered coverage uses 360×640, 390×844 and 540×960; representative cloud-backup and wave-control screenshots were visually inspected. Campaign-only and mobile-control runners each reported two ObjectDB instances at shutdown. No physical-device installation or rotation testing was performed.
+
+The archive and deep, strict code-signature verification passed. The archived app is named Pickard the Knight, both orientation arrays contain only `UIInterfaceOrientationPortrait`, and `UIRequiresFullScreen=true`.
+
+Archive: `~/Library/Developer/Xcode/Archives/2026-09-17/HollowVigil-1.1.6.xcarchive`. Source and logs: `/private/tmp/pickard-release-1.1.6-source/` and its `artifacts/` directory. PCK SHA-256: `5cf40432c4062e3ebe5e13e9ab32e6973db3d0f89b4208b88fd2ffcbdd3fc0b1`.
+
+
 ## TestFlight build 1.1.4 — September 9, 2026
 
 Build **0.1.0 (1.1.4)** was archived from committed main `e3dfec4`. The in-game version is **1.1.4**. Organizer recorded **Uploaded to Apple** at **8:13 PM CDT**, and App Store Connect confirmed **Processing**. Processing completion and Just for Testing availability are pending verification.
