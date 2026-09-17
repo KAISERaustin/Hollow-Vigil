@@ -15,3 +15,11 @@ All 69 commits reachable from main at request start (`4296367`) whose commit dat
 
 
 Verified September 8: 282 rendered checks passed across 360×640, 390×844, and 540×960, including date grouping across pages and the production feed through Godot at 540×960. Screenshots were visually inspected. Database contract checks passed for anonymous and signed-in read access, hidden/future rows, and denied write permissions; Supabase security advisors returned no findings. The live table contains exactly 46 published rows, all dated September 8. The restricted run could not reach the backend; the network-enabled rerun passed.
+
+## September 16 import
+
+Reviewed all 20 commits dated September 16, 2026 in America/Chicago through `768487c`. `supabase/change_log_20260916.json` records 15 published player-facing entries, matching the live log's short, non-technical sentences and one source commit per row. Commit timestamps preserve newest-first ordering within the September 16 heading. Existing September 8 rows were left untouched.
+
+The five omitted commits are documentation-only updates (`0948664`, `ace2d6c`), a test-only correction (`baeceda`), the removed temporary button-palette selector (`948a2ad`), and removal of the temporary Windows build (`63d353d`). Mixed commits describe their retained player-facing effects; draft story plans, temporary Windows support, and removed palette selection are not advertised as available features.
+
+Verified the live table contains 15 unique, published September 16 entries and the original 46 September 8 entries. The anonymous `read_change_log` HTTP endpoint returned all 15 new summaries in the expected order, followed by older entries. Each new summary is within the 300-character limit. No game code or database schema changed.

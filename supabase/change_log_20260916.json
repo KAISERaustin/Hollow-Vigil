@@ -1,0 +1,107 @@
+[
+  {
+    "source_commit": "768487c31e4b9ecce1b67c5b88d8bf799612c621",
+    "change_date": "2026-09-16",
+    "created_at": "2026-09-16T20:48:13-05:00",
+    "summary": "The mobile app is now called Pickard the Knight.",
+    "published": true
+  },
+  {
+    "source_commit": "9354fa10255b686bd087dc33faa2ff8ec24aaf84",
+    "change_date": "2026-09-16",
+    "created_at": "2026-09-16T20:17:04-05:00",
+    "summary": "First-time tips explain building, waves, tower unlocks, enemies, and bosses, and remember which tips you have seen.",
+    "published": true
+  },
+  {
+    "source_commit": "b1623eb7195023a3a6525ade8db30b033688a425",
+    "change_date": "2026-09-16",
+    "created_at": "2026-09-16T19:56:42-05:00",
+    "summary": "The world map now uses Campaign as its heading.",
+    "published": true
+  },
+  {
+    "source_commit": "ac2f1604e5abb6674df12d276314c538078fed94",
+    "change_date": "2026-09-16",
+    "created_at": "2026-09-16T19:45:12-05:00",
+    "summary": "Tapping the selected tower again keeps its build details open.",
+    "published": true
+  },
+  {
+    "source_commit": "a5bc40e8f3bf8e177f0f4fcb30b1f6da3e1a0be9",
+    "change_date": "2026-09-16",
+    "created_at": "2026-09-16T19:42:11-05:00",
+    "summary": "Campaign lock symbols no longer cover level numbers.",
+    "published": true
+  },
+  {
+    "source_commit": "c0964ae3806ed3f92ed3175259c4550443062d0a",
+    "change_date": "2026-09-16",
+    "created_at": "2026-09-16T19:41:06-05:00",
+    "summary": "Menus have new dark fantasy lettering, clearer Campaign labels, and lock symbols for unavailable levels and towers.",
+    "published": true
+  },
+  {
+    "source_commit": "00577d51ca25130fa9113ae29ee2ab34ce29f372",
+    "change_date": "2026-09-16",
+    "created_at": "2026-09-16T19:08:55-05:00",
+    "summary": "Older shared campaigns keep their saved progress when moving to the expanded Campaign.",
+    "published": true
+  },
+  {
+    "source_commit": "ea511d9419fd93372418d40a9c2f6275a6897e7b",
+    "change_date": "2026-09-16",
+    "created_at": "2026-09-16T19:05:45-05:00",
+    "summary": "Custom Campaign stats carry over correctly across all 48 levels.",
+    "published": true
+  },
+  {
+    "source_commit": "4290f06af9385edd9b39be48370396a244084965",
+    "change_date": "2026-09-16",
+    "created_at": "2026-09-16T19:02:55-05:00",
+    "summary": "Menus use matching thin black borders and consistent button colors for navigation, editing, building, and deleting.",
+    "published": true
+  },
+  {
+    "source_commit": "0f00eb2a0c7549dee16a4ec1167a79649bb2463b",
+    "change_date": "2026-09-16",
+    "created_at": "2026-09-16T18:49:00-05:00",
+    "summary": "Campaign now has 48 levels across six chapters, with towers and upgrades unlocking as you progress.",
+    "published": true
+  },
+  {
+    "source_commit": "c79a5312efaf18e725aba55f18ef39c5b5391a11",
+    "change_date": "2026-09-16",
+    "created_at": "2026-09-16T18:46:41-05:00",
+    "summary": "Popup menus dim the screen behind them to make choices easier to read.",
+    "published": true
+  },
+  {
+    "source_commit": "a085d112e3c3cc75cc52bb589fcf0c0df1f8476d",
+    "change_date": "2026-09-16",
+    "created_at": "2026-09-16T18:38:29-05:00",
+    "summary": "Pickard has a new app icon, with dark moonlit colors throughout the menus.",
+    "published": true
+  },
+  {
+    "source_commit": "a0a33758638be47340a419ffc64a467f358fe21e",
+    "change_date": "2026-09-16",
+    "created_at": "2026-09-16T18:18:13-05:00",
+    "summary": "The opening screen features new artwork of Pickard the knight.",
+    "published": true
+  },
+  {
+    "source_commit": "035090ba73ea45936cb291fb107dece5e88c37ea",
+    "change_date": "2026-09-16",
+    "created_at": "2026-09-16T18:10:42-05:00",
+    "summary": "Tower details slide smoothly out of the way when you begin placing a tower.",
+    "published": true
+  },
+  {
+    "source_commit": "03f40f248dfc1bb5988c0f11442596386a804fd7",
+    "change_date": "2026-09-16",
+    "created_at": "2026-09-16T18:07:18-05:00",
+    "summary": "Tower details close during placement drags so they do not block the battlefield.",
+    "published": true
+  }
+]
