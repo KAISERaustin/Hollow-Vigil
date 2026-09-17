@@ -5,6 +5,19 @@ content IDs, names, and combat balance remain unchanged.
 
 ## Current design
 
+Build the progression cumulatively from the same tier-one image. Preserve the
+canvas, ground anchor, door and stair positions, shaft width, roof position,
+window positions and camera. Tier 2 adds supports to that base; tier 3 adds
+fortification to tier 2. Both tier-four branches independently add their
+specialization to the same tier-three image. Added supports may extend outward,
+but the underlying tower must not resize or shift between images.
+
+Flag progression: tier 1 has no flags, pole or hanging banner. Tier 2 adds one
+oxblood top flag. Tier 3 retains it and adds the front diamond banner. Both
+tier-four branches keep those two items; frost adds a pale blue ice flag and
+poison adds the established olive poison flag. The fifth illustration is the
+poison tier-four branch, not a new gameplay tier five.
+
 All five use the same straight-on front elevation. Center the front door,
 central window, and roof apex on one vertical axis. Keep left and right supports
 balanced and stair/sill edges horizontal; do not rotate individual tiers into
@@ -23,11 +36,11 @@ objects. **No arrows or projectiles are baked into any image.**
 
 | Stage | Illustration | Construction |
 | --- | --- | --- |
-| Tier 1 | [Basic Gloamwatch](level-1.png) | Plain shaft and simple roof, no external supports or armor |
-| Tier 2 | [Supported Gloamwatch](level-2.png) | Timber gallery braces and slim lower supports |
-| Tier 3 | [Fortified Gloamwatch](level-3.png) | Heavy corbels, buttresses, iron collar and protected gallery |
-| Tier 4: Frostneedle | [Frost branch](tier-4-frost.png) | Fortified structure with cold fittings and compact frost |
-| Tier 4: Poison Arrow | [Poison branch](tier-4-poison.png) | Exterior venom reservoirs, thorn growth, poison drips and fungi |
+| Tier 1 | [Basic Gloamwatch](level-1.png) | Plain base; no flags or banners |
+| Tier 2 | [Supported Gloamwatch](level-2.png) | Added timber supports and top oxblood flag |
+| Tier 3 | [Fortified Gloamwatch](level-3.png) | Added corbels, buttresses, iron collar and front banner |
+| Tier 4: Frostneedle | [Frost branch](tier-4-frost.png) | Tier-three base plus ice accents and ice flag |
+| Tier 4: Poison Arrow | [Poison branch](tier-4-poison.png) | Tier-three base plus poison accents and olive flag |
 
 Poison is deliberately stronger than the first proposal while remaining a
 stone watchtower with black windows and a clear doorway.
@@ -60,10 +73,17 @@ occlusion and portrait layouts at 360x640, 390x844 and 540x960 when integrating.
 
 ## Provenance
 
+The cumulative images were visually compared for shared shaft, door, window,
+roof and ground placement, along with the flag sequence. They remain generated
+concepts: small registration and color variations remain, especially in the
+poison branch. Runtime integration must use a single immutable base layer with
+separate upgrade parts to guarantee pixel-identical placement and dimensions.
+
 Built-in image generation revised each prior tower's architecture, then used
 that revision plus the Pickard image for the final dark, projectile-free pass.
 The latest straight-on simplification uses the same Pickard reference directly.
-Current prompts are in [front-simplified-prompts.md](front-simplified-prompts.md);
+Current cumulative-edit prompts are in [aligned-progression-prompts.md](aligned-progression-prompts.md).
+[front-simplified-prompts.md](front-simplified-prompts.md) records the preceding simplification;
 [revision-prompts.md](revision-prompts.md) records the preceding dark-palette pass.
 
 The [original concept](gloamwatch-concept.png), [original prompt](prompt.txt) and
