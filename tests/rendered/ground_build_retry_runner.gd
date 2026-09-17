@@ -33,8 +33,22 @@ func run() -> void:
 		root.size = viewport
 		root.content_scale_size = viewport
 		build.arm("rapid")
+		build.slide.pause()
+		build.slide.custom_step(0.09)
+		var opening_slide: Tween = build.slide
+		var opening_reveal: float = build.reveal
+		var details: Control = build.preview_body.get_node("TowerDetails")
+		var selected_card: Button = build.palette.find_child("Build_rapid", true, false)
+		for tap in 10: selected_card.pressed.emit()
+		check(build.slide == opening_slide and is_equal_approx(build.reveal, opening_reveal), "Repeated taps do not restart the opening animation")
+		check(build.preview_body.get_node("TowerDetails") == details, "Repeated taps preserve the existing details")
+		build.slide.custom_step(0.2)
 		for i in 20: await process_frame
 		check(build.banner.visible, "Tap selection shows tower details")
+		for tap in 10: selected_card.pressed.emit()
+		check(build.banner.visible and is_equal_approx(build.reveal, 1.0) and build.preview_body.get_node("TowerDetails") == details, "Repeated taps keep fully open details in place")
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://artifacts/build-repeat-tap-%d.png" % viewport.x)
 		var covered: Rect2 = build.banner.get_global_rect().intersection(app.field.get_global_rect())
 		var card: Control = build.palette.find_child("Build_rapid", true, false)
 		var card_press := InputEventScreenTouch.new()

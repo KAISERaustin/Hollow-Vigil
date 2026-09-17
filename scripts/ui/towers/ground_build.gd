@@ -98,6 +98,9 @@ func open() -> void:
 func arm(value: String, for_drag: bool = false) -> void:
 	if allowed_to_build.is_valid() and not allowed_to_build.call(): return
 	if not field.state.economy.tower_available(value): return
+	# Repeated taps keep the current details and their opening animation intact.
+	if not for_drag and kind == value and banner.visible and not details_dismissing:
+		return
 	var active_pointer := pointer
 	var details_visible := banner.visible
 	var details_reveal := reveal
