@@ -23,10 +23,14 @@ func _ready() -> void:
 	if disabled:
 		var lock := preload("res://scripts/ui/shared/locked_emblem.gd").new()
 		lock.name = "LockedEmblem"
-		lock.position = Vector2(size.x * 0.5 - 18, 0)
+		lock.position = lock_position()
 		lock.size = Vector2(36, 40)
 		add_child(lock)
-		resized.connect(func(): lock.position = Vector2(size.x * 0.5 - 18, 0))
+		resized.connect(func(): lock.position = lock_position())
+
+func lock_position() -> Vector2:
+	# Small milestone stones sit higher than landmarks; keep their number exposed.
+	return Vector2(26, -25) if landmark_kind.is_empty() and not is_gate() else Vector2(size.x * 0.5 - 18, 0)
 
 func _draw() -> void:
 	var active := not disabled and has_focus()
