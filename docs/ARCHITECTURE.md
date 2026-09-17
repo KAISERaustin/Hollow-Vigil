@@ -1,6 +1,6 @@
 # Campaign architecture
 
-Hollow Vigil has 30 authored Campaign levels across six chapters. Creative and Survival share three saved-game slots. The application shell owns navigation, account services and sound preferences. It does not run a background battle.
+Hollow Vigil has 48 authored Campaign levels across six chapters. Creative and Survival share three saved-game slots. The application shell owns navigation, account services and sound preferences. It does not run a background battle.
 
 ## Content and simulation
 

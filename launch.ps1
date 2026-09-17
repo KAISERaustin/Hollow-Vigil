@@ -94,7 +94,7 @@ try {
             Invoke-Godot -Name ([IO.Path]::GetFileNameWithoutExtension($TestScript)) -EngineArguments $testArguments
         }
         if ($Tests -or $Check) {
-            foreach ($runner in @('source_load_runner', 'simplified_rules_runner', 'stats_system_runner', 'hex_support_runner', 'portal_attributes_runner', 'campaign_runner', 'campaign_configuration_runner', 'wave_editor_runner', 'campaign_export_runner', 'campaign_expansion_runner', 'campaign_ground_save_runner', 'tuning_schema_runner')) {
+            foreach ($runner in @('source_load_runner', 'simplified_rules_runner', 'stats_system_runner', 'hex_support_runner', 'portal_attributes_runner', 'campaign_runner', 'campaign_unlocks_runner', 'campaign_configuration_runner', 'wave_editor_runner', 'campaign_export_runner', 'campaign_expansion_runner', 'campaign_ground_save_runner', 'tuning_schema_runner')) {
                 Invoke-Godot -Name $runner -EngineArguments @('--headless', '--script', "res://tests/$runner.gd")
             }
         }

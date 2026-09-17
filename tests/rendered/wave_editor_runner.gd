@@ -1,6 +1,7 @@
 extends "res://tests/rendered/mobile_campaign_controls_runner.gd"
 const Configuration = preload("res://scripts/campaign/configuration.gd")
 const Editor = preload("res://scripts/campaign/wave_editor.gd")
+const EDITOR_LEVEL := 9 # Two-road level in the current Campaign catalog.
 
 func run() -> void:
 	app = VigilApp.new()
@@ -12,10 +13,11 @@ func run() -> void:
 	app.open_campaign_slot(0, app.slot_menu.campaign_slots.create(0, "creative", "Wave editor test"))
 	campaign = app.campaign
 	campaign.set_process(false)
+	campaign.progress.data.completed_levels = Catalog.COUNT
 	for size in [Vector2i(360, 640), Vector2i(390, 844), Vector2i(540, 960)]:
 		root.size = size
 		root.content_scale_size = size
-		campaign.start_mission(6)
+		campaign.start_mission(EDITOR_LEVEL)
 		campaign.show_waves()
 		await settle()
 		var old_count: int = campaign.run.mission.waves.size()
@@ -24,7 +26,7 @@ func run() -> void:
 		await press(named("ConfirmNewWave"))
 		check(campaign.run.mission.waves.size() == old_count + 1 and campaign.run.mission.waves[-1].is_empty(), "Confirmed new wave immediately saves empty")
 		var saved: Dictionary = app.slot_menu.campaign_slots.summary(0)
-		check(int(saved.levels["6"].overrides.wave_count) == old_count + 1, "New wave is persisted without Apply")
+		check(int(saved.levels[str(EDITOR_LEVEL)].overrides.wave_count) == old_count + 1, "New wave is persisted without Apply")
 		await press(named("AddEnemiesWave%d" % (old_count + 1)))
 		await settle()
 		var picker = campaign.find_child("IllustratedSelectionMenu", true, false)
@@ -73,9 +75,9 @@ func run() -> void:
 		var reset_editor = app.slot_menu.rules_editor
 		reset_editor.find_child("CampaignWaveReward", true, false).value = 321
 		await press(named("ResetCampaignWave"))
-		check(campaign.run.mission.wave_rules[0].reward == Configuration.Catalog.level(6).reward, "Reset wave immediately restores authored reward")
+		check(campaign.run.mission.wave_rules[0].reward == Configuration.Catalog.level(EDITOR_LEVEL).reward, "Reset wave immediately restores authored reward")
 		await press(named("DoneWaveRules"))
-		check(campaign.save_configuration(6, {"wave_count": 1, "waves": {"0": {"groups": [["basic", 1, 0, 0.0, 1.0]]}}}), "Minimal populated level saves")
+		check(campaign.save_configuration(EDITOR_LEVEL, {"wave_count": 1, "waves": {"0": {"groups": [["basic", 1, 0, 0.0, 1.0]]}}}), "Minimal populated level saves")
 		campaign.show_waves()
 		await settle()
 		await press(campaign.find_child("WaveEnemyCount_basic", true, false))
@@ -93,7 +95,7 @@ func run() -> void:
 		await settle()
 		check(named("NewCampaignWave") == null and named("EditCampaignWave1") == null and named("AddEnemiesWave1") == null, "All wave edits lock during active combat")
 		campaign.mode = "survival"
-		campaign.start_mission(6)
+		campaign.start_mission(EDITOR_LEVEL)
 		campaign.show_waves()
 		await settle()
 		check(named("NewCampaignWave") == null and named("EditCampaignWave1") == null, "Survival cannot edit waves")

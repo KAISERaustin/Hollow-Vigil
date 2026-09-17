@@ -45,10 +45,21 @@ ignored `artifacts/` as `moonlit-<width>x<height>-<state>.png`.
 | Surface corners | 960 checks; zero failures; includes one-unit rims, rounded edges and multiple scales |
 | Baked map | 165 checks; zero failures; atlas compositing and exact one-unit live separators |
 | Wave menus | 6,066 checks; zero failures |
+| Welcome / Campaign navigation | Zero failures / 331 checks, zero failures |
+| Stats / Rules navigation / Back | 156 / 713 / 936 checks; zero failures |
+| Wave editor touch | 198 checks; zero failures |
+| Mobile Campaign controls | 1,622 checks; zero failures; every current level and three portrait sizes |
+| Illustrated picker / save-slot picker | 261 / 9 checks; zero failures |
 | Source loading / structure | 244 scripts load; zero source or resource-boundary failures |
+
+The broad interaction run initially reached an outdated wave-editor fixture that
+opened a locked level. Wave and full-menu fixtures now use an explicitly
+progressed test save, and the wave fixture selects a current two-road level.
+Those runners and the remaining picker checks were rerun silently and passed.
+Fresh-save unlock behavior retains its separate progression tests.
 
 Cloud/account pages use isolated fixtures and publish nothing. These are desktop
 renders and simulated touch; physical iOS/Android acceptance was not performed.
-The host reports its existing root-certificate-store warning. The theme runner
-also reported two retained objects at shutdown without a script error or failed
-assertion.
+The host reports its existing root-certificate-store warning. The theme and
+mobile-control runners reported two retained objects at shutdown without a
+script error or failed assertion.

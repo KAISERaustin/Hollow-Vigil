@@ -1,69 +1,55 @@
-extends "res://tests/campaign_balance_runner.gd"
-## Legal playthroughs for the appended chapters and old-save/build compatibility.
+extends "res://tests/test_runner.gd"
+## Catalog expansion preserves portable content and old mission identities.
+const Catalog = preload("res://scripts/campaign/catalog.gd")
+const Migration = preload("res://scripts/persistence/campaign_catalog_migration.gd")
 const Playthrough = preload("res://scripts/persistence/campaign_playthrough.gd")
 const Build = preload("res://scripts/persistence/reusable_build.gd")
-var checks := 0
+const LevelBuild = preload("res://scripts/persistence/campaign_build.gd")
+const Progress = preload("res://scripts/campaign/progress.gd")
 
-func check(ok: bool, message: String) -> void:
-	checks += 1
-	if not ok:
-		failures += 1
-		push_error(message)
+func envelope(value: Dictionary, format: String) -> String:
+	var payload := JSON.stringify(value)
+	return JSON.stringify({"format": format, "payload": payload, "checksum": payload.sha256_text()})
 
 func run() -> void:
-	check(Catalog.COUNT == 30 and Catalog.CHAPTERS.size() == 6, "Six complete five-level chapters")
-	var styles: Array = []
-	for chapter in Catalog.CHAPTERS: styles.append(chapter.style)
-	check(styles == preload("res://scripts/content/catalogs/world.gd").ALL_STYLES, "Every registered biome has one campaign chapter")
-	var progress := Progress.new()
-	progress.path = "user://six-biome-playthrough.save"
-	check(progress.restore_completed_levels(Catalog.LEGACY_COUNT), "Existing twenty-level completion remains readable")
-	check(progress.unlocked(20) and not progress.unlocked(21), "Old completion unlocks the first added level only")
-	for index in range(Catalog.LEGACY_COUNT, Catalog.COUNT):
-		var victory: RefCounted
-		for strategy in range(16):
-			var battle := Run.new(index)
-			var steps := 0
-			while battle.phase in ["planning", "wave"] and steps < 20000:
-				if battle.phase == "planning":
-					invest(battle, strategy)
-					battle.start_wave()
-				battle.tick(Balance.STEP)
-				steps += 1
-			if battle.phase == "victory":
-				victory = battle
-				print("EXPANSION LEVEL %d: victory, strategy %d, integrity %d" % [index + 1, strategy, battle.health])
-				break
-			await process_frame
-		check(victory != null, "New level %d has a legal winning strategy" % (index + 1))
-		if victory != null: check(progress.save_run(victory), "Victory unlocks the next added level")
-		await process_frame
-	check(progress.data.completed_levels == Catalog.COUNT, "New chapter progression reaches the final level")
-	var portable := Playthrough.decode(Playthrough.encode({"19": {"overrides": {"gold": 4321.0}}}, "Legacy campaign", ""))
-	for index in range(Catalog.LEGACY_COUNT, Catalog.COUNT): portable.levels.erase(str(index))
-	check(Playthrough.valid(portable), "Twenty-level portable builds remain valid")
-	check(Playthrough.level_build(portable, 19).overrides.gold == 4321.0 and Playthrough.level_build(portable, 20).is_empty(), "Old custom rules persist while appended levels use defaults")
-	var invalid := portable.duplicate(true)
-	invalid.levels["20"] = invalid.levels["19"]
-	check(not Playthrough.valid(invalid), "Partial expansions cannot masquerade as complete builds")
-	var source := VigilState.new(71)
-	var reusable := Build.capture("campaign", source, {}, "all", -1, {"resources": true}, "Legacy resources", "")
-	for index in range(Catalog.LEGACY_COUNT, Catalog.COUNT): reusable.data.levels.erase(str(index))
-	check(Build.valid(reusable) and Build.compose_campaign(reusable, {}).ok, "Old reusable whole-campaign builds still compose")
-	for index in [19, 20, 24, 29]:
-		var battle := Run.new(index)
-		var restored: RefCounted = Run.from_checkpoint(JSON.parse_string(JSON.stringify(battle.checkpoint())))
-		check(restored != null and restored.mission.index == index and restored.mission.style == Catalog.level(index).style, "Old and new level checkpoints retain their content identity")
-	var medals: Array = []
-	medals.resize(Catalog.LEGACY_COUNT)
-	medals.fill(1)
-	var payload := JSON.stringify({"version": 1, "sequence": 1, "medals": medals})
-	var legacy_path := "user://six-biome-legacy.save"
-	var file := FileAccess.open(legacy_path, FileAccess.WRITE)
-	file.store_string(JSON.stringify({"payload": payload, "checksum": payload.sha256_text()}))
-	file.close()
-	check(progress.read_candidate(legacy_path).get("completed_levels") == Catalog.LEGACY_COUNT, "Original twenty-medal saves migrate without losing victories")
-	for path in [progress.path, legacy_path]:
-		for suffix in ["", ".tmp", ".bak"]: DirAccess.remove_absolute(path + suffix)
-	print("CAMPAIGN EXPANSION: %d checks, %d failures" % [checks, failures])
-	quit(1 if failures else 0)
+	check(Catalog.COUNT == 48 and Catalog.LEVELS_PER_CHAPTER == 8, "Six complete eight-level chapters")
+	var current := Build.capture("campaign", null, {}, "all", -1, {"resources": true}, "Expansion", "")
+	check(Build.valid(current) and Build.decode(Build.encode(current)) == JSON.parse_string(JSON.stringify(current)), "Current whole campaign round-trips")
+	for count in [20, 30]:
+		var portable := {"version": 1, "setup": {"name": "Old campaign", "description": ""}, "levels": {}}
+		var reusable := current.duplicate(true)
+		reusable.erase("catalog_revision")
+		reusable.data.levels = {}
+		for old in count:
+			var mapped := Migration.index(old)
+			portable.levels[str(old)] = {"overrides": Playthrough.freeze_level(mapped, {"gold": 1000 + old})}
+			reusable.data.levels[str(old)] = current.data.levels[str(mapped)].duplicate(true)
+			reusable.data.levels[str(old)].resources.gold = 1000 + old
+		var restored := Playthrough.decode(envelope(portable, Playthrough.FORMAT))
+		check(not restored.is_empty() and restored.levels.size() == 48, "Old playthrough gains missing defaults")
+		var shared := Build.decode(envelope(reusable, Build.FORMAT))
+		check(not shared.is_empty() and shared.data.levels.size() == 48, "Old reusable campaign gains missing defaults")
+		for old in count:
+			var mapped := Migration.index(old)
+			check(restored.levels[str(mapped)].overrides.gold == 1000 + old, "Playthrough custom rules retain mission identity")
+			check(shared.data.levels[str(mapped)].resources.gold == 1000 + old, "Reusable rules retain mission identity")
+		check(Build.compose_campaign(shared, {}).ok, "Migrated shared campaign composes")
+		check(Build.decode(Build.encode(shared)) == JSON.parse_string(JSON.stringify(shared)), "Migrated shared campaign never remaps twice")
+		var medals: Array = []
+		medals.resize(count)
+		medals.fill(1)
+		var payload := JSON.stringify({"version": 1, "sequence": 1, "medals": medals})
+		var path := "user://old-medals-%d.save" % count
+		var file := FileAccess.open(path, FileAccess.WRITE)
+		file.store_string(JSON.stringify({"payload": payload, "checksum": payload.sha256_text()}))
+		file.close()
+		check(Progress.new().read_candidate(path).get("completed_levels") == Migration.completed(count), "Legacy victories retain completed chapters")
+		clean_test_save(path)
+	for old in 30:
+		var legacy := {"version": 1, "setup": {"name": "Old level", "description": ""}, "level": old, "overrides": {"gold": 500 + old}}
+		var restored := LevelBuild.decode(envelope(legacy, LevelBuild.FORMAT))
+		check(not restored.is_empty() and restored.level == Migration.index(old) and restored.overrides.gold == 500 + old, "Single level build keeps identity")
+	check(Migration.document({"version": 2, "sequence": 0, "completed_levels": 1, "beaten_levels": "invalid"}, "progress").is_empty(), "Malformed old progression stays rejected")
+	check(Migration.level_entries({"09": {"overrides": {}}}).is_empty(), "Malformed old level keys stay rejected")
+	print("CAMPAIGN EXPANSION: %d checks, %d failures" % [checks, failures.size()])
+	quit(1 if not failures.is_empty() else 0)

@@ -117,6 +117,9 @@ func run() -> void:
 		root.content_scale_size = dimensions
 		app.slot_menu.campaign_slots.base_path = app.game.save_path + ".campaign-" + str(dimensions.x)
 		var saved: Dictionary = app.slot_menu.campaign_slots.create(0, "creative", "Mobile Campaign audit")
+		# This interaction audit visits every level and tower action. Fresh-save
+		# progression locks are covered separately by campaign_unlocks_runner.
+		saved.completed = Catalog.COUNT
 		app.open_campaign_slot(0, saved)
 		campaign = app.campaign
 		campaign.set_process(false)

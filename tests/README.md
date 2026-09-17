@@ -13,7 +13,7 @@ Every launcher mode is silent by default. Only use `-Sound` when the user asks f
 
 | Changed area | Focused coverage |
 | --- | --- |
-| Campaign simulation, routes, progression | `campaign_runner.gd`; `campaign_balance_runner.gd` only for difficulty changes |
+| Campaign simulation, routes, progression | `campaign_runner.gd`, `campaign_unlocks_runner.gd`, `campaign_expansion_runner.gd`; `campaign_balance_runner.gd` for difficulty changes |
 | Content nodes and shared stats | `content_node_runner.gd`, `stats_system_runner.gd`, `tuning_schema_runner.gd`, `simplified_rules_runner.gd` |
 | Hex support and portal gameplay | `hex_support_runner.gd`, `portal_attributes_runner.gd` |
 | Waves and exports | `wave_editor_runner.gd`, `campaign_configuration_runner.gd`, `campaign_export_runner.gd` |
@@ -22,6 +22,7 @@ Every launcher mode is silent by default. Only use `-Sound` when the user asks f
 | Stats and rules UI | `rendered/stats_editor_runner.gd`, `rendered/rules_navigation_runner.gd`, `rendered/rules_back_runner.gd` |
 | Menus and touch | `rendered/campaign_navigation_runner.gd`, `rendered/mobile_campaign_controls_runner.gd`, `rendered/illustrated_picker_touch_runner.gd`, `touch_scroll_scope_runner.gd`, `reward_input_runner.gd` |
 | Waves UI | `rendered/wave_editor_runner.gd`, `rendered/wave_menu_runner.gd` |
+| Progression UI | `rendered/campaign_unlocks_runner.gd` (both modes, level locks, tower locks, replay upgrades, three phone sizes) |
 | Campaign maps | `rendered/campaign_map_runner.gd`, `rendered/campaign_map_menu_runner.gd`, `rendered/baked_map_runner.gd`, `rendered/campaign_landscape_runner.gd` |
 | Terrain and portals | `rendered/campaign_terrain_checks.gd`, `rendered/campaign_portal_runner.gd` |
 | Tower presentation | `rendered/tower_depth_runner.gd`, `rendered/tower_level_indicator_runner.gd`, `rendered/tower_upgrade_art_checks.gd`, `rendered/construction_effect_runner.gd`, `rendered/hex_effect_runner.gd` |

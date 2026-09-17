@@ -2,7 +2,7 @@
 
 ## Product scope
 
-- Hollow Vigil is a Campaign game with 30 authored levels in six chapters. Creative and Survival share three Campaign save slots. Build future work around authored levels, waves and Campaign progression.
+- Hollow Vigil is a Campaign game with 48 authored levels in six chapters of eight. Creative and Survival share three Campaign save slots. Build future work around authored levels, waves and Campaign progression.
 
 ## Portrait-only mobile app
 

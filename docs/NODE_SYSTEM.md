@@ -7,7 +7,7 @@
 - Entity → Tower → eight tower families → levels and level-four specializations.
 - Entity → Enemy → chapter families → ordinary enemy types; Boss is an Enemy subtype.
 - Entity → Gear → eighteen equipment types with attachable attributes.
-- Level → Campaign → six chapters → 30 authored missions. Creative and Survival define editor access.
+- Level → Campaign → six chapters → 48 authored missions. Creative and Survival define editor access.
 - Wave → authored enemy groups, entrance lanes, timing and rewards.
 - Projectile, Ability and Targeting → reusable combat behavior.
 - World → Region and Portal → authored placement anchors, biome identity and presentation.

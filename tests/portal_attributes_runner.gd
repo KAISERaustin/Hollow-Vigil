@@ -38,7 +38,7 @@ func run() -> void:
 		var checkpoint_run = preload("res://scripts/campaign/run.gd").new(0, {"tuning": tuning}, "creative")
 		var restored = preload("res://scripts/campaign/run.gd").from_checkpoint(checkpoint_run.checkpoint())
 		check(restored != null and restored.game.tuning.rifts[style].armor_percent == 25.0, "Checkpoint retains portal rules")
-		var index: int = Balance.portal_definitions().keys().find(style) * 5
+		var index: int = Balance.portal_definitions().keys().find(style) * preload("res://scripts/campaign/catalog.gd").LEVELS_PER_CHAPTER
 		var boss_run = preload("res://scripts/campaign/run.gd").new(index, {"tuning": tuning, "waves": {"0": {"groups": [["ruined_king", 1, 0, 0.0, 1.0]]}}}, "creative")
 		boss_run.start_wave()
 		boss_run.tick(0.05)

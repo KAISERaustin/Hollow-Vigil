@@ -25,11 +25,11 @@ static func tuning(source: Dictionary) -> Dictionary:
 static func levels(source: Dictionary, migrate: bool = false) -> Dictionary:
 	var result := source.duplicate(true)
 	var global := {}
-	for index in range(30):
+	for index in range(preload("res://scripts/content/catalogs/levels.gd").COUNT):
 		var rules: Dictionary = source.get(str(index), {}).get("overrides", {})
 		var candidate: Dictionary = rules.get("tuning", {}).duplicate(true)
 		# Historical first-Warden reductions are explicitly retired by the user.
-		if index == 4 and candidate.get("bosses", {}).get("warden", {}) == {"hp": 1800.0, "shield": 300.0, "regen_period": 12.0}:
+		if index in [4, 7] and candidate.get("bosses", {}).get("warden", {}) == {"hp": 1800.0, "shield": 300.0, "regen_period": 12.0}:
 			candidate.bosses.erase("warden")
 		if migrate: candidate = tuning(candidate)
 		for category in Stats.CATEGORIES:
@@ -37,7 +37,7 @@ static func levels(source: Dictionary, migrate: bool = false) -> Dictionary:
 			for kind in candidate.get(category, {}):
 				if not global[category].has(kind): global[category][kind] = candidate[category][kind].duplicate(true)
 	global = Stats.compact(global)
-	for index in range(30):
+	for index in range(preload("res://scripts/content/catalogs/levels.gd").COUNT):
 		var key := str(index)
 		if not result.has(key): result[key] = {"overrides": {}}
 		var rules: Dictionary = result[key].overrides

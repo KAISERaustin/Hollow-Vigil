@@ -64,17 +64,17 @@ func run() -> void:
 	var disabled := Stats.compact({"enemies": {"basic": {"poison_resistance": 65, "enabled_poison_resistance": 0}}})
 	check(not Stats.enabled("enemies", "basic", "poison_resistance", disabled) and Stats.value("enemies", "basic", "poison_resistance", disabled) == 65, "Save compaction retains disabled custom values")
 	var warden_health := []
-	for index in range(30):
+	for index in range(48):
 		var run := Run.new(index, {}, "creative")
 		warden_health.append(Balance.definition("bosses", "warden", run.game.tuning).hp)
-	check(warden_health.all(func(hp): return hp == 3200), "All 30 levels use identical Warden defaults")
+	check(warden_health.all(func(hp): return hp == 3200), "All 48 levels use identical Warden defaults")
 	var live := Run.new(0, {}, "creative")
 	var live_enemy := spawn(live.game)
 	live_enemy.hp = 9
 	check(live.apply_configuration({"tuning": {"enemies": {"basic": {"hp": 90}}}}), "Campaign applies stat changes")
 	check(live_enemy.max_hp == 90 and is_equal_approx(live_enemy.hp, 18), "Campaign updates live enemy immediately")
 	var levels := Migration.levels({"0": {"overrides": {"tuning": game.tuning}}, "4": {"overrides": {"tuning": {"bosses": {"warden": {"hp": 1800.0, "shield": 300.0, "regen_period": 12.0}}}}}})
-	check(levels.size() == 30 and levels["0"].overrides.tuning == levels["29"].overrides.tuning, "Rules global across all levels")
+	check(levels.size() == 48 and levels["0"].overrides.tuning == levels["47"].overrides.tuning, "Rules global across all levels")
 	var slots := Slots.new()
 	slots.base_path = "res://.runtime/stats-slot-" + str(Time.get_ticks_usec())
 	var first := slots.create(0, "creative", "Edited", levels)
