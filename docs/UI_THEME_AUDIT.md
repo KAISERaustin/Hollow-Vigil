@@ -66,12 +66,13 @@ script error or failed assertion.
 
 ## September 17 — automatic wave playback
 
-`rendered/auto_wave_runner.gd`: 150 checks, zero failures in an isolated fresh
+`rendered/auto_wave_runner.gd`: 156 checks, zero failures in an isolated fresh
 checkout with Dummy audio. Verified real toolbar taps, manual first wave,
 reward dismissal before automatic subsequent waves, pause/menu blocking,
 disabling during combat, manual restart, final victory, and per-attempt state
 isolation across all 48 levels. Inspected 360×640, 390×844 and 540×960 renders;
-Start wave and the On/Off skip toggle stay together with full-size targets.
+The Start wave play icon and On/Off skip icon fit on one toolbar row at all
+three sizes with full-size targets and accessible names.
 Structure checks passed. Physical iOS/Android testing was not performed.
 The runner intermittently reports the existing two retained objects at shutdown;
 no script errors or failed assertions occurred.

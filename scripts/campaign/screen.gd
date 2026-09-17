@@ -584,8 +584,7 @@ func show_battle(start_paused: bool = false) -> void:
 	var waves := UI.info_button(show_waves, "Wave information")
 	waves.name = "CampaignWaves"
 	waves.size_flags_horizontal = Control.SIZE_FILL
-	wave_button = UI.toolbar_action("Start wave", begin_wave, true)
-	wave_button.custom_minimum_size.x = 96
+	wave_button = UI.toolbar_play_button(begin_wave)
 	wave_button.size_flags_horizontal = Control.SIZE_SHRINK_END
 	wave_button.name = "StartCampaignWave"
 	auto_wave_button = UI.skip_toggle(run.auto_start_waves, func(enabled: bool):
@@ -711,7 +710,7 @@ func refresh() -> void:
 		for group in run.mission.waves[run.wave]:
 			enemies_remaining += int(group[1])
 	var remaining := "%d enemies remaining" % enemies_remaining
-	wave_button.text = "Start wave"
+	wave_button.text = ""
 	wave_button.accessibility_name = "Start wave %d" % (run.wave + 1) if can_start else remaining
 	floating_hud.fit()
 	if run.phase in ["victory", "defeat"]:

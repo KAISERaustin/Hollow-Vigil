@@ -434,6 +434,17 @@ static func toolbar_action(text: String, action: Callable, primary: bool = false
 		control.add_theme_stylebox_override(state, style)
 	return control
 
+static func toolbar_play_button(action: Callable) -> Button:
+	var control := toolbar_action("", action, true)
+	control.custom_minimum_size = Vector2.ONE * TARGET
+	control.accessibility_name = "Start wave"
+	control.draw.connect(func():
+		var center := control.size * 0.5
+		var ink := MUTED if control.disabled else ON_PRIMARY
+		control.draw_colored_polygon(PackedVector2Array([center + Vector2(-6, -9), center + Vector2(9, 0), center + Vector2(-6, 9)]), ink)
+	)
+	return control
+
 static func info_button(action: Callable, accessible_name: String = "Information") -> Button:
 	var control := toolbar_action("", action)
 	control.custom_minimum_size = Vector2.ONE * TARGET

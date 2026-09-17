@@ -34,6 +34,8 @@ func run() -> void:
 		campaign.start_mission(0)
 		await settle()
 		await audit(campaign.game_toolbar, "Auto-wave toolbar")
+		check(campaign.wave_button.text.is_empty() and campaign.wave_button.accessibility_name.begins_with("Start wave"), "Play icon retains accessible Start wave name")
+		check(is_equal_approx(campaign.wave_button.global_position.y, campaign.game_toolbar.menu_button.global_position.y), "Icon toolbar fits one row")
 		check(campaign.auto_wave_button.global_position.x > campaign.wave_button.global_position.x and is_equal_approx(campaign.auto_wave_button.global_position.y, campaign.wave_button.global_position.y), "Skip stays right of Start wave")
 		await press(campaign.auto_wave_button)
 		check(campaign.run.auto_start_waves, "Touch enables auto waves")

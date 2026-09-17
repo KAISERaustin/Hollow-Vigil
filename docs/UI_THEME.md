@@ -325,7 +325,7 @@ numbered destinations, locked/current/completed meanings and at least 48-unit
 level targets. Keep labels clear of scenery and route crossings. Its world art
 follows the art guide; its controls use this shared UI theme.
 
-**Battle:** top toolbar with Back, Pause, Speed, Waves, Start wave and an On/Off
+**Battle:** top toolbar with Back, Pause, Speed, Waves, a Start wave play icon and an On/Off
 skip-arrow toggle for automatic subsequent waves. The wave actions stay together
 on a second row when needed to preserve full touch targets. Terrain fills the rest. One row below it contains three passive cards for numbered level
 identity, currency and wave count. Preserve that arrangement, wrapping text without
