@@ -45,6 +45,10 @@ Run `tests/stats_system_runner.gd` for defaults, composition, removal, runtime i
 
 ## Ownership and verification
 
+The [first-time field guide](TUTORIAL_SYSTEM.md) composes reusable lesson data,
+device learning history and a shared illustrated popup. Campaign supplies live
+milestone and wave context; tutorials never change content or save progression.
+
 Content nodes provide definitions; gameplay services own transactions and simulation; persistence validates and serializes; rendering owns artwork; UI owns navigation and input. Keep imports in that direction. Campaign saves, builds, editor controls, descriptions, artwork and tests must agree when content changes.
 
 Run the relevant Campaign runners plus `tools/check_structure.py`. Use rendered portrait checks for UI changes and keep physical phone validation distinct from desktop simulation.

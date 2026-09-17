@@ -8,6 +8,11 @@ const Progress = preload("res://scripts/campaign/progress.gd")
 const Board = preload("res://scripts/campaign/board.gd")
 const WorldMap = preload("res://scripts/campaign/world_map.gd")
 const WaveSummary = preload("res://scripts/ui/shared/wave_summary.gd")
+const Tutorials = preload("res://scripts/campaign/tutorial_catalog.gd")
+var tutorial_history := preload("res://scripts/campaign/tutorial_history.gd").new()
+var tutorial_popup: PopupPanel
+var tutorial_delay := 0.0
+var tutorials_enabled := true
 signal closed
 var app: VigilApp
 var progress := Progress.new()
@@ -150,6 +155,8 @@ func build_tower_ui() -> void:
 	board.add_child(tower_move)
 
 func _ready() -> void:
+	tutorials_enabled = tutorials_enabled and (not is_instance_valid(app) or app.load_saved_progress)
+	if tutorials_enabled: tutorial_history.load_history()
 	name = "Campaign"
 	color = UI.PANEL
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -255,6 +262,10 @@ func fit() -> void:
 			dialog_card.position = safe.position + (safe.size - dialog_card.size) * 0.5
 
 func clear_page(next: String) -> void:
+	if is_instance_valid(tutorial_popup):
+		tutorial_popup.hide()
+		tutorial_popup.queue_free()
+		tutorial_popup = null
 	exit_confirmation = false
 	if is_instance_valid(reward_transition): reward_transition.cancel()
 	result_pending = false
@@ -532,7 +543,7 @@ func connect_run() -> void:
 		run.game.economy.sound_requested.connect(play_run_sound)
 
 func combat_audio_active() -> bool:
-	return page == "battle" and run != null and run.phase == "wave" and not paused
+	return page == "battle" and run != null and run.phase == "wave" and not paused and not tutorial_active()
 
 func play_combat_sound(cue: String, sound_position: Vector2) -> void:
 	if is_visible_in_tree() and is_instance_valid(board):
@@ -599,6 +610,35 @@ func show_battle(start_paused: bool = false) -> void:
 	board.relocation_picked.connect(tower_move.place)
 	refresh()
 	call_deferred("frame_battle")
+	call_deferred("introduce_battle")
+
+func tutorial_active() -> bool:
+	return is_instance_valid(tutorial_popup) and tutorial_popup.visible
+
+func introduce_battle() -> void:
+	if not tutorials_enabled or page != "battle" or run.phase != "planning": return
+	var tip := Tutorials.next(run, tutorial_history)
+	if tip.is_empty(): tip = Tutorials.milestone(run, tutorial_history)
+	show_tutorial(tip)
+
+func show_tutorial(tip: Dictionary, after: Callable = Callable()) -> bool:
+	if not tutorials_enabled or tip.is_empty() or tutorial_active(): return false
+	clear_selection()
+	tutorial_popup = preload("res://scripts/ui/shared/tutorial_popup.gd").new()
+	add_child(tutorial_popup)
+	var finish := func(skip_all: bool, proceed: bool):
+		if not tutorial_history.acknowledge(tip.ids, skip_all):
+			toast("Tip dismissed. Could not save tutorial history on this device.")
+		tutorial_popup.hide()
+		tutorial_popup.queue_free()
+		tutorial_popup = null
+		tutorial_delay = 12.0
+		if proceed and after.is_valid(): after.call()
+	tutorial_popup.acknowledged.connect(func(skip_all: bool): finish.call(skip_all, true))
+	tutorial_popup.canceled.connect(func(): finish.call(false, false))
+	tutorial_popup.configure(tip)
+	if after.is_valid(): tutorial_popup.confirm.text = "Start wave"
+	return true
 
 func frame_battle() -> void:
 	if page != "battle" or not is_instance_valid(board): return
@@ -627,7 +667,9 @@ func add_board(interactive: bool) -> void:
 		board.add_child(frame)
 
 func begin_wave() -> void:
-	if reward_transition.active: return
+	if reward_transition.active or tutorial_active(): return
+	if tutorials_enabled and run.phase == "planning":
+		if show_tutorial(Tutorials.encounters(run, tutorial_history), begin_wave): return
 	if run.start_wave():
 		paused = false
 		update_time_controls()
@@ -1022,6 +1064,11 @@ func add_dialog_back(label: String, action: Callable) -> void:
 	fit.call_deferred()
 
 func _process(delta: float) -> void:
+	if tutorial_active(): return
+	tutorial_delay = maxf(0, tutorial_delay - delta)
+	if tutorials_enabled and is_visible_in_tree() and not app.slot_menu.visible and tutorial_delay <= 0 and page == "battle" and run != null and run.phase == "planning":
+		if not dialog.visible and not reward_transition.active and not exit_confirmation and is_instance_valid(ground_build) and ground_build.kind.is_empty() and not tower_dialog.visible:
+			if show_tutorial(Tutorials.next(run, tutorial_history)): return
 	# Exit decisions freeze the attempt; ordinary information overlays keep playing.
 	if page != "battle" or run == null or paused or exit_confirmation:
 		return
@@ -1041,6 +1088,9 @@ func _notification(what: int) -> void:
 		save_progress()
 
 func go_back() -> void:
+	if tutorial_active():
+		tutorial_popup.canceled.emit()
+		return
 	if is_instance_valid(ground_build) and not ground_build.kind.is_empty():
 		ground_build.cancel()
 		return
