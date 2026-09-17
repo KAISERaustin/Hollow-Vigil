@@ -16,6 +16,14 @@ art retains its own colors and contours. Local launcher runs are muted by defaul
 
 ## Coverage
 
+September 17 Creative map settings: three shared action rows offer Unlock all
+levels, Unlock all towers (including upgrade tiers), and Disable tutorials. Each
+requires an explicit Yes confirmation and saves only to the selected Creative
+slot. Cancel preserves state; Survival and battle settings omit the controls.
+The Campaign map menu runner checks persistence, reopening, sibling-slot
+isolation, confirmation cancellation, and portrait layouts at 360×640, 390×844
+and 540×960. Desktop renders and simulated clicks are not physical phone proof.
+
 `tests/rendered/moonlit_theme_runner.gd` visits 276 states at each of 360×640,
 390×844 and 540×960 (828 renders). It follows the current catalog, including all
 48 level editors in the concurrent Campaign expansion. It checks actual control

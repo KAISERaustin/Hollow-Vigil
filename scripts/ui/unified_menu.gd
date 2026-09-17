@@ -721,7 +721,7 @@ func show_settings(return_to: Callable = Callable()) -> void:
 			var control := UI.edit_button("Done" if enabled else "Enable", confirm_creative_option.bind(entry[0], entry[1]))
 			control.name = "CreativeOption_" + entry[0]
 			control.disabled = enabled
-			rows.add_child(UI.action_row(entry[1], control))
+			rows.add_child(UI.action_row(entry[1], control, "Done" if enabled else "Enable"))
 	if settings_return == show_main_menu:
 		content.add_child(action("Bug report", show_bug_report, "SettingsBugReport", false, UI.BRONZE))
 		content.add_child(action("Change log", show_change_log, "SettingsChangeLog"))

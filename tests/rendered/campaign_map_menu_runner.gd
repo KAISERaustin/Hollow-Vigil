@@ -86,6 +86,7 @@ func check_campaign_settings(key: String) -> void:
 			await press("CreativeOption_" + option)
 			await press("ConfirmAction")
 			check(button("CreativeOption_" + option).disabled, "Applied option shows Done")
+			check(button("CreativeOption_" + option).text == "Done", "Applied option retains visible action label")
 			var saved: Dictionary = menu.campaign_slots.summary(campaign.active_campaign_slot)
 			check(saved.get("creative_options", {}).get(option, false), "Option persists to disk: " + option)
 			check(saved.completed == 0, "Unlocks do not fabricate completed levels")
@@ -207,6 +208,13 @@ func run() -> void:
 			menu.resume_game()
 			campaign.close()
 			await frames()
+			if mode == "creative":
+				app.open_campaign_slot(slot, menu.campaign_slots.summary(slot))
+				await frames()
+				check(app.campaign.progress.all_levels and app.campaign.progress.all_towers, "Unlock options survive reopening the saved game")
+				check(app.campaign.CreativeOptions.enabled(app.campaign.campaign_save, "tutorials") and not app.campaign.tutorials_enabled, "Tutorial option survives reopening")
+				app.campaign.close()
+				await frames()
 			check(menu.campaign_slots.summary(2) == sibling, "Export and edits preserve sibling slots")
 	app.game.suspended = true
 	app.queue_free()
