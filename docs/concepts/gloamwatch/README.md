@@ -5,6 +5,18 @@ content IDs, names, and combat balance remain unchanged.
 
 ## Current design
 
+All five use the same straight-on front elevation. Center the front door,
+central window, and roof apex on one vertical axis. Keep left and right supports
+balanced and stair/sill edges horizontal; do not rotate individual tiers into
+different three-quarter views.
+
+Match Pickard's simplicity as well as his colors: large uninterrupted masses,
+two or three tones per material, heavy silhouettes, and very few broad facets.
+Omit individual roof tiles, brick grids, rivet rows, plank grain, fine cracks,
+small leaves and scattered gravel. Use a handful of chunky foundation stones.
+Communicate upgrades through larger structural shapes, not more surface detail.
+Frost and poison remain distinct through a few bold elemental shapes.
+
 Progress from basic to supported to fortified. Every window is an opaque
 pitch-black recess with no visible archer, face, eyes, hands, bow or interior
 objects. **No arrows or projectiles are baked into any image.**
@@ -50,7 +62,9 @@ occlusion and portrait layouts at 360x640, 390x844 and 540x960 when integrating.
 
 Built-in image generation revised each prior tower's architecture, then used
 that revision plus the Pickard image for the final dark, projectile-free pass.
-Exact prompts are in [revision-prompts.md](revision-prompts.md).
+The latest straight-on simplification uses the same Pickard reference directly.
+Current prompts are in [front-simplified-prompts.md](front-simplified-prompts.md);
+[revision-prompts.md](revision-prompts.md) records the preceding dark-palette pass.
 
 The [original concept](gloamwatch-concept.png), [original prompt](prompt.txt) and
 [first progression prompts](progression-prompts.md) are historical references.
