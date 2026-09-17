@@ -52,6 +52,17 @@ sample does not cover late levels, every tower/gear combination, or rendering.
 The fixture builds differ by title and contain normal complete Campaign rule
 exports, with one tower damage override; they are not the player's actual files.
 
+A follow-up full-sync run used an isolated copy of tracked source and the existing
+fake cloud service, which yields one frame per response and sends no network
+traffic. It completed successfully with no script errors: total sync time was
+15,565.65 ms, with the three longest main-loop frame gaps measuring 3,854.00,
+3,887.09, and 3,901.57 ms. The next two gaps were 775.22 and 791.56 ms.
+The isolated run also repeated the five-build scan at 3,794.66–3,797.94 ms.
+Thus the expensive work causes actual multi-second frame gaps through the real
+backup orchestration, not just a slow standalone helper. Earlier follow-up
+attempts encountered local source read stalls and missing imported resources;
+those incomplete runs are excluded from the timing evidence.
+
 `tools/campaign_stall_probe.gd` makes isolated synthetic slots/library files and
 uses the existing fake cloud boundary for full-sync diagnostics. Run muted:
 
