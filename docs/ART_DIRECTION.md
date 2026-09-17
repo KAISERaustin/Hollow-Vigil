@@ -63,8 +63,7 @@ lineup. Match their solid palette, angular silhouettes, black contours and spare
 interior marks; no gradients, texture or sprite matte. Keep the floating antlered
 Warden, fire-spirit Cinder Reliquary, spectral Bell and haloed Prior recognizable.
 Warden and Reliquary have no arms or legs. Bosses glide without gait animation.
-Use 0.51 artwork scale (15% below the former 0.6). Titles use the shared Noto
-Serif semibold in parchment nameplates with thin ink borders, with no weakness
+Use 0.51 artwork scale (15% below the former 0.6). Titles use the shared Cinzel semibold in parchment nameplates with thin ink borders, with no weakness
 subtitle. Health, root shield and ward indicators remain separate.
 
 - Ground: forest #95aa83, forge #bb8c76, crypt #7fa6aa, sanctuary #ae879b.
@@ -74,7 +73,7 @@ subtitle. Health, root shield and ward indicators remain separate.
 - Terrain: Campaign landscapes use the authored level geometry and shared biome art. Roads follow the authored paths continuously and remain legible beneath battlefield objects and controls.
 - Scenery: at most three tiny outlined symbols per tile. Reserve roads, sockets, and full tower silhouettes.
 - Towers: pointed tower, fire-crowned masonry watchtower, obelisk and lightning spire. Pyre uses a tall stone shaft, crenellated parapet, black arched furnace and layered flat flames, borrowing the portals' cut-stone construction. Its tiers and both final branches compose `scripts/rendering/actors/fire_tower_art.gd`; preserve the common socket anchor and attack outlet. Enemies: circle, small ghost, block shape; each has two eyes.
-- UI: follow [UI_THEME.md](UI_THEME.md) and [UI_STYLE_GUIDE.md](UI_STYLE_GUIDE.md) Version 3. The Pickard main image defines the dark color/material direction. Keep 1-unit black button borders and 1-unit other enclosures/dividers, 0/4-unit corners, 11-unit card padding, 8-unit inset padding/cell gaps and 11-unit section/action gaps. Preserve bold values above labels, native portraits, right-side row actions, fixed navigation and scrolling. Noto Sans carries controls; Noto Serif carries large titles. Use light text on dark surfaces and explicit state/consequence wording. World artwork retains its own palette and outlines.
+- UI: follow [UI_THEME.md](UI_THEME.md) and [UI_STYLE_GUIDE.md](UI_STYLE_GUIDE.md) Version 3. The Pickard main image defines the dark color/material direction. Keep 1-unit black button borders and 1-unit other enclosures/dividers, 0/4-unit corners, 11-unit card padding, 8-unit inset padding/cell gaps and 11-unit section/action gaps. Preserve bold values above labels, native portraits, right-side row actions, fixed navigation and scrolling. Grenze carries controls and body text; Cinzel carries large titles. Use light text on dark surfaces and explicit state/consequence wording. World artwork retains its own palette and outlines.
 - Campaign play: one compact control bar above edge-to-edge terrain. Level identity and live values sit in compact floating cards with the shared 1-unit black border and 4-unit corners. Fill one row below the toolbar with three cards: numbered level title (1. Briar Bend), gold and wave count; no shadows, glow, battlefield enclosure or bottom action panel. Reuse the shared toolbar and floating HUD; respect safe areas for text and controls. Their existing parchment fills are legacy presentation; future UI styling follows the dark theme.
 Collection feedback is an ochre outlined badge centered over the visible Unclaimed earnings caption, using its measured text width rather than its container width; it rises 36 pixels over 0.95 seconds and fades after a brief hold.
 

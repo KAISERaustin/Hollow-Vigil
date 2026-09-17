@@ -20,6 +20,13 @@ func _ready() -> void:
 	focus_exited.connect(queue_redraw)
 	button_down.connect(queue_redraw)
 	button_up.connect(queue_redraw)
+	if disabled:
+		var lock := preload("res://scripts/ui/shared/locked_emblem.gd").new()
+		lock.name = "LockedEmblem"
+		lock.position = Vector2(size.x * 0.5 - 18, 0)
+		lock.size = Vector2(36, 40)
+		add_child(lock)
+		resized.connect(func(): lock.position = Vector2(size.x * 0.5 - 18, 0))
 
 func _draw() -> void:
 	var active := not disabled and has_focus()

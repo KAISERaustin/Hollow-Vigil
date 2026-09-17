@@ -32,6 +32,12 @@ func run() -> void:
 			await frame()
 			for button in campaign.ground_build.palette.find_children("Build_*", "Button", true, false):
 				check(button.disabled == (button.get_meta("tower_kind") != "rapid"), "Build palette preserves locks during refresh")
+				var seal := button.get_node_or_null("LockedContentOverlay")
+				check((seal != null) == (button.get_meta("tower_kind") != "rapid"), "Only progression-locked towers carry chains and padlock")
+				if seal != null:
+					check(seal.mouse_filter == Control.MOUSE_FILTER_IGNORE, "Lock artwork never intercepts input")
+					check(button.get_global_rect().encloses(seal.get_global_rect()), "Lock artwork fits its tower card")
+			root.get_texture().get_image().save_png("res://artifacts/locked-towers-%s-%d.png" % [mode, size.x])
 			check(campaign.run.build(6, "rapid"), "Starting tower builds")
 			campaign.board.selected_tower = campaign.run.tower_at(6)
 			campaign.tower_dialog.open_action("info")

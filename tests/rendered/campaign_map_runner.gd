@@ -72,6 +72,10 @@ func run() -> void:
 				check(bounds.encloses(map.labels[index].get_rect()), "Level label fits its biome")
 				check(not map.nodes[index].get_rect().intersects(map.labels[index].get_rect()), "Level text does not overlap its marker")
 				check(map.nodes[index].size.x>=48 and map.nodes[index].size.y>=48,"Illustrated destinations retain large touch targets")
+				var lock: Control = map.nodes[index].get_node_or_null("LockedEmblem")
+				check((lock != null) == map.nodes[index].disabled, "Only unavailable destinations display a lock")
+				if lock != null:
+					check(lock.mouse_filter == Control.MOUSE_FILTER_IGNORE, "Lock emblem leaves scrolling to the map")
 				var clear_text := true
 				for road in map.chapter_roads(chapter):
 					for point in road:

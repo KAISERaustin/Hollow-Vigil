@@ -60,9 +60,11 @@ func _ready() -> void:
 		var title := UI.heading(Catalog.MISSIONS[index].name, 14)
 		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		identity.add_child(title)
-		var detail := "Current" if button.current else ("Cleared · Lit" if button.completed else ("Locked" if button.disabled else "Ready"))
-		if index % Catalog.LEVELS_PER_CHAPTER == Catalog.LEVELS_PER_CHAPTER - 1: detail += " · Boss"
-		identity.add_child(UI.label(detail, UI.META, UI.TEXT))
+		var detail := "Current" if button.current else ("Cleared · Lit" if button.completed else ("" if button.disabled else "Ready"))
+		if index % Catalog.LEVELS_PER_CHAPTER == Catalog.LEVELS_PER_CHAPTER - 1: detail = "Boss" if detail.is_empty() else detail + " · Boss"
+		var status := UI.label(detail, UI.META, UI.MUTED)
+		status.visible = not detail.is_empty()
+		identity.add_child(status)
 		add_child(identity)
 		labels.append(identity)
 	resized.connect(arrange)
@@ -97,12 +99,17 @@ func arrange() -> void:
 		nodes[index].size = Vector2(80,120) if boss else Vector2(88,106)
 		nodes[index].position = point(index) - nodes[index].size * 0.5
 		var right := point(index).x < size.x * 0.5
-		var start := point(index).x + 50 if right else float(UI.PADDING)
-		var width := size.x - start - UI.PADDING if right else point(index).x - UI.PADDING - 50
-		labels[index].position = Vector2(start, point(index).y - 22)
-		labels[index].size = Vector2(width, 58)
+		var available := size.x - point(index).x - 50 - UI.PADDING if right else point(index).x - UI.PADDING - 50
+		var natural := 0.0
 		for label: Label in labels[index].get_children():
-			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if right else HORIZONTAL_ALIGNMENT_RIGHT
+			if label.visible:
+				natural = maxf(natural, label.get_theme_font("font").get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, label.get_theme_font_size("font_size")).x)
+		var width := minf(available, ceilf(natural) + 2)
+		var start := point(index).x + 50 if right else point(index).x - 50 - width
+		labels[index].position = Vector2(start, point(index).y - 22)
+		labels[index].size = Vector2(width, labels[index].get_combined_minimum_size().y)
+		for label: Label in labels[index].get_children():
+			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	queue_redraw()
 
 func chapter_presentation(chapter: int) -> Dictionary:

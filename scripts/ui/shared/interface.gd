@@ -40,8 +40,8 @@ const PADDING := 16
 const SCREEN_PADDING := 12
 const TARGET := 48
 const TOOLBAR_BUTTON_SIZE := 50
-const SANS = preload("res://assets/fonts/NotoSans.ttf")
-const SERIF = preload("res://assets/fonts/NotoSerif.ttf")
+const BODY_FONT = preload("res://assets/fonts/Grenze.ttf")
+const TITLE_FONT = preload("res://assets/fonts/Cinzel.ttf")
 const text_scale := 1.0
 static var fonts: Dictionary = {}
 static var currency_translation: Translation
@@ -50,11 +50,13 @@ static func font(weight: int = 400, serif: bool = false) -> Font:
 	var key := str(weight) + str(serif)
 	if not fonts.has(key):
 		var f := FontVariation.new()
-		f.base_font = SERIF if serif else SANS
+		f.base_font = TITLE_FONT if serif else BODY_FONT
 		var ts := TextServerManager.get_primary_interface()
 		f.variation_opentype = {ts.name_to_tag("wght"): float(weight)}
 		f.opentype_features = {ts.name_to_tag("tnum"): 1}
 		f.fallbacks = [(preload("res://assets/fonts/VigilCoinSerif.ttf") if serif else preload("res://assets/fonts/VigilCoinSans.ttf"))]
+		# Keep symbols and player-entered scripts outside the display faces' coverage.
+		f.fallbacks.append(preload("res://assets/fonts/NotoSerif.ttf") if serif else preload("res://assets/fonts/NotoSans.ttf"))
 		fonts[key] = f
 	return fonts[key]
 

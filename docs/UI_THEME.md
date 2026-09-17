@@ -150,17 +150,18 @@ than manufacture empty height; full-page shells still fill their safe viewport.
 
 ## Typography and content hierarchy
 
-Use bundled Noto Sans regular, semibold and bold for functional text and numbers;
-Noto Serif semibold for major headings. The Pickard image's solemn, angular
-character comes through composition and material, not an unreadable novelty font.
+Use bundled Grenze regular, semibold and bold for functional text and numbers;
+Cinzel semibold for major headings. Grenze brings a medieval, gothic character
+to everyday controls while Cinzel gives titles a carved inscription treatment.
+Keep Noto as a fallback for missing symbols/scripts and preserve the coin glyph.
 
 | Role | Size and treatment |
 | --- | --- |
-| Page title | 28 in the current shell; large-title helper defaults to 30, serif semibold |
-| Object/dialog title | 24, serif semibold |
-| Compact title | 22 or 18, sans bold |
-| Section heading / ordinary stat value | 18, sans bold |
-| Featured value | 24, sans bold |
+| Page title | 28 in the current shell; large-title helper defaults to 30, Cinzel semibold |
+| Object/dialog title | 24, Cinzel semibold |
+| Compact title | 22 or 18, Grenze bold |
+| Section heading / ordinary stat value | 18, Grenze bold |
+| Featured value | 24, Grenze bold |
 | Body / ordinary button | 16, regular / semibold |
 | Supporting label / compact action | 14 |
 | Metadata | 12 minimum; never for essential action consequences |

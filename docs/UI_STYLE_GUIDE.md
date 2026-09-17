@@ -52,6 +52,13 @@ Update relevant shared consumers and all button/field/popup states together when
 implementing dark roles. Keep model values, transactions, save rules and simulation
 outside presentation code.
 
+## Typography
+
+Use the shared Grenze family for body text, buttons, fields and statistics, and
+Cinzel for major titles and the PICKARD wordmark. Preserve regular, semibold and
+bold hierarchy, tabular figures and the currency glyph. Noto remains a fallback
+for missing symbols and scripts. Keep existing sizes, wrapping and touch targets.
+
 ## Screen recipes
 
 ### Main menu and illustrated title compositions
@@ -150,6 +157,11 @@ sections, separated by one black 1-unit line. Preserve chapter scenery, trails,
 numbered destinations, unlock/completion states and at least 48-unit level targets.
 Keep text clear of full artwork bounds. World illustrations follow the art guide;
 map controls use the theme's common dark surfaces and readable text.
+
+Level nameplates fit their text beside each destination instead of stretching
+across the scenery. Locked destinations carry the reusable shield-shaped iron
+padlock from `locked_emblem.gd`; their accessible names retain the Locked state.
+Current, cleared and boss captions remain beneath the title where applicable.
 
 The battlefield keeps its compact top toolbar and three passive information cards
 below it: numbered level identity, currency and wave count. Keep those cards in

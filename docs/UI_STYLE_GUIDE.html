@@ -81,6 +81,11 @@ serve artwork, so a UI restyle must not globally recolor terrain or currency.
 Update relevant shared consumers and all button/field/popup states together when
 implementing dark roles. Keep model values, transactions, save rules and simulation
 outside presentation code.</p>
+<h2 id="typography">Typography</h2>
+<p>Use the shared Grenze family for body text, buttons, fields and statistics, and
+Cinzel for major titles and the PICKARD wordmark. Preserve regular, semibold and
+bold hierarchy, tabular figures and the currency glyph. Noto remains a fallback
+for missing symbols and scripts. Keep existing sizes, wrapping and touch targets.</p>
 <h2 id="screen-recipes">Screen recipes</h2>
 <h3 id="main-menu-and-illustrated-title-compositions">Main menu and illustrated title compositions</h3>
 <p>The image fills the viewport with proportional centered cover scaling. Keep live
@@ -157,6 +162,10 @@ sections, separated by one black 1-unit line. Preserve chapter scenery, trails,
 numbered destinations, unlock/completion states and at least 48-unit level targets.
 Keep text clear of full artwork bounds. World illustrations follow the art guide;
 map controls use the theme's common dark surfaces and readable text.</p>
+<p>Level nameplates fit their text beside each destination instead of stretching
+across the scenery. Locked destinations carry the reusable shield-shaped iron
+padlock from <code>locked_emblem.gd</code>; their accessible names retain the Locked state.
+Current, cleared and boss captions remain beneath the title where applicable.</p>
 <p>The battlefield keeps its compact top toolbar and three passive information cards
 below it: numbered level identity, currency and wave count. Keep those cards in
 one row, wrapping text as needed, while gestures pass through to the world.

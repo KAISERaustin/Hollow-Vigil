@@ -295,9 +295,9 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 		button.disabled = balance < definition.cost or (economy != null and not economy.tower_available(kind))
 		if economy != null and not economy.tower_available(kind):
 			button.accessibility_name += " · " + economy.unlock_reason(kind)
-			var lock := UI.label("Locked", 12, UI.TEXT)
-			lock.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-			lock.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			var lock := preload("res://scripts/ui/shared/locked_content_overlay.gd").new()
+			lock.name = "LockedContentOverlay"
+			lock.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 			lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			button.add_child(lock)
 		button.toggle_mode = not selected_kind.is_empty()
