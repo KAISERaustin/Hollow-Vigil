@@ -319,7 +319,7 @@ demonstrates eight distinct silhouettes within that family:
 
 | Reference subject | Distinguishing visual idea |
 | --- | --- |
-| Ashneedle | Narrow pointed watchtower with projecting side darts and a red pennant |
+| Gloamwatch | Dark pointed watchtower, black firing windows, compact rubble; flags and fortification added by tier |
 | Pyre | Crenellated furnace tower with a black pointed arch and angular layered flames |
 | Obelisk | Tall faceted dark monolith, pale diamond, claw-like supports, and violet orb |
 | Stormspire | Slender shaft, forked metal crown, and pale zigzag lightning |

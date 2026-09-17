@@ -33,6 +33,11 @@ static func tower_circle(kind: String) -> Control:
 		var key := "%s/%s/1/" % [family, kind]
 		if not images.entries.has(key): continue
 		var entry: Dictionary = images.entries[key]
+		if entry.has("portrait_bounds"):
+			var framing: Array = entry.portrait_bounds
+			var authored_bounds := Rect2(framing[0], framing[1], framing[2], framing[3])
+			bounds = bounds.merge(authored_bounds) if bounds.has_area() else authored_bounds
+			continue
 		var texture: Texture2D = load(entry.image)
 		var pixels := texture.get_image().get_used_rect()
 		var b: Array = entry.bounds

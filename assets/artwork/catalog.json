@@ -584,58 +584,93 @@
 	},
 	"tower/rapid/1/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-25.6,
+			-72.85,
+			51.2,
+			76.8
 		],
 		"image": "res://assets/artwork/tower/rapid/1.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"portrait_bounds": [
+			-20.0,
+			-73.0,
+			40.0,
+			75.0
+		],
+		"alpha_cutoff": 0.5
 	},
 	"tower/rapid/2/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-25.6,
+			-72.85,
+			51.2,
+			76.8
 		],
 		"image": "res://assets/artwork/tower/rapid/2.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"portrait_bounds": [
+			-20.0,
+			-73.0,
+			40.0,
+			75.0
+		],
+		"alpha_cutoff": 0.5
 	},
 	"tower/rapid/3/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-25.6,
+			-72.85,
+			51.2,
+			76.8
 		],
 		"image": "res://assets/artwork/tower/rapid/3.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"portrait_bounds": [
+			-20.0,
+			-73.0,
+			40.0,
+			75.0
+		],
+		"alpha_cutoff": 0.5
 	},
 	"tower/rapid/4/frostneedle": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-25.6,
+			-72.85,
+			51.2,
+			76.8
 		],
 		"image": "res://assets/artwork/tower/rapid/4/frostneedle.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"portrait_bounds": [
+			-20.0,
+			-73.0,
+			40.0,
+			75.0
+		],
+		"alpha_cutoff": 0.5
 	},
 	"tower/rapid/4/thorn_volley": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-25.6,
+			-72.85,
+			51.2,
+			76.8
 		],
 		"image": "res://assets/artwork/tower/rapid/4/thorn_volley.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"portrait_bounds": [
+			-20.0,
+			-73.0,
+			40.0,
+			75.0
+		],
+		"alpha_cutoff": 0.5
 	},
 	"tower/splash/1/": {
 		"bounds": [

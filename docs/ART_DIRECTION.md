@@ -86,6 +86,14 @@ The artwork implementation lives in scripts/rendering/terrain/terrain_art.gd, sc
 
 ## Extension contract
 
+Gloamwatch replaces Ashneedle through the shared authored artwork catalog, with
+three base tiers and the Frostneedle/Poison Arrow branches. The approved source
+PNGs, dark palette and alignment live in `docs/concepts/gloamwatch/`. Full-canvas
+runtime copies share one scale and ground anchor; authored catalog entries remain
+active at high zoom and survive native rebaking. Optional alpha cleanup is cached
+at runtime without modifying the source files. The watchman stays hidden behind
+black windows; separate wooden projectiles launch from the front gallery.
+
 Ironspike's mounted bow and loaded bolts rotate around the shared projectile
 muzzle to match the fired bolt's direction; its socket and pedestal stay fixed.
 The existing per-tower firing angle is supplied through the shared sentinel

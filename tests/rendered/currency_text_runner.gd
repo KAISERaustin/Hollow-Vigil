@@ -17,7 +17,7 @@ func run() -> void:
 		var label := UI.label("60 gold · Gold / sec · 120 GOLD", pixels)
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		column.add_child(label)
-	column.add_child(UI.button("Build Ashneedle · 60 gold", func(): pass))
+	column.add_child(UI.button("Build Gloamwatch · 60 gold", func(): pass))
 	column.add_child(UI.paragraph("Starting gold and lives apply when starting this level. Keep gold for upgrades. Gold per cleared wave is the default reward."))
 	var live := UI.value("0 gold")
 	column.add_child(live)

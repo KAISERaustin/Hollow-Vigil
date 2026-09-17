@@ -8,9 +8,9 @@ The tables below are generated from resolved catalog values, including recent ra
 
 | Tower | Level | Damage per hit | Interval (s) | Range | Blast radius | Purchase gold |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Ashneedle | 1 | 6 | 0.48 | 140 | 0 | 60 |
-| Ashneedle | 2 | 10 | 0.4 | 154 | 0 | 60 |
-| Ashneedle | 3 | 15 | 0.3 | 168 | 0 | 100 |
+| Gloamwatch | 1 | 6 | 0.48 | 140 | 0 | 60 |
+| Gloamwatch | 2 | 10 | 0.4 | 154 | 0 | 60 |
+| Gloamwatch | 3 | 15 | 0.3 | 168 | 0 | 100 |
 | Pyre | 1 | 15 | 1.5 | 115 | 46 | 120 |
 | Pyre | 2 | 24 | 1.3 | 129 | 56 | 120 |
 | Pyre | 3 | 36 | 1.1 | 143 | 66 | 200 |
@@ -39,8 +39,8 @@ Damage is per contact, not guaranteed DPS. Moonwheel may hit once on each travel
 
 | Family | Branch | Damage per hit | Interval (s) | Range | Blast radius | Upgrade gold | Total investment |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Ashneedle | Frostneedle | 15 | 0.3 | 168 | 0 | 180 | 400 |
-| Ashneedle | Poison Arrow | 15 | 0.3 | 168 | 0 | 180 | 400 |
+| Gloamwatch | Frostneedle | 15 | 0.3 | 168 | 0 | 180 | 400 |
+| Gloamwatch | Poison Arrow | 15 | 0.3 | 168 | 0 | 180 | 400 |
 | Pyre | Cinderfield | 27 | 1.1 | 143 | 66 | 320 | 760 |
 | Pyre | Rupture Pyre | 54 | 1.5 | 143 | 66 | 320 | 760 |
 | Obelisk | Grave Echo | 110 | 0.9 | 217 | 0 | 360 | 880 |

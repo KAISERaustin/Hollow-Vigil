@@ -12,7 +12,7 @@ static func draw(canvas: CanvasItem, fx: Dictionary, origin: Vector2, target: Ve
 	# Match Stormspire's colored aura / saturated body / paper-white core.
 	# All extra marks are drawn inside the existing bounded cosmetic effect.
 	var launch := maxf(0.0, 1.0 - age / 0.10)
-	if launch > 0.0:
+	if launch > 0.0 and fx.tower_kind != "rapid":
 		canvas.draw_circle(origin, (5.0 + age * 80.0) * zoom, Color(color, launch * 0.22))
 		canvas.draw_arc(origin, (3.0 + age * 60.0) * zoom, 0, TAU, 20, Color(color, launch), 1.5 * zoom, true)
 	if age < fx.flight:
@@ -22,7 +22,8 @@ static func draw(canvas: CanvasItem, fx: Dictionary, origin: Vector2, target: Ve
 			center += (target-origin).normalized().orthogonal() * sin(progress*PI) * 22.0 * zoom * fx.get("curve", 1.0)
 		canvas.draw_set_transform(center, direction, Vector2.ONE * zoom * (0.5 if fx.get("fragment", false) else 1.0))
 		var travel: float = origin.distance_to(target) / maxf(zoom, 0.01) * progress
-		wake(canvas, fx.tower_kind, minf(travel, 58.0 if fx.tower_kind == "heavy" else 44.0), age, color)
+		if fx.tower_kind != "rapid":
+			wake(canvas, fx.tower_kind, minf(travel, 58.0 if fx.tower_kind == "heavy" else 44.0), age, color)
 		match fx.tower_kind:
 			"hex_lantern":
 				VigilTerrainArt.polygon(canvas, PackedVector2Array([Vector2(-8,0),Vector2(0,-5),Vector2(8,0),Vector2(0,5)]), color, 1.5)
@@ -55,14 +56,12 @@ static func draw(canvas: CanvasItem, fx: Dictionary, origin: Vector2, target: Ve
 				flame_wave(canvas, 8.0 + progress * 4.0, VigilTerrainArt.GOLD)
 				canvas.draw_arc(Vector2(-5, 0), 11.0, -0.8, 0.8, 16, VigilTerrainArt.PAPER, 2.2, true)
 			"rapid":
-				canvas.draw_line(Vector2(-12, 0), Vector2(10, 0), Color(color, 0.22), 9.0, true)
-				# Pointed head, narrow shaft, and tail fins form a compact dart.
-				VigilTerrainArt.polygon(canvas, PackedVector2Array([
-					Vector2(10, 0), Vector2(1, -3.5), Vector2(1, -1.4),
-					Vector2(-6, -1.4), Vector2(-10, -4), Vector2(-8, 0),
-					Vector2(-10, 4), Vector2(-6, 1.4), Vector2(1, 1.4), Vector2(1, 3.5)
-				]), color, 1.3)
-				canvas.draw_line(Vector2(-6, 0), Vector2(8, 0), VigilTerrainArt.PAPER, 1.4, true)
+				# Separate wooden arrow; the hidden watchman fires through the gallery.
+				canvas.draw_line(Vector2(-5, 0), Vector2(4, 0), Color("624b35"), 1.5, true)
+				var tip := Color("56564e") if fx.get("branch", "") == "" else color
+				VigilTerrainArt.polygon(canvas, PackedVector2Array([Vector2(7, 0), Vector2(3, -2), Vector2(3, 2)]), tip, 0.8)
+				canvas.draw_line(Vector2(-5, -2), Vector2(-3, 0), Color("bfb295"), 1, true)
+				canvas.draw_line(Vector2(-5, 2), Vector2(-3, 0), Color("bfb295"), 1, true)
 			_:
 				VigilTerrainArt.disk(canvas, Vector2.ZERO, 5.0, color, 1.5)
 	else:

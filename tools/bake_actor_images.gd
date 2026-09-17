@@ -39,6 +39,8 @@ func bake() -> void:
 	var overwrite := "--overwrite-native" in OS.get_cmdline_user_args()
 	var status := OK
 	for entry in Atlas.recipes():
+		# Authored replacements retain their source pixels, resolution and anchor.
+		if catalog.get(entry.key, {}).get("authored", false): continue
 		var path: String = "res://assets/artwork/" + entry.key.trim_suffix("/") + ".png"
 		DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 		if overwrite or not FileAccess.file_exists(path):

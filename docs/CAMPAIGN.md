@@ -21,7 +21,7 @@ Each of the first three chapters introduces one milestone per level in this orde
 
 | Level within chapter | Tower | Chapter 1 | Chapter 2 | Chapter 3 |
 | --- | --- | --- | --- | --- |
-| 1 | Ashneedle | Tier 1 | Tier 2 | Tier 3 |
+| 1 | Gloamwatch | Tier 1 | Tier 2 | Tier 3 |
 | 2 | Pyre | Tier 1 | Tier 2 | Tier 3 |
 | 3 | Obelisk | Tier 1 | Tier 2 | Tier 3 |
 | 4 | Stormspire | Tier 1 | Tier 2 | Tier 3 |
@@ -30,9 +30,9 @@ Each of the first three chapters introduces one milestone per level in this orde
 | 7 | Caltrop Keep | Tier 1 | Tier 2 | Tier 3 |
 | 8 | Hex Lantern | Tier 1 | Tier 2 | Tier 3 |
 
-The milestone is available when its level becomes playable. Thus Ashneedle starts
+The milestone is available when its level becomes playable. Thus Gloamwatch starts
 available, beating level 1 opens Pyre for level 2, and beating chapter 1 opens
-Ashneedle tier 2. Costs still apply to building and upgrading each placed tower.
+Gloamwatch tier 2. Costs still apply to building and upgrading each placed tower.
 Existing tier 4 specializations become available at chapter 4; no equipment system
 or equipment rewards are added. Chapters 4–6 retain their original mission rules
 and receive three additional authored missions each.

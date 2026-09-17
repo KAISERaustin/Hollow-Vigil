@@ -6,7 +6,7 @@ const DAMAGE_TYPES := {"electric": "electric"}
 const UPGRADE_SOUNDS := {"rapid": "upgrade_rapid"}
 
 const TOWERS := {
-	"rapid": {"name": "Ashneedle", "role": "RAPID", "cost": 60.0, "damage": 6.0, "period": 0.48, "range": 140.0, "splash": 0.0, "color": "e0b568", "description": "Swift pointed darts cut through hollows and wraiths."},
+	"rapid": {"name": "Gloamwatch", "role": "RAPID", "cost": 60.0, "damage": 6.0, "period": 0.48, "range": 140.0, "splash": 0.0, "color": "613b34", "description": "A tireless watchman holds the road from blackened windows, cutting down lesser foes and finishing the wounded with disciplined bowfire."},
 	"splash": {"name": "Pyre", "role": "SPLASH", "cost": 120.0, "damage": 15.0, "period": 1.5, "range": 115.0, "splash": 46.0, "color": "db8d73", "description": "Flame waves burst on impact, striking every enemy within the blast radius."},
 	"heavy": {"name": "Obelisk", "role": "HEAVY", "cost": 160.0, "damage": 40.0, "period": 1.8, "range": 185.0, "splash": 0.0, "color": "b49dcc", "description": "Large magic orbs reach distant foes and deal heavy damage to resilient enemies."},
 	"electric": {"name": "Stormspire", "role": "MULTI-TARGET", "cost": 140.0, "damage": 3.0, "period": 0.4, "range": 160.0, "splash": 0.0, "targets": 5, "color": "91bbff", "description": "Forked lightning zaps up to {targets} enemies at a time within reach, of any troop type."},
@@ -17,7 +17,7 @@ const TOWERS := {
 }
 
 const PROJECTILES := {
-	"rapid": {"muzzle": Vector2(0, -25), "speed": 760.0, "min_flight": 0.10, "max_flight": 0.22, "impact_time": 0.09},
+	"rapid": {"muzzle": Vector2(0, -40), "speed": 760.0, "min_flight": 0.10, "max_flight": 0.22, "impact_time": 0.09},
 	"splash": {"muzzle": Vector2(0, -29), "speed": 520.0, "min_flight": 0.17, "max_flight": 0.30, "impact_time": 0.24},
 	"heavy": {"muzzle": Vector2(0, -22), "speed": 470.0, "min_flight": 0.18, "max_flight": 0.36, "impact_time": 0.18},
 	"electric": {"muzzle": Vector2(0, -29), "speed": 760.0, "min_flight": 0.0, "max_flight": 0.0, "impact_time": 0.30},
@@ -64,8 +64,8 @@ const TOWER_UPGRADES := {
 
 const BRANCHES := {
 	"rapid": {
-		"frostneedle": {"name": "Frostneedle", "color": "96d6e6", "cost": 180.0, "description": "Ice needles slow enemies by {slow_percent}% for {slow_duration} seconds. Repeated hits refresh the slow; they never stack."},
-		"thorn_volley": {"name": "Poison Arrow", "color": "93b979", "cost": 180.0, "description": "Arrows poison their target for {duration} seconds, dealing {poison_dps} damage each second. Hits from this tower refresh the poison without stacking."}
+		"frostneedle": {"name": "Frostneedle", "color": "758f9e", "cost": 180.0, "description": "Frost-tipped arrows slow enemies by {slow_percent}% for {slow_duration} seconds. Repeated hits refresh the slow; they never stack."},
+		"thorn_volley": {"name": "Poison Arrow", "color": "788346", "cost": 180.0, "description": "Arrows poison their target for {duration} seconds, dealing {poison_dps} damage each second. Hits from this tower refresh the poison without stacking."}
 	},
 	"splash": {
 		"cinderfield": {"name": "Cinderfield", "color": "f19b57", "cost": 320.0, "description": "Blasts leave burning ground for {burn_duration} seconds at {burn_dps} damage per second. Overlapping fire from this tower refreshes without stacking."},

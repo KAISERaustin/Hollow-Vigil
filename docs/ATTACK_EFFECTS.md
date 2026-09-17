@@ -5,8 +5,10 @@ saturated strokes, and paper-white highlights as the shared visual language.
 
 - Obelisk: violet orb, rotating arcane rings and rune ticks, weaving energy
   trails, and an expanding shock ring with radial fragments.
-- Ashneedle: pointed gold dart with a bright tapered tracer, launch flash,
-  and a compact spark impact that stays readable during rapid fire.
+- Gloamwatch: a separate wooden arrow with an iron or elemental tip, launched
+  from the black front gallery at (0, -40). No glowing launch ring or tracer;
+  the hidden watchman and arrows are never baked into the tower images.
+
 - Pyre: nested flame fronts, rolling trails and drifting embers, followed by
   a gold and coral blast ring with scattered hot sparks.
 - Stormspire: its existing lightning renderer is unchanged.

@@ -91,7 +91,12 @@ static func portal(canvas: CanvasItem, at: Vector2, zoom: float, core: bool) -> 
 ## Artwork families can supply framing bounds without putting type rules in UI.
 static func sentinel_portrait(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, frame: Rect2, level: int = 1, branch: String = "") -> void:
 	var bounds := Rect2()
-	if kind == "splash":
+	var images = preload("res://scripts/rendering/actors/actor_images.gd").for_canvas(canvas)
+	var entry: Dictionary = images.entries.get("tower/%s/%d/%s" % [kind, level, branch], {})
+	if entry.has("portrait_bounds"):
+		var b: Array = entry.portrait_bounds
+		bounds = Rect2(b[0], b[1], b[2], b[3])
+	elif kind == "splash":
 		bounds = preload("res://scripts/rendering/actors/fire_tower_art.gd").PORTRAIT_BOUNDS
 	elif kind in ["ironspike", "moonwheel", "hex_lantern", "caltrop_keep"]:
 		bounds = Rect2(-34, -70, 68, 84)
@@ -104,6 +109,12 @@ static func sentinel(canvas: CanvasItem, kind: String, at: Vector2, zoom: float,
 	preload("res://scripts/rendering/actors/actor_images.gd").for_canvas(canvas).tower(canvas, kind, at, zoom, level, branch, aim_angle)
 
 static func sentinel_vector(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, level: int = 1, branch: String = "", aim_angle: float = -PI / 2.0) -> void:
+	# Authored families have no obsolete vector version at export/high zoom.
+	var images = preload("res://scripts/rendering/actors/actor_images.gd").for_canvas(canvas)
+	var key := "tower/%s/%d/%s" % [kind, level, branch]
+	if images.entries.get(key, {}).get("authored", false):
+		images.draw(canvas, key, at, zoom)
+		return
 	if kind in ["ironspike", "moonwheel", "hex_lantern", "caltrop_keep"]:
 		preload("res://scripts/rendering/actors/expansion_tower_art.gd").draw(canvas, kind, at, zoom, level, branch, aim_angle)
 		return

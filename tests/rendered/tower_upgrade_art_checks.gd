@@ -39,7 +39,7 @@ func run() -> void:
 	var art := TowerImage.new()
 	viewport.add_child(art)
 	DirAccess.make_dir_recursive_absolute("res://artifacts/towers")
-	var names := {"rapid":"ashneedle", "heavy":"obelisk", "splash":"pyre", "electric":"stormspire"}
+	var names := {"rapid":"gloamwatch", "heavy":"obelisk", "splash":"pyre", "electric":"stormspire"}
 	var row := 0
 	for kind in ["rapid","heavy","splash","electric"]:
 		var previous := PackedByteArray()

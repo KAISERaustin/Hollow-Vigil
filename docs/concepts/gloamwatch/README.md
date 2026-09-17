@@ -1,7 +1,8 @@
 # Gloamwatch — The Arrow Watchtower
 
-Revised concept family, September 17, 2026. Concept artwork only; runtime art,
-content IDs, names, and combat balance remain unchanged.
+Approved Gloamwatch family, September 17, 2026. The five aligned images now ship
+as the rapid tower family through the shared runtime artwork catalog. Saved
+content IDs and combat balance remain unchanged.
 
 ## Current design
 
@@ -69,9 +70,21 @@ Retain the [shared crumbly-foundation prompt](../../APP_STYLE_THEME.md#tower-fou
 small stones build into lower walls and taper into scattered fragments, without
 a large terrain mound or altered gameplay placement footprint.
 
-## Future runtime integration
+## Runtime integration
 
-Keep the `rapid`, `frostneedle`, and `thorn_volley` identities and combat rules.
+The `rapid`, `frostneedle`, and `thorn_volley` identities and combat rules remain.
+The displayed base name is Gloamwatch. A tireless watchman holds the road from
+blackened windows, cutting down lesser foes and finishing the wounded with
+disciplined bowfire. Frostneedle and Poison Arrow retain their branch names.
+Runtime copies in `assets/artwork/tower/rapid/` are byte-identical to these PNGs.
+All five catalog bounds are (-25.6, -72.85, 51.2, 76.8), mapping the shared pixel
+anchor (512, 1457) to the ground origin at 20 pixels per world unit. Authored
+entries never fall back to the old vector drawings at high zoom and are protected
+from native rebaking. The shared projectile outlet is at (0, -40), inside the
+black front gallery; live wooden arrows remain separate from the images.
+An optional catalog alpha cutoff removes faint background residue from cached
+runtime textures only; the five approved PNGs remain byte-identical. The prepared
+textures are shared across canvases and retain their original colors and anchor.
 Use a shared stateless art family for battlefield, previews and portraits.
 During attacks, the first visible arrow should appear just outside the active
 black window, above its sill and clear of masonry. Projectiles remain separate
@@ -100,9 +113,8 @@ using the unaligned PNGs from commit `c530677` as SOURCE.
 The cumulative images were visually compared for shared shaft, door, window,
 roof and ground placement, along with the flag sequence. They remain generated
 concepts: small internal shape differences remain, especially in the
-poison branch, even though the placement anchors now match. Runtime integration
-must use a single immutable base layer with
-separate upgrade parts to guarantee pixel-identical placement and dimensions.
+poison branch, even though the placement anchors now match. This integration
+preserves the approved images rather than reshaping their internal architecture.
 
 The final color-only revision uses the user-approved deterministic conversion in
 `tools/gloamwatch_palette.py`, applied to the cumulative PNGs from commit
@@ -123,4 +135,5 @@ Current cumulative-edit prompts are in [aligned-progression-prompts.md](aligned-
 The [original concept](gloamwatch-concept.png), [original prompt](prompt.txt) and
 [first progression prompts](progression-prompts.md) are historical references.
 Their visible archers, brighter masonry and subtle poison directions are
-superseded. These illustrations are not runtime- or device-tested sprites.
+superseded. The current family has rendered checks at 360x640, 390x844 and
+540x960; physical iOS/Android device acceptance remains separate.

@@ -70,7 +70,7 @@ static func ironspike_base(c: CanvasItem, level: int, branch: String) -> void:
 static func ironspike_bow(c: CanvasItem, level: int, branch: String) -> void:
 	var siege := branch == "siegebreaker"
 	var battery := branch == "needle_battery"
-	# The horizontal bow makes this legible beside Ashneedle's pointed roof.
+	# The horizontal bow makes this legible beside Gloamwatch's pointed roof.
 	poly(c, [Vector2(-28, -30), Vector2(-22, -21), Vector2(-11, -25), Vector2(0, -29), Vector2(11, -25), Vector2(22, -21), Vector2(28, -30), Vector2(18, -26), Vector2(0, -35), Vector2(-18, -26)], BONE)
 	line(c, Vector2(-23, -22), Vector2(0, -10))
 	line(c, Vector2(0, -10), Vector2(23, -22))

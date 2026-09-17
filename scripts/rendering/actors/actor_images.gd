@@ -11,6 +11,7 @@ const TOWER_BOUNDS := Rect2(-48, -76, 96, 96)
 var textures: Dictionary = {}
 var entries: Dictionary = {}
 static var catalog_data: Dictionary = {}
+static var prepared_textures: Dictionary = {}
 
 static func for_canvas(canvas: CanvasItem):
 	if not canvas.has_meta("actor_images"):
@@ -49,6 +50,7 @@ func _init() -> void:
 
 func invalidate() -> void:
 	textures.clear()
+	prepared_textures.clear()
 	catalog_data = {}
 	_init()
 
@@ -56,12 +58,31 @@ func draw(canvas: CanvasItem, key: String, at: Vector2, zoom: float) -> bool:
 	if not entries.has(key): return false
 	var entry: Dictionary = entries[key]
 	if entry.has("native_fallback_above_zoom") and zoom > float(entry.native_fallback_above_zoom): return false
-	if not textures.has(key): textures[key] = load(entry.image)
+	if not textures.has(key): textures[key] = texture_for(entry)
 	var texture: Texture2D = textures[key]
 	if texture == null: return false
 	var b: Array = entry.bounds
 	canvas.draw_texture_rect(texture, Rect2(at + Vector2(b[0], b[1]) * zoom, Vector2(b[2], b[3]) * zoom), false)
 	return true
+
+## Optional import cleanup for authored cutouts with faint background residue.
+## Source PNGs remain untouched; cache the prepared texture across all canvases.
+static func texture_for(entry: Dictionary) -> Texture2D:
+	var texture: Texture2D = load(entry.image)
+	if texture == null or not entry.has("alpha_cutoff"): return texture
+	var cache_key := "%s/%s" % [entry.image, entry.alpha_cutoff]
+	if not prepared_textures.has(cache_key):
+		var picture := texture.get_image()
+		picture.clear_mipmaps()
+		picture.convert(Image.FORMAT_RGBA8)
+		var data := picture.get_data()
+		var cutoff := roundi(float(entry.alpha_cutoff) * 255.0)
+		for i in range(3, data.size(), 4):
+			if data[i] < cutoff: data[i] = 0
+		picture.set_data(picture.get_width(), picture.get_height(), false, Image.FORMAT_RGBA8, data)
+		picture.generate_mipmaps()
+		prepared_textures[cache_key] = ImageTexture.create_from_image(picture)
+	return prepared_textures[cache_key]
 
 func enemy(canvas: CanvasItem, kind: String, at: Vector2, zoom: float) -> void:
 	if not draw(canvas, "enemy/" + kind, at, zoom):

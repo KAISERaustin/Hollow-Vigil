@@ -8,7 +8,7 @@ base silhouettes, preserving the game's flat palette and black outlines.
 
 | Tower | Level 2 | Level 3 |
 | --- | --- | --- |
-| Ashneedle | Reinforced collar and side needles | Needle crown and wing armor |
+| Gloamwatch | Timber supports and top flag | Fortified buttresses and front banner |
 | Obelisk | Rune and stone collar | Satellite crystals and floating capstone |
 | Pyre | Stone buttresses, reinforced collar and hotter roof fire | Twin flame sconces around the battlements |
 | Stormspire | Conductive bands and charged tips | Outer lightning rods and arcing crown |
@@ -50,3 +50,14 @@ returning crescents, armed/unarmed road traps and orbiting blades from combat
 state. Exposed enemies display an eye mark through the shared affliction renderer.
 Game collision positions and visual positions share one owner; the cosmetic
 effect limit cannot suppress projectile damage or trap triggers.
+
+## Gloamwatch authored family
+
+The five approved, aligned PNGs in `assets/artwork/tower/rapid/` replace the
+legacy Ashneedle drawings at every zoom through `assets/artwork/catalog.json`.
+Battlefields, build ghosts, build cards, tower dialogs and branch previews use
+the same catalog. All stages share a ground anchor and 20 pixels per world unit;
+none are individually cropped or fitted in play. Catalog portrait bounds keep
+flags inside menu portraits. The baker preserves authored entries, including
+when `--overwrite-native` is requested. See [the source family](concepts/gloamwatch/README.md)
+for lore, the 16-color palette, exact alignment and generation history.

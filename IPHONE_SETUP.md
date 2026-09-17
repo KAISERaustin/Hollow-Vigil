@@ -113,7 +113,7 @@ Hollow Vigil 0.1.0 (build 1.0.0), bundle identifier `com.kaiser.hollowvigil`, wa
 
 Open **Hollow Vigil** on the phone to play. The engine and game are bundled in the app. No connection to this Mac, server, Wi-Fi or cellular service is needed for gameplay. Progress is saved in the app's own Documents directory. Offline earnings use the existing game rules: 80% of demonstrated production, capped at seven days.
 
-Start by buying a territory with a large **+** button for 100 gold, then buying an Ashneedle in an empty tower socket for 60 gold.
+Start by buying a territory with a large **+** button for 100 gold, then buying an Gloamwatch in an empty tower socket for 60 gold.
 
 ## Signing expiration
 

@@ -63,7 +63,7 @@ static func content_coverage(t) -> void:
 
 static func tower_instances(t) -> void:
 	var registry := Content.new()
-	# A new Pike subtype reuses Ashneedle's existing combat/upgrade mechanics.
+	# A new Pike subtype reuses Gloamwatch's existing combat/upgrade mechanics.
 	# This private registry keeps example content out of shipped menus and saves.
 	var pike = registry.get_node("tower/rapid").derive("tower/pike", {"name": "Pike", "damage": 12.0}, {"kind": "pike"})
 	t.check(registry.register_node(pike, "towers", "pike") and pike is Content.TowerNode, "New named tower subtypes reuse the family's implementation")
