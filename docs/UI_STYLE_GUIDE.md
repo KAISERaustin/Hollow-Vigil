@@ -1,6 +1,6 @@
 # Hollow Vigil UI style guide
 
-Version 3.1 · Pickard / Moonlit iron · September 16, 2026
+Version 3.2 · Pickard / Moonlit iron · September 16, 2026
 
 ## Start with the theme
 
@@ -18,7 +18,7 @@ The opening image is the largest source of truth for every future screen.
 
 Version 3 supersedes Version 2's parchment-first backgrounds, yellow primary
 buttons and pastel panel defaults. Keep the useful existing card hierarchy,
-compact spacing, 2-unit black button borders, 3-unit panel/divider borders,
+compact spacing, 1-unit black button borders, 1-unit panel/divider borders,
 4-unit corners and mobile input behavior.
 Use dark reading surfaces and warm light text as defined in the theme. The shared
 runtime now applies these roles across menus and gameplay UI.
@@ -40,9 +40,11 @@ Use `scripts/ui/shared/interface.gd` for primitives and semantic roles. Extend i
 and the reusable components before creating local variants. Existing helpers such
 as `info_card`, `stat`, `rule`, `action_row`, `number_row`, `button`, `style_entry`
 and `keyboard_scroll` preserve structure while their semantic presentation evolves.
-The theme's palette roles are implemented in that owner. Button colors can be
-changed in Settings using Moonlit Iron, Ashen Steel, Dusk Violet or Ember Bronze;
-use `UI.button_surface()` so both live palette changes and 2-unit rims apply.
+The theme's fixed action roles are implemented in that owner: iron for neutral
+actions, steel for navigation, violet for editing and bronze for building and
+recovery. Their light companions emphasize commitments; cloak red marks danger.
+The colors coexist within menus, with no player color selector. Use the shared
+role helpers and `UI.button_surface()` so every button retains its 1-unit rim.
 
 Keep text separate from surface tint. Shared world ink/paper/gold constants also
 serve artwork, so a UI restyle must not globally recolor terrain or currency.
@@ -61,8 +63,7 @@ including helmet, sword, shield and boots. Actions sit below him over quiet grou
 
 Current title size responds from 32 to 52; current actions are 56 high, up to 320
 wide, with a 14-unit vertical gap. Preserve their layout during future styling.
-The theme defines their color treatment; the selected palette supplies an aged
-primary and a muted secondary. The live controls respect safe areas and stay reachable
+Campaign uses aged metal and Settings uses steel as defined by the theme. The live controls respect safe areas and stay reachable
 through scrolling at short portrait heights. Artwork never owns input and must
 not bake text or buttons into its pixels.
 
@@ -74,17 +75,17 @@ accents; they do not require a full-screen duplicate of the hero.
 ### Full pages, settings and forms
 
 Use the existing `unified_menu.gd` / `save_slots_panel.gd` shell. Back and title
-stay above the scroll area; progression actions stay below. Use 12-unit safe-area
-insets and 12-unit separation between these major regions. Keep action order and
+stay above the scroll area; progression actions stay below. Use 11-unit safe-area
+insets and 11-unit separation between these major regions. Keep action order and
 current navigation semantics. Do not add feature controls to fill unused space.
 
 For descriptive setting/option rows, put labels and explanations left and values
-or action controls right, with a black 3-unit divider below each row. Group
+or action controls right, with a black 1-unit divider below each row. Group
 multiple controls at the right and reflow them without reducing 48-unit targets.
 Fields remain directly editable; toggles show On/Off. Use the shared form and
 numeric rows and preserve a passive area from which to swipe.
 
-Settings, Button colors, Sound, Account, Bug report, Change log, My builds,
+Settings, Sound, Account, Bug report, Change log, My builds,
 Community, Save build and Backups share this structure. Keep form errors visible after fixed-footer
 actions, and preserve first/last-item access when a page rebuilds. Keep Save
 privately before Share to Community, and keep publication an explicit action.
@@ -110,7 +111,7 @@ each row, including disabled/selected rows. Never turn the description into a
 full-row tap target that makes scrolling select items.
 
 The picker has a fixed title, Close at the right and a header divider above its
-scrolling choices. Fit it inside the owning safe viewport with 12-unit clearance,
+scrolling choices. Fit it inside the owning safe viewport with 11-unit clearance,
 up to 480 wide and 560 high. The existing direct-choice save-slot variant sizes
 to content and keeps its full-width choices. Reveal the selected item on opening;
 restore focus on dismissal. Closing or dragging must not select accidentally.
@@ -145,7 +146,7 @@ No color alone may communicate a purchase consequence.
 ### Campaign map and battlefield
 
 The map has fixed Back/title navigation above six edge-to-edge illustrated biome
-sections, separated by one black 3-unit line. Preserve chapter scenery, trails,
+sections, separated by one black 1-unit line. Preserve chapter scenery, trails,
 numbered destinations, unlock/completion states and at least 48-unit level targets.
 Keep text clear of full artwork bounds. World illustrations follow the art guide;
 map controls use the theme's common dark surfaces and readable text.
@@ -200,8 +201,8 @@ selected/disabled/modal states and safe-area behavior. Run the focused tests in
 [tests/README.md](../tests/README.md). Desktop simulation does not establish
 physical iOS/Android acceptance.
 
-Check the actual rendered dark palette in every state, including all four button
-color presets. Use `moonlit_theme_runner.gd` for the complete menu inventory and
+Check the actual rendered dark palette in every state, including the fixed
+iron, steel, violet and bronze actions and their emphasized variants. Use `moonlit_theme_runner.gd` for the complete menu inventory and
 contrast/border checks, plus the relevant interaction runners.
 
 Keep this guide, `UI_THEME.md`, `ART_DIRECTION.md` and `AGENTS.md` aligned. After

@@ -16,7 +16,7 @@ func _ready() -> void:
 	rows.name = "ChangeLogSections"
 	rows.add_theme_constant_override("separation", UI.GAP * 2)
 	add_child(rows)
-	more_button = UI.button("Load older changes", func(): await service.load_page())
+	more_button = UI.navigation_button("Load older changes", func(): await service.load_page())
 	more_button.name = "ChangeLogMore"
 	add_child(more_button)
 	service.changed.connect(refresh)

@@ -15,7 +15,7 @@ static func curve(from: Vector2, to: Vector2, departure: Vector2 = Vector2.INF, 
 	return points
 
 static func trail(canvas: CanvasItem, points: PackedVector2Array, completed: bool) -> void:
-	canvas.draw_polyline(points, Art.INK, 10 + UI.OUTLINE * 2, true)
+	canvas.draw_polyline(points, Art.INK, 16, true) # World trail art is independent of UI rim width.
 	canvas.draw_polyline(points, Art.GOLD if completed else Art.ROAD, 10, true)
 	# Worn stepping stones follow the real curve and never change its hit areas.
 	var travelled := 0.0

@@ -29,7 +29,7 @@ func show_levels() -> void:
 	add_child(UI.heading("Levels", 24))
 	for index in Configuration.Catalog.COUNT:
 		var title := "Level %d · %s" % [index + 1, Configuration.Catalog.level(index).name]
-		var open := UI.button("Open", show_level.bind(index))
+		var open := UI.edit_button("Open", show_level.bind(index))
 		open.name = "EditLevel%d" % index
 		add_child(UI.action_row(title, open, "Open"))
 
@@ -52,7 +52,7 @@ func show_item() -> void:
 	group = ""
 	var title := "Level %d · %s" % [selected + 1, Configuration.Catalog.level(selected).name]
 	add_child(UI.heading(title, 24))
-	add_child(UI.button("Stats", open_group.bind("Stats")))
+	add_child(UI.edit_button("Stats", open_group.bind("Stats")))
 	route_changed.emit(title, true)
 
 func open_group(label: String) -> void:

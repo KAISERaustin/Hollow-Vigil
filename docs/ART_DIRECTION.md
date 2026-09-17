@@ -35,10 +35,10 @@ dark charcoal-green foundations, iron surfaces, parchment-colored text, muted
 cloak red and restrained aged-metal accents. The current Campaign/Settings button
 colors do not define that style. Read [UI_THEME.md](UI_THEME.md) and Version 3 of
 [UI_STYLE_GUIDE.md](UI_STYLE_GUIDE.md) for layout and interaction rules. The opening
-screen establishes the common theme, not an exception. Preserve black 2-unit
-button borders, 3-unit other UI borders and portrait layouts. Historical notes below describe existing assets;
+screen establishes the common theme, not an exception. Preserve black 1-unit
+button borders, 1-unit other UI borders and portrait layouts. Historical notes below describe existing assets;
 their tan/yellow/pastel UI fills do not override the new dark theme. Shared runtime
-UI now uses this palette; Settings offers four compatible button color sets without recoloring world artwork.
+UI now uses this palette; fixed iron, steel, violet and bronze action roles coexist in menus without recoloring world artwork.
 
 Gear direction, revised September 7, 2026: the user requested the greater detail
 shown in the upgraded portal references. All eighteen gear objects use layered
@@ -55,8 +55,7 @@ yellow/red parchment variants for semantic actions; world artwork remains flat.
 The asset and generation prompt are documented in `assets/ui/WELCOME_ART.md`.
 The main menu uses generated edge-to-edge moonlit Pickard artwork with a live
 parchment serif wordmark in the sky and actions over the dark foreground.
-Campaign uses the selected palette's aged-metal primary; Settings uses its muted
-secondary. Their geometry remains shared.
+Campaign uses the fixed aged-metal primary; Settings uses steel. Their geometry remains shared.
 
 Boss direction, revised September 6, 2026: use native flat drawings in
 `boss_art.gd`, referenced against the current tiles, core/rift portals and enemy
@@ -75,8 +74,8 @@ subtitle. Health, root shield and ward indicators remain separate.
 - Terrain: Campaign landscapes use the authored level geometry and shared biome art. Roads follow the authored paths continuously and remain legible beneath battlefield objects and controls.
 - Scenery: at most three tiny outlined symbols per tile. Reserve roads, sockets, and full tower silhouettes.
 - Towers: pointed tower, fire-crowned masonry watchtower, obelisk and lightning spire. Pyre uses a tall stone shaft, crenellated parapet, black arched furnace and layered flat flames, borrowing the portals' cut-stone construction. Its tiers and both final branches compose `scripts/rendering/actors/fire_tower_art.gd`; preserve the common socket anchor and attack outlet. Enemies: circle, small ghost, block shape; each has two eyes.
-- UI: follow [UI_THEME.md](UI_THEME.md) and [UI_STYLE_GUIDE.md](UI_STYLE_GUIDE.md) Version 3. The Pickard main image defines the dark color/material direction. Keep 2-unit black button borders and 3-unit other enclosures/dividers, 0/4-unit corners, 12-unit card padding, 8-unit inset padding/cell gaps and 12-unit section/action gaps. Preserve bold values above labels, native portraits, right-side row actions, fixed navigation and scrolling. Noto Sans carries controls; Noto Serif carries large titles. Use light text on dark surfaces and explicit state/consequence wording. World artwork retains its own palette and outlines.
-- Campaign play: one compact control bar above edge-to-edge terrain. Level identity and live values sit in compact floating cards with the shared 3-unit black border and 4-unit corners. Fill one row below the toolbar with three cards: numbered level title (1. Briar Bend), gold and wave count; no shadows, glow, battlefield enclosure or bottom action panel. Reuse the shared toolbar and floating HUD; respect safe areas for text and controls. Their existing parchment fills are legacy presentation; future UI styling follows the dark theme.
+- UI: follow [UI_THEME.md](UI_THEME.md) and [UI_STYLE_GUIDE.md](UI_STYLE_GUIDE.md) Version 3. The Pickard main image defines the dark color/material direction. Keep 1-unit black button borders and 1-unit other enclosures/dividers, 0/4-unit corners, 11-unit card padding, 8-unit inset padding/cell gaps and 11-unit section/action gaps. Preserve bold values above labels, native portraits, right-side row actions, fixed navigation and scrolling. Noto Sans carries controls; Noto Serif carries large titles. Use light text on dark surfaces and explicit state/consequence wording. World artwork retains its own palette and outlines.
+- Campaign play: one compact control bar above edge-to-edge terrain. Level identity and live values sit in compact floating cards with the shared 1-unit black border and 4-unit corners. Fill one row below the toolbar with three cards: numbered level title (1. Briar Bend), gold and wave count; no shadows, glow, battlefield enclosure or bottom action panel. Reuse the shared toolbar and floating HUD; respect safe areas for text and controls. Their existing parchment fills are legacy presentation; future UI styling follows the dark theme.
 Collection feedback is an ochre outlined badge centered over the visible Unclaimed earnings caption, using its measured text width rather than its container width; it rises 36 pixels over 0.95 seconds and fades after a brief hold.
 
 The artwork implementation lives in scripts/rendering/terrain/terrain_art.gd, scripts/rendering/terrain/terrain_tile.gd, scripts/rendering/terrain/terrain_grid.gd and scripts/rendering/battlefield.gd. The shared UI theme is scripts/ui/shared/interface.gd; bundled fonts and licenses are in assets/fonts. The app icon uses a close-up of Pickard's angular iron helmet and muted red cloak against a parchment moon and charcoal-green ruins, as documented in docs/APP_ICON.md. Current UI captures are artifacts/style-*.png, regenerated with `./launch.ps1 -StyleTests`.
@@ -126,7 +125,7 @@ artwork bounds, and exports every full chapter at 360, 390 and 540 units plus
 `artifacts/campaign-landscape-gallery.png`. The map runner also checks landscape
 clearance, portrait-phone navigation and both ends of every chapter.
 
-The campaign world map uses six edge-to-edge biome sections with native scenery, winding ink-bordered trails and one shared 3-unit divider between sections. This is the shared theme's illustrated map composition, with scenery as its foundation and no parchment page background or chapter cards. Keep title/Back navigation fixed above the scroll viewport. See the Campaign world map recipe in `UI_STYLE_GUIDE.md`; dialog styling follows the same theme's dark reading surfaces.
+The campaign world map uses six edge-to-edge biome sections with native scenery, winding ink-bordered trails and one shared 1-unit divider between sections. This is the shared theme's illustrated map composition, with scenery as its foundation and no parchment page background or chapter cards. Keep title/Back navigation fixed above the scroll viewport. See the Campaign world map recipe in `UI_STYLE_GUIDE.md`; dialog styling follows the same theme's dark reading surfaces.
 
 Completed levels use `scripts/campaign/cleared_level_art.gd`, a stateless shared drawing component composed by `level_marker.gd`. Broken parchment stone, scattered masonry and an ochre beacon replace the intact marker; chapter bosses use collapsed gate jambs with the same beacon. Numbers remain readable and completion comes only from campaign progress. Flames are flat and static, with no glow or particles. Unfinished destinations retain their existing artwork. Regenerate mobile reference captures with `--script res://tools/previews/cleared_map_preview.gd`.
 
@@ -138,4 +137,4 @@ Currency text uses a centered ochre coin with black rim, inset ring and diamond,
 
 Effects read live status/strength and the shared combat aura query, without visual timers or persistent state. Expired, removed and zero-strength effects disappear; rebuilding towers do not display the boost. `tests/rendered/hex_effect_runner.gd` exports all eight boosted tower families, poison/ice/hex comparisons and combined effects at two animation phases in 360x640, 390x844 and 540x960 portrait views. Run it through `launch.ps1 -ArtSmoke` or `-Check`.
 
-Rule presentation uses dark cards inside a recessed Added section. Preserve one headed card per related rule and keep its fields/disable action together. Retain the labeled Default/Added hierarchy through restrained semantic markers. Use the shared rule-card owner, 3-unit black borders, 4-unit corners and 12-unit padding. Do not restore retired editable capabilities to demonstrate the theme.
+Rule presentation uses dark cards inside a recessed Added section. Preserve one headed card per related rule and keep its fields/disable action together. Retain the labeled Default/Added hierarchy through restrained semantic markers. Use the shared rule-card owner, 1-unit black borders, 4-unit corners and 11-unit padding. Do not restore retired editable capabilities to demonstrate the theme.

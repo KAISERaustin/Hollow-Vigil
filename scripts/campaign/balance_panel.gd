@@ -70,12 +70,12 @@ func build_scope() -> void:
 	reward.name = "CampaignWaveReward"
 	groups = mission.waves[scope].duplicate(true)
 	build_groups(mission)
-	var reset := UI.button("Reset wave to default", func():
+	var reset := UI.accent_button("Reset wave to default", func():
 		draft = Editor.reset_wave(index, committed, scope)
 		groups = draft.waves[str(scope)].groups.duplicate(true)
 		save_changes()
 		build_scope.call_deferred()
-	)
+	, UI.DANGER)
 	reset.name = "ResetCampaignWave"
 	body.add_child(reset)
 
@@ -138,11 +138,11 @@ func build_groups(mission: Dictionary) -> void:
 				else: group[5] = value
 		)
 		payout.name = "CampaignGroupGold%d" % group_index
-		body.add_child(UI.button("Remove this enemy group", func():
+		body.add_child(UI.accent_button("Remove this enemy group", func():
 			groups.remove_at(group_index)
 			save_changes()
 			build_scope.call_deferred()
-		))
+		, UI.DANGER))
 	var add := enemy_picker("Add enemies")
 	add.name = "AddWaveEnemies"
 	add.text = "Add enemies"

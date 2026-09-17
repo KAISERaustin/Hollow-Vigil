@@ -26,7 +26,7 @@ func run() -> void:
 	for index in Build.Configuration.Catalog.COUNT:
 		levels[str(index)] = {"overrides": {"gold": 800 + index, "reward": 13 + index, "tuning": {"enemies": {"basic": {"hp": 101 + index}}, "towers": {"rapid": {"damage": 31 + index}}}, "waves": {"0": {"groups": [["basic", 3, 0, 1.5, 0.75, 17 + index]], "reward": 23 + index, "tuning": {"rifts": {"forest": {}}}}}}}
 		levels[str(index)].overrides.waves["0"].erase("tuning")
-	var build := Build.capture("campaign", null, levels, "all", -1, Build.all_contents("campaign"), "Cloud acceptance", "All thirty levels and specific wave and entity rules")
+	var build := Build.capture("campaign", null, levels, "all", -1, Build.all_contents("campaign"), "Cloud acceptance", "All 48 levels and specific wave and entity rules")
 	assert(not build.is_empty())
 	var code := Build.encode(build)
 	assert(not code.is_empty())
@@ -39,12 +39,12 @@ func run() -> void:
 		assert(mission.wave_rules[0].reward == 23 + index)
 		assert(mission.tuning.enemies.basic.hp == 101 + index)
 		assert(mission.tuning.towers.rapid.damage == 31 + index)
-	var snapshot := {"version": 1, "sequence": 1, "game_type": "campaign", "id": "12345678-1234-4234-8234-123456789012", "name": "Campaign backup", "mode": "creative", "saved_at": 0, "completed": 30, "stats_version": 1, "levels": levels, "checkpoint": {}}
+	var snapshot := {"catalog_revision": 2, "version": 1, "sequence": 1, "game_type": "campaign", "id": "12345678-1234-4234-8234-123456789012", "name": "Campaign backup", "mode": "creative", "saved_at": 0, "completed": 48, "stats_version": 1, "levels": levels, "checkpoint": {}}
 	assert(Slots.valid(snapshot))
 	var waves := Build.capture("campaign", null, levels, "all", -1, {"resources": true, "timing": true, "composition": true, "rewards": true}, "All Campaign waves", "")
-	var entities := Build.capture("campaign", null, levels, "level", 29, Build.all_contents("campaign"), "Level 30 entity rules", "")
+	var entities := Build.capture("campaign", null, levels, "level", 47, Build.all_contents("campaign"), "Level 48 entity rules", "")
 	var fixtures := {"build": JSON.parse_string(Build.encode(waves)), "entities": JSON.parse_string(Build.encode(entities)), "snapshot": snapshot}
 	FileAccess.open("res://artifacts/campaign-cloud-catalog.json", FileAccess.WRITE).store_string(JSON.stringify(catalog))
 	FileAccess.open("res://artifacts/campaign-cloud-fixtures.json", FileAccess.WRITE).store_string(JSON.stringify(fixtures))
-	print("CAMPAIGN CLOUD CONTRACT: 30 levels preserve resources, entity rules, waves and per-group gold")
+	print("CAMPAIGN CLOUD CONTRACT: 48 levels preserve resources, entity rules, waves and per-group gold")
 	quit()

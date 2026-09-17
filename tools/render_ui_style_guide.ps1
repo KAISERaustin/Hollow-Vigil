@@ -12,7 +12,7 @@ $taskShell = @'
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Hollow Vigil UI Standard · Pickard / Moonlit iron</title>
 <style>
-:root { --ink: #000; --text: #e8ddbd; --panel: #2b3533; --inset: #222a29; --outline: 3px; }
+:root { --ink: #000; --text: #e8ddbd; --panel: #2b3533; --inset: #222a29; --outline: 1px; }
 * { box-sizing: border-box; }
 body { margin: 0; background: #141b1a; color: var(--text); font: 16px/1.6 "Segoe UI", sans-serif; }
 main { max-width: 1040px; margin: 24px auto; padding: 32px; background: var(--panel); border: var(--outline) solid var(--ink); border-radius: 4px; }

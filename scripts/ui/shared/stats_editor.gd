@@ -26,7 +26,7 @@ func _ready() -> void:
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 8)
 	for label in ["Stats"]:
-		var button := UI.button(label, func():
+		var button := UI.edit_button(label, func():
 			commit_fields()
 			group = label
 			choosing = false
@@ -90,7 +90,7 @@ func rebuild() -> void:
 			else: build_capabilities(false)
 			if section_body.get_child_count() == 2:
 				section_body.add_child(UI.paragraph("No added " + group.to_lower() + " yet." if added else "No default " + group.to_lower() + ".", 14))
-		var add := UI.gold_button("Add " + {"Stats": "Stat", "Abilities": "Ability", "Attributes": "Attribute"}[group], func(): commit_fields(); choosing = true; rebuild(); call_deferred("reveal_editor"))
+		var add := UI.edit_button("Add " + {"Stats": "Stat", "Abilities": "Ability", "Attributes": "Attribute"}[group], func(): commit_fields(); choosing = true; rebuild(); call_deferred("reveal_editor"))
 		add.name = {"Stats": "AddStat", "Abilities": "AddAbility", "Attributes": "AddAttribute"}[group]
 		if category == "towers": section_body.add_child(add)
 		else: add.free()
@@ -114,7 +114,7 @@ func build_stat_catalog() -> void:
 		if Stats.enabled(category, kind, field, game.tuning): continue
 		var label: String = descriptor.label
 		var requirement: String = descriptor.get("requires", "")
-		var button := UI.button(label + " · Add", func():
+		var button := UI.edit_button(label + " · Add", func():
 			var candidate := game.tuning
 			if not requirement.is_empty(): candidate = Stats.attach(candidate, category, kind, requirement)
 			candidate = Stats.edit(candidate, category, kind, "enabled_" + field, 1)
@@ -134,7 +134,7 @@ func build_capabilities(catalog: bool) -> void:
 			if not catalog and enabled: add_stat(field)
 			if catalog:
 				var label: String = Stats.Capabilities.RESISTANCES[field]
-				var add := UI.button(label + (" · Enabled" if enabled else " · Add"), func():
+				var add := UI.edit_button(label + (" · Enabled" if enabled else " · Add"), func():
 					changed(Stats.edit(Stats.edit(game.tuning, category, kind, "enabled_" + field, 1), category, kind, field, Stats.value(category, kind, field, game.tuning)))
 					choosing = false
 					rebuild()
@@ -149,7 +149,7 @@ func build_capabilities(catalog: bool) -> void:
 		var enabled := Stats.ability_enabled(category, kind, ability, game.tuning)
 		if not catalog and not enabled: continue
 		var label: String = descriptor.name
-		var button := UI.button(label + (" · Enabled" if catalog and enabled else (" · Add" if catalog else " · Disable")), func():
+		var button := UI.edit_button(label + (" · Enabled" if catalog and enabled else (" · Add" if catalog else " · Disable")), func():
 			commit_fields()
 			changed(Stats.attach(game.tuning, category, kind, ability, catalog))
 			choosing = false

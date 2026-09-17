@@ -16,17 +16,17 @@ func run() -> void:
 		for wave in range(report.waves.size()):
 			check(report.waves[wave].spawn_count == Configuration.schedule(mission, wave).size(), "Exported wave count matches scheduling")
 	var overrides := {"tuning": {"enemies": {"basic": {"hp": 100.0}}, "towers": {"rapid": {"cost": 120.0}, "rapid:2": {"cost": 37.0}}}, "waves": {"1": {"tuning": {"enemies": {"basic": {"hp": 999.0}}, "towers": {"rapid:2": {"cost": 999.0}}}, "groups": [["basic", 3, 0, 2, 0.5, 19.0]], "reward": 71.0}}}
-	var configured := Configuration.resolve(6, overrides)
+	var configured := Configuration.resolve(9, overrides)
 	var waves := Configuration.wave_reports(configured)
 	check(waves[1].effective_stats.towers["rapid:2"].cost == 37.0, "Exported upgrade price uses transaction calculation")
 	check(not waves[1].changes_from_previous_wave.has("effective_stats"), "Wave overrides cannot alter the shared entity Stats")
 	check(waves[1].groups[0].gold_per_defeat == 19.0 and waves[1].total_defeat_gold == 57.0, "Wave export includes independent group rewards")
-	var battle := Run.new(6, overrides)
+	var battle := Run.new(9, overrides)
 	battle.wave = 1
 	battle.start_wave()
 	battle.tick(2.0)
 	check(battle.game.combat.enemies[0].max_hp == waves[1].groups[0].spawn_health, "Exported health matches actual campaign spawn including biome effect")
 	check(waves[1].groups[0].spawn_health == 125.0 and waves[1].total_spawn_health == 375.0, "Wave totals reflect custom stats and biome modifiers")
-	check(Configuration.export_level(6, {"gold": -1}).is_empty(), "Invalid configuration cannot be exported")
+	check(Configuration.export_level(9, {"gold": -1}).is_empty(), "Invalid configuration cannot be exported")
 	print("CAMPAIGN EXPORT: %d checks, %d failures" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)

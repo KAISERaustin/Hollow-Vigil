@@ -63,7 +63,7 @@ func _draw() -> void:
 		return
 	var outline := PackedVector2Array([Vector2(8,8), Vector2(16,2), Vector2(39,2), Vector2(47,10), Vector2(45,47), Vector2(9,47), Vector2(6,38), Vector2(8,8)])
 	for i in range(outline.size()): outline[i] += offset
-	draw_colored_polygon(outline, UI.button_color(paper))
+	draw_colored_polygon(outline, paper)
 	draw_polyline(outline, Color.BLACK, UI.BUTTON_OUTLINE, true)
 	draw_line(Vector2(12,40)+offset, Vector2(40,40)+offset, UI.MUTED, 2)
 	draw_line(Vector2(14,10)+offset, Vector2(20,6)+offset, UI.MUTED, 2)

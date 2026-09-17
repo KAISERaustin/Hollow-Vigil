@@ -49,6 +49,7 @@ var equipment_state := ""
 var preview_state := ""
 var upgrade_armed := false
 var branch_cards: VBoxContainer
+var unlock_requirement: Label
 
 func _ready() -> void:
 	name = "TowerDialog"
@@ -116,6 +117,10 @@ func _ready() -> void:
 	header_divider.custom_minimum_size.y = UI.OUTLINE
 	header_divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layout.add_child(header_divider)
+	unlock_requirement = UI.paragraph("", 14)
+	unlock_requirement.name = "TowerUnlockRequirement"
+	layout.add_child(unlock_requirement)
+	unlock_requirement.hide()
 	equipment_summary = VBoxContainer.new()
 	equipment_summary.hide()
 	layout.add_child(equipment_summary)
@@ -212,6 +217,8 @@ func open_action(action: String, branch: String = "") -> void:
 	equipment_state = equipment_fingerprint()
 	portrait.queue_redraw()
 	tower_level = int(tower.level)
+	unlock_requirement.text = app.game.economy.unlock_reason(tower_kind, tower_level + 1) if tower_level < Balance.MAX_TOWER_LEVEL else ""
+	unlock_requirement.visible = action in ["info", "preview", "upgrade"] and not unlock_requirement.text.is_empty()
 	if is_instance_valid(level_display):
 		level_holder.remove_child(level_display)
 		level_display.queue_free()
@@ -256,7 +263,7 @@ func open_action(action: String, branch: String = "") -> void:
 			branches.add_theme_constant_override("separation", 8)
 			body.add_child(branches)
 			for option in Balance.BRANCHES[tower_kind]:
-				var choice := UI.button(Balance.stats(tower_kind, next_level, app.game.tuning, option).name, func(): open_action("preview", option), 48)
+				var choice := UI.management_button(Balance.stats(tower_kind, next_level, app.game.tuning, option).name, func(): open_action("preview", option), 48)
 				choice.name = "Preview_" + option
 				choice.toggle_mode = true
 				choice.set_pressed_no_signal(option == tower_branch)
@@ -272,13 +279,13 @@ func open_action(action: String, branch: String = "") -> void:
 		var group := ButtonGroup.new()
 		var descriptions := {"first": "Closest to the core", "last": "Farthest from the core", "most_hp": "Highest current health"}
 		for key in Balance.TARGET_MODES:
-			var choice := UI.button(Balance.TARGET_MODES[key] + "\n" + descriptions[key], func(): target_choice = key, 64)
+			var choice := UI.edit_button(Balance.TARGET_MODES[key] + "\n" + descriptions[key], func(): target_choice = key, 64)
 			choice.add_theme_font_size_override("font_size", UI.type_size(14))
 			choice.name = "Target_" + key
 			choice.toggle_mode = true
 			choice.button_group = group
-			choice.add_theme_stylebox_override("pressed", UI.button_surface(UI.GOLD))
-			choice.add_theme_stylebox_override("hover_pressed", UI.button_surface(UI.GOLD))
+			choice.add_theme_stylebox_override("pressed", UI.button_surface(UI.ROSE))
+			choice.add_theme_stylebox_override("hover_pressed", UI.button_surface(UI.ROSE))
 			choice.add_theme_color_override("font_pressed_color", UI.ON_PRIMARY)
 			choice.add_theme_color_override("font_hover_pressed_color", UI.ON_PRIMARY)
 			choice.button_pressed = key == target_choice
@@ -311,7 +318,7 @@ func open_action(action: String, branch: String = "") -> void:
 			var action_button := management_button(item[0], item[1], open_action.bind(item[0]))
 			(management_bottom if item[0] == "move" else top).add_child(action_button)
 	var text: String = {"info": "Upgrade", "preview": "Upgrade · " + UI.exact_money(cost) + " gold", "upgrade": "Upgrade · " + UI.exact_money(cost) + " gold", "sell": "Sell · +" + UI.exact_money(refund) + " gold", "move": "Choose destination", "target": "Apply targeting", "equipment": "Apply equipment"}[action]
-	confirm = UI.accent_button(text, func(): commit(opened_revision), UI.DANGER if action == "sell" else UI.GOLD, 48)
+	confirm = UI.accent_button(text, func(): commit(opened_revision), UI.DANGER if action == "sell" else (UI.ROSE if action == "target" else UI.COPPER), 48)
 	confirm.name = "ConfirmTowerAction"
 	confirm.add_theme_font_size_override("font_size", UI.type_size(16))
 	if action == "info":
@@ -410,9 +417,10 @@ func configure_management_button(button: Button, action: String, label: String) 
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	button.accessibility_name = label
 	button.accessibility_description = label
-	UI.style_button_ink(button, UI.ON_PRIMARY if action == "upgrade" else UI.TEXT)
+	var fill := preload("res://scripts/ui/towers/tower_action_icon.gd").fill(action)
+	UI.style_button_ink(button, UI.ink_on(fill))
 	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
-		var style := UI.button_surface(UI.DISABLED if state == "disabled" else (UI.GOLD if action == "upgrade" else UI.SURFACE))
+		var style := UI.button_surface(UI.DISABLED if state == "disabled" else fill)
 		style.set_content_margin_all(0)
 		button.add_theme_stylebox_override(state, style)
 	button.draw.connect(func():

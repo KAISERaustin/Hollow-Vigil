@@ -26,7 +26,7 @@ func _ready() -> void:
 			app.audio.set_volume(category, value / 100.0)
 			app.persist()
 		)
-		var preview := UI.button("", func(): preview_category(category))
+		var preview := UI.navigation_button("", func(): preview_category(category))
 		preview.icon = preload("res://assets/ui/play.svg")
 		preview.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		preview.set_meta("audio_preview", true)
@@ -39,7 +39,7 @@ func _ready() -> void:
 			preview.disabled = true
 			preview.accessibility_name = "Music is playing; change its volume to listen"
 		add_child(UI.number_row(category.capitalize(), number, preview, category_art(category)))
-	var reset := UI.button("Restore sound defaults", func():
+	var reset := UI.edit_button("Restore sound defaults", func():
 		for category in app.audio.DEFAULTS:
 			app.audio.set_volume(category, app.audio.DEFAULTS[category])
 		app.audio.set_muted(false)

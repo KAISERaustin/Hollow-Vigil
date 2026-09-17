@@ -86,12 +86,8 @@ func load_preferences() -> void:
 	if config.load(preferences_path()) == OK:
 		var settings: Variant = config.get_value("preferences", "settings", {})
 		if settings is Dictionary: game.data.settings = settings
-	UI.set_button_palette(str(game.data.settings.get("button_palette", "moonlit_iron")))
-
-func set_button_colors(key: String) -> void:
-	UI.set_button_palette(key)
-	game.data.settings["button_palette"] = UI.button_palette
-	persist()
+	# Retire the old appearance preference while preserving sound settings.
+	game.data.settings.erase("button_palette")
 
 func persist() -> void:
 	var config := ConfigFile.new()

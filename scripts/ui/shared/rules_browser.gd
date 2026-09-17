@@ -37,7 +37,7 @@ func show_category(section: String) -> void:
 		child.queue_free()
 	var definitions: Dictionary = Balance.TOWERS if category == "towers" else editor_definitions()
 	for kind in definitions:
-		var button := UI.button("Open", open_item.bind(section, kind))
+		var button := UI.edit_button("Open", open_item.bind(section, kind))
 		button.name = "RuleItem_" + kind
 		var row := UI.action_row(definitions[kind].name, button, "Open", Portrait.preview(category, kind))
 		row.custom_minimum_size.y = 76
@@ -65,14 +65,14 @@ func show_item() -> void:
 		child.queue_free()
 	item_menu.add_child(UI.heading(identity_title.text, 24))
 	item_menu.add_child(Portrait.preview(category, selected_kind, selected_level, selected_branch))
-	item_menu.add_child(UI.button("Reset", func():
+	item_menu.add_child(UI.edit_button("Reset", func():
 		game.reset_developer_balance(category, editing_kind())
 		rules_edited.emit(category, editing_kind(), Balance.Stats.schema(category).keys() if category in Balance.Stats.CATEGORIES else selected_fields().keys())
 		show_fields()
 		show_item()
 	))
 	for group in ["Stats"]:
-		var button := UI.button(group, open_group.bind(group))
+		var button := UI.edit_button(group, open_group.bind(group))
 		button.name = group + "Menu"
 		item_menu.add_child(button)
 	item_menu.show()

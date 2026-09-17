@@ -1,7 +1,18 @@
-# Tan UI backgrounds
+# Moonlit UI surfaces
 
-`VigilInterface.box()` selects the reusable `scripts/ui/shared/parchment_style.gd` resource for light tan fills, including the paper and darker surface palette roles. Menus, HUD chrome, dialogs, buttons, fields, popup menus, and settings cards inherit the same existing `assets/ui/welcome-parchment.png` artwork. Gold and danger surfaces use the existing yellow and red parchment variants.
+`VigilInterface.box()` uses the reusable `scripts/ui/shared/surface_style.gd`
+resource for opaque UI fills. Its deterministic neutral grain varies by about
+1.5% around the shared semantic color. Menus, HUD chrome, dialogs, buttons,
+fields and popup menus inherit this material without tinting their text or art.
 
-The style draws an aspect-preserving cover crop inside rounded geometry and then draws the native black border. All UI enclosures use `VigilInterface.OUTLINE` (3 logical UI units), the shared 4-unit corner radius, and no shadows, as specified by [UI_STYLE_GUIDE.md](UI_STYLE_GUIDE.md). Darker tan roles tint the shared texture instead of requiring separate images. The campaign screen draws the same surface across its background and redraws on resize.
+The style clips grain to rounded geometry and draws a native solid black rim.
+Buttons use `UI.button_surface()` with `BUTTON_OUTLINE = 1`; panels, fields,
+cards, badges and dividers use `OUTLINE = 1`. Both use 4-unit corners, or 0 for
+edge-to-edge chrome, and no shadows. Hover, press and selection never thicken
+the border. See [UI_THEME.md](UI_THEME.md) for the fixed iron, steel, violet,
+bronze and emphasized action colors.
 
-Use `VigilInterface.surface()` or `box()` for future tan UI rather than a flat `ColorRect`. The welcome illustration continues to use its existing full-height paper presentation.
+Use the shared surface helpers when composing UI. The historical parchment
+textures remain artwork assets, not the runtime menu background. The title
+screen keeps its full-height Pickard illustration; world scenery, portraits
+and currency retain their independent artwork colors and contours.

@@ -15,6 +15,8 @@ Open `project.godot` in Godot and press **F5**, or use PowerShell:
 
 The launcher accepts `-GodotPath C:\path\to\godot.exe`, then checks `GODOT_PATH`, then Godot on PATH. It also retains the original Downloads installation as a fallback. Use the console executable on Windows. It imports resources before running so a fresh checkout does not depend on an existing `.godot` cache.
 
+Local runs, editor launches and checks are muted by default through Godot's dummy audio driver. Add `-Sound` only when intentionally checking audio. Player sound preferences and exported builds are unaffected.
+
 Player saves launched this way remain in `.runtime/Roaming/Godot/app_userdata/Hollow Vigil/`. Opening the project directly uses Godot's normal per-user save directory. Test runs use a separate `.runtime/tests/` directory. Do not delete `.runtime` as a whole: it contains player progress.
 
 ## Test on the Samsung tablet

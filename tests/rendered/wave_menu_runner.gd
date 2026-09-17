@@ -1,4 +1,5 @@
 extends SceneTree
+const UI = preload("res://scripts/ui/shared/interface.gd")
 
 var failures: Array[String] = []
 var checks := 0
@@ -24,7 +25,7 @@ func check_balance(screen: Control, context: String) -> void:
 		check(child.get_global_rect().position.x >= scroll.global_position.x - 1 and child.get_global_rect().end.x <= scroll.get_global_rect().end.x + 1, "Balancing content fits horizontally: %s in %s" % [child.name, context])
 		if child is PanelContainer:
 			var style: StyleBox = child.get_theme_stylebox("panel")
-			check(style.border_width_left == 3 and style.border_width_top == 3 and style.border_width_right == 3 and style.border_width_bottom == 3, "Balancing cards share the standard outline " + context)
+			check(style.border_width_left == UI.OUTLINE and style.border_width_top == UI.OUTLINE and style.border_width_right == UI.OUTLINE and style.border_width_bottom == UI.OUTLINE, "Balancing cards share the standard outline " + context)
 	var header: Rect2 = screen.dialog_header.get_global_rect()
 	scroll.scroll_vertical = 100000
 	await settle()

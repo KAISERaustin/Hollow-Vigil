@@ -1,6 +1,6 @@
 # Hollow Vigil UI theme — Pickard
 
-Version 3.1 · Moonlit iron · September 16, 2026
+Version 3.2 · Moonlit iron · September 16, 2026
 
 ## Authority and scope
 
@@ -22,8 +22,9 @@ governs navigation. Keep those documents consistent with this theme.
 
 The runtime now uses these shared dark surfaces throughout menus, editors,
 pickers, dialogs and the HUD. Preserve established layout and interactions.
-Settings → Button colors offers four restrained dark-fantasy button palettes.
-Buttons use 2-unit black borders; other enclosures and row dividers retain 3.
+Fixed dark-fantasy action colors are built into each menu; there is no player
+color selector. Buttons use 1-unit black borders; other enclosures and row
+dividers use 1 unit.
 Do not add gameplay or restore retired controls to demonstrate a visual style.
 Explicit subsequent user instructions take precedence.
 
@@ -49,9 +50,9 @@ UI styling must not silently recolor content identities or gameplay cues.
 
 ## Palette and color roles
 
-These roles are centralized in `scripts/ui/shared/interface.gd`. Moonlit Iron is
-the default; button-specific alternatives below preserve the same text and state
-rules without recoloring world artwork or the common page foundation.
+These roles are centralized in `scripts/ui/shared/interface.gd`. Iron, steel,
+violet and bronze actions coexist within the same menu according to purpose.
+World artwork and the common page foundation retain their own colors.
 
 | Design role | Value | Use |
 | --- | --- | --- |
@@ -87,39 +88,49 @@ Do not tint a whole control tree: it also muddies text, art and borders.
 black frames and content portraits independent. Texture varies by only about
 1.5% around the specified surface color.
 
-### Player-selectable button colors
+### Fixed button colors by purpose
 
-Use **Settings → Button colors**. Selection applies immediately to existing and
-new buttons, including hidden pages and popups, and persists in device settings.
-The preference is shared across Campaign slots; it does not alter saved content.
+Assign colors when composing each menu. These are built-in action roles, not
+themes the player can switch. Do not add a color selector or a device preference.
+Older saved color preferences are ignored and removed on the next settings save;
+sound preferences remain intact.
 
-| Palette | Secondary button | Primary button | Character |
+| Purpose | Resting action | Emphasized action | Where to use it |
 | --- | --- | --- | --- |
-| Moonlit Iron (default) | `#46514D` | `#B8AA87` | Forest iron and aged bone |
-| Ashen Steel | `#414C5D` | `#B3B5AF` | Storm-blue steel and worn silver |
-| Dusk Violet | `#514652` | `#B8A1A6` | Smoky violet and weathered rose |
-| Ember Bronze | `#5B473E` | `#BCA082` | Charred brown and aged bronze |
+| Neutral / progression | Iron `SURFACE` · `#46514D` | Aged metal `GOLD` · `#B8AA87` | Back, Cancel, playback; Campaign, Continue, Begin level and Start wave |
+| Navigation / information | Steel `STEEL` · `#414C5D` | Silver `SILVER` · `#B3B5AF` | Settings, Account, Community, previews and information; sign-in and account confirmations |
+| Editing | Violet `VIOLET` · `#514652` | Weathered rose `ROSE` · `#B8A1A6` | Sound, Edit rules, Stats, wave edits and targeting; Save rules and targeting confirmation |
+| Building / management | Bronze `BRONZE` · `#5B473E` | Aged copper `COPPER` · `#BCA082` | My builds, Backups, Bug report, tower construction and movement; save, restore and upgrade commitments |
 
-Secondary buttons retain Moon text; primary buttons retain dark On-primary text.
-Destructive buttons always use Cloak red and an explicit verb. Disabled buttons
-always use Disabled surface and Weathered text. Selection remains labeled and
-underlined. All palettes must meet 4.5:1 text contrast in every state. Use
-`UI.button_surface()` for button fills and their 2-unit border; ordinary
-`UI.surface()` remains the 3-unit owner for panels, fields, cards and badges.
-Never hardcode a screen's button colors or change world/currency art with a palette.
+For example, the game menu puts violet Edit rules beside bronze Save build and
+Backups, steel Settings and neutral iron Exit game. On the title screen, Campaign
+uses aged metal and Settings uses steel. Keep the same meaning across screens;
+do not assign colors by button position or randomly.
+
+Dark fills retain Moon text. Light emphasized fills use `UI.ink_on()` and dark
+On-primary text. Destructive actions always use Cloak red and an explicit verb;
+disabled actions use Disabled surface and Weathered text. Selection stays labeled
+or underlined; do not rely on color alone. All roles must meet 4.5:1 text contrast
+in every state. Use `UI.navigation_button()`, `UI.edit_button()` and
+`UI.management_button()` for recurring dark action roles, or `UI.accent_button()`
+with a shared token for an emphasized action. `UI.button()` is neutral iron.
+Use `UI.button_surface()` for custom buttons and their 1-unit rim; ordinary
+`UI.surface()` owns 1-unit panels, fields, cards and badges. Keep world and
+currency art independent of these control roles.
 
 ## Borders, corners and spacing
 
-Buttons use **2 logical UI units of solid black**, owned by
-`VigilInterface.BUTTON_OUTLINE`. All other visible UI enclosures and row dividers
-use **3 units**, owned by `VigilInterface.OUTLINE`. Never thicken either for selection,
+Every visible UI enclosure and row divider uses **1 logical UI unit of solid
+black**, owned by `VigilInterface.OUTLINE`. `BUTTON_OUTLINE` aliases that same
+token so buttons, cards, panels, fields and badges cannot drift apart. Never
+thicken the shared rim for selection,
 focus, hover or press. Use 4-unit rectangular corners (`RADIUS`), or 0 for
 edge-to-edge chrome. Draw abutting edges once. Layout-only containers stay
 transparent and borderless; artwork contours retain their own art rules.
 
 | Shared token or layout | Units |
 | --- | --- |
-| `BUTTON_OUTLINE` / `OUTLINE` / `RADIUS` | 2 / 3 / 4 |
+| `BUTTON_OUTLINE` / `OUTLINE` / `RADIUS` | 1 / 1 / 4 |
 | `SCREEN_PADDING` | 12 inside the safe area in the full-page shell |
 | `PADDING` | 16 for ordinary surfaces |
 | `CARD_PADDING` | 12 |
@@ -169,12 +180,12 @@ source/accessibility wording meaningful and measure the displayed coin text.
 ```text
 Safe top + 12
 [ Back ]  Screen title                         [ contextual action ]
-                 12-unit gap
+                 11-unit gap
 ┌ Scrolling content ──────────────────────────────────────────────┐
 │ Cards, option rows, fields, descriptions                         │
 │ First and last item remain reachable                            │
 └─────────────────────────────────────────────────────────────────┘
-                 12-unit gap
+                 11-unit gap
 [ Primary progression / save action ]
 [ Secondary action, when needed ]
 Safe bottom + 12
@@ -207,10 +218,10 @@ a scrolling list. **The whole row must not become a button.**
 
 1. Put an optional portrait on the left, a wrapping description in the expanding
    middle, and the explicit action at the far right, centered vertically.
-2. Reuse `UI.action_row()`: 12-unit gaps, 64 minimum row height, action at least
+2. Reuse `UI.action_row()`: 11-unit gaps, 64 minimum row height, action at least
    88 wide and 48 high. Illustrated picker/browser rows use 76 minimum. Let
    longer descriptions increase height.
-3. Keep **one black 3-unit divider below every option row**, spanning the row
+3. Keep **one black 1-unit divider below every option row**, spanning the row
    width. The helper draws it already; do not double it with another separator.
    Selected and disabled rows keep their line. Choice lists use zero extra
    row-container separation, centering contents between the lines.
@@ -234,7 +245,7 @@ already separates its contents; do not underline every description line or stat 
 
 Use `UI.number_row()`: wrapping label left, optional preview before the input,
 and a centered numeric field at the right. The input starts at 112×48; the row
-starts at 72 high and grows with its caption. Keep its bottom divider and 12-unit
+starts at 72 high and grows with its caption. Keep its bottom divider and 11-unit
 gaps. Retain default-value context supplied by the editor.
 
 Numbers are directly typeable, select all on focus and request a numeric mobile
@@ -251,7 +262,7 @@ retain their own input behavior.
 | Primary | Aged-metal fill with dark semibold text; restrained emphasis |
 | Secondary | Raised-control fill with Moon text |
 | Destructive | Cloak-red fill with Moon text and an explicit verb |
-| Default | 2-unit black border, 4-unit corners, at least 48 high |
+| Default | 1-unit black border, 4-unit corners, at least 48 high |
 | Hover | Identical to resting appearance, including icon tint; no tooltip |
 | Pressed | Contents move down 1 unit; target and border remain fixed |
 | Selected | Explicit state wording plus underline/marker; do not rely on color alone |
@@ -261,7 +272,7 @@ retain their own input behavior.
 
 Use one obvious primary action for a task. Preserve explicit Cancel and destructive
 consequences. Buttons may wrap and grow; short trailing row actions stay compact.
-`UI.gold_button()` retains its API name and now uses the chosen primary palette;
+`UI.gold_button()` retains its API name and uses the fixed aged-metal fill;
 accent helpers use shared semantic styles.
 Do not globally change world gold, currency or tower artwork to restyle a UI button.
 
@@ -269,7 +280,7 @@ Do not globally change world gold, currency or tower artwork to restyle a UI but
 
 A content card reads in this order: identity/title and optional right-side status;
 divider when needed; bold values above labels; native portrait/name/role with
-trailing count; actions. Use 12-unit card padding, 8-unit cell gaps and 12-unit
+trailing count; actions. Use 11-unit card padding, 8-unit cell gaps and 11-unit
 section/action gaps. Dark-theme surfaces and text apply throughout the nesting.
 
 | Surface | Preserve this structure | Shared owner |
@@ -293,7 +304,7 @@ older descriptions or reusable code mention them.
 
 Wave stat grids use four columns at 400 available grid units or more, otherwise
 two. Stack further if essential labels require it. Pickers fit the owning safe
-viewport with 12-unit clearance, up to 480 wide and 560 high; direct choices size
+viewport with 11-unit clearance, up to 480 wide and 560 high; direct choices size
 to content. The current confirmation helper fits its content, normally up to 380
 wide with 16-unit padding. Reuse fitting owners rather than hard-coded screen positions.
 
@@ -304,11 +315,11 @@ parchment-colored title/subtitle and sparse diamond ornament in the dark sky.
 Keep the knight, helmet, sword, shield and boots clear of controls. Artwork fills
 the viewport; controls remain inside safe areas, below the hero, and reachable
 through scrolling on short screens. Current buttons are centered, 56 high, up to
-320 wide with a 14-unit gap. Retain that geometry when styling; their selected button
-palette supplies an aged-metal primary and a muted secondary. Reuse `welcome_menu.gd` / `welcome_art.gd`.
+320 wide with a 14-unit gap. Retain that geometry when styling; Campaign uses aged metal
+and Settings uses steel. Reuse `welcome_menu.gd` / `welcome_art.gd`.
 
 **Campaign map:** fixed Back/title above six illustrated biome sections, with one
-3-unit black divider between chapters. Preserve edge-to-edge scenery, native
+1-unit black divider between chapters. Preserve edge-to-edge scenery, native
 numbered destinations, locked/current/completed meanings and at least 48-unit
 level targets. Keep labels clear of scenery and route crossings. Its world art
 follows the art guide; its controls use this shared UI theme.
@@ -351,13 +362,13 @@ semantic dark surface/text/action roles when composing screens.
 Review every affected consumer, including button states, input caret/placeholder,
 popup themes, disabled text, icon colors and currency glyph contrast. `UI.TEXT`
 is warm moonlight and `UI.PANEL` is dark iron. Keep content art and world colors
-independent. `UI.ON_PRIMARY` supplies dark ink on every light primary palette.
+independent. `UI.ON_PRIMARY` supplies dark ink on every light emphasized action.
 
 For each new or changed screen:
 
 - [ ] The Pickard image's dark mood is the dominant style; legacy parchment pages/yellow buttons are not the palette authority.
 - [ ] Text and icons remain readable on their final surfaces, including disabled and selected states.
-- [ ] Button borders are black and 2 units; other rims/dividers are 3, corners 4/0, with shared edges drawn once.
+- [ ] Every button, panel, card, field, badge and divider has the same black 1-unit border, corners 4/0, with shared edges drawn once.
 - [ ] Page navigation stays fixed; descriptive rows have right-side actions and one divider per row.
 - [ ] Multiple controls leave a passive swipe area and reflow without tiny targets.
 - [ ] Cards preserve compact padding, value/label hierarchy and meaningful portraits.
@@ -372,9 +383,9 @@ uses `menu_scroll_audit_runner` and `illustrated_picker_touch_runner`; editors u
 `stats_editor_runner`, `rules_navigation_runner`, `rules_back_runner` and the wave
 runners. Use the relevant saved-slot, map, tower, currency and surface checks when
 those owners change. Run via `launch.ps1 -TestScript tests/rendered/<runner>.gd`.
-`moonlit_theme_runner` renders all menu families, content editors and all 30 level
-editors at all three sizes, and checks text contrast and borders. It also covers
-all button palettes. `-StyleTests` covers welcome and Campaign navigation only.
+`moonlit_theme_runner` renders all menu families, content editors and every current level
+editor at all three sizes, and checks text contrast and borders. `button_roles_runner` checks fixed action assignments, legacy preference
+removal, interaction states and modal layering. `-StyleTests` covers welcome and Campaign navigation only.
 
 Review images under ignored `artifacts/` are regenerated by the rendered runners.
 The tracked Pickard image at the top is the durable art authority. Record current

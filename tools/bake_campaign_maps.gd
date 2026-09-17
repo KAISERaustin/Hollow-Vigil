@@ -19,7 +19,7 @@ class BakeMap extends Map:
 			MapArt.landscape(self, landscapes[chapter].profile, landscapes[chapter].sites)
 			for road in roads: MapArt.trail(self, road, completed_roads)
 			MapArt.bridges(self, roads, river)
-			if chapter > 0: draw_rect(Rect2(0, bounds.position.y, size.x, UI.OUTLINE), UI.BORDER)
+			# Chapter dividers belong to the live UI, not the baked world artwork.
 
 func _initialize() -> void:
 	call_deferred("run")

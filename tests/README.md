@@ -9,6 +9,8 @@ Run the smallest runner that covers the changed behavior. The launcher supplies 
 
 Omit `-Headless` for rendering, screenshots and input tests. Each launcher invocation gets its own `.runtime/tests/<run>/` save directory and `artifacts/test-runs/<run>/` logs, printed at startup; simultaneous tasks cannot delete each other's open logs. Screenshot outputs remain under `artifacts/`.
 
+Every launcher mode is silent by default. Only use `-Sound` when the user asks for audible testing. Direct Godot preview commands must include `--audio-driver Dummy`; this leaves player sound preferences intact.
+
 | Changed area | Focused coverage |
 | --- | --- |
 | Campaign simulation, routes, progression | `campaign_runner.gd`; `campaign_balance_runner.gd` only for difficulty changes |
@@ -23,7 +25,7 @@ Omit `-Headless` for rendering, screenshots and input tests. Each launcher invoc
 | Campaign maps | `rendered/campaign_map_runner.gd`, `rendered/campaign_map_menu_runner.gd`, `rendered/baked_map_runner.gd`, `rendered/campaign_landscape_runner.gd` |
 | Terrain and portals | `rendered/campaign_terrain_checks.gd`, `rendered/campaign_portal_runner.gd` |
 | Tower presentation | `rendered/tower_depth_runner.gd`, `rendered/tower_level_indicator_runner.gd`, `rendered/tower_upgrade_art_checks.gd`, `rendered/construction_effect_runner.gd`, `rendered/hex_effect_runner.gd` |
-| Complete dark theme and button colors | `rendered/moonlit_theme_runner.gd` (all menus, content types, 30 level editors, four palettes, contrast and borders); `rendered/button_colors_runner.gd` (touch selection, live updates, saved preferences and modal layering) |
+| Complete dark theme and fixed action colors | `rendered/moonlit_theme_runner.gd` (all menus, content types, every level editor, fixed action roles, contrast and borders); `rendered/button_roles_runner.gd` (built-in colors, legacy preference removal, uniform borders, touch navigation and modal layering) |
 | Shared surfaces, currency and slots | `rendered/parchment_corner_runner.gd`, `rendered/currency_text_runner.gd`, `rendered/save_slot_picker_runner.gd`, `rendered/welcome_layout_runner.gd` |
 
 Use `-Tests` for the broader Campaign simulation suite, `-UnifiedTests` for application/session/backup checks, and `-MobileTests` for the supported portrait UI suite. `-Smoke` and `-StyleTests` both run welcome layout and Campaign navigation. `-TerrainTests` and `-TerrainPreview` both run the authored Campaign terrain checks. `-ArtSmoke` runs Hex effects and construction effects. `-Check` combines these launcher suites; standalone specialist runners in the table are selected when their feature changes.

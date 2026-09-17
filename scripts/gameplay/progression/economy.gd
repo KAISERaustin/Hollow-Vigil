@@ -18,6 +18,23 @@ func tower_available(kind: String, tier: int = 1) -> bool:
 func unlock_reason(kind: String, tier: int = 1) -> String:
 	return "" if tower_available(kind, tier) else Unlocks.reason(kind, tier)
 
+func enforce_campaign_unlocks() -> void:
+	# Imported setups remain intact on disk. Only the playable copy is adjusted,
+	# returning the exact investment that this save has not unlocked yet.
+	if campaign_completed < 0: return
+	for id in data.towers.keys():
+		var tower: Dictionary = data.towers[id]
+		var before := Balance.invested_cost(tower, tuning)
+		if not tower_available(tower.kind):
+			data.balance = minf(Balance.MAX_MONEY, data.balance + before + tower.earnings)
+			data.towers.erase(id)
+			continue
+		while not tower_available(tower.kind, int(tower.level)):
+			tower.level -= 1
+			if tower.level < 4: tower.erase("branch")
+		data.balance = minf(Balance.MAX_MONEY, data.balance + before - Balance.invested_cost(tower, tuning))
+	indexed_tower_count = -1
+
 var data: Dictionary
 var sale_rules: VigilContentNode
 var placement_roads: Array = []

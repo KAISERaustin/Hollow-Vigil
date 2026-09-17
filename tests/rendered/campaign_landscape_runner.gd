@@ -66,7 +66,7 @@ func run() -> void:
 	viewport.queue_free()
 	await process_frame
 	var progress := preload("res://scripts/campaign/progress.gd").new()
-	progress.allow_all=true
+	progress.data.completed_levels = 48
 	for width in [360,390,540]:
 		var width_gallery := Image.create(width*3,960*2,false,Image.FORMAT_RGBA8)
 		viewport=SubViewport.new()

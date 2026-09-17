@@ -130,9 +130,32 @@ static func decode(code: String) -> Dictionary:
 	if envelope.get("checksum") != envelope.payload.sha256_text(): return {}
 	if parser.parse(envelope.payload) != OK: return {}
 	var value: Variant = parser.data
+	if value is Dictionary and not value.has("catalog_revision"):
+		value = migrate_catalog(value)
 	return value if value is Dictionary and valid(value) else {}
 
+static func migrate_catalog(source: Dictionary) -> Dictionary:
+	if source.get("version") != 2 or source.get("game_type") != "campaign" or source.get("scope") not in ["all", "level"]: return {}
+	if not source.get("data") is Dictionary or not source.data.get("levels") is Dictionary or not source.get("contents") is Dictionary or not source.get("setup") is Dictionary: return {}
+	if not Stats.valid({"version": 1, "setup": source.setup, "tuning": {}}): return {}
+	if not Configuration._number(source.get("level"), -1, 29, true): return {}
+	if source.scope == "all" and source.data.levels.size() not in [20, 30]: return {}
+	if source.scope == "level" and (source.level < 0 or source.data.levels.size() != 1 or not source.data.levels.has(str(int(source.level)))): return {}
+	var mapped := Migration.level_entries(source.data.levels)
+	if mapped.is_empty(): return {}
+	var value := source.duplicate(true)
+	value.catalog_revision = 2
+	value.data.levels = mapped
+	if source.scope == "level": value.level = Migration.index(int(source.level))
+	else:
+		var defaults := capture("campaign", null, {}, "all", -1, source.contents, source.setup.name, source.setup.description)
+		if defaults.is_empty(): return {}
+		for key in defaults.data.levels:
+			if not value.data.levels.has(key): value.data.levels[key] = defaults.data.levels[key]
+	return value
+
 static func valid(value: Dictionary) -> bool:
+	if value is Dictionary and value.has("catalog_revision") and value.catalog_revision != 2: return false
 	if value.size() != (8 if value.has("catalog_revision") else 7) or value.get("version") != 2 or value.get("game_type") != "campaign": return false
 	if not Stats.valid({"version": 1, "setup": value.get("setup"), "tuning": {}}): return false
 	if value.get("scope") not in ["all", "level"] or not Configuration._number(value.get("level"), -1, Configuration.Catalog.COUNT - 1, true): return false

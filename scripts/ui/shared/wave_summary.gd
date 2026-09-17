@@ -60,7 +60,7 @@ static func card(report: Dictionary, status: String, details: Callable, edit: Ca
 			var badge := identity.get_child(-1)
 			identity.remove_child(badge)
 			badge.queue_free()
-			var quantity := UI.button("×%d" % int(report.enemy_counts[kind]), authoring.quantity.bind(kind))
+			var quantity := UI.edit_button("×%d" % int(report.enemy_counts[kind]), authoring.quantity.bind(kind))
 			quantity.name = "WaveEnemyCount_" + kind
 			quantity.custom_minimum_size = Vector2(72, UI.TARGET)
 			quantity.add_theme_font_size_override("font_size", UI.type_size(UI.CAPTION))
@@ -74,14 +74,14 @@ static func card(report: Dictionary, status: String, details: Callable, edit: Ca
 	actions.name = "WaveActions"
 	actions.add_theme_constant_override("separation", UI.GAP)
 	body.add_child(actions)
-	var balance := UI.button("Balancing details", details)
+	var balance := UI.navigation_button("Balancing details", details)
 	balance.name = "WaveBalancingDetails" + str(report.wave)
 	balance.accessibility_name = "Wave %d balancing details" % report.wave
 	balance.add_theme_font_size_override("font_size", UI.type_size(UI.CAPTION))
 	balance.size_flags_stretch_ratio = 1.6
 	actions.add_child(balance)
 	if edit.is_valid():
-		var edit_button := UI.button("Edit wave", edit)
+		var edit_button := UI.edit_button("Edit wave", edit)
 		edit_button.name = "EditCampaignWave" + str(report.wave)
 		edit_button.accessibility_name = "Edit wave %d" % report.wave
 		edit_button.add_theme_font_size_override("font_size", UI.type_size(UI.CAPTION))
@@ -90,10 +90,10 @@ static func card(report: Dictionary, status: String, details: Callable, edit: Ca
 		var controls := HBoxContainer.new()
 		controls.add_theme_constant_override("separation", UI.GAP)
 		body.add_child(controls)
-		var add := UI.button("Add enemies", authoring.add)
+		var add := UI.edit_button("Add enemies", authoring.add)
 		add.name = "AddEnemiesWave%d" % report.wave
 		controls.add_child(add)
-		var remove := UI.button("Remove wave", authoring.remove)
+		var remove := UI.accent_button("Remove wave", authoring.remove, UI.DANGER)
 		remove.name = "RemoveWave%d" % report.wave
 		controls.add_child(remove)
 	return panel

@@ -13,6 +13,7 @@ param(
     [switch]$Import,
     [string]$TestScript,
     [switch]$Headless,
+    [switch]$Sound,
     [string]$GodotPath = $env:GODOT_PATH
 )
 
@@ -52,14 +53,17 @@ New-Item -ItemType Directory -Force -Path $artifactPath | Out-Null
 
 function Invoke-Godot {
     param([string]$Name, [string[]]$EngineArguments)
+    # Local previews and checks are silent unless sound is explicitly requested.
+    # The dummy driver preserves audio logic without changing player preferences.
+    $audioArguments = if ($Sound) { @() } else { @('--audio-driver', 'Dummy') }
     $logPath = Join-Path $artifactPath ($Name + '.log')
     if (Test-Path -LiteralPath $logPath) { Remove-Item -LiteralPath $logPath }
     $scriptIndex = [Array]::IndexOf($EngineArguments, '--script')
     if ($scriptIndex -ge 0) {
-        & $enginePath --headless --path $projectPath --script $EngineArguments[$scriptIndex + 1] --check-only
+        & $enginePath @audioArguments --headless --path $projectPath --script $EngineArguments[$scriptIndex + 1] --check-only
         if ($LASTEXITCODE -ne 0) { throw "$Name failed script validation." }
     }
-    & $enginePath --path $projectPath --log-file $logPath @EngineArguments
+    & $enginePath @audioArguments --path $projectPath --log-file $logPath @EngineArguments
     if ($LASTEXITCODE -ne 0) { throw "$Name failed (exit $LASTEXITCODE). See $logPath." }
     if (Test-Path -LiteralPath $logPath) {
         # Godot can return zero after GDScript errors. Do not report a false pass.

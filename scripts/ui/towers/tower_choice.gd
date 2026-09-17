@@ -16,9 +16,9 @@ static func create(kind: String, title: String, cost: float, action: Callable, l
 	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	button.accessibility_name = "%s · %s gold" % [title, UI.exact_money(cost)]
 	for state in ["normal", "hover", "disabled"]:
-		button.add_theme_stylebox_override(state, UI.button_surface(UI.DISABLED if state == "disabled" else UI.SURFACE, 8))
+		button.add_theme_stylebox_override(state, UI.button_surface(UI.DISABLED if state == "disabled" else UI.BRONZE, 8))
 	for state in ["pressed", "hover_pressed"]:
-		button.add_theme_stylebox_override(state, UI.button_surface(UI.GOLD, 8))
+		button.add_theme_stylebox_override(state, UI.button_surface(UI.COPPER, 8))
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "right", "top", "bottom"]:
@@ -51,7 +51,7 @@ static func branch_card(kind: String, title: String, price: float, branch: Strin
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.accessibility_name = "%s · %s gold · %s" % [title, UI.exact_money(price), state]
 	for style in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
-		button.add_theme_stylebox_override(style, UI.button_surface(UI.DISABLED if style == "disabled" else UI.SURFACE, 8))
+		button.add_theme_stylebox_override(style, UI.button_surface(UI.DISABLED if style == "disabled" else UI.BRONZE, 8))
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "right", "top", "bottom"]:
@@ -294,7 +294,7 @@ static func build_list(tuning: Dictionary, action: Callable, selected_kind: Stri
 		button.set_meta("tower_kind", kind)
 		button.disabled = balance < definition.cost or (economy != null and not economy.tower_available(kind))
 		if economy != null and not economy.tower_available(kind):
-			button.accessibility_name += " � " + economy.unlock_reason(kind)
+			button.accessibility_name += " · " + economy.unlock_reason(kind)
 			var lock := UI.label("Locked", 12, UI.TEXT)
 			lock.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 			lock.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

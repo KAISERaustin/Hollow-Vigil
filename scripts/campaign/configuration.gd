@@ -9,6 +9,7 @@ var data := {"catalog_revision": 2, "version": 1, "sequence": 0, "levels": {}}
 var blocked := false
 
 func valid_data(value: Dictionary) -> bool:
+	if value.has("catalog_revision") and value.catalog_revision != 2: return false
 	if value.size() != (4 if value.has("catalog_revision") else 3) or value.get("version") != 1 or not _number(value.get("sequence"), 0, 1e15, true) or not value.get("levels") is Dictionary: return false
 	for key in value.levels:
 		if not key is String or not key.is_valid_int() or str(int(key)) != key or int(key) < 0 or int(key) >= Catalog.COUNT or not valid_level(int(key), value.levels[key]): return false

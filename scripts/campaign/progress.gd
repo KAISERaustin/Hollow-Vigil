@@ -51,7 +51,7 @@ func read_candidate(candidate_path: String) -> Dictionary:
 		return {}
 	var parsed: Dictionary = parser.data
 	if parsed.get("version") == 1:
-		if not number(parsed.get("sequence"), 0, 1e15, true) or not parsed.get("medals") is Array or parsed.medals.size() not in [Catalog.LEGACY_COUNT, Catalog.COUNT]:
+		if not number(parsed.get("sequence"), 0, 1e15, true) or not parsed.get("medals") is Array or parsed.medals.size() not in [Catalog.LEGACY_COUNT, 30, Catalog.COUNT]:
 			return {}
 		var completed := 0
 		var locked := false
@@ -62,7 +62,7 @@ func read_candidate(candidate_path: String) -> Dictionary:
 			if medal > 0: completed += 1
 		# Legacy checkpoints are deliberately discarded; only victories migrate.
 		legacy_candidates[candidate_path] = true
-		parsed = {"catalog_revision": 2, "version": 2, "sequence": parsed.sequence, "completed_levels": completed}
+		parsed = {"version": 2, "sequence": parsed.sequence, "completed_levels": completed}
 	parsed = Migration.document(parsed, "progress")
 	return parsed if valid_data(parsed) else {}
 

@@ -155,3 +155,7 @@ func _draw() -> void:
 		# it through the current marker; scenery and bridge pixels are identical.
 		var height := FIRST_LEVEL_Y + within * LEVEL_SPACING
 		draw_texture_rect_region(texture, Rect2(bounds.position, Vector2(size.x, height)), Rect2(0, CHAPTER_HEIGHT, BAKE_WIDTH, height))
+	# Keep separators at the same logical width as cards and buttons, independent
+	# of baked image resolution and viewport scaling.
+	for chapter in range(1, backgrounds.size()):
+		draw_rect(Rect2(0, chapter * CHAPTER_HEIGHT, size.x, UI.OUTLINE), UI.BORDER)

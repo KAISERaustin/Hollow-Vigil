@@ -31,7 +31,7 @@ func run() -> void:
 	app.open_campaign_slot(0, app.slot_menu.campaign_slots.create(0, "creative", "Map test"))
 	var campaign: Control = app.campaign
 	campaign.set_process(false)
-	campaign.progress.allow_all = true
+	campaign.progress.data.completed_levels = 48
 	campaign.mode = "creative"
 	campaign.progress.data.completed_levels = 1
 	campaign.progress.data.beaten_levels = [0, 4, 7]
@@ -51,15 +51,15 @@ func run() -> void:
 		check(map.size.x == viewport.x and campaign.page_scroll.position.x == 0, "Biomes fill the available width")
 		check(campaign.page_scroll.get_global_rect().end.y == viewport.y, "Biomes fill to the bottom edge")
 		check(map.nodes.size() == Catalog.COUNT, "Every authored level remains on the map")
-		check(map.nodes[0].completed and map.nodes[4].completed and map.nodes[7].completed and not map.nodes[1].completed, "Creative defeated art follows individual victories, including skipped bosses")
-		check(map.nodes[2].current and not map.nodes[1].current, "Creative highlights the active level")
+		check(map.nodes[0].completed and not map.nodes[4].completed and not map.nodes[7].completed and not map.nodes[1].completed, "Creative defeated art follows sequential progress")
+		check(map.nodes[1].current and not map.nodes[2].current, "Creative highlights the active level")
 		for chapter in Catalog.CHAPTERS.size():
 			campaign.page_scroll.scroll_vertical = roundi(chapter * Map.CHAPTER_HEIGHT)
 			await frame()
 			check(back.get_global_rect() == back_bounds, "Back remains fixed while scrolling")
 			var bounds: Rect2 = map.chapter_rect(chapter)
 			check(bounds.encloses(map.headings[chapter].get_rect()), "Chapter title fits its biome")
-			check(map.backgrounds[chapter] != null and map.backgrounds[chapter].get_size() == Vector2(540,1920), "Chapter has a baked background and completed-road variant")
+			check(map.backgrounds[chapter] != null and map.backgrounds[chapter].get_size() == Vector2(540,Map.CHAPTER_HEIGHT * 2), "Chapter has a baked background and completed-road variant")
 			var scenery: Array = preload("res://tests/support/baked_map_fixture.gd").sites(chapter, map.size.x)
 			var architecture_count := scenery.filter(func(site):return site.major).size()
 			var scenery_count := scenery.filter(func(site):return site.kind!="ground_marks").size()
@@ -67,7 +67,7 @@ func run() -> void:
 			check(scenery_count>=9,"Populated landscape at %d / chapter %d (found %d)"%[viewport.x,chapter+1,scenery_count])
 			for site in scenery:
 				check(preload("res://tests/support/baked_map_fixture.gd").clear_site(site.rect,map,chapter),"Scenery clears labels, destinations, trails and water at %d / chapter %d"%[viewport.x,chapter+1])
-			for index in range(chapter * 5, chapter * 5 + 5):
+			for index in range(chapter * Catalog.LEVELS_PER_CHAPTER, (chapter + 1) * Catalog.LEVELS_PER_CHAPTER):
 				check(bounds.encloses(map.nodes[index].get_rect()), "Level marker fits its biome")
 				check(bounds.encloses(map.labels[index].get_rect()), "Level label fits its biome")
 				check(not map.nodes[index].get_rect().intersects(map.labels[index].get_rect()), "Level text does not overlap its marker")
@@ -98,7 +98,7 @@ func run() -> void:
 		check(campaign.page_backdrop.visible and not campaign.map_navigation.visible, "Briefing restores the shared page presentation")
 		campaign.show_map()
 		await frame()
-	campaign.progress.allow_all = false
+	campaign.progress.data.completed_levels = 0
 	campaign.progress.data.completed_levels = 4
 	campaign.show_map()
 	await frame()
@@ -129,7 +129,7 @@ func run() -> void:
 		campaign.page_scroll.scroll_vertical = roundi(campaign.page_scroll.get_v_scroll_bar().max_value)
 		await frame()
 		var saved_map: Control = campaign.find_child("CampaignWorldMap", true, false)
-		check(saved_map.nodes[4].completed and saved_map.nodes[7].completed and saved_map.nodes[2].current and not saved_map.nodes[0].completed, "Saved Creative slot restores skipped victories and active marker")
+		check(not saved_map.nodes[4].completed and not saved_map.nodes[7].completed and saved_map.nodes[0].current and saved_map.nodes[1].disabled, "Saved Creative slot cannot use old skipped wins to bypass locks")
 		check(saved_map.nodes[-1].get_global_rect().end.y <= viewport.y, "Final level remains reachable at the bottom of a saved map")
 		check(is_equal_approx(saved_map.get_global_rect().end.y, viewport.y), "Last biome fills the bottom with no page footer")
 	app.queue_free()

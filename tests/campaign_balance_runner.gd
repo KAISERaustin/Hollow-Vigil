@@ -62,7 +62,8 @@ func invest(battle: RefCounted, strategy: int) -> void:
 		["rapid","electric","electric","heavy","splash","heavy","rapid","electric"],
 		["heavy","heavy","electric","rapid","splash","heavy","rapid","electric"]
 	][strategy % 8]
-	var branches := {"rapid":"frostneedle","heavy":"doomstone","splash":"cinderfield","electric":"thunderseal"}
+	if battle.game.economy.tower_available("hex_lantern"): kinds[7] = "hex_lantern"
+	var branches := {"hex_lantern": "oathbrand","rapid":"frostneedle","heavy":"doomstone","splash":"cinderfield","electric":"thunderseal"}
 	# A deterministic reference strategy spends actual mission earnings only.
 	# A pair of early towers, followed by upgrades and a broader mixed defense.
 	var targets: Array = [[2,2,2,2,2,2,2,2,3,3,3,3,4,4], [2,2,3,3,4,4,2,3,4,2,3,4], [3,3,3,3,4,4,4,4], [4,3,2,3,4,4]][strategy / 8]
@@ -76,6 +77,8 @@ func invest(battle: RefCounted, strategy: int) -> void:
 			var socket: int = sockets[rank].index
 			var id: String = battle.tower_at(socket)
 			var kind: String = kinds[rank]
+			if not battle.game.economy.tower_available(kind): kind = "rapid"
+			while tier > 1 and not battle.game.economy.tower_available(kind, tier): tier -= 1
 			if id.is_empty():
 				if not battle.build(socket,kind):
 					return
@@ -84,6 +87,12 @@ func invest(battle: RefCounted, strategy: int) -> void:
 				var branch: String = branches[kind] if battle.game.data.towers[id].level == 3 else ""
 				if not battle.upgrade(socket,branch):
 					return
+
+	# Tier-one teaching battles reward a broad defense rather than unavailable upgrades.
+	if int(battle.mission.index) < 8:
+		for rank in range(8, sockets.size()):
+			if battle.tower_at(sockets[rank].index).is_empty():
+				battle.build(sockets[rank].index, "heavy" if battle.game.economy.tower_available("heavy") else "rapid")
 
 func run() -> void:
 	var report := "level,name,result,core_integrity,gold,seconds\n"
@@ -95,13 +104,19 @@ func run() -> void:
 			push_error("Previous victory did not unlock level %d" % (index+1))
 		var battle := Run.new(index)
 		var steps := 0
-		var chosen: int = STRATEGIES[index]
-		while battle.phase in ["planning","wave"] and steps < 20000:
-			if battle.phase == "planning":
-				invest(battle,chosen)
-				battle.start_wave()
-			battle.tick(Balance.STEP)
-			steps += 1
+		var legacy: int = battle.mission.get("legacy_index", 0)
+		var chosen: int = STRATEGIES[legacy]
+		for attempt in range(16):
+			if attempt > 0: battle = Run.new(index)
+			steps = 0
+			while battle.phase in ["planning","wave"] and steps < 20000:
+				if battle.phase == "planning":
+					invest(battle, chosen if attempt == 0 else attempt - 1)
+					battle.start_wave()
+				battle.tick(Balance.STEP)
+				steps += 1
+			if battle.phase == "victory": break
+			await process_frame
 		if battle.phase == "victory" and not progress.save_run(battle):
 			failures += 1
 			push_error(progress.last_error)

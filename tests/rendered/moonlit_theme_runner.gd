@@ -100,11 +100,6 @@ func run() -> void:
 		await inspect_picker("SaveSlotChoice", "save-slot-picker")
 		menu.show_settings(menu.show_main_menu)
 		await inspect("settings")
-		for palette in UI.BUTTON_PALETTES:
-			app.set_button_colors(palette)
-			menu.show_button_colors()
-			await inspect("button-colors-" + palette)
-		app.set_button_colors("moonlit_iron")
 		menu.show_sound()
 		await inspect("sound")
 		menu.scroll.scroll_vertical = 100000
@@ -169,8 +164,8 @@ func run() -> void:
 		campaign = app.campaign
 		campaign.set_process(false)
 		await inspect("campaign-map")
-		for chapter in 6:
-			campaign.page_scroll.scroll_vertical = chapter * 960
+		for chapter in preload("res://scripts/campaign/catalog.gd").CHAPTERS.size():
+			campaign.page_scroll.scroll_vertical = chapter * preload("res://scripts/campaign/world_map.gd").CHAPTER_HEIGHT
 			await inspect("map-chapter-%d" % (chapter + 1))
 		campaign.show_briefing(0)
 		await inspect("briefing")
@@ -222,7 +217,7 @@ func run() -> void:
 		menu.rules_editor.hide()
 		menu.level_rules.show_levels()
 		await inspect("rules-levels")
-		for index in 30:
+		for index in preload("res://scripts/campaign/catalog.gd").COUNT:
 			menu.level_rules.show_level(index)
 			await inspect("level-%d-rules" % (index + 1))
 			menu.level_rules.open_group("Stats")
@@ -230,6 +225,7 @@ func run() -> void:
 			menu.level_rules.cancel_item()
 		menu.hide()
 		campaign.game.data.balance = 1000000
+		campaign.game.economy.campaign_completed = preload("res://scripts/campaign/catalog.gd").COUNT
 		var socket: Dictionary = campaign.run.mission.sockets[0]
 		campaign.run.build(socket.index, "rapid")
 		campaign.board.selected_tower = campaign.run.tower_at(socket.index)

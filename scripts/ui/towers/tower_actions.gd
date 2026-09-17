@@ -61,7 +61,7 @@ func _ready() -> void:
 	add_child(upgrade_quote)
 	upgrade_quote.hide()
 	for action in ACTION_OFFSETS:
-		var button := UI.accent_button("", func(): action_requested.emit(action), UI.GOLD if action == "upgrade" else UI.SURFACE)
+		var button := UI.accent_button("", func(): action_requested.emit(action), preload("res://scripts/ui/towers/tower_action_icon.gd").fill(action))
 		button.disabled = action == "equipment"
 		button.size = BUTTON_SIZE
 		button.accessibility_description = action.capitalize()
@@ -69,7 +69,7 @@ func _ready() -> void:
 		button.name = "Tower" + action.capitalize()
 		button.focus_mode = Control.FOCUS_ALL
 		for state in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
-			var color := UI.GOLD if action == "upgrade" else UI.SURFACE
+			var color := preload("res://scripts/ui/towers/tower_action_icon.gd").fill(action)
 			var style := UI.focus_box() if state == "focus" else UI.button_surface(color)
 			style.set_content_margin_all(0)
 			button.add_theme_stylebox_override(state, style)

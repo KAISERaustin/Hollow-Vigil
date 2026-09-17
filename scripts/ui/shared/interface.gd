@@ -17,17 +17,16 @@ const MUTED := Color("B8B5A7")
 const DANGER := Color("623F39")
 const DISABLED := Color("303936")
 const SCRIM := Color(0, 0, 0, 0.65)
-const BUTTON_PALETTES := {
-	"moonlit_iron": {"name": "Moonlit Iron", "description": "Forest iron and aged bone.", "secondary": Color("46514D"), "primary": Color("B8AA87")},
-	"ashen_steel": {"name": "Ashen Steel", "description": "Storm-blue steel and worn silver.", "secondary": Color("414C5D"), "primary": Color("B3B5AF")},
-	"dusk_violet": {"name": "Dusk Violet", "description": "Smoky violet and weathered rose.", "secondary": Color("514652"), "primary": Color("B8A1A6")},
-	"ember_bronze": {"name": "Ember Bronze", "description": "Charred brown and aged bronze.", "secondary": Color("5B473E"), "primary": Color("BCA082")},
-}
-static var button_palette := "moonlit_iron"
-static var button_styles: Array[WeakRef] = []
-## Shared black rims: buttons are one unit thinner than panels and dividers.
-const OUTLINE := 3
-const BUTTON_OUTLINE := 2
+## Fixed action roles coexist on each page; they are not player preferences.
+const STEEL := Color("414C5D") # Navigation, information and account actions.
+const SILVER := Color("B3B5AF") # Confirm an account/information action.
+const VIOLET := Color("514652") # Rules, stats and other editing actions.
+const ROSE := Color("B8A1A6") # Commit an edit.
+const BRONZE := Color("5B473E") # Construction, saved builds and recovery.
+const COPPER := Color("BCA082") # Commit a build, upgrade, save or restore.
+## One black rim width for every UI enclosure and divider.
+const OUTLINE := 1
+const BUTTON_OUTLINE := OUTLINE
 const RADIUS := 4
 const BODY := 16
 const CAPTION := 14
@@ -298,32 +297,24 @@ static func box(bg: Color, border: Color = BORDER, radius: int = RADIUS) -> Styl
 	style.content_margin_bottom = 8
 	return style
 
-static func button_color(role: Color) -> Color:
-	if role == SURFACE: return BUTTON_PALETTES[button_palette].secondary
-	if role == GOLD: return BUTTON_PALETTES[button_palette].primary
-	return role
-
-## Track only weak references so existing dialogs update without retaining pages.
+## Every button state shares the same thin black rim and fixed semantic fill.
 static func button_surface(role: Color, padding: int = -1) -> StyleBox:
-	var style := box(button_color(role))
+	var style := box(role)
 	style.set_border_width_all(BUTTON_OUTLINE)
 	if padding >= 0: style.set_content_margin_all(padding)
-	style.set_meta("button_color_role", role)
-	button_styles.append(weakref(style))
-	if button_styles.size() % 256 == 0:
-		button_styles = button_styles.filter(func(reference: WeakRef): return reference.get_ref() != null)
 	return style
 
-static func set_button_palette(key: String) -> void:
-	button_palette = key if BUTTON_PALETTES.has(key) else "moonlit_iron"
-	var retained: Array[WeakRef] = []
-	for reference in button_styles:
-		var style = reference.get_ref()
-		if style == null: continue
-		style.bg_color = button_color(style.get_meta("button_color_role"))
-		style.emit_changed()
-		retained.append(reference)
-	button_styles = retained
+static func ink_on(fill: Color) -> Color:
+	return ON_PRIMARY if fill in [GOLD, SILVER, ROSE, COPPER] else TEXT
+
+static func navigation_button(text: String, action: Callable, height: float = TARGET) -> Button:
+	return accent_button(text, action, STEEL, height)
+
+static func edit_button(text: String, action: Callable, height: float = TARGET) -> Button:
+	return accent_button(text, action, VIOLET, height)
+
+static func management_button(text: String, action: Callable, height: float = TARGET) -> Button:
+	return accent_button(text, action, BRONZE, height)
 
 static func focus_box() -> StyleBoxEmpty:
 	# Focus navigation stays active without drawing a ring on any control.
@@ -428,11 +419,11 @@ static func refresh_button(action: Callable, description: String = "Refresh") ->
 
 ## Dense gameplay bars keep full touch targets with compact text and insets.
 static func toolbar_action(text: String, action: Callable, primary: bool = false) -> Button:
-	var control := gold_button(text, action, TARGET) if primary else button(text, action)
+	var control := gold_button(text, action, TARGET) if primary else navigation_button(text, action)
 	control.add_theme_font_size_override("font_size", type_size(CAPTION))
 	control.autowrap_mode = TextServer.AUTOWRAP_OFF
 	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
-		var style := button_surface(DISABLED if state == "disabled" else (GOLD if primary else SURFACE))
+		var style := button_surface(DISABLED if state == "disabled" else (GOLD if primary else STEEL))
 		style.content_margin_left = INSET_PADDING
 		style.content_margin_right = INSET_PADDING
 		if state in ["pressed", "hover_pressed"]:
@@ -593,7 +584,7 @@ static func number_row(title: String, number: SpinBox, preview: Button = null, i
 
 static func accent_button(text: String, action: Callable, accent: Color, height: float = 48) -> Button:
 	var b := button(text, action, height)
-	style_button_ink(b, ON_PRIMARY if accent == GOLD else TEXT)
+	style_button_ink(b, ink_on(accent))
 	b.add_theme_stylebox_override("normal", button_surface(accent))
 	b.add_theme_stylebox_override("hover", button_surface(accent))
 	var pressed := button_surface(accent)

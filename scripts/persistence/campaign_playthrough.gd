@@ -31,6 +31,7 @@ static func encode(levels: Dictionary, title: String, description: String, stats
 	return code if code.to_utf8_buffer().size() <= MAX_BYTES else ""
 
 static func valid(value: Variant) -> bool:
+	if value is Dictionary and value.has("catalog_revision") and value.catalog_revision != 2: return false
 	if not value is Dictionary or value.size() != (4 if value.has("catalog_revision") else 3) or value.get("version") != 1: return false
 	if not Stats.valid({"version": 1, "setup": value.get("setup"), "tuning": {}}): return false
 	if not value.get("levels") is Dictionary or value.levels.size() not in [Configuration.Catalog.LEGACY_COUNT, 30, Configuration.Catalog.COUNT]: return false

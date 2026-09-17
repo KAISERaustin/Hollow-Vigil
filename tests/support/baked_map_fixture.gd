@@ -20,4 +20,4 @@ static func clear_site(site: Rect2, map: Control, chapter: int) -> bool:
 	roads.append(preload("res://scripts/ui/shared/biome_map_art.gd").waterway(map.chapter_rect(chapter)))
 	for road in roads.size():
 		for point in roads[road].size(): roads[road][point].x *= scale_x
-	return preload("res://scripts/ui/shared/biome_map_art.gd").clear_site(source, Rect2(0, chapter * 960, 540, 960), reserved, roads)
+	return preload("res://scripts/ui/shared/biome_map_art.gd").clear_site(source, Rect2(0, chapter * map.CHAPTER_HEIGHT, 540, map.CHAPTER_HEIGHT), reserved, roads)

@@ -54,7 +54,7 @@ func _process(_delta: float) -> void:
 	# Keep the tower strip in place while the completed battlefield is shown.
 	var can_build := not allowed_to_build.is_valid() or bool(allowed_to_build.call())
 	for button in palette.find_children("Build_*", "Button", true, false):
-		button.disabled = not can_build or field.state.data.balance < Balance.definition("towers", button.get_meta("tower_kind"), field.state.tuning).cost
+		button.disabled = not field.state.economy.tower_available(button.get_meta("tower_kind")) or not can_build or field.state.data.balance < Balance.definition("towers", button.get_meta("tower_kind"), field.state.tuning).cost
 
 func fit() -> void:
 	var safe := UI.safe_rect(self)

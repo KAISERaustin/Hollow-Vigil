@@ -39,7 +39,7 @@ func _ready() -> void:
 	add_theme_constant_override("separation", 12)
 	general = VBoxContainer.new()
 	add_child(general)
-	var add_gold := UI.button("Add 1,000,000 gold", func():
+	var add_gold := UI.edit_button("Add 1,000,000 gold", func():
 		game.add_developer_gold()
 		changed.emit()
 	)
@@ -47,14 +47,14 @@ func _ready() -> void:
 	general.add_child(UI.action_row(add_gold.text, add_gold, "Add"))
 	add_gold.get_parent().visible = not configuration_only
 	if field != null:
-		var free_camera := UI.button("Unrestricted zoom and pan", func(): pass)
+		var free_camera := UI.edit_button("Unrestricted zoom and pan", func(): pass)
 		free_camera.name = "UnrestrictedCamera"
 		free_camera.toggle_mode = true
 		free_camera.set_pressed_no_signal(field.unrestricted_camera)
 		free_camera.toggled.connect(field.set_unrestricted_camera)
 		free_camera.accessibility_description = "Bypass camera limits for this session. Turn off to restore the two-tile limits."
 		general.add_child(UI.action_row(free_camera.text, free_camera, "Toggle"))
-		var health_numbers := UI.button("Show enemy and boss health", func(): pass)
+		var health_numbers := UI.edit_button("Show enemy and boss health", func(): pass)
 		health_numbers.name = "ShowHealthNumbers"
 		health_numbers.toggle_mode = true
 		health_numbers.set_pressed_no_signal(field.show_health_numbers)
@@ -68,7 +68,7 @@ func _ready() -> void:
 	add_child(category_list)
 	move_child(category_list, 0)
 	for section in categories:
-		var tab := UI.button(category_title(section), show_category.bind(section))
+		var tab := UI.edit_button(category_title(section), show_category.bind(section))
 		tab.disabled = section == "gear"
 		tab.name = section.capitalize() + "Category"
 		tabs[section] = tab
@@ -135,7 +135,7 @@ func _ready() -> void:
 	editor.add_child(fields)
 	detail = UI.paragraph("", 12)
 	editor.add_child(detail)
-	var reset_selected := UI.button("Reset to Default", func():
+	var reset_selected := UI.edit_button("Reset to Default", func():
 		commit_fields()
 		game.reset_developer_balance(category, editing_kind())
 		rules_edited.emit(category, editing_kind(), Balance.Stats.schema(category).keys() if category in Balance.Stats.CATEGORIES else selected_fields().keys())
@@ -145,7 +145,7 @@ func _ready() -> void:
 	reset_selected.name = "ResetSelectedBalance"
 	editor.add_child(UI.action_row(reset_selected.text, reset_selected, "Reset"))
 	editor.move_child(reset_selected.get_parent(), fields.get_index())
-	var reset_all := UI.button("Reset all balance values", func():
+	var reset_all := UI.edit_button("Reset all balance values", func():
 		commit_fields()
 		game.reset_developer_balance()
 		for section in categories:

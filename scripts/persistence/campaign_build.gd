@@ -29,6 +29,7 @@ static func decode(code: String) -> Dictionary:
 	return value if valid(value) else {}
 
 static func valid(value: Variant) -> bool:
+	if value is Dictionary and value.has("catalog_revision") and value.catalog_revision != 2: return false
 	if not value is Dictionary or value.get("version") != 1 or value.size() != (5 if value.has("loadout") else 4) + (1 if value.has("catalog_revision") else 0): return false
 	if not Stats.valid({"version": 1, "setup": value.get("setup"), "tuning": {}}): return false
 	if not Configuration._number(value.get("level"), 0, Configuration.Catalog.COUNT - 1, true): return false

@@ -79,8 +79,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		app.navigate_back()
 		get_viewport().set_input_as_handled()
 
-func action(text: String, callback: Callable, key: String, primary: bool = false) -> Button:
-	var button := UI.gold_button(text, callback, 52) if primary else UI.button(text, callback)
+func action(text: String, callback: Callable, key: String, primary: bool = false, color: Color = Color.TRANSPARENT) -> Button:
+	var fill := (UI.GOLD if primary else UI.STEEL) if color == Color.TRANSPARENT else color
+	var button := UI.accent_button(text, callback, fill, 52 if primary else UI.TARGET)
 	button.name = key
 	return button
 
@@ -138,8 +139,8 @@ func show_home(type: String = "") -> void:
 	page_view("home", game_type.capitalize(), show_main_menu)
 	for entry in [["Continue", show_slots, "Continue"], ["New game", func(): begin_new(), "NewGame"],
 		["My builds", func(): open_library(false), "MyBuilds"], ["Community", func(): open_library(true), "Community"]]:
-		content.add_child(action(entry[0], entry[1], entry[2], entry[0] == "Continue"))
-	footer.add_child(action("Backups", func(): show_backups(show_home), "Backups"))
+		content.add_child(action(entry[0], entry[1], entry[2], entry[0] == "Continue", UI.BRONZE if entry[2] == "MyBuilds" else Color.TRANSPARENT))
+	footer.add_child(action("Backups", func(): show_backups(show_home), "Backups", false, UI.BRONZE))
 	footer.add_child(action("Settings", func(): show_settings(show_home), "Settings"))
 
 func slot_summary(slot: int) -> Dictionary:
@@ -174,7 +175,7 @@ func show_slots() -> void:
 			title = "Recovery needed" if exists else "Empty slot"
 			description = "Your game is preserved." if exists else ""
 			if exists:
-				buttons.append(action("Backups & recovery", func(): show_backups(show_slots), "RecoverGameSlot" + str(slot + 1)))
+				buttons.append(action("Backups & recovery", func(): show_backups(show_slots), "RecoverGameSlot" + str(slot + 1), false, UI.BRONZE))
 			else:
 				buttons.append(action("New game", begin_new.bind(slot), "NewGameSlot" + str(slot + 1)))
 		else:
@@ -248,7 +249,7 @@ func show_starting_build() -> void:
 		new_game.choices = {}
 		show_starting_build()
 	, "ChooseOriginal", new_game.entry.is_empty()))
-	content.add_child(action("My builds", func(): open_library(false, true), "ChooseMyBuilds"))
+	content.add_child(action("My builds", func(): open_library(false, true), "ChooseMyBuilds", false, UI.BRONZE))
 	content.add_child(action("Community", func(): open_library(true, true), "ChooseCommunity"))
 	if new_game.entry.is_empty(): content.add_child(UI.paragraph("Original rules and a fresh starting layout."))
 	else:
@@ -441,7 +442,7 @@ func show_library_entries() -> void:
 					if ok: await show_library(); notice("Build deleted.")
 					else: notice("Couldn't delete this build. Check your connection and retry.")
 				)
-			, "DeleteBuild"))
+			, "DeleteBuild", false, UI.DANGER))
 
 func read_detail(entry: Dictionary) -> void:
 	var value := entry
@@ -468,14 +469,14 @@ func show_detail() -> void:
 	content.add_child(UI.paragraph(Build.dependencies(build)))
 	content.add_child(UI.paragraph("Starting stats can be reused across Campaign levels." if Build.has_stats(build) else "Content for " + build.game_type.capitalize() + "."))
 	if not library_community: content.add_child(UI.paragraph("Saved privately on this device. " + library_backup_status()))
-	var use := action("Use build", use_detail, "UseBuild", true)
+	var use := action("Use build", use_detail, "UseBuild", true, UI.COPPER)
 	use.disabled = not Build.compatible(build, game_type)
 	footer.add_child(use)
 	if library_community:
 		footer.add_child(action("Save privately", func():
 			if slots.save_shared(detail_entry.code): notice("Saved privately to My builds."); mark_backup_pending()
 			else: notice("Couldn't save this build. Please try again.")
-		, "SaveCommunityPrivately"))
+		, "SaveCommunityPrivately", false, UI.BRONZE))
 	else: footer.add_child(action("Share to Community", func(): open_saved_build_form(detail_entry), "SharePrivateBuild"))
 
 func use_detail() -> void:
@@ -509,11 +510,11 @@ func open_game_menu() -> void:
 		if app.campaign.page == "battle": app.campaign.update_time_controls()
 	page_view("game_menu", "Menu", resume_game)
 	content.add_child(UI.paragraph("Campaign"))
-	if app.campaign.can_author(): content.add_child(action("Edit rules", open_rules, "EditRules"))
-	content.add_child(action("Save build", open_build_form, "SaveBuild"))
-	content.add_child(action("Backups", func(): show_backups(open_game_menu), "GameBackups"))
+	if app.campaign.can_author(): content.add_child(action("Edit rules", open_rules, "EditRules", false, UI.VIOLET))
+	content.add_child(action("Save build", open_build_form, "SaveBuild", false, UI.BRONZE))
+	content.add_child(action("Backups", func(): show_backups(open_game_menu), "GameBackups", false, UI.BRONZE))
 	content.add_child(action("Settings", func(): show_settings(open_game_menu), "GameSettings"))
-	content.add_child(action("Exit game", exit_game, "ExitGame"))
+	content.add_child(action("Exit game", exit_game, "ExitGame", false, UI.SURFACE))
 
 func resume_game() -> void:
 	hide()
@@ -602,7 +603,7 @@ func show_build_form() -> void:
 	style_entry(description)
 	description.text_changed.connect(func(): form.description = description.text.left(4000))
 	content.add_child(UI.form_field("Description (optional)", description))
-	footer.add_child(action("Save privately", submit_build.bind(false), "SavePrivately", true))
+	footer.add_child(action("Save privately", submit_build.bind(false), "SavePrivately", true, UI.COPPER))
 	footer.add_child(action("Share to Community", submit_build.bind(true), "ShareToCommunity"))
 	if not pending_publish.is_empty(): footer.add_child(action("Retry", retry_share, "RetryShare"))
 	if not form_saved_code.is_empty(): notice("Private copy saved in My builds.")
@@ -693,22 +694,10 @@ func show_settings(return_to: Callable = Callable()) -> void:
 	if return_to.is_valid(): settings_return = return_to
 	page_view("settings", "Settings", settings_return)
 	content.add_child(action("Account", func(): show_account(show_settings), "SettingsAccount"))
-	content.add_child(action("Sound", show_sound, "SettingsSound"))
-	content.add_child(action("Button colors", show_button_colors, "SettingsButtonColors"))
+	content.add_child(action("Sound", show_sound, "SettingsSound", false, UI.VIOLET))
 	if settings_return == show_main_menu:
-		content.add_child(action("Bug report", show_bug_report, "SettingsBugReport"))
+		content.add_child(action("Bug report", show_bug_report, "SettingsBugReport", false, UI.BRONZE))
 		content.add_child(action("Change log", show_change_log, "SettingsChangeLog"))
-
-func show_button_colors() -> void:
-	page_view("button_colors", "Button colors", show_settings)
-	content.add_child(UI.paragraph("Choose a color set for buttons throughout the game. Changes are saved on this device."))
-	var choices := preload("res://scripts/ui/shared/button_colors.gd").new()
-	choices.palette_selected.connect(func(key: String):
-		app.set_button_colors(key)
-		show_button_colors()
-	)
-	content.add_child(choices)
-	footer.add_child(action("Done", show_settings, "ButtonColorsDone", true))
 
 func show_change_log() -> void:
 	if settings_return != show_main_menu: return
@@ -725,7 +714,7 @@ func show_bug_report() -> void:
 	page_view("bug_report", "Bug report", show_settings)
 	var report := preload("res://scripts/ui/shared/bug_report_form.gd").new()
 	report.service = app.bug_reports
-	report.upload_button = action("Upload", func(): await app.bug_reports.upload(), "UploadBugReport", true)
+	report.upload_button = action("Upload", func(): await app.bug_reports.upload(), "UploadBugReport", true, UI.SILVER)
 	footer.add_child(report.upload_button)
 	content.add_child(report)
 
@@ -751,7 +740,7 @@ func show_account(return_to: Callable = Callable()) -> void:
 			var text := player_name.text
 			await app.cloud.save_player_name(text)
 			if screen == "account": notice(app.cloud.status)
-		, "SavePlayerName"))
+		, "SavePlayerName", true, UI.SILVER))
 		content.add_child(action("Sign out", func(): app.cloud.sign_out(); show_account(), "SignOut"))
 	else:
 		content.add_child(UI.paragraph("Sign in for automatic private backups and Community sharing. Private saving is available offline."))
@@ -775,13 +764,13 @@ func show_account(return_to: Callable = Callable()) -> void:
 		content.add_child(action("Sign in", func():
 			await app.cloud.verify_link(code.text)
 			if screen == "account": show_account(); notice(app.cloud.status)
-		, "SignIn", true))
+		, "SignIn", true, UI.SILVER))
 		if app.cloud.has_saved_session():
 			content.add_child(action("Retry sign-in", func():
 				await app.cloud.restore_session()
 				if screen == "account": show_account(); notice(app.cloud.status)
 			, "RetrySignIn"))
-	footer.add_child(action("Done", func(): account_return.call(), "AccountDone", true))
+	footer.add_child(action("Done", func(): account_return.call(), "AccountDone", true, UI.SILVER))
 
 func open_rules() -> void:
 	if live_campaign(): show_campaign_content_rules()
@@ -819,7 +808,7 @@ func show_campaign_content_rules(return_to: Callable = Callable()) -> void:
 	level_rules.route_changed.connect(update_rules_route)
 	content.add_child(level_rules)
 	level_rules.hide()
-	var levels_button := UI.button("Open", func():
+	var levels_button := UI.edit_button("Open", func():
 		rules_editor.hide()
 		level_rules.show_levels()
 		scroll.scroll_vertical = 0
@@ -835,12 +824,12 @@ func show_campaign_content_rules(return_to: Callable = Callable()) -> void:
 		level_rules.commit_fields()
 		if app.campaign.save_campaign_tuning(campaign_rule_changes, level_rules.changes): rules_return.call()
 		else: notice("These campaign changes could not be saved. Your draft is still open.")
-	, "ApplyRules", true))
+	, "ApplyRules", true, UI.ROSE))
 	footer.add_child(action("Cancel", func():
 		if rules_editor.visible and rules_editor.route not in ["categories", "list"]: rules_editor.cancel_item()
 		elif level_rules.visible and level_rules.selected >= 0: level_rules.cancel_item()
 		else: cancel_rules()
-	, "CancelRules"))
+	, "CancelRules", false, UI.SURFACE))
 
 func update_rules_route(title: String, _item_open: bool) -> void:
 	var headings := header.find_children("*", "Label", true, false)
@@ -863,7 +852,7 @@ func show_campaign_rules(index: int, wave: int, return_to: Callable) -> void:
 	if app.campaign.run != null and app.campaign.run.mission.index == index and app.campaign.page == "battle" and app.campaign.run.editable(): rules_editor.live_run = app.campaign.run
 	rules_editor.apply_changes = app.campaign.save_configuration
 	content.add_child(rules_editor)
-	footer.add_child(action("Done", rules_back, "DoneWaveRules", true))
+	footer.add_child(action("Done", rules_back, "DoneWaveRules", true, UI.ROSE))
 
 func rules_back() -> void:
 	if wave_rules:
@@ -912,7 +901,7 @@ func show_backups(return_to: Callable = Callable()) -> void:
 		var revision := view_revision
 		await backups.sync_now()
 		if revision == view_revision: show_backups()
-	, "BackUpNow", true)
+	, "BackUpNow", true, UI.COPPER)
 	backup.disabled = not app.cloud.signed_in() or backups.busy
 	footer.add_child(backup)
 	content.add_child(UI.paragraph("Back up now protects all three slots and every private build. Automatic backups retry when connected; differing versions wait for your choice."))
@@ -925,7 +914,7 @@ func show_backups(return_to: Callable = Callable()) -> void:
 	for remote in backups.remote_games:
 		var body := add_card(str(remote.get("name", "Saved game")))
 		body.add_child(UI.paragraph("%s · %s · Slot %d\n%s" % [str(remote.game_type).capitalize(), str(remote.get("mode", "creative")).capitalize(), int(remote.slot_number) + 1, remote.get("progress", "Saved progress")]))
-		body.add_child(action("Restore backup", begin_restore.bind(remote), "RestoreBackup"))
+		body.add_child(action("Restore backup", begin_restore.bind(remote), "RestoreBackup", false, UI.BRONZE))
 		var account_id: String = app.cloud.player_id
 		body.add_child(action("Delete", func():
 			confirm("Delete cloud backup?", "Permanently delete “%s” from your account? Your local game stays saved; further progress can create a new backup." % remote.get("name", "Saved game"), "Delete", func():
@@ -935,14 +924,14 @@ func show_backups(return_to: Callable = Callable()) -> void:
 				show_backups()
 				notice("Cloud backup deleted." if ok else "Couldn't delete the backup. Refresh and retry; it may have changed.")
 			)
-		, "DeleteCloudBackup"))
+		, "DeleteCloudBackup", false, UI.DANGER))
 	content.add_child(UI.heading("My builds", 18))
 	content.add_child(UI.paragraph(backups.library_status() + " Private builds from your account are recovered automatically when connected."))
 	content.add_child(action("Recover My builds", func():
 		var revision := view_revision
 		await backups.sync_now()
 		if revision == view_revision: show_backups()
-	, "RecoverMyBuilds"))
+	, "RecoverMyBuilds", false, UI.BRONZE))
 	content.add_child(UI.heading("Recovery copies on this device", 18))
 	content.add_child(UI.paragraph("Replaced games stay here until you choose to restore them. Restoring uses one of the three Campaign slots."))
 	var recoveries: Array = backups.recovery_games()
@@ -953,14 +942,14 @@ func show_backups(return_to: Callable = Callable()) -> void:
 		body.add_child(action("Restore backup", func():
 			restore_choice = {"game_type": recovery.game_type, "snapshot": recovery.snapshot.duplicate(true), "source": "recovery", "destination": -1, "revision": 0, "slot_number": -1}
 			show_restore_destination()
-		, "RestoreRecoveryCopy"))
+		, "RestoreRecoveryCopy", false, UI.BRONZE))
 		body.add_child(action("Delete", func():
 			confirm("Delete recovery copy?", "Permanently delete “%s” from this device? This cannot be undone." % game_name(recovery.snapshot), "Delete", func():
 				var ok: bool = backups.delete_recovery(recovery.path)
 				show_backups()
 				notice("Recovery copy deleted." if ok else "Couldn't delete this recovery copy. Please retry.")
 			)
-		, "DeleteRecoveryCopy"))
+		, "DeleteRecoveryCopy", false, UI.DANGER))
 
 func begin_restore(remote: Dictionary) -> void:
 	var revision := view_revision
@@ -1025,8 +1014,8 @@ func review_restore() -> void:
 	footer.add_child(action("Restore backup", func():
 		var title := "Restore into empty slot?" if local.is_empty() else "Replace “%s”?" % game_name(local, destination)
 		confirm(title, "Restore “%s” into %s slot %d?" % [game_name(remote), type.capitalize(), destination + 1], "Restore backup", apply_restore)
-	, "ConfirmRestoreBackup", true))
-	footer.add_child(action("Cancel", show_backups, "CancelRestore"))
+	, "ConfirmRestoreBackup", true, UI.COPPER))
+	footer.add_child(action("Cancel", show_backups, "CancelRestore", false, UI.SURFACE))
 
 func keep_device_version() -> void:
 	var type: String = restore_choice.game_type

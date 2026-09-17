@@ -44,7 +44,7 @@ func configure(campaign: Callable, settings: Callable = Callable()) -> void:
 	campaign_button.accessibility_description = "Join Pickard the knight in the Campaign."
 	modes.add_child(campaign_button)
 	if settings.is_valid():
-		var settings_button := UI.button("Settings", settings, 56)
+		var settings_button := UI.navigation_button("Settings", settings, 56)
 		settings_button.name = "MainSettings"
 		modes.add_child(settings_button)
 	resized.connect(arrange, CONNECT_DEFERRED)

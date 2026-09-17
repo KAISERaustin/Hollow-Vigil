@@ -27,15 +27,15 @@ func run() -> void:
 				check(group[1] > 0 and group[2] >= 0 and group[2] < mission.routes.size() and group[3] >= 0 and group[4] > 0, "Wave timing and lane are valid")
 				if Balance.BOSSES.has(group[0]):
 					bosses += group[1]
-		check(bosses == (1 if index % 5 == 4 else 0), "Each chapter ends in one boss")
+		check(bosses == (1 if index % Catalog.LEVELS_PER_CHAPTER == Catalog.LEVELS_PER_CHAPTER - 1 else 0), "Each chapter ends in one boss")
 		for socket in mission.sockets:
 			check(Catalog.BOARD.has_point(socket.position), "Build socket lies in authored world")
 	var battle := Run.new(0)
 	battle.game.combat.tick(30)
 	check(battle.game.combat.enemies.is_empty(), "Campaign does not receive idle rift spawns")
 	check(not battle.build(0,"rapid"), "Unauthored sockets cannot be built on")
-	check(battle.build(6,"rapid") and battle.upgrade(6), "Campaign tower transactions use mission gold")
-	check(battle.game.data.balance == 120, "Build and upgrade deduct exact shared costs")
+	check(battle.build(6,"rapid") and not battle.upgrade(6), "Campaign tower transactions use mission gold")
+	check(battle.game.data.balance == battle.mission.gold - 60, "Locked upgrades cost nothing; building deducts the shared price")
 	check(battle.target(6,"most_hp"), "Campaign supports target priorities")
 	check(battle.start_wave() and not battle.start_wave(), "Wave start cannot be duplicated")
 	check(battle.build(9,"rapid"), "Building is supported during a wave")
@@ -83,20 +83,16 @@ func run() -> void:
 	skipped.phase = "victory"
 	check(not progress.save_run(skipped), "Progress cannot skip an unbeaten level")
 	var creative := Progress.new()
-	creative.allow_all = true
 	creative.path = progress.path + ".creative"
-	check(creative.save_run(skipped) and creative.level_completed(2) and creative.data.completed_levels == 0, "Creative records a skipped victory without lighting the preceding roads")
-	check(creative.save_run(resumed) and creative.data.completed_levels == 1, "Creative lights only the continuous cleared prefix")
+	check(not creative.unlocked(1) and not creative.save_run(skipped), "Creative cannot skip locked levels")
+	check(creative.save_run(resumed) and creative.data.completed_levels == 1, "Creative victory unlocks the next level")
 	var gap := Run.new(1)
-	check(creative.save_run(gap) and creative.current_level() == 1, "Creative remembers the level being played")
+	gap.phase = "victory"
+	check(creative.save_run(gap) and creative.data.completed_levels == 2, "Creative advances one level at a time")
 	var creative_reload := Progress.new()
 	creative_reload.path = creative.path
-	creative_reload.allow_all = true
 	creative_reload.load_progress()
-	check(not creative_reload.blocked and creative_reload.level_completed(2) and not creative_reload.level_completed(1) and creative_reload.current_level() == 1, "Creative victories and current marker survive reload independently")
-	gap.phase = "victory"
-	check(creative.save_run(gap) and creative.data.completed_levels == 3, "Filling a Creative gap connects the road through previously beaten levels")
-	check(creative.save_run(gap) and creative.data.completed_levels == 3, "Creative replays do not duplicate progress")
+	check(not creative_reload.blocked and creative_reload.level_completed(1) and not creative_reload.unlocked(3), "Creative locks survive reload")
 	check(not Progress.valid_map_progress({"beaten_levels": [2, 2]}) and not Progress.valid_map_progress({"current_level": Catalog.COUNT}), "Invalid map progress is rejected")
 	check(creative.reset_progress() and not creative.level_completed(2) and creative.current_level() == 0, "Reset clears Creative map state")
 	clean_test_save(creative.path)
@@ -136,6 +132,7 @@ func run() -> void:
 func check_setup_refunds() -> void:
 	for index in [0, 2, 19]:
 		var setup := Run.new(index)
+		setup.game.economy.campaign_completed = Catalog.COUNT # Refund fixture uses an established save.
 		var socket: int = setup.mission.sockets[0].index
 		for kind in Balance.TOWERS:
 			for level in range(1, Balance.MAX_TOWER_LEVEL + 1):

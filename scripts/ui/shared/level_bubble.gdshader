@@ -2,7 +2,7 @@ shader_type canvas_item;
 // Display the generated bubble sprite with the same pixel-sized frame as the UI.
 uniform vec4 source_region = vec4(0.0, 0.0, 1.0, 1.0);
 uniform float extent = 32.0;
-uniform float outline = 3.0;
+uniform float outline = 1.0;
 
 void fragment() {
 	vec2 point = UV * extent - vec2(extent * 0.5);

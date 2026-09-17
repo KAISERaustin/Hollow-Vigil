@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Hollow Vigil UI Standard · Pickard / Moonlit iron</title>
 <style>
-:root { --ink: #000; --text: #e8ddbd; --panel: #2b3533; --inset: #222a29; --outline: 3px; }
+:root { --ink: #000; --text: #e8ddbd; --panel: #2b3533; --inset: #222a29; --outline: 1px; }
 * { box-sizing: border-box; }
 body { margin: 0; background: #141b1a; color: var(--text); font: 16px/1.6 "Segoe UI", sans-serif; }
 main { max-width: 1040px; margin: 24px auto; padding: 32px; background: var(--panel); border: var(--outline) solid var(--ink); border-radius: 4px; }
@@ -21,7 +21,7 @@ th { background: var(--inset); } code { overflow-wrap: anywhere; font-size: .9em
 </head>
 <body><main>
 <h1 id="hollow-vigil-ui-style-guide">Hollow Vigil UI style guide</h1>
-<p>Version 3.1 · Pickard / Moonlit iron · September 16, 2026</p>
+<p>Version 3.2 · Pickard / Moonlit iron · September 16, 2026</p>
 <h2 id="start-with-the-theme">Start with the theme</h2>
 <p>Read <a href="UI_THEME.md">UI_THEME.md</a> before creating or changing UI. It is the primary
 specification for palette, materials, type, borders, spacing, row actions,
@@ -34,7 +34,7 @@ Campaign and Settings buttons do not define the palette.
 The opening image is the largest source of truth for every future screen.</p>
 <p>Version 3 supersedes Version 2's parchment-first backgrounds, yellow primary
 buttons and pastel panel defaults. Keep the useful existing card hierarchy,
-compact spacing, 2-unit black button borders, 3-unit panel/divider borders,
+compact spacing, 1-unit black button borders, 1-unit panel/divider borders,
 4-unit corners and mobile input behavior.
 Use dark reading surfaces and warm light text as defined in the theme. The shared
 runtime now applies these roles across menus and gameplay UI.</p>
@@ -71,9 +71,11 @@ runtime now applies these roles across menus and gameplay UI.</p>
 and the reusable components before creating local variants. Existing helpers such
 as <code>info_card</code>, <code>stat</code>, <code>rule</code>, <code>action_row</code>, <code>number_row</code>, <code>button</code>, <code>style_entry</code>
 and <code>keyboard_scroll</code> preserve structure while their semantic presentation evolves.
-The theme's palette roles are implemented in that owner. Button colors can be
-changed in Settings using Moonlit Iron, Ashen Steel, Dusk Violet or Ember Bronze;
-use <code>UI.button_surface()</code> so both live palette changes and 2-unit rims apply.</p>
+The theme's fixed action roles are implemented in that owner: iron for neutral
+actions, steel for navigation, violet for editing and bronze for building and
+recovery. Their light companions emphasize commitments; cloak red marks danger.
+The colors coexist within menus, with no player color selector. Use the shared
+role helpers and <code>UI.button_surface()</code> so every button retains its 1-unit rim.</p>
 <p>Keep text separate from surface tint. Shared world ink/paper/gold constants also
 serve artwork, so a UI restyle must not globally recolor terrain or currency.
 Update relevant shared consumers and all button/field/popup states together when
@@ -87,8 +89,7 @@ spare diamond ornament occupy the dark sky. Reserve the middle for the full knig
 including helmet, sword, shield and boots. Actions sit below him over quiet ground.</p>
 <p>Current title size responds from 32 to 52; current actions are 56 high, up to 320
 wide, with a 14-unit vertical gap. Preserve their layout during future styling.
-The theme defines their color treatment; the selected palette supplies an aged
-primary and a muted secondary. The live controls respect safe areas and stay reachable
+Campaign uses aged metal and Settings uses steel as defined by the theme. The live controls respect safe areas and stay reachable
 through scrolling at short portrait heights. Artwork never owns input and must
 not bake text or buttons into its pixels.</p>
 <p>Reuse <code>welcome_menu.gd</code> and stateless <code>welcome_art.gd</code>. Keep the original character
@@ -97,15 +98,15 @@ screens share this dark visual language through their backgrounds, surfaces and
 accents; they do not require a full-screen duplicate of the hero.</p>
 <h3 id="full-pages-settings-and-forms">Full pages, settings and forms</h3>
 <p>Use the existing <code>unified_menu.gd</code> / <code>save_slots_panel.gd</code> shell. Back and title
-stay above the scroll area; progression actions stay below. Use 12-unit safe-area
-insets and 12-unit separation between these major regions. Keep action order and
+stay above the scroll area; progression actions stay below. Use 11-unit safe-area
+insets and 11-unit separation between these major regions. Keep action order and
 current navigation semantics. Do not add feature controls to fill unused space.</p>
 <p>For descriptive setting/option rows, put labels and explanations left and values
-or action controls right, with a black 3-unit divider below each row. Group
+or action controls right, with a black 1-unit divider below each row. Group
 multiple controls at the right and reflow them without reducing 48-unit targets.
 Fields remain directly editable; toggles show On/Off. Use the shared form and
 numeric rows and preserve a passive area from which to swipe.</p>
-<p>Settings, Button colors, Sound, Account, Bug report, Change log, My builds,
+<p>Settings, Sound, Account, Bug report, Change log, My builds,
 Community, Save build and Backups share this structure. Keep form errors visible after fixed-footer
 actions, and preserve first/last-item access when a page rebuilds. Keep Save
 privately before Share to Community, and keep publication an explicit action.</p>
@@ -125,7 +126,7 @@ consistent action column wide enough for Selected. Draw the divider once below
 each row, including disabled/selected rows. Never turn the description into a
 full-row tap target that makes scrolling select items.</p>
 <p>The picker has a fixed title, Close at the right and a header divider above its
-scrolling choices. Fit it inside the owning safe viewport with 12-unit clearance,
+scrolling choices. Fit it inside the owning safe viewport with 11-unit clearance,
 up to 480 wide and 560 high. The existing direct-choice save-slot variant sizes
 to content and keeps its full-width choices. Reveal the selected item on opening;
 restore focus on dismissal. Closing or dragging must not select accidentally.</p>
@@ -152,7 +153,7 @@ Current and Next, use columns when space allows, and stack at compact widths.
 No color alone may communicate a purchase consequence.</p>
 <h3 id="campaign-map-and-battlefield">Campaign map and battlefield</h3>
 <p>The map has fixed Back/title navigation above six edge-to-edge illustrated biome
-sections, separated by one black 3-unit line. Preserve chapter scenery, trails,
+sections, separated by one black 1-unit line. Preserve chapter scenery, trails,
 numbered destinations, unlock/completion states and at least 48-unit level targets.
 Keep text clear of full artwork bounds. World illustrations follow the art guide;
 map controls use the theme's common dark surfaces and readable text.</p>
@@ -195,8 +196,8 @@ rendered upright 360×640, 390×844 and 540×960 layouts, long labels, large val
 selected/disabled/modal states and safe-area behavior. Run the focused tests in
 <a href="../tests/README.md">tests/README.md</a>. Desktop simulation does not establish
 physical iOS/Android acceptance.</p>
-<p>Check the actual rendered dark palette in every state, including all four button
-color presets. Use <code>moonlit_theme_runner.gd</code> for the complete menu inventory and
+<p>Check the actual rendered dark palette in every state, including the fixed
+iron, steel, violet and bronze actions and their emphasized variants. Use <code>moonlit_theme_runner.gd</code> for the complete menu inventory and
 contrast/border checks, plus the relevant interaction runners.</p>
 <p>Keep this guide, <code>UI_THEME.md</code>, <code>ART_DIRECTION.md</code> and <code>AGENTS.md</code> aligned. After
 editing this guide, run <code>./tools/render_ui_style_guide.ps1</code> in PowerShell 7 to

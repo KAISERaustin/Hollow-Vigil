@@ -343,7 +343,7 @@ func show_setup() -> void:
 	sources.add_theme_constant_override("separation", 8)
 	layout.add_child(sources)
 	for community in [false, true]:
-		var button := UI.button("Community" if community else "My builds", show_playthrough_picker.bind(community))
+		var button := UI.accent_button("Community" if community else "My builds", show_playthrough_picker.bind(community), UI.STEEL if community else UI.BRONZE)
 		button.name = "CampaignCommunity" if community else "CampaignMyBuilds"
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		sources.add_child(button)
@@ -356,7 +356,7 @@ func show_setup() -> void:
 	modes.configure(mode, {"creative": "Create your campaign. Edit campaign-wide stats in Menu, then set rewards and spawns in Waves and share the complete build.", "survival": "Play the chosen campaign with its rules locked. Complete levels in order; each build keeps its own progress."})
 	modes.selected.connect(func(next: String): select_campaign(next, session.data.selections[mode]))
 	if can_author():
-		var share := UI.button("Save or share campaign", show_playthrough_share)
+		var share := UI.management_button("Save or share campaign", show_playthrough_share)
 		share.name = "ShareCampaignBuild"
 		layout.add_child(share)
 	var begin := UI.gold_button("Open %s campaign" % mode.capitalize(), show_map)
@@ -364,7 +364,7 @@ func show_setup() -> void:
 	begin.disabled = session.blocked or progress.blocked
 	layout.add_child(begin)
 	if not session.last_error.is_empty(): layout.add_child(UI.paragraph(session.last_error, 14))
-	layout.add_child(UI.button("Account & backups", func(): app.show_backups()))
+	layout.add_child(UI.management_button("Account & backups", func(): app.show_backups()))
 	if not app.public_builds.outbox.is_empty(): layout.add_child(UI.button("Retry public uploads", app.public_builds.flush))
 
 func show_playthrough_picker(community: bool = false) -> void:
@@ -428,7 +428,7 @@ func show_map() -> void:
 		var back: Button = heading.get_child(0)
 		back.accessibility_name = "Back to saved games"
 		back.name = "CampaignSavedGames"
-		var menu := UI.button("Menu", app.show_game_menu)
+		var menu := UI.navigation_button("Menu", app.show_game_menu)
 		menu.name = "CampaignMapMenu"
 		menu.accessibility_name = "Campaign menu"
 		menu.custom_minimum_size.x = 76
@@ -438,7 +438,7 @@ func show_map() -> void:
 		heading.add_child(menu)
 	else:
 		var heading := header("The Last Procession", show_setup)
-		var menu := UI.button("Menu", app.show_game_menu)
+		var menu := UI.navigation_button("Menu", app.show_game_menu)
 		menu.name = "CampaignMapMenu"
 		heading.add_child(menu)
 	var cleared := int(progress.data.completed_levels)
@@ -452,11 +452,11 @@ func show_map() -> void:
 	var footer := UI.margin(layout, UI.SCREEN_PADDING)
 	footer.get_parent().size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	footer.add_theme_constant_override("separation", UI.GAP)
-	var reset := UI.button("Reset campaign progress", confirm_progress_reset)
+	var reset := UI.accent_button("Reset campaign progress", confirm_progress_reset, UI.DANGER)
 	reset.name = "ResetCampaignProgress"
 	reset.visible = not can_author()
 	footer.add_child(reset)
-	var backups := UI.button("Account & backups", func(): app.show_backups())
+	var backups := UI.management_button("Account & backups", func(): app.show_backups())
 	backups.name = "CampaignBackups"
 	footer.add_child(backups)
 	save_notice = UI.paragraph(progress.last_error, 12)
@@ -491,7 +491,7 @@ func show_briefing(index: int, include_loadout: bool = true) -> void:
 	actions.name = "CampaignLevelActions"
 	actions.add_theme_constant_override("separation", UI.GAP)
 	layout.add_child(actions)
-	var details := UI.button("Preview waves", show_waves, 52)
+	var details := UI.navigation_button("Preview waves", show_waves, 52)
 	details.name = "PreviewCampaignWaves"
 	actions.add_child(details)
 	var start := UI.gold_button("Begin level", start_mission.bind(index, include_loadout), 52)
@@ -724,7 +724,7 @@ func show_waves() -> void:
 	var reports := Configuration.wave_reports(run.mission)
 	dialog_body.add_child(WaveSummary.total_time_card(reports))
 	if can_author():
-		var rules := UI.button("Edit rules", show_campaign_rules)
+		var rules := UI.edit_button("Edit rules", show_campaign_rules)
 		rules.name = "WavesEditRules"
 		dialog_body.add_child(rules)
 	var preview := VBoxContainer.new()
@@ -743,16 +743,16 @@ func show_waves() -> void:
 			authoring = {"quantity": func(kind: String): show_enemy_quantity(index, kind), "add": show_add_wave_enemy.bind(index), "remove": confirm_remove_wave.bind(index)}
 		preview.add_child(WaveSummary.card(report, state, show_wave_balance.bind(index), edit, authoring))
 	if can_edit_waves():
-		var add := UI.button("New wave", confirm_new_wave)
+		var add := UI.edit_button("New wave", confirm_new_wave)
 		add.name = "NewCampaignWave"
 		dialog_body.add_child(add)
-		var reset := UI.button("Reset all waves to default", confirm_reset_waves)
+		var reset := UI.accent_button("Reset all waves to default", confirm_reset_waves, UI.DANGER)
 		reset.name = "ResetLevelWaves"
 		dialog_body.add_child(reset)
 	elif can_author():
 		dialog_body.add_child(UI.paragraph("Wave editing unlocks when the active wave ends."))
 	if can_author() and active_campaign_slot < 0:
-		var share := UI.button("Share campaign", show_playthrough_share)
+		var share := UI.navigation_button("Share campaign", show_playthrough_share)
 		share.name = "ShareCampaignConfiguration"
 		dialog_actions.add_child(share)
 
@@ -899,7 +899,7 @@ func show_result() -> void:
 	else:
 		dialog_body.add_child(UI.paragraph("Restart this level with its original gold and core integrity. Previously completed levels remain saved.",15))
 	dialog_body.add_child(UI.button("Restart level", restart_mission.bind(run.mission.index),48))
-	dialog_body.add_child(UI.button("World map",show_map,48))
+	dialog_body.add_child(UI.navigation_button("World map",show_map,48))
 	if not progress.last_error.is_empty():
 		dialog_body.add_child(UI.paragraph(progress.last_error,14))
 
@@ -1143,6 +1143,7 @@ func configured_run(index: int, include_loadout: bool = true) -> RefCounted:
 	progress.apply_equipment(next)
 	if include_loadout:
 		VigilSaveSlots.CampaignBuild.apply_loadout(next, setup)
+	next.game.economy.enforce_campaign_unlocks()
 	return next
 
 func save_configuration(index: int, rules: Dictionary, removed_wave: int = -1) -> bool:
