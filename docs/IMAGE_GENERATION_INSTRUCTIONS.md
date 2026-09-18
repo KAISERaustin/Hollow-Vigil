@@ -146,3 +146,26 @@ upgrades and clean transparency.
 Treat these as requirements to verify in the finished images, not just wording
 to include in a prompt. Deliver the selected palette and shared placement
 coordinates with a related set so they can be reused consistently.
+
+## Required last step: restore the first tower's colors across the set
+
+At the very end, return to the completed, palette-enforced tier-one image.
+Its base-material colors are the authority for the rest of the towers. Do not
+let colors introduced in later generations redefine the original tower's palette.
+
+Run a deterministic script over all five finished images in order: tier 1,
+tier 2, tier 3, then both tier-four branches. Remap the shared structure's colors
+to the exact colors used for those materials in tier 1. Enforce an explicit list
+of allowed RGB values so no extra shades remain. Match material assignments as
+well as palette membership; a stone face should not change color between tiers
+just because both colors are on the allowed list.
+
+Only the designated branch additions may retain their reserved accent colors.
+Those accents must already belong to the selected 16-color family palette;
+they must not alter the shared base structure or expand the palette.
+
+After saving, reopen all five files and verify every nontransparent pixel against
+its allowed palette. Check the shared materials against tier 1 and inspect the
+set together. Preserve dimensions, positions, shapes and transparency throughout.
+Correct remaining color mismatches with the script, without regenerating images.
+Do not deliver the set until this final saved-file check passes.
