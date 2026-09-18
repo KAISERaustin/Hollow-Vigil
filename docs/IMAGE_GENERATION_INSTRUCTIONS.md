@@ -1,5 +1,9 @@
 # Image generation instructions
 
+These rules apply to any tower family. Choose its architecture, weapon or magic
+source, materials and upgrade features to fit its function. Do not automatically
+add archer windows, bows, doors or flags to a tower that does not need them.
+
 ## Art style
 
 Create stylized 2D dark medieval fantasy: bold black outlines, strong angular
@@ -81,7 +85,7 @@ this final color-only pass.
 
 Keep every image centered on the same core structure and ground anchor, using
 the same canvas size, camera and scale. Towers face straight toward the viewer,
-with the door facing forward. Do not recenter images around flags or decorations.
+with any front entrance facing forward. Do not recenter images around flags or decorations.
 Check alignment by switching or overlaying the images; upgrades must not jump.
 
 **Run an offset check on every image in a related set before delivery.** For a
@@ -93,12 +97,14 @@ placement to confirm they line up without shifting when the tower upgrades.
 
 Build each upgrade from the previous base: tier 1 is basic, tier 2 adds supports,
 and tier 3 is fortified. Both tier-four branches build independently from tier 3.
-Add to the structure without changing its core width or shifting its doorway.
+Add to the structure without changing its core width or shifting its fixed features.
 
-Use flags to help distinguish tiers: no flag on tier 1, a top flag on tier 2,
-and an added front banner on tier 3. Final branches retain these and add a flag
-matching their specialization. Make each branch's theme clear with a few bold
-features rather than covering the tower in tiny details.
+Use clear, cumulative visual markers to distinguish tiers. Flags and banners
+are preferred where they fit the design: no flag on tier 1, a top flag on tier 2,
+and an added front banner on tier 3. Final branches can retain these and add a
+flag matching their specialization. For towers where cloth markers do not fit,
+use equally readable additions suited to their function. Make each branch's
+theme clear with a few bold features rather than many tiny details.
 
 ## Generate upgrades by editing the previous image
 
@@ -107,9 +113,9 @@ from the preceding stage as the edit source and add the new features to it.
 Do not generate each tier independently from a text description.
 
 1. **Tier 1:** Create the basic tower image.
-2. **Tier 2:** Use the tier-one image and add supports, its flag and other
+2. **Tier 2:** Use the tier-one image and add supports, its tier marker and other
    requested tier-two features.
-3. **Tier 3:** Use the completed tier-two image and add fortification, its banner
+3. **Tier 3:** Use the completed tier-two image and add fortification, its tier marker
    and other requested tier-three features.
 4. **First final branch:** Use the completed tier-three image and add this
    branch's features.
@@ -125,10 +131,13 @@ source images were used.
 
 ## Practical details
 
-Make structures believable for their purpose: supported floors, usable doors
-and clear firing openings. For archer towers, keep windows blacked out with no
-visible occupants or bows. Do not bake arrows into the static artwork; gameplay
-projectiles should appear to emerge from the windows, not pass through masonry.
+Make structures believable for their purpose. Support heavy components and keep
+any entrances, mechanisms or attack outlets functional. Choose the attack source
+to suit the tower, such as a firing opening, mounted weapon or magical focus.
+Do not bake flying projectiles or transient attack effects into static tower
+artwork. Gameplay attacks should originate from the intended source without
+passing through solid structure. Occupants, windows and mounted weapons are
+subject-specific choices, not requirements for every tower.
 
 Give towers a small, low buildup of chunky, crumbly stone at the base so they
 blend into the ground. Keep the entrance clear and avoid oversized rubble mounds.
