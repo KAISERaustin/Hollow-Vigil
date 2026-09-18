@@ -15,7 +15,7 @@
 
 ## Pickard art identity
 
-- Before generating or revising images, also read [docs/IMAGE_GENERATION_INSTRUCTIONS.md](docs/IMAGE_GENERATION_INSTRUCTIONS.md): keep each family within 16 shared colors, preserve consistent centering and ground alignment, and distinguish tower tiers with flags and banners. Keep the Pickard style simple and dark; change only what the user requests.
+- Before generating or revising images, also read [docs/IMAGE_GENERATION_INSTRUCTIONS.md](docs/IMAGE_GENERATION_INSTRUCTIONS.md): keep each family within 16 shared colors, preserve consistent centering and ground alignment, and distinguish tower tiers with cumulative features suited to their function. Keep the Pickard style simple and dark; change only what the user requests.
 - Before generating, editing, or commissioning image assets, read [docs/APP_STYLE_THEME.md](docs/APP_STYLE_THEME.md). It is the image-asset style authority, grounded in the supplied tier-one tower sheet and Pickard main-menu artwork; it covers palette, shapes, materials, lighting, texture, atmosphere, and generation prompts. It is separate from the UI specification.
 - The game now centers on Pickard the knight. The user-supplied reference in `assets/ui/pickard-reference.jpg` preserves his character identity; read docs/ART_DIRECTION.md for implementation context. Preserve the angular iron armor, closed helmet, muted red cloak, sword, diamond shield and moonlit charcoal-green world. Existing Campaign mechanics and save identities remain compatible.
 

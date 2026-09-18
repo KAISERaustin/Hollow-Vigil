@@ -1,8 +1,8 @@
 # Image generation instructions
 
-These rules apply to any tower family. Choose its architecture, weapon or magic
-source, materials and upgrade features to fit its function. Do not automatically
-add archer windows, bows, doors or flags to a tower that does not need them.
+These rules apply to any tower family. Choose its structure, materials and
+upgrade features to fit its function. Do not impose features from another
+tower design.
 
 ## Art style
 
@@ -65,14 +65,14 @@ read correctly. Individual images may use fewer than all 16 colors.
 
 After generating all five towers, run one final deterministic color sweep across
 the complete set. Compare the shared base structure in every image and normalize
-its stone, roof, wood, iron, shadows and common cloth to the same selected material
-colors. Update the base structure's colors in all five images, including tier 1,
+its shared materials and shadows to the same selected color assignments.
+Update the base structure's colors in all five images, including tier 1,
 so upgrades do not introduce lighter stone or different shades of the same material.
 Using the same list of allowed colors is not enough: corresponding materials
 must use the same color assignments throughout the set.
 
-Preserve each tier-four branch's designated accent colors on its added features,
-such as elemental details or its branch flag. These are exceptions to the common
+Preserve each tier-four branch's designated accent colors on its added features
+that distinguish its specialization. These are exceptions to the common
 material assignments, not exceptions to the 16-color limit. Reserve those accents
 within the family's selected palette, and do not let them recolor the shared base.
 
@@ -85,7 +85,8 @@ this final color-only pass.
 
 Keep every image centered on the same core structure and ground anchor, using
 the same canvas size, camera and scale. Towers face straight toward the viewer,
-with any front entrance facing forward. Do not recenter images around flags or decorations.
+with the same front-facing orientation throughout. Do not recenter images around
+added features or decorations.
 Check alignment by switching or overlaying the images; upgrades must not jump.
 
 **Run an offset check on every image in a related set before delivery.** For a
@@ -95,16 +96,14 @@ the same pixel coordinates. Correct any horizontal or vertical offsets without
 resizing or redrawing the artwork. Switch through every image at one fixed
 placement to confirm they line up without shifting when the tower upgrades.
 
-Build each upgrade from the previous base: tier 1 is basic, tier 2 adds supports,
-and tier 3 is fortified. Both tier-four branches build independently from tier 3.
+Build each upgrade from the previous base: tier 1 is basic, tier 2 adds functional
+improvements, and tier 3 develops those improvements further. Both tier-four
+branches build independently from tier 3.
 Add to the structure without changing its core width or shifting its fixed features.
 
-Use clear, cumulative visual markers to distinguish tiers. Flags and banners
-are preferred where they fit the design: no flag on tier 1, a top flag on tier 2,
-and an added front banner on tier 3. Final branches can retain these and add a
-flag matching their specialization. For towers where cloth markers do not fit,
-use equally readable additions suited to their function. Make each branch's
-theme clear with a few bold features rather than many tiny details.
+Distinguish tiers through clear additions that suit the tower's function.
+Each stage should visibly build on the previous one. Make each branch's identity
+clear with a few bold features rather than many tiny details.
 
 ## Generate upgrades by editing the previous image
 
@@ -113,10 +112,8 @@ from the preceding stage as the edit source and add the new features to it.
 Do not generate each tier independently from a text description.
 
 1. **Tier 1:** Create the basic tower image.
-2. **Tier 2:** Use the tier-one image and add supports, its tier marker and other
-   requested tier-two features.
-3. **Tier 3:** Use the completed tier-two image and add fortification, its tier marker
-   and other requested tier-three features.
+2. **Tier 2:** Use the tier-one image and add the requested tier-two features.
+3. **Tier 3:** Use the completed tier-two image and add the requested tier-three features.
 4. **First final branch:** Use the completed tier-three image and add this
    branch's features.
 5. **Second final branch:** Start again from the same completed tier-three image
@@ -132,15 +129,14 @@ source images were used.
 ## Practical details
 
 Make structures believable for their purpose. Support heavy components and keep
-any entrances, mechanisms or attack outlets functional. Choose the attack source
-to suit the tower, such as a firing opening, mounted weapon or magical focus.
+their functional parts clear and usable. Any attack source must suit the design.
 Do not bake flying projectiles or transient attack effects into static tower
 artwork. Gameplay attacks should originate from the intended source without
-passing through solid structure. Occupants, windows and mounted weapons are
-subject-specific choices, not requirements for every tower.
+passing through solid structure. Include only features appropriate to the
+specific tower being designed.
 
 Give towers a small, low buildup of chunky, crumbly stone at the base so they
-blend into the ground. Keep the entrance clear and avoid oversized rubble mounds.
+blend into the ground. Keep functional areas clear and avoid oversized rubble mounds.
 Isolated game assets need transparent backgrounds without rectangular residue
 or halos, with enough margin for the complete silhouette and later upgrades.
 
@@ -166,7 +162,7 @@ Run a deterministic script over all five finished images in order: tier 1,
 tier 2, tier 3, then both tier-four branches. Remap the shared structure's colors
 to the exact colors used for those materials in tier 1. Enforce an explicit list
 of allowed RGB values so no extra shades remain. Match material assignments as
-well as palette membership; a stone face should not change color between tiers
+well as palette membership; a shared surface should not change color between tiers
 just because both colors are on the allowed list.
 
 Only the designated branch additions may retain their reserved accent colors.
