@@ -1,0 +1,213 @@
+{
+  "scope": "Generated art only; no game renderer or gameplay changes.",
+  "canvas": [
+    1254,
+    1254
+  ],
+  "core_center_px": [
+    627,
+    901
+  ],
+  "ground_anchor_px": [
+    627,
+    1130
+  ],
+  "palette": [
+    [
+      "#000000",
+      "outline"
+    ],
+    [
+      "#111211",
+      "recess"
+    ],
+    [
+      "#202322",
+      "stone shadow"
+    ],
+    [
+      "#343936",
+      "stone face"
+    ],
+    [
+      "#4B514A",
+      "stone bevel"
+    ],
+    [
+      "#62665B",
+      "sparse stone edge"
+    ],
+    [
+      "#1C1C1B",
+      "iron shadow"
+    ],
+    [
+      "#363530",
+      "iron face"
+    ],
+    [
+      "#545146",
+      "iron edge"
+    ],
+    [
+      "#67523A",
+      "bronze shadow"
+    ],
+    [
+      "#8A6941",
+      "bronze face"
+    ],
+    [
+      "#622D24",
+      "ember shadow"
+    ],
+    [
+      "#A2452B",
+      "ember red"
+    ],
+    [
+      "#C16B32",
+      "ember orange"
+    ],
+    [
+      "#D39B48",
+      "ochre flame"
+    ],
+    [
+      "#E0BE74",
+      "small flame core"
+    ]
+  ],
+  "files": [
+    {
+      "file": "tier-1.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "nontransparent_rgb_count": 16,
+      "palette_valid": true,
+      "tier_one_pixels_changed": 0,
+      "preceding_tier_pixels_changed": 0,
+      "core_offset_from_tier_one_px": [
+        0,
+        0
+      ],
+      "ground_anchor_px": [
+        627,
+        1130
+      ],
+      "visible_alpha_bbox": [
+        310,
+        492,
+        943,
+        1130
+      ],
+      "alpha_unchanged_by_final_palette_sweep": true
+    },
+    {
+      "file": "tier-2.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "nontransparent_rgb_count": 16,
+      "palette_valid": true,
+      "tier_one_pixels_changed": 0,
+      "preceding_tier_pixels_changed": 0,
+      "core_offset_from_tier_one_px": [
+        0,
+        0
+      ],
+      "ground_anchor_px": [
+        627,
+        1130
+      ],
+      "visible_alpha_bbox": [
+        310,
+        356,
+        943,
+        1130
+      ],
+      "alpha_unchanged_by_final_palette_sweep": true
+    },
+    {
+      "file": "tier-3.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "nontransparent_rgb_count": 16,
+      "palette_valid": true,
+      "tier_one_pixels_changed": 0,
+      "preceding_tier_pixels_changed": 0,
+      "core_offset_from_tier_one_px": [
+        0,
+        0
+      ],
+      "ground_anchor_px": [
+        627,
+        1130
+      ],
+      "visible_alpha_bbox": [
+        310,
+        161,
+        943,
+        1130
+      ],
+      "alpha_unchanged_by_final_palette_sweep": true
+    },
+    {
+      "file": "tier-4-ember-censers.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "nontransparent_rgb_count": 16,
+      "palette_valid": true,
+      "tier_one_pixels_changed": 0,
+      "preceding_tier_pixels_changed": 0,
+      "core_offset_from_tier_one_px": [
+        0,
+        0
+      ],
+      "ground_anchor_px": [
+        627,
+        1130
+      ],
+      "visible_alpha_bbox": [
+        229,
+        161,
+        1025,
+        1130
+      ],
+      "alpha_unchanged_by_final_palette_sweep": true
+    },
+    {
+      "file": "tier-4-flame-seal.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "nontransparent_rgb_count": 16,
+      "palette_valid": true,
+      "tier_one_pixels_changed": 0,
+      "preceding_tier_pixels_changed": 0,
+      "core_offset_from_tier_one_px": [
+        0,
+        0
+      ],
+      "ground_anchor_px": [
+        627,
+        1130
+      ],
+      "visible_alpha_bbox": [
+        310,
+        30,
+        943,
+        1130
+      ],
+      "alpha_unchanged_by_final_palette_sweep": true
+    }
+  ]
+}

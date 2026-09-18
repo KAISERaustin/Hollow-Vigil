@@ -10,7 +10,7 @@ there is no tier 5. Branch identities and features suit the particular tower.
 ## Art style
 
 Build the tower from a small number of large, clearly readable structural shapes.
-Use bold black outer contours and dark separations between major components.
+Use bold black outer contours and dark separations between major components. The less shapes you can include to get the picture across the better. Simplicity is key. 
 Describe each material with two or three broad, flat shading planes and occasional
 angular highlights. Keep construction lines, ornament, and surface damage sparse.
 Add only subtle weathering after the tower's main shapes already read clearly.
