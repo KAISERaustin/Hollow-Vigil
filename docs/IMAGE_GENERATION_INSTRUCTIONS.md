@@ -14,11 +14,20 @@ cartoon colors, neon and excessive glow.
 
 ## Color
 
-Use **a maximum of 16 colors across the whole image family**, chosen before
-generation. Each image may use a subset. Favor charcoal greens, dark grays,
-muted browns and worn red cloth, with small pale or elemental accents.
-Keep the same material colors across every tier: upgrades must not make the
-stone lighter. Verify the finished palette rather than relying only on the prompt.
+**Select a palette of 16 colors specifically for the piece before generating it.**
+Record the exact color values and assign their roles, such as outline, shadow,
+stone, wood, cloth and accents. Include those values in the generation prompt
+and use only those colors in the finished image. Do not inherit a palette from
+an unrelated piece or introduce extra shades during generation.
+
+For a related set, such as five tower stages, choose one 16-color palette for
+the entire set, including any colors needed by later upgrades. Each image can
+use a subset of those colors. Keep shared materials the same color across all
+images; an upgrade must not make the base structure lighter.
+
+Favor dark, muted colors with small contrasting accents. Verify the finished
+image's color values against the selected palette; specifying colors in a prompt
+alone is not enough. Transparency is separate from the 16-color palette.
 
 ## Position and progression
 
@@ -27,10 +36,11 @@ the same canvas size, camera and scale. Towers face straight toward the viewer,
 with the door facing forward. Do not recenter images around flags or decorations.
 Check alignment by switching or overlaying the images; upgrades must not jump.
 
-**Run an offset check on all five tower images before delivery.** Measure and
+**Run an offset check on every image in a related set before delivery.** For a
+five-stage tower set, check all five images. Measure and
 verify that every image uses the same core center point and ground anchor at
 the same pixel coordinates. Correct any horizontal or vertical offsets without
-resizing or redrawing the artwork. Switch through all five images at one fixed
+resizing or redrawing the artwork. Switch through every image at one fixed
 placement to confirm they line up without shifting when the tower upgrades.
 
 Build each upgrade from the previous base: tier 1 is basic, tier 2 adds supports,
@@ -39,8 +49,8 @@ Add to the structure without changing its core width or shifting its doorway.
 
 Use flags to help distinguish tiers: no flag on tier 1, a top flag on tier 2,
 and an added front banner on tier 3. Final branches retain these and add a flag
-matching their specialization. Make elemental themes clear with a few bold
-features; poison can be pronounced without covering the tower in tiny details.
+matching their specialization. Make each branch's theme clear with a few bold
+features rather than covering the tower in tiny details.
 
 ## Practical details
 
@@ -62,5 +72,6 @@ should preserve its shape and placement. Before delivery, inspect the whole
 family together and at game size for palette consistency, alignment, readable
 upgrades and clean transparency.
 
-Examples: [approved tower family](concepts/gloamwatch/README.md) and
-[shared 16-color palette](concepts/gloamwatch/PALETTE.md).
+Treat these as requirements to verify in the finished images, not just wording
+to include in a prompt. Deliver the selected palette and shared placement
+coordinates with a related set so they can be reused consistently.
