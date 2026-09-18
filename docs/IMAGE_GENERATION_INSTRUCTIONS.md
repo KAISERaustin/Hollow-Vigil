@@ -114,6 +114,16 @@ Generate the tier-one tower first. For every upgrade, supply the actual image
 from the preceding stage as the edit source and add the new features to it.
 Do not generate each tier independently from a text description.
 
+- **Finish tier 1 first.** Approve its stone, roof, timber, lighting and palette
+  before generating any upgrades.
+- **Keep the shared structure on a locked base layer.** Use the actual approved
+  tier-one image as the base layer for every upgrade, preserving its pixels.
+  Generate upgrade additions, retain only those additions using masks, and
+  composite them on top of that base layer. Keep previous upgrades as additional
+  layers as the tower progresses. The base image must remain intact beneath
+  the additions; using it only as a generation reference or accepting a repainted
+  version of the shared structure does not satisfy this requirement.
+
 1. **Tier 1:** Create the basic tower image.
 2. **Tier 2:** Use the tier-one image and add the requested tier-two features.
 3. **Tier 3:** Use the completed tier-two image and add the requested tier-three features.
