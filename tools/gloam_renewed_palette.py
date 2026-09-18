@@ -13,11 +13,47 @@ PALETTE = np.array([[int(h[i:i+2], 16) for i in (0, 2, 4)] for h in HEX], dtype=
 def convert(source, destination):
     original = np.array(Image.open(source).convert('RGBA'))
     out = original.copy()
-    # Match colors without dithering, resampling, or changing alpha.
+    # Classify material hue, then quantize only within that material's roles.
+    # The same thresholds restore tier-one material assignments in every stage.
     for start in range(0, len(out), 64):
         rgb = original[start:start+64, :, :3].astype(np.int32)
         distances = ((rgb[:, :, None, :] - PALETTE.astype(np.int32)) ** 2).sum(axis=3)
+        r, g, b = rgb.transpose(2, 0, 1)
+        yy = np.arange(start, start + len(rgb))[:, None]
+        xx = np.arange(rgb.shape[1])[None, :]
+        roles = np.zeros_like(distances, dtype=bool)
+        roles[:, :, [0, 1, 2, 3, 4, 5]] = True
+        roof = np.broadcast_to(yy < 650, r.shape)
+        roles[roof] = False
+        roles[roof, 0] = True
+        roles[roof, 6] = True
+        roles[roof, 7] = True
+        wood = (r > g * 1.12) & (g > b * 1.10)
+        roles[wood] = False
+        for index in [0, 8, 9]:
+            roles[wood, index] = True
+        if 'level-1' not in destination.name:
+            cloth_zone = (yy < 480) | ((xx > 420) & (xx < 610) & (yy > 745) & (yy < 1030))
+            cloth = cloth_zone & (r > g * 1.4) & (r > b * 1.3)
+            roles[cloth] = False
+            for index in [0, 10, 11]:
+                roles[cloth, index] = True
+            bone = cloth_zone & (r > 150) & (r > g) & (g > b * 1.08)
+            roles[bone] = False
+            roles[bone, 12] = True
+        if 'frost' in destination.name:
+            frost = (b > r * 1.12) & (b > g * 1.02)
+            roles[frost] = False
+            for index in [0, 13, 14]:
+                roles[frost, index] = True
+        if 'poison' in destination.name:
+            poison = (g > r * 1.08) & (g > b * 1.30)
+            roles[poison] = False
+            for index in [0, 1, 15]:
+                roles[poison, index] = True
+        distances[~roles] = 1000000
         out[start:start+64, :, :3] = PALETTE[distances.argmin(axis=2)]
+    out[original[:, :, 3] == 0, :3] = 0
     destination.parent.mkdir(parents=True, exist_ok=True)
     Image.fromarray(out).save(destination)
     saved = np.array(Image.open(destination))
