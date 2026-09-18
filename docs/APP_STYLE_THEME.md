@@ -2,9 +2,10 @@
 
 ## Purpose and reference images
 
-For the user's three core generation rules, read
-[IMAGE_GENERATION_INSTRUCTIONS.md](IMAGE_GENERATION_INSTRUCTIONS.md): a shared
-16-color limit, consistent centering, and flags that distinguish tower tiers.
+For the user's concise generation guide, read
+[IMAGE_GENERATION_INSTRUCTIONS.md](IMAGE_GENERATION_INSTRUCTIONS.md). It describes
+the visual style directly and covers palette, alignment, tier progression,
+practical construction and preservation of approved designs.
 
 **Hollow Vigil image-asset reference · September 16, 2026**
 
