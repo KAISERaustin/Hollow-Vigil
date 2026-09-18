@@ -1,0 +1,382 @@
+{
+  "canvas": [
+    1254,
+    1254
+  ],
+  "palette": [
+    "#000000",
+    "#151E1D",
+    "#293633",
+    "#414A44",
+    "#41423C",
+    "#56564E",
+    "#6D6B60",
+    "#3D3025",
+    "#624B35",
+    "#392724",
+    "#613B34",
+    "#BFB295",
+    "#435862",
+    "#758F9E",
+    "#39442B",
+    "#788346"
+  ],
+  "anchor_definition": "bottom-step front face midpoint; y immediately below face",
+  "files": {
+    "tier-1": {
+      "source": "exec-24c5be9d-1b82-4891-acfd-2a0e618c2918.png",
+      "source_anchor": [
+        621,
+        1086
+      ],
+      "step_edges": [
+        499,
+        743,
+        1085
+      ],
+      "translation": [
+        0,
+        0
+      ],
+      "final_anchor": [
+        621,
+        1086
+      ],
+      "visible_colors": 11,
+      "palette_pass": true,
+      "alpha_preserved": true,
+      "resized": false,
+      "clipped_pixels": 0,
+      "sha256": "336315669ab071925ee5db7dae4afaa27612bec4c7271dd227ff295dab8166c4"
+    },
+    "tier-2": {
+      "source": "exec-32dfbaca-c3a8-4061-8720-e9fde37f41ab.png",
+      "source_anchor": [
+        622,
+        1086
+      ],
+      "step_edges": [
+        500,
+        744,
+        1085
+      ],
+      "translation": [
+        -1,
+        0
+      ],
+      "final_anchor": [
+        621,
+        1086
+      ],
+      "visible_colors": 11,
+      "palette_pass": true,
+      "alpha_preserved": true,
+      "resized": false,
+      "clipped_pixels": 0,
+      "sha256": "e1aa4d64d19d1749653659b6117f5befb6ed0a6236cadf383ca67ebe1b7545d1"
+    },
+    "tier-3": {
+      "source": "exec-316119bb-c060-4a5e-beec-86544d4fc97c.png",
+      "source_anchor": [
+        621,
+        1086
+      ],
+      "step_edges": [
+        499,
+        744,
+        1085
+      ],
+      "translation": [
+        0,
+        0
+      ],
+      "final_anchor": [
+        621,
+        1086
+      ],
+      "visible_colors": 12,
+      "palette_pass": true,
+      "alpha_preserved": true,
+      "resized": false,
+      "clipped_pixels": 0,
+      "sha256": "1fdcb374929897626339f346f821e1586e287b94a94e4313044c6d29f540b75d"
+    },
+    "tier-4-poison": {
+      "source": "exec-4a3e5360-da51-475f-a1e6-a4ea8598c6b0.png",
+      "source_anchor": [
+        622,
+        1086
+      ],
+      "step_edges": [
+        499,
+        745,
+        1085
+      ],
+      "translation": [
+        -1,
+        0
+      ],
+      "final_anchor": [
+        621,
+        1086
+      ],
+      "visible_colors": 14,
+      "palette_pass": true,
+      "alpha_preserved": true,
+      "resized": false,
+      "clipped_pixels": 0,
+      "sha256": "47d59a989c6e88ddf571f26fd49079685981aff810a248f8422b4a146d78d96e"
+    },
+    "tier-4-ice": {
+      "source": "exec-1ed77524-630a-4c59-b6a1-e45b6a37e39f.png",
+      "source_anchor": [
+        622,
+        1086
+      ],
+      "step_edges": [
+        499,
+        745,
+        1085
+      ],
+      "translation": [
+        -1,
+        0
+      ],
+      "final_anchor": [
+        621,
+        1086
+      ],
+      "visible_colors": 14,
+      "palette_pass": true,
+      "alpha_preserved": true,
+      "resized": false,
+      "clipped_pixels": 0,
+      "sha256": "22586f5459e3f6d314840221eaf8fb20e0c20020995783176005e46b2aa63ef8"
+    }
+  },
+  "runtime_integration": false,
+  "shared_anchor": [
+    621,
+    1086
+  ],
+  "shared_material_samples": {
+    "coordinates": {
+      "wall_front": [
+        540,
+        810
+      ],
+      "wall_side": [
+        700,
+        810
+      ],
+      "roof_left": [
+        550,
+        380
+      ],
+      "roof_right": [
+        690,
+        380
+      ],
+      "wood": [
+        700,
+        550
+      ],
+      "upper_step": [
+        620,
+        1010
+      ],
+      "lower_step": [
+        600,
+        1060
+      ]
+    },
+    "rgb": {
+      "tier-1": {
+        "wall_front": [
+          65,
+          66,
+          60
+        ],
+        "wall_side": [
+          86,
+          86,
+          78
+        ],
+        "roof_left": [
+          41,
+          54,
+          51
+        ],
+        "roof_right": [
+          65,
+          74,
+          68
+        ],
+        "wood": [
+          98,
+          75,
+          53
+        ],
+        "upper_step": [
+          65,
+          66,
+          60
+        ],
+        "lower_step": [
+          65,
+          66,
+          60
+        ]
+      },
+      "tier-2": {
+        "wall_front": [
+          65,
+          66,
+          60
+        ],
+        "wall_side": [
+          86,
+          86,
+          78
+        ],
+        "roof_left": [
+          41,
+          54,
+          51
+        ],
+        "roof_right": [
+          65,
+          74,
+          68
+        ],
+        "wood": [
+          98,
+          75,
+          53
+        ],
+        "upper_step": [
+          65,
+          66,
+          60
+        ],
+        "lower_step": [
+          65,
+          66,
+          60
+        ]
+      },
+      "tier-3": {
+        "wall_front": [
+          65,
+          66,
+          60
+        ],
+        "wall_side": [
+          86,
+          86,
+          78
+        ],
+        "roof_left": [
+          41,
+          54,
+          51
+        ],
+        "roof_right": [
+          65,
+          74,
+          68
+        ],
+        "wood": [
+          98,
+          75,
+          53
+        ],
+        "upper_step": [
+          65,
+          66,
+          60
+        ],
+        "lower_step": [
+          65,
+          66,
+          60
+        ]
+      },
+      "tier-4-poison": {
+        "wall_front": [
+          65,
+          66,
+          60
+        ],
+        "wall_side": [
+          86,
+          86,
+          78
+        ],
+        "roof_left": [
+          41,
+          54,
+          51
+        ],
+        "roof_right": [
+          65,
+          74,
+          68
+        ],
+        "wood": [
+          98,
+          75,
+          53
+        ],
+        "upper_step": [
+          65,
+          66,
+          60
+        ],
+        "lower_step": [
+          65,
+          66,
+          60
+        ]
+      },
+      "tier-4-ice": {
+        "wall_front": [
+          65,
+          66,
+          60
+        ],
+        "wall_side": [
+          86,
+          86,
+          78
+        ],
+        "roof_left": [
+          41,
+          54,
+          51
+        ],
+        "roof_right": [
+          65,
+          74,
+          68
+        ],
+        "wood": [
+          98,
+          75,
+          53
+        ],
+        "upper_step": [
+          65,
+          66,
+          60
+        ],
+        "lower_step": [
+          65,
+          66,
+          60
+        ]
+      }
+    },
+    "match_tier_one": true
+  }
+}
