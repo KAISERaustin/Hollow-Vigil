@@ -1,0 +1,337 @@
+{
+  "canvas": [
+    1254,
+    1254
+  ],
+  "anchor_definition": "center of front doorstep; y at top of bottom black contour",
+  "target_anchor": [
+    627,
+    1094
+  ],
+  "palette": [
+    "#000000",
+    "#151E1D",
+    "#222A29",
+    "#293633",
+    "#56564E",
+    "#6D6B60",
+    "#3D3025",
+    "#624B35",
+    "#392724",
+    "#613B34",
+    "#BFB295",
+    "#435862",
+    "#758F9E",
+    "#39442B",
+    "#566333",
+    "#788346"
+  ],
+  "files": {
+    "level-1": {
+      "source": "exec-1ea43f83-8e56-4eb3-ad94-6bed2afc7a77.png",
+      "before_anchor": [
+        625,
+        1114
+      ],
+      "step_edges_before": [
+        511,
+        739
+      ],
+      "translation": [
+        2,
+        -20
+      ],
+      "after_anchor": [
+        627,
+        1094
+      ],
+      "visible_color_count": 7,
+      "alpha_preserved_before_translation": true,
+      "clipped_pixels": 0,
+      "resized": false
+    },
+    "level-2": {
+      "source": "exec-47a94d5c-1f5d-4b5b-beca-3af921060531.png",
+      "before_anchor": [
+        625,
+        1115
+      ],
+      "step_edges_before": [
+        511,
+        739
+      ],
+      "translation": [
+        2,
+        -21
+      ],
+      "after_anchor": [
+        627,
+        1094
+      ],
+      "visible_color_count": 8,
+      "alpha_preserved_before_translation": true,
+      "clipped_pixels": 0,
+      "resized": false
+    },
+    "level-3": {
+      "source": "exec-bd056c59-de7f-4555-9d61-e11177faeeba.png",
+      "before_anchor": [
+        625,
+        1114
+      ],
+      "step_edges_before": [
+        511,
+        739
+      ],
+      "translation": [
+        2,
+        -20
+      ],
+      "after_anchor": [
+        627,
+        1094
+      ],
+      "visible_color_count": 9,
+      "alpha_preserved_before_translation": true,
+      "clipped_pixels": 0,
+      "resized": false
+    },
+    "ice": {
+      "source": "exec-b5ad57f3-a9d7-4900-8019-5292cccf8c7d.png",
+      "before_anchor": [
+        625,
+        1115
+      ],
+      "step_edges_before": [
+        512,
+        739
+      ],
+      "translation": [
+        2,
+        -21
+      ],
+      "after_anchor": [
+        627,
+        1094
+      ],
+      "visible_color_count": 11,
+      "alpha_preserved_before_translation": true,
+      "clipped_pixels": 0,
+      "resized": false
+    },
+    "poison": {
+      "source": "exec-c7470c89-798e-4a19-8673-f1b9b3e3ad13.png",
+      "before_anchor": [
+        625,
+        1115
+      ],
+      "step_edges_before": [
+        511,
+        739
+      ],
+      "translation": [
+        2,
+        -21
+      ],
+      "after_anchor": [
+        627,
+        1094
+      ],
+      "visible_color_count": 12,
+      "alpha_preserved_before_translation": true,
+      "clipped_pixels": 0,
+      "resized": false
+    }
+  },
+  "common_material_samples": {
+    "coordinates": {
+      "stone_front": [
+        530,
+        790
+      ],
+      "stone_lower_face": [
+        680,
+        810
+      ],
+      "wood": [
+        600,
+        900
+      ],
+      "roof_left": [
+        540,
+        450
+      ],
+      "roof_right": [
+        700,
+        450
+      ],
+      "black_window": [
+        675,
+        570
+      ]
+    },
+    "rgb_by_tower": {
+      "level-1": {
+        "stone_front": [
+          86,
+          86,
+          78
+        ],
+        "stone_lower_face": [
+          86,
+          86,
+          78
+        ],
+        "wood": [
+          98,
+          75,
+          53
+        ],
+        "roof_left": [
+          41,
+          54,
+          51
+        ],
+        "roof_right": [
+          34,
+          42,
+          41
+        ],
+        "black_window": [
+          0,
+          0,
+          0
+        ]
+      },
+      "level-2": {
+        "stone_front": [
+          86,
+          86,
+          78
+        ],
+        "stone_lower_face": [
+          86,
+          86,
+          78
+        ],
+        "wood": [
+          98,
+          75,
+          53
+        ],
+        "roof_left": [
+          41,
+          54,
+          51
+        ],
+        "roof_right": [
+          34,
+          42,
+          41
+        ],
+        "black_window": [
+          0,
+          0,
+          0
+        ]
+      },
+      "level-3": {
+        "stone_front": [
+          86,
+          86,
+          78
+        ],
+        "stone_lower_face": [
+          86,
+          86,
+          78
+        ],
+        "wood": [
+          98,
+          75,
+          53
+        ],
+        "roof_left": [
+          41,
+          54,
+          51
+        ],
+        "roof_right": [
+          34,
+          42,
+          41
+        ],
+        "black_window": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ice": {
+        "stone_front": [
+          86,
+          86,
+          78
+        ],
+        "stone_lower_face": [
+          86,
+          86,
+          78
+        ],
+        "wood": [
+          98,
+          75,
+          53
+        ],
+        "roof_left": [
+          41,
+          54,
+          51
+        ],
+        "roof_right": [
+          34,
+          42,
+          41
+        ],
+        "black_window": [
+          0,
+          0,
+          0
+        ]
+      },
+      "poison": {
+        "stone_front": [
+          86,
+          86,
+          78
+        ],
+        "stone_lower_face": [
+          86,
+          86,
+          78
+        ],
+        "wood": [
+          98,
+          75,
+          53
+        ],
+        "roof_left": [
+          41,
+          54,
+          51
+        ],
+        "roof_right": [
+          34,
+          42,
+          41
+        ],
+        "black_window": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "all_match": true
+  }
+}
