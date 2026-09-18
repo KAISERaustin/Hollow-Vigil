@@ -27,6 +27,12 @@ the same canvas size, camera and scale. Towers face straight toward the viewer,
 with the door facing forward. Do not recenter images around flags or decorations.
 Check alignment by switching or overlaying the images; upgrades must not jump.
 
+**Run an offset check on all five tower images before delivery.** Measure and
+verify that every image uses the same core center point and ground anchor at
+the same pixel coordinates. Correct any horizontal or vertical offsets without
+resizing or redrawing the artwork. Switch through all five images at one fixed
+placement to confirm they line up without shifting when the tower upgrades.
+
 Build each upgrade from the previous base: tier 1 is basic, tier 2 adds supports,
 and tier 3 is fortified. Both tier-four branches build independently from tier 3.
 Add to the structure without changing its core width or shifting its doorway.
