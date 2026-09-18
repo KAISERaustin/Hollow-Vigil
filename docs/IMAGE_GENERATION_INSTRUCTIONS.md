@@ -12,6 +12,21 @@ are enough; avoid tiny brick patterns, elaborate trim and busy surface texture.
 The mood is somber, ancient and watchful. Avoid photorealism, glossy 3D, bright
 cartoon colors, neon and excessive glow.
 
+## Dark fantasy theme
+
+Every image must feel like it belongs in a dark medieval fantasy world. Favor
+weathered stone, worn iron, dark timber, heavy cloth and restrained supernatural
+features. Shapes and materials should suggest age, hardship and endurance.
+
+Keep the mood somber, mysterious and watchful. Use deep shadows and muted colors
+while keeping the subject readable. Magic and elemental features should support
+the subject's identity without overwhelming it with bright effects. Avoid cute,
+playful, modern or futuristic elements that break the setting.
+
+Check both appearance and purpose: the subject should look at home in this world
+and function believably within it. Dark fantasy should come from the design,
+materials and atmosphere, not simply making the entire image too dark to see.
+
 ## Color
 
 **Select a palette of 16 colors specifically for the piece before generating it.**
