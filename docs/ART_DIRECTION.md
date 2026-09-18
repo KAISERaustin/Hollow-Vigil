@@ -88,7 +88,9 @@ The artwork implementation lives in scripts/rendering/terrain/terrain_art.gd, sc
 
 Gloamwatch replaces Ashneedle through the shared authored artwork catalog, with
 three base tiers and the Frostneedle/Poison Arrow branches. The approved source
-PNGs, dark palette and alignment live in `docs/concepts/gloamwatch/`. Full-canvas
+PNGs, dark palette and alignment live in `docs/concepts/gloam-renewed/`. This
+original redesign uses a shallow-roofed timber firing loft over a stone base;
+the earlier Gloam artwork was not used as a generation reference. Full-canvas
 runtime copies share one scale and ground anchor; authored catalog entries remain
 active at high zoom and survive native rebaking. Optional alpha cleanup is cached
 at runtime without modifying the source files. The watchman stays hidden behind
