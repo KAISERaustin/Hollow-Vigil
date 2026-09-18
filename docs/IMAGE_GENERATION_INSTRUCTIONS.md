@@ -44,6 +44,19 @@ Favor dark, muted colors with small contrasting accents. Verify the finished
 image's color values against the selected palette; specifying colors in a prompt
 alone is not enough. Transparency is separate from the 16-color palette.
 
+## Enforce the palette after generation
+
+Expect ImageGen to introduce extra shades beyond the requested palette.
+**Deterministic scripted palette conversion is explicitly allowed:** sweep over
+the generated image and map its colors to the selected 16-color palette.
+Use the same selected palette for every image in a related set.
+
+This is a color-only correction. Preserve the image dimensions, pixel positions,
+shapes and alpha channel; do not resize, redraw or add dithering that introduces
+extra colors. Verify afterward that every nontransparent pixel uses one of the
+16 selected RGB values, and visually check that material and accent colors still
+read correctly. Individual images may use fewer than all 16 colors.
+
 ## Position and progression
 
 Keep every image centered on the same core structure and ground anchor, using
