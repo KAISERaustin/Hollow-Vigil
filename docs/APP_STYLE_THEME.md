@@ -2,10 +2,9 @@
 
 ## Purpose and reference images
 
-For the user's consolidated generation and revision requirements, also read
-[IMAGE_GENERATION_INSTRUCTIONS.md](IMAGE_GENERATION_INSTRUCTIONS.md). Its later
-Gloamwatch-specific constraints take precedence over older generic examples
-for that family, especially simplicity, exact palette, front view and alignment.
+For the user's three core generation rules, read
+[IMAGE_GENERATION_INSTRUCTIONS.md](IMAGE_GENERATION_INSTRUCTIONS.md): a shared
+16-color limit, consistent centering, and flags that distinguish tower tiers.
 
 **Hollow Vigil image-asset reference · September 16, 2026**
 
