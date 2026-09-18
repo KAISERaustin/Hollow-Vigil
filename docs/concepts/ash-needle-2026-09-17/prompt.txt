@@ -1,0 +1,29 @@
+Use case: stylized-concept.
+Create one completely NEW tier-one ASH NEEDLE TOWER sprite for Hollow Vigil, a solemn dark medieval fantasy mobile tower-defense game. This is a finished isolated game asset, not a concept sheet.
+
+Composition: 1024 x 1536 transparent RGBA PNG, one whole tower facing STRAIGHT toward the viewer, symmetrical core centered at x=512, ground contact approximately y=1352. Front elevation with only shallow visible upper planes, no diagonal or isometric orientation. Keep the actual structure roughly within x=250..774 and y=310..1352, leaving generous transparent margin above and on both sides for future cumulative upgrades. Keep full silhouette and all base fragments inside canvas.
+
+Design: a simple, narrow, stoutly built arrow watchtower with a gently tapered ash-gray stone shaft, a projecting timber firing gallery above supported by two large believable corbels, and one steep compact pointed charcoal-slate roof. Gallery has two large pitch-black firing openings above a low sill, with ample unobstructed space for arrows to leave horizontally; watchman remains hidden inside. Thin iron bands join the broad dark timber beams. One small central iron-bound ground-level door with two low access steps, kept clear of rubble. A small worn oxblood cloth panel with ONE pale hollow diamond sits on the stone shaft beneath the gallery, above the door. No flag at this basic tier. Low close-set irregular chunky crumbly stone at the foot blends the tower into terrain; a few small fragments taper outward, transparent space between them. Heavy parts must have visible structural support. This is an archer's medieval watchtower, not a cannon or external ballista.
+
+Style: match the simple heavy illustrative language of Hollow Vigil's tower-sheet and Pickard reference: stylized TWO-DIMENSIONAL dark fantasy, bold black outer contours, deep dark component separations, angular cut-paper forms, large quiet matte surfaces, only two or three broad FLAT shading planes per material and rare angular highlights. Very sparse masonry seams and one or two small chips only. Make every detail structural. Strong clear silhouette and readable openings at small game size. Restrained somber moonlit color relationships, but no scene or moon in this sprite. Avoid photorealism, glossy 3D, gradient shading, noisy grain, engraving, dense bricks, dense wood grain, filigree, tiny rivets and extraneous ornaments.
+
+SELECTED EXACT 16-COLOR FAMILY PALETTE (use ONLY these RGB values; transparency is separate):
+#000000 black contour;
+#111916 deepest recess;
+#303832 stone and rubble shadow;
+#65695B ash-stone main plane;
+#8B8B77 ash-stone restrained edge;
+#1C2928 slate-roof shadow;
+#354441 slate-roof main plane;
+#4D5550 dull iron;
+#34281F timber shadow;
+#5C4733 timber main plane;
+#422B2B cloth shadow;
+#72433B faded oxblood cloth;
+#C1B18C aged-bone insignia;
+#66828D reserved frost shadow;
+#9CB5BD reserved frost face;
+#6F824D reserved poison accent.
+At tier one use the first thirteen colors only; reserve the frost and poison colors for possible later branches. Keep stone front #65695B, roof #354441, timber #5C4733 and cloth #72433B as stable broad surfaces.
+
+Output requirements: REAL transparent background and transparent negative spaces, clean hard alpha edges, no checkerboard painted into image, no white/gray matte, no halo, no cast shadow outside the small rock base. No text, labels, logo, grid, framing, characters standing outside, visible archer, flying projectiles, arrows baked into sprite, attack effects, glow, fire, fog or scenery. Generate only this one tier-one tower.

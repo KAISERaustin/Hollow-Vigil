@@ -1,0 +1,21 @@
+{
+  "colors": [
+    {"hex": "#000000", "role": "black contour"},
+    {"hex": "#111916", "role": "deepest recess"},
+    {"hex": "#303832", "role": "stone and rubble shadow"},
+    {"hex": "#65695B", "role": "ash-stone main plane"},
+    {"hex": "#8B8B77", "role": "ash-stone restrained edge"},
+    {"hex": "#1C2928", "role": "slate-roof shadow"},
+    {"hex": "#354441", "role": "slate-roof main plane"},
+    {"hex": "#4D5550", "role": "dull iron"},
+    {"hex": "#34281F", "role": "timber shadow"},
+    {"hex": "#5C4733", "role": "timber main plane"},
+    {"hex": "#422B2B", "role": "cloth shadow"},
+    {"hex": "#72433B", "role": "faded oxblood cloth"},
+    {"hex": "#C1B18C", "role": "aged-bone insignia"},
+    {"hex": "#66828D", "role": "reserved frost shadow"},
+    {"hex": "#9CB5BD", "role": "reserved frost face"},
+    {"hex": "#6F824D", "role": "reserved poison accent"}
+  ],
+  "tier_one_color_count": 13
+}

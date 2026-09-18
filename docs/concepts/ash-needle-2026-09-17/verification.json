@@ -1,0 +1,43 @@
+{
+  "source": "generated-source.png",
+  "source_sha256": "9cd85b8d5775d3ba7c38ec9bb671e26b869e9442f9eef0c6afd50d6866c280a5",
+  "final_sha256": "cc96eb91b338a7303bb8482a5e30300a8b556f8aad63dada6d977af3f46c2b58",
+  "size": [
+    1024,
+    1536
+  ],
+  "mode": "RGBA",
+  "used_colors": {
+    "#000000": 89678,
+    "#111916": 34937,
+    "#1C2928": 38764,
+    "#303832": 85090,
+    "#34281F": 38557,
+    "#354441": 8723,
+    "#422B2B": 5140,
+    "#4D5550": 10307,
+    "#5C4733": 23189,
+    "#65695B": 71616,
+    "#72433B": 17517,
+    "#8B8B77": 2398,
+    "#C1B18C": 3019
+  },
+  "allowed_palette_check": "PASS",
+  "dimensions_preserved": true,
+  "alpha_preserved_exactly": true,
+  "transparent_canvas_edges": true,
+  "transparent_pixel_count": 1143929,
+  "alpha_bounds": [
+    65,
+    36,
+    836,
+    1488
+  ],
+  "core_center_x": 512,
+  "ground_anchor": [
+    512,
+    1354
+  ],
+  "placement_note": "Single tier-one design; center visually checked; ground is the last centerline pixel with alpha above 128. No family offset check is claimed.",
+  "scope": "New tier-one concept; runtime catalog unchanged."
+}
