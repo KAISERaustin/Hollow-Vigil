@@ -2,8 +2,10 @@
 
 These rules apply to any tower family. Choose its structure, materials and
 upgrade features to fit its function. Do not impose features from another
-tower design. Follow the requested number of tiers and upgrade branches;
-these instructions do not prescribe a particular progression layout.
+tower design. Every tower has the same fixed progression: tier 1, tier 2,
+tier 3, then exactly two distinct tier-4 branches. Each branch builds independently
+from tier 3 and ends at tier 4. A complete family contains five sprites;
+there is no tier 5. Branch identities and features suit the particular tower.
 
 ## Art style
 
@@ -68,7 +70,7 @@ read correctly. Individual images may use fewer than all 16 colors.
 
 ## Final palette sweep across the complete set
 
-After generating every requested stage, run one final deterministic color sweep
+After generating all five sprites, run one final deterministic color sweep
 across the complete set. Compare the shared base structure in every image and normalize
 its shared materials and shadows to the approved base image's color assignments.
 Preserve the approved base layer in every image; correct any deviations in the
@@ -83,7 +85,7 @@ material assignments, not exceptions to the 16-color limit. Reserve those accent
 within the family's selected palette, and do not let them recolor the shared base.
 
 Finish by checking every image side by side and verifying its pixel colors.
-The common tower should match across the set, while any upgrade branches retain
+The common tower should match across the set, while both tier-4 branches retain
 their distinct accents. Preserve geometry, alignment and transparency during
 this final color-only pass.
 
@@ -96,15 +98,15 @@ added features or decorations.
 Check alignment by switching or overlaying the images; upgrades must not jump.
 
 **Run an offset check on every image in a related set before delivery.** Include
-every requested stage and branch. Measure and verify that every image uses
+tiers 1, 2 and 3 and both tier-4 branches. Measure and verify that every image uses
 the same core center point and ground anchor at the same pixel coordinates.
 Correct any horizontal or vertical offsets without
 resizing or redrawing the artwork. Switch through every image at one fixed
 placement to confirm they line up without shifting when the tower upgrades.
 
-Build each upgrade from its preceding stage, adding functional improvements
-cumulatively. When progression branches, build each branch independently from
-its specified shared parent stage.
+Build tier 2 from tier 1 and tier 3 from tier 2, adding functional improvements
+cumulatively. Split tier 3 into exactly two distinct tier-4 specializations.
+Build both branches independently from the same completed tier-3 image.
 Add to the structure without changing its core width or shifting its fixed features.
 
 Distinguish tiers through clear additions that suit the tower's function.
@@ -127,11 +129,15 @@ Do not generate each tier independently from a text description.
   the additions; using it only as a generation reference or accepting a repainted
   version of the shared structure does not satisfy this requirement.
 
-1. **Base stage:** Create and finish the basic tower image.
-2. **Each subsequent stage:** Use the completed preceding stage and add only
-   the requested upgrade features on separate layers above the locked base.
-3. **Each branch:** Start from its specified shared parent stage and add that
-   branch's features. Do not build one sibling branch from another.
+1. **Tier 1:** Create and finish the basic tower image.
+2. **Tier 2:** Use the completed tier-one image and add its upgrade features
+   on separate layers above the locked base.
+3. **Tier 3:** Use the completed tier-two image and add its upgrade features,
+   preserving the locked base and previous additions.
+4. **First tier-4 branch:** Use the completed tier-three image and add the
+   first specialization's features on separate layers.
+5. **Second tier-4 branch:** Start again from the same completed tier-three image
+   and add the other specialization's features. Do not build it from the first branch.
 
 Preserve the existing structure and previous upgrades in each edit. New features
 should visibly build onto the same tower while its core shape, scale, palette,
@@ -172,8 +178,8 @@ At the very end, return to the completed, palette-enforced tier-one image.
 Its base-material colors are the authority for the rest of the towers. Do not
 let colors introduced in later generations redefine the original tower's palette.
 
-Run a deterministic script over every finished image, starting with the approved
-base stage and then covering all requested upgrades and branches. Correct any
+Run a deterministic script over all five finished images: the approved tier 1,
+tier 2, tier 3, then both tier-4 branches. Correct any
 shared-material color deviations to the exact colors used in the approved base,
 preserving the locked base layer. Enforce an explicit list of allowed RGB values
 so no extra shades remain. Match material assignments as
