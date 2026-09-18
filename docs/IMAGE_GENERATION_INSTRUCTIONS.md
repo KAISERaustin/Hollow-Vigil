@@ -2,7 +2,8 @@
 
 These rules apply to any tower family. Choose its structure, materials and
 upgrade features to fit its function. Do not impose features from another
-tower design.
+tower design. Follow the requested number of tiers and upgrade branches;
+these instructions do not prescribe a particular progression layout.
 
 ## Art style
 
@@ -22,8 +23,9 @@ or function; leave broad surfaces quiet.
 ## Dark fantasy theme
 
 Every image must feel like it belongs in a dark medieval fantasy world. Favor
-weathered stone, worn iron, dark timber, heavy cloth and restrained supernatural
-features. Shapes and materials should suggest age, hardship and endurance.
+materials suited to the design, such as weathered stone, worn iron, dark timber
+or heavy cloth, with restrained supernatural features where appropriate.
+Shapes and materials should suggest age, hardship and endurance.
 
 Keep the mood somber, mysterious and watchful. Use deep shadows and muted colors
 while keeping the subject readable. Magic and elemental features should support
@@ -38,11 +40,11 @@ materials and atmosphere, not simply making the entire image too dark to see.
 
 **Select a palette of 16 colors specifically for the piece before generating it.**
 Record the exact color values and assign their roles, such as outline, shadow,
-stone, wood, cloth and accents. Include those values in the generation prompt
+the design's materials and accents. Include those values in the generation prompt
 and use only those colors in the finished image. Do not inherit a palette from
 an unrelated piece or introduce extra shades during generation.
 
-For a related set, such as five tower stages, choose one 16-color palette for
+For a related set, such as a tower's upgrade stages, choose one 16-color palette for
 the entire set, including any colors needed by later upgrades. Each image can
 use a subset of those colors. Keep shared materials the same color across all
 images; an upgrade must not make the base structure lighter.
@@ -64,23 +66,24 @@ extra colors. Verify afterward that every nontransparent pixel uses one of the
 16 selected RGB values, and visually check that material and accent colors still
 read correctly. Individual images may use fewer than all 16 colors.
 
-## Final palette sweep across all five towers
+## Final palette sweep across the complete set
 
-After generating all five towers, run one final deterministic color sweep across
-the complete set. Compare the shared base structure in every image and normalize
-its shared materials and shadows to the same selected color assignments.
-Update the base structure's colors in all five images, including tier 1,
-so upgrades do not introduce lighter stone or different shades of the same material.
+After generating every requested stage, run one final deterministic color sweep
+across the complete set. Compare the shared base structure in every image and normalize
+its shared materials and shadows to the approved base image's color assignments.
+Preserve the approved base layer in every image; correct any deviations in the
+assembled set without changing that layer's colors. Upgrades must not introduce
+lighter shared surfaces or different shades of the same material.
 Using the same list of allowed colors is not enough: corresponding materials
 must use the same color assignments throughout the set.
 
-Preserve each tier-four branch's designated accent colors on its added features
+Preserve each upgrade branch's designated accent colors on its added features
 that distinguish its specialization. These are exceptions to the common
 material assignments, not exceptions to the 16-color limit. Reserve those accents
 within the family's selected palette, and do not let them recolor the shared base.
 
-Finish by checking all five images side by side and verifying their pixel colors.
-The common tower should match across the set, while the two final branches retain
+Finish by checking every image side by side and verifying its pixel colors.
+The common tower should match across the set, while any upgrade branches retain
 their distinct accents. Preserve geometry, alignment and transparency during
 this final color-only pass.
 
@@ -92,16 +95,16 @@ with the same front-facing orientation throughout. Do not recenter images around
 added features or decorations.
 Check alignment by switching or overlaying the images; upgrades must not jump.
 
-**Run an offset check on every image in a related set before delivery.** For a
-five-stage tower set, check all five images. Measure and
-verify that every image uses the same core center point and ground anchor at
-the same pixel coordinates. Correct any horizontal or vertical offsets without
+**Run an offset check on every image in a related set before delivery.** Include
+every requested stage and branch. Measure and verify that every image uses
+the same core center point and ground anchor at the same pixel coordinates.
+Correct any horizontal or vertical offsets without
 resizing or redrawing the artwork. Switch through every image at one fixed
 placement to confirm they line up without shifting when the tower upgrades.
 
-Build each upgrade from the previous base: tier 1 is basic, tier 2 adds functional
-improvements, and tier 3 develops those improvements further. Both tier-four
-branches build independently from tier 3.
+Build each upgrade from its preceding stage, adding functional improvements
+cumulatively. When progression branches, build each branch independently from
+its specified shared parent stage.
 Add to the structure without changing its core width or shifting its fixed features.
 
 Distinguish tiers through clear additions that suit the tower's function.
@@ -114,7 +117,7 @@ Generate the tier-one tower first. For every upgrade, supply the actual image
 from the preceding stage as the edit source and add the new features to it.
 Do not generate each tier independently from a text description.
 
-- **Finish tier 1 first.** Approve its stone, roof, timber, lighting and palette
+- **Finish tier 1 first.** Approve its structure, materials, lighting and palette
   before generating any upgrades.
 - **Keep the shared structure on a locked base layer.** Use the actual approved
   tier-one image as the base layer for every upgrade, preserving its pixels.
@@ -124,13 +127,11 @@ Do not generate each tier independently from a text description.
   the additions; using it only as a generation reference or accepting a repainted
   version of the shared structure does not satisfy this requirement.
 
-1. **Tier 1:** Create the basic tower image.
-2. **Tier 2:** Use the tier-one image and add the requested tier-two features.
-3. **Tier 3:** Use the completed tier-two image and add the requested tier-three features.
-4. **First final branch:** Use the completed tier-three image and add this
-   branch's features.
-5. **Second final branch:** Start again from the same completed tier-three image
-   and add the other branch's features. Do not build it from the first branch.
+1. **Base stage:** Create and finish the basic tower image.
+2. **Each subsequent stage:** Use the completed preceding stage and add only
+   the requested upgrade features on separate layers above the locked base.
+3. **Each branch:** Start from its specified shared parent stage and add that
+   branch's features. Do not build one sibling branch from another.
 
 Preserve the existing structure and previous upgrades in each edit. New features
 should visibly build onto the same tower while its core shape, scale, palette,
@@ -171,10 +172,11 @@ At the very end, return to the completed, palette-enforced tier-one image.
 Its base-material colors are the authority for the rest of the towers. Do not
 let colors introduced in later generations redefine the original tower's palette.
 
-Run a deterministic script over all five finished images in order: tier 1,
-tier 2, tier 3, then both tier-four branches. Remap the shared structure's colors
-to the exact colors used for those materials in tier 1. Enforce an explicit list
-of allowed RGB values so no extra shades remain. Match material assignments as
+Run a deterministic script over every finished image, starting with the approved
+base stage and then covering all requested upgrades and branches. Correct any
+shared-material color deviations to the exact colors used in the approved base,
+preserving the locked base layer. Enforce an explicit list of allowed RGB values
+so no extra shades remain. Match material assignments as
 well as palette membership; a shared surface should not change color between tiers
 just because both colors are on the allowed list.
 
@@ -182,7 +184,7 @@ Only the designated branch additions may retain their reserved accent colors.
 Those accents must already belong to the selected 16-color family palette;
 they must not alter the shared base structure or expand the palette.
 
-After saving, reopen all five files and verify every nontransparent pixel against
+After saving, reopen every file and verify every nontransparent pixel against
 its allowed palette. Check the shared materials against tier 1 and inspect the
 set together. Preserve dimensions, positions, shapes and transparency throughout.
 Correct remaining color mismatches with the script, without regenerating images.
