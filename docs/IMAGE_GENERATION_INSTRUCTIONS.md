@@ -57,6 +57,26 @@ extra colors. Verify afterward that every nontransparent pixel uses one of the
 16 selected RGB values, and visually check that material and accent colors still
 read correctly. Individual images may use fewer than all 16 colors.
 
+## Final palette sweep across all five towers
+
+After generating all five towers, run one final deterministic color sweep across
+the complete set. Compare the shared base structure in every image and normalize
+its stone, roof, wood, iron, shadows and common cloth to the same selected material
+colors. Update the base structure's colors in all five images, including tier 1,
+so upgrades do not introduce lighter stone or different shades of the same material.
+Using the same list of allowed colors is not enough: corresponding materials
+must use the same color assignments throughout the set.
+
+Preserve each tier-four branch's designated accent colors on its added features,
+such as elemental details or its branch flag. These are exceptions to the common
+material assignments, not exceptions to the 16-color limit. Reserve those accents
+within the family's selected palette, and do not let them recolor the shared base.
+
+Finish by checking all five images side by side and verifying their pixel colors.
+The common tower should match across the set, while the two final branches retain
+their distinct accents. Preserve geometry, alignment and transparency during
+this final color-only pass.
+
 ## Position and progression
 
 Keep every image centered on the same core structure and ground anchor, using
