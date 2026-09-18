@@ -14,15 +14,10 @@ Add only subtle weathering after the tower's main shapes already read clearly.
 Preserve a strong silhouette at thumbnail size, and show upgrades through distinct
 structural additions rather than extra surface detail.
 
-Create stylized 2D dark medieval fantasy: bold black outlines, strong angular
-silhouettes, chunky shapes and broad, flat color planes. Suggest depth with a
-few hard-edged shadow facets rather than smooth gradients. Materials should
-feel matte and worn: heavy stone, dull iron, dark wood and simple cloth.
-
-Keep details sparse and readable at small game sizes. A few large seams or chips
-are enough; avoid tiny brick patterns, elaborate trim and busy surface texture.
-The mood is somber, ancient and watchful. Avoid photorealism, glossy 3D, bright
-cartoon colors, neon and excessive glow.
+Keep the rendering illustrative and two-dimensional, with matte materials and
+crisp edges. Avoid photorealism, glossy 3D, smooth gradient shading and dense
+surface texture. Each visible detail should help explain the tower's structure
+or function; leave broad surfaces quiet.
 
 ## Dark fantasy theme
 

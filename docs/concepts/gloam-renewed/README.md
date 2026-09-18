@@ -27,3 +27,25 @@ firing apertures and a usable central door. No occupants or arrows are baked in.
 | #70844A | Poison green |
 
 Transparency is separate from this sixteen-color palette.
+
+## Delivery and placement
+
+All five final sprites are 1024 x 1536. Their doorway centers and ground-contact
+anchors align at (512, 1352), using integer translation without resampling or
+clipping any nontransparent pixels. The projectile outlet is (512, 702), inside
+the black central opening in every stage. Runtime scale remains 20 pixels per
+world unit; catalog origin is (-25.6, -67.6), with the outlet at (0, -32.5).
+
+`verification.json` records reopened-file palette and anchor checks. The full
+set uses exactly the selected sixteen RGB values; each stage uses a subset.
+`family-preview.png` shows the five stages together. Prompt files record the
+base generation and subsequent edits. Both final branches use tier three as
+their image source.
+
+`tools/gloam_renewed_palette.py` assigns the same material colors to every stage,
+preserving source alpha. `tools/gloam_renewed_delivery.py SOURCE_DIRECTORY`
+runs the final palette pass, aligns the entrance, validates saved sprites and
+copies them into `assets/artwork/tower/rapid/`. Source files must be named
+`level-1.png`, `level-2.png`, `level-3.png`, `tier-4-frost.png` and
+`tier-4-poison.png`. Generated sources for this run remain in the local ignored
+`artifacts/gloam-renewed-source/` directory.
