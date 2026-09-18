@@ -67,6 +67,29 @@ and an added front banner on tier 3. Final branches retain these and add a flag
 matching their specialization. Make each branch's theme clear with a few bold
 features rather than covering the tower in tiny details.
 
+## Generate upgrades by editing the previous image
+
+Generate the tier-one tower first. For every upgrade, supply the actual image
+from the preceding stage as the edit source and add the new features to it.
+Do not generate each tier independently from a text description.
+
+1. **Tier 1:** Create the basic tower image.
+2. **Tier 2:** Use the tier-one image and add supports, its flag and other
+   requested tier-two features.
+3. **Tier 3:** Use the completed tier-two image and add fortification, its banner
+   and other requested tier-three features.
+4. **First final branch:** Use the completed tier-three image and add this
+   branch's features.
+5. **Second final branch:** Start again from the same completed tier-three image
+   and add the other branch's features. Do not build it from the first branch.
+
+Preserve the existing structure and previous upgrades in each edit. New features
+should visibly build onto the same tower while its core shape, scale, palette,
+center point and ground anchor stay fixed. Keep the same canvas and reserved
+space for additions; do not redraw or reposition the base to fit the upgrade.
+Run the offset and alignment checks on the completed set, even when the correct
+source images were used.
+
 ## Practical details
 
 Make structures believable for their purpose: supported floors, usable doors
