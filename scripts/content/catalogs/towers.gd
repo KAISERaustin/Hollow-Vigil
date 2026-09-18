@@ -17,7 +17,7 @@ const TOWERS := {
 }
 
 const PROJECTILES := {
-	"rapid": {"muzzle": Vector2(0, -40), "speed": 760.0, "min_flight": 0.10, "max_flight": 0.22, "impact_time": 0.09},
+	"rapid": {"muzzle": Vector2(0, -32.5), "speed": 760.0, "min_flight": 0.10, "max_flight": 0.22, "impact_time": 0.09},
 	"splash": {"muzzle": Vector2(0, -29), "speed": 520.0, "min_flight": 0.17, "max_flight": 0.30, "impact_time": 0.24},
 	"heavy": {"muzzle": Vector2(0, -22), "speed": 470.0, "min_flight": 0.18, "max_flight": 0.36, "impact_time": 0.18},
 	"electric": {"muzzle": Vector2(0, -29), "speed": 760.0, "min_flight": 0.0, "max_flight": 0.0, "impact_time": 0.30},

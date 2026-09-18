@@ -42,7 +42,7 @@ func run() -> void:
 		var texture: Texture2D = Images.texture_for(entry)
 		check(texture.get_size() == Vector2(1024, 1536), key + " full canvas")
 		check(not entry.has("native_fallback_above_zoom") and entry.authored, key + " authored at every zoom")
-		var anchor: Vector2 = Vector2(b[0], b[1]) + Vector2(512, 1457) / entry.pixels_per_unit
+		var anchor: Vector2 = Vector2(b[0], b[1]) + Vector2(512, 1352) / entry.pixels_per_unit
 		check(anchor.is_zero_approx(), key + " ground anchor")
 		var muzzle_pixel: Vector2 = (Balance.PROJECTILES.rapid.muzzle - Vector2(b[0], b[1])) * entry.pixels_per_unit
 		var pixel := texture.get_image().get_pixelv(Vector2i(muzzle_pixel))

@@ -1,0 +1,138 @@
+{
+  "canvas": [
+    1024,
+    1536
+  ],
+  "ground_anchor": [
+    512,
+    1352
+  ],
+  "muzzle_pixel": [
+    512,
+    702
+  ],
+  "method": "color-only material mapping, then integer translation",
+  "stages": {
+    "level-1": {
+      "file": "C:\\Users\\3ak33\\Documents\\ChatGPT\\Idle Game\\docs\\concepts\\gloam-renewed\\level-1.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "colors": 10,
+      "alpha_preserved": true,
+      "resampled": false,
+      "before_anchor": [
+        512,
+        1388
+      ],
+      "translation": [
+        0,
+        -36
+      ],
+      "after_anchor": [
+        512,
+        1352
+      ],
+      "clipped_pixels": 0,
+      "black_projectile_outlet": true
+    },
+    "level-2": {
+      "file": "C:\\Users\\3ak33\\Documents\\ChatGPT\\Idle Game\\docs\\concepts\\gloam-renewed\\level-2.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "colors": 13,
+      "alpha_preserved": true,
+      "resampled": false,
+      "before_anchor": [
+        515,
+        1358
+      ],
+      "translation": [
+        -3,
+        -6
+      ],
+      "after_anchor": [
+        512,
+        1352
+      ],
+      "clipped_pixels": 0,
+      "black_projectile_outlet": true
+    },
+    "level-3": {
+      "file": "C:\\Users\\3ak33\\Documents\\ChatGPT\\Idle Game\\docs\\concepts\\gloam-renewed\\level-3.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "colors": 13,
+      "alpha_preserved": true,
+      "resampled": false,
+      "before_anchor": [
+        514,
+        1360
+      ],
+      "translation": [
+        -2,
+        -8
+      ],
+      "after_anchor": [
+        512,
+        1352
+      ],
+      "clipped_pixels": 0,
+      "black_projectile_outlet": true
+    },
+    "tier-4-frost": {
+      "file": "C:\\Users\\3ak33\\Documents\\ChatGPT\\Idle Game\\docs\\concepts\\gloam-renewed\\tier-4-frost.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "colors": 15,
+      "alpha_preserved": true,
+      "resampled": false,
+      "before_anchor": [
+        513,
+        1362
+      ],
+      "translation": [
+        -1,
+        -10
+      ],
+      "after_anchor": [
+        512,
+        1352
+      ],
+      "clipped_pixels": 0,
+      "black_projectile_outlet": true
+    },
+    "tier-4-poison": {
+      "file": "C:\\Users\\3ak33\\Documents\\ChatGPT\\Idle Game\\docs\\concepts\\gloam-renewed\\tier-4-poison.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "colors": 14,
+      "alpha_preserved": true,
+      "resampled": false,
+      "before_anchor": [
+        513,
+        1362
+      ],
+      "translation": [
+        -1,
+        -10
+      ],
+      "after_anchor": [
+        512,
+        1352
+      ],
+      "clipped_pixels": 0,
+      "black_projectile_outlet": true
+    }
+  },
+  "family_color_count": 16
+}
