@@ -121,6 +121,7 @@ try {
             Invoke-Godot -Name 'campaign-terrain' -EngineArguments @('--script', 'res://tests/rendered/campaign_terrain_checks.gd')
         }
         if ($ArtSmoke -or $Check) {
+			Invoke-Godot -Name 'ironspike-art' -EngineArguments @('--script', 'res://tests/rendered/ironspike_art_runner.gd')
 			Invoke-Godot -Name 'hex-effects' -EngineArguments @('--script', 'res://tests/rendered/hex_effect_runner.gd')
             Invoke-Godot -Name 'construction-effect' -EngineArguments @('--script', 'res://tests/rendered/construction_effect_runner.gd')
         }

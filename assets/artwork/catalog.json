@@ -1,58 +1,93 @@
 {
 	"bow/ironspike/1/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-51.2,
+			-72.1,
+			102.4,
+			102.4
 		],
 		"image": "res://assets/artwork/bow/ironspike/1.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"alpha_cutoff": 0.06274509803921569,
+		"portrait_bounds": [
+			-30.25,
+			-35.9,
+			60.55,
+			29.1
+		]
 	},
 	"bow/ironspike/2/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-51.2,
+			-72.1,
+			102.4,
+			102.4
 		],
 		"image": "res://assets/artwork/bow/ironspike/2.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"alpha_cutoff": 0.06274509803921569,
+		"portrait_bounds": [
+			-30.25,
+			-45.85,
+			60.55,
+			39.05
+		]
 	},
 	"bow/ironspike/3/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-51.2,
+			-72.1,
+			102.4,
+			102.4
 		],
 		"image": "res://assets/artwork/bow/ironspike/3.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"alpha_cutoff": 0.06274509803921569,
+		"portrait_bounds": [
+			-30.25,
+			-45.85,
+			60.55,
+			39.05
+		]
 	},
 	"bow/ironspike/4/needle_battery": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-51.2,
+			-72.1,
+			102.4,
+			102.4
 		],
 		"image": "res://assets/artwork/bow/ironspike/4/needle_battery.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"alpha_cutoff": 0.06274509803921569,
+		"portrait_bounds": [
+			-30.25,
+			-60.45,
+			60.55,
+			53.65
+		]
 	},
 	"bow/ironspike/4/siegebreaker": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-51.2,
+			-72.1,
+			102.4,
+			102.4
 		],
 		"image": "res://assets/artwork/bow/ironspike/4/siegebreaker.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"alpha_cutoff": 0.06274509803921569,
+		"portrait_bounds": [
+			-30.25,
+			-60.65,
+			60.55,
+			53.85
+		]
 	},
 	"enemy/basic": {
 		"bounds": [
@@ -550,58 +585,98 @@
 	},
 	"tower/ironspike/1/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-51.2,
+			-72.1,
+			102.4,
+			102.4
 		],
 		"image": "res://assets/artwork/tower/ironspike/1.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"alpha_cutoff": 0.06274509803921569,
+		"rotating_layer": "bow/ironspike/1/",
+		"portrait_bounds": [
+			-30.25,
+			-35.9,
+			60.55,
+			36.0
+		]
 	},
 	"tower/ironspike/2/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-51.2,
+			-72.1,
+			102.4,
+			102.4
 		],
 		"image": "res://assets/artwork/tower/ironspike/2.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"alpha_cutoff": 0.06274509803921569,
+		"rotating_layer": "bow/ironspike/2/",
+		"portrait_bounds": [
+			-30.25,
+			-45.85,
+			60.55,
+			45.95
+		]
 	},
 	"tower/ironspike/3/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-51.2,
+			-72.1,
+			102.4,
+			102.4
 		],
 		"image": "res://assets/artwork/tower/ironspike/3.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"alpha_cutoff": 0.06274509803921569,
+		"rotating_layer": "bow/ironspike/3/",
+		"portrait_bounds": [
+			-30.25,
+			-45.85,
+			60.55,
+			45.95
+		]
 	},
 	"tower/ironspike/4/needle_battery": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-51.2,
+			-72.1,
+			102.4,
+			102.4
 		],
 		"image": "res://assets/artwork/tower/ironspike/4/needle_battery.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"alpha_cutoff": 0.06274509803921569,
+		"rotating_layer": "bow/ironspike/4/needle_battery",
+		"portrait_bounds": [
+			-30.25,
+			-60.45,
+			60.55,
+			60.55
+		]
 	},
 	"tower/ironspike/4/siegebreaker": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-51.2,
+			-72.1,
+			102.4,
+			102.4
 		],
 		"image": "res://assets/artwork/tower/ironspike/4/siegebreaker.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"alpha_cutoff": 0.06274509803921569,
+		"rotating_layer": "bow/ironspike/4/siegebreaker",
+		"portrait_bounds": [
+			-30.25,
+			-60.65,
+			60.55,
+			60.75
+		]
 	},
 	"tower/moonwheel/1/": {
 		"bounds": [

@@ -55,6 +55,22 @@ layer preservation, alignment, and runtime mapping.
 
 ## Additional tower families
 
+Ironspike's five Siege Ballista stages now use independent authored base/top
+PNGs through the existing `tower/ironspike/` and `bow/ironspike/` catalog families.
+The base remains fixed; each top rotates around the mounting socket to match
+the actual projectile bearing. Optional projectile pivot/forward fields share
+the mounting contract with the renderer, and the line-attack owner rotates the
+launch outlet while preserving leading, piercing, parallel volleys and range.
+
+The source pivot (1024, 1024), ground anchor (1024, 1442), and muzzle (1024, 1183)
+use 20 pixels per world unit. Catalog framing includes both pieces in portraits;
+build previews retain the authored resting pose. High zoom and export rendering
+use the same composition, and native rebaking preserves both authored entries.
+The focused `rendered/ironspike_art_runner.gd` checks unchanged source hashes,
+eight firing directions, moving-target hits, independent instance aim, both
+branches, normal/high zoom, export composition, compact portraits and three
+portrait phone sizes. See [the source family](concepts/ironspike-siege-ballista-2026-09-20/README.md).
+
 Legacy native silhouettes remain in the stateless
 `rendering/actors/expansion_tower_art.gd` family. Authored catalog entries take
 precedence in battlefields, build previews, menu portraits, upgrade previews,

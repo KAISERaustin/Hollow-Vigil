@@ -97,13 +97,21 @@ func enemy(canvas: CanvasItem, kind: String, at: Vector2, zoom: float) -> void:
 	if not draw(canvas, "enemy/" + kind, at, zoom):
 		VigilTerrainArt.enemy_vector(canvas, kind, at, zoom)
 
-func tower(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, level: int, branch: String, angle: float) -> void:
-	if not draw(canvas, "tower/%s/%d/%s" % [kind, level, branch], at, zoom):
-		VigilTerrainArt.sentinel_vector(canvas, kind, at, zoom, level, branch, angle)
-		return
-	if kind == "ironspike":
-		var pivot: Vector2 = Balance.PROJECTILES.ironspike.muzzle
-		var rotation := angle + PI / 2.0
+func draw_tower(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, level: int, branch: String, angle: float = NAN) -> bool:
+	var key := "tower/%s/%d/%s" % [kind, level, branch]
+	if not draw(canvas, key, at, zoom): return false
+	var layer: String = entries[key].get("rotating_layer", "")
+	if not layer.is_empty():
+		var projectile := Balance.Content.projectile(kind)
+		var pivot: Vector2 = projectile.attribute("aim_pivot", projectile.attribute("muzzle"))
+		var forward: float = projectile.attribute("aim_forward", -PI / 2.0)
+		# Omitted aim means the authored resting pose in portraits/build menus.
+		var rotation := 0.0 if is_nan(angle) else angle - forward
 		canvas.draw_set_transform(at + (pivot - pivot.rotated(rotation)) * zoom, rotation, Vector2.ONE * zoom)
-		draw(canvas, "bow/%s/%d/%s" % [kind, level, branch], Vector2.ZERO, 1.0)
+		draw(canvas, layer, Vector2.ZERO, 1.0)
 		canvas.draw_set_transform(Vector2.ZERO)
+	return true
+
+func tower(canvas: CanvasItem, kind: String, at: Vector2, zoom: float, level: int, branch: String, angle: float = NAN) -> void:
+	if not draw_tower(canvas, kind, at, zoom, level, branch, angle):
+		VigilTerrainArt.sentinel_vector(canvas, kind, at, zoom, level, branch, angle)

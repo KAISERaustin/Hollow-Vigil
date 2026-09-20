@@ -21,7 +21,7 @@ const PROJECTILES := {
 	"splash": {"muzzle": Vector2(0, -29), "speed": 520.0, "min_flight": 0.17, "max_flight": 0.30, "impact_time": 0.24},
 	"heavy": {"muzzle": Vector2(0, -32.8), "speed": 470.0, "min_flight": 0.18, "max_flight": 0.36, "impact_time": 0.18},
 	"electric": {"muzzle": Vector2(0, -48.2), "speed": 760.0, "min_flight": 0.0, "max_flight": 0.0, "impact_time": 0.30},
-	"ironspike": {"muzzle": Vector2(0, -30), "speed": 420.0, "min_flight": 0.1, "max_flight": 0.6, "impact_time": 0.12},
+	"ironspike": {"muzzle": Vector2(0, -12.95), "aim_pivot": Vector2(0, -20.9), "aim_forward": PI / 2.0, "speed": 420.0, "min_flight": 0.1, "max_flight": 0.6, "impact_time": 0.12},
 	"moonwheel": {"muzzle": Vector2(-3.825, -31), "speed": 260.0, "min_flight": 0.1, "max_flight": 0.6, "impact_time": 0.12},
 	"hex_lantern": {"muzzle": Vector2(0, -16.25), "speed": 400.0, "min_flight": 0.1, "max_flight": 0.4, "impact_time": 0.2},
 	"caltrop_keep": {"muzzle": Vector2(0, -8), "speed": 360.0, "min_flight": 0.1, "max_flight": 0.4, "impact_time": 0.15}

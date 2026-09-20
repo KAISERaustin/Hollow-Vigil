@@ -45,8 +45,8 @@ not a collection of perspective-correct camera views.
 
 [Animated rotation preview](rotation-preview.webp) and
 [all five stages at eight angles](rotation-review.png) show the fixed base and
-independent rotating top. These are offline artwork previews. The package does
-not itself change gameplay, runtime artwork selection, targeting, or balance.
+independent rotating top. These are offline artwork previews. Runtime integration
+uses the same approved parts and placement contract, as described below.
 
 ## Palette
 
@@ -111,5 +111,30 @@ To recheck using a Python environment with Pillow and NumPy:
 python finish_family.py verify
 ```
 
-Godot does not import this concept package (`.gdignore`). Verification here is
-artwork-level; no physical-device or full-game test is claimed.
+Godot does not import this concept package (`.gdignore`); it imports unchanged
+production copies from `assets/artwork/`.
+
+## Runtime integration
+
+The five fixed bases are copied unchanged to `assets/artwork/tower/ironspike/`,
+and the corresponding rotating tops to `assets/artwork/bow/ironspike/`. Tier-4
+Bolt Battery supplies `needle_battery`; Breacher supplies `siegebreaker`.
+Existing branch names, stats, saves and attack components remain intact.
+
+All ten catalog entries are authored, use 20 pixels per world unit, and retain
+the full source canvas. The base entry selects its `rotating_layer`; the shared
+projectile definition supplies `aim_pivot` (0, -20.9), `aim_forward` PI/2, and
+the unrotated `muzzle` (0, -12.95). Rendering rotates only the top. Combat rotates
+the muzzle from that same pivot and records the actual led firing bearing on
+the individual tower. Parallel volleys retain their existing lateral spacing.
+
+The cached alpha cutoff removes values below 16 without modifying the PNGs.
+Per-stage portrait bounds include both parts, with the default front-facing pose
+in menus and build ghosts. Both parts remain authored at high zoom and are
+protected from native rebaking. `sentinel_vector` exports the same full pair.
+
+Run `./launch.ps1 -TestScript tests/rendered/ironspike_art_runner.gd` from the
+repository root for source identity, mounting, eight directions, actual shot
+origins, leading and piercing, independent instances, compact portraits, and
+360x640/390x844/540x960 captures. This is desktop rendering and combat simulation;
+physical iOS/Android acceptance remains separate.

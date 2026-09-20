@@ -86,14 +86,15 @@ func tower_at(region: String, pad: int) -> String:
 	ensure_tower_index()
 	return tower_cells.get(region, {}).get(pad, "")
 
-func can_place(kind: String, region: String, pad: int) -> bool:
+func can_place(kind: String, region: String, pad: int, ignore_id: String = "") -> bool:
 	var node := Balance.Content.tower(kind)
 	if node == null or not tower_available(kind) or pad < 0 or pad > VigilWorld.MAX_GROUND_PAD:
 		return false
-	return node.can_place("ground", data.regions.has(region), tower_at(region, pad) != "") and (pad < 4 or ground_allowed(VigilWorld.pad_position(region, pad)))
+	var occupant := tower_at(region, pad)
+	return node.can_place("ground", data.regions.has(region), occupant != "" and occupant != ignore_id) and ground_allowed(VigilWorld.pad_position(region, pad), kind, ignore_id)
 
-func ground_allowed(point: Vector2, ignore_id: String = "") -> bool:
-	return preload("res://scripts/content/nodes/ground_placement.gd").allowed(data, point, placement_roads, placement_bounds, ignore_id)
+func ground_allowed(point: Vector2, kind: String, ignore_id: String = "") -> bool:
+	return preload("res://scripts/content/nodes/ground_placement.gd").allowed(data, point, kind, placement_roads, placement_bounds, ignore_id)
 
 func build(kind: String, region: String, pad: int) -> String:
 	if not can_place(kind, region, pad):
@@ -127,9 +128,10 @@ func upgrade(id: String, expected_level: int = -1, branch: String = "") -> bool:
 	return true
 
 func relocate(id: String, region: String, pad: int, expected_level: int = -1) -> bool:
-	if not data.towers.has(id) or not can_place(data.towers[id].kind, region, pad):
+	if not data.towers.has(id) or not can_place(data.towers[id].kind, region, pad, id):
 		return false
 	var tower: Dictionary = data.towers[id]
+	if tower.region == region and int(tower.pad) == pad: return false
 	if tower.get("rebuild_remaining", 0.0) > 0.0 or (expected_level != -1 and tower.level != expected_level):
 		return false
 	if not spend(Balance.move_cost(tower, tuning)):

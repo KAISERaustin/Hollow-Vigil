@@ -5,6 +5,9 @@ const ContentNode = preload("res://scripts/content/nodes/content_node.gd")
 ## Shared placement, instance construction and tier scaling for every tower type.
 const Tuning = preload("res://scripts/content/catalogs/tuning.gd")
 
+func placement_collider() -> Resource:
+	return rule("placement_collider")
+
 func can_place(socket_kind: String, owned: bool, occupied: bool) -> bool:
 	return (socket_kind == _rules.get("placement", "") or (socket_kind == "plus" and _rules.get("placement", "") == "ground")) and owned and not occupied
 

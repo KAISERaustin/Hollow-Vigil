@@ -21,9 +21,16 @@ static func aim_point(combat, target: Dictionary, muzzle: Vector2, speed: float)
 static func launch(combat, tower: Dictionary, origin: Vector2, target: Dictionary, stats: Dictionary, returning: bool) -> void:
 	var profile: Dictionary = Balance.PROJECTILES[tower.kind].duplicate()
 	profile.speed = stats.get("projectile_speed", profile.speed)
-	var muzzle: Vector2 = origin + profile.muzzle
-	var direction: Vector2 = (aim_point(combat, target, muzzle, profile.speed) - muzzle).normalized()
-	if direction.is_zero_approx(): direction = Vector2.UP
+	var projectile_node := Balance.Content.projectile(tower.kind)
+	var aim := aim_point(combat, target, origin + profile.muzzle, profile.speed)
+	if profile.has("aim_pivot"):
+		# Re-evaluate the lead from the rotating outlet rather than the old
+		# fixed muzzle. Ordinary fixed/returning projectiles keep their path.
+		for iteration in range(3):
+			aim = aim_point(combat, target, projectile_node.aimed_launch(origin, aim).muzzle, profile.speed)
+	var launch := projectile_node.aimed_launch(origin, aim)
+	var muzzle: Vector2 = launch.muzzle
+	var direction: Vector2 = launch.direction
 	# The weapon and swept bolt share the muzzle-based bearing, including volleys.
 	tower.angle = direction.angle()
 	var normal := direction.orthogonal()
@@ -36,6 +43,7 @@ static func launch(combat, tower: Dictionary, origin: Vector2, target: Dictionar
 		var b := relative.dot(direction)
 		var length := maxf(1.0, -b + sqrt(maxf(0.0, b * b + stats.range * stats.range - relative.length_squared())))
 		var shot: Dictionary = combat.Projectiles.make_shot(combat, tower, origin, target, stats, index == 0)
+		shot.fx.from = start
 		combat.line_projectiles.append({"tower_id": tower.id, "epoch": combat.TowerComponents.ensure(combat, tower).epoch,
 			"shot": shot, "start": start, "end": start + direction * length, "pos": start, "direction": direction,
 			"speed": profile.speed, "return_speed": stats.get("return_speed", 1.0), "returning": returning, "leg": 0,

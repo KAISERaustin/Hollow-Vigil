@@ -16,7 +16,7 @@ func run() -> void:
 				for y in range(-130, 131, 40):
 					for x in range(-130, 131, 40):
 						var point := VigilWorld.center(region) + Vector2(x, y)
-						if built or not battle.game.economy.ground_allowed(point): continue
+						if built or not battle.game.economy.ground_allowed(point, "rapid"): continue
 						var location := VigilWorld.ground_location(point)
 						built = not battle.game.economy.build("rapid", location.region, location.pad).is_empty()
 			for phase in ["planning", "wave", "between_waves"]:

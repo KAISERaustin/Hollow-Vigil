@@ -45,6 +45,12 @@ Run `tests/stats_system_runner.gd` for defaults, composition, removal, runtime i
 
 ## Ownership and verification
 
+Tower nodes inherit a per-family `placement_collider` resource. All eight have
+independent square shapes, offsets and rotations; see
+[Tower placement colliders](TOWER_PLACEMENT_COLLIDERS.md) for the editor preview
+and adjustment instructions. Preview, purchases, moves and ground-save checks
+use the same shape geometry through the placement/economy owners.
+
 The [first-time field guide](TUTORIAL_SYSTEM.md) composes reusable lesson data,
 device learning history and a shared illustrated popup. Campaign supplies live
 milestone and wave context; tutorials never change content or save progression.

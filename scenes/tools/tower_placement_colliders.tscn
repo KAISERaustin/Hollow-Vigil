@@ -1,0 +1,69 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://tools/placement_collider_preview.gd" id="1"]
+[ext_resource type="Resource" path="res://assets/placement_colliders/gloamwatch.tres" id="2"]
+[ext_resource type="Resource" path="res://assets/placement_colliders/pyre.tres" id="3"]
+[ext_resource type="Resource" path="res://assets/placement_colliders/obelisk.tres" id="4"]
+[ext_resource type="Resource" path="res://assets/placement_colliders/stormspire.tres" id="5"]
+[ext_resource type="Resource" path="res://assets/placement_colliders/ironspike.tres" id="6"]
+[ext_resource type="Resource" path="res://assets/placement_colliders/moonwheel.tres" id="7"]
+[ext_resource type="Resource" path="res://assets/placement_colliders/hex_lantern.tres" id="8"]
+[ext_resource type="Resource" path="res://assets/placement_colliders/caltrop_keep.tres" id="9"]
+
+[node name="TowerPlacementColliders" type="Node2D"]
+
+[node name="Gloamwatch" type="Node2D" parent="."]
+position = Vector2(140, 205)
+scale = Vector2(3, 3)
+script = ExtResource("1")
+tower_kind = "rapid"
+collider = ExtResource("2")
+
+[node name="Pyre" type="Node2D" parent="."]
+position = Vector2(410, 205)
+scale = Vector2(3, 3)
+script = ExtResource("1")
+tower_kind = "splash"
+collider = ExtResource("3")
+
+[node name="Obelisk" type="Node2D" parent="."]
+position = Vector2(680, 205)
+scale = Vector2(3, 3)
+script = ExtResource("1")
+tower_kind = "heavy"
+collider = ExtResource("4")
+
+[node name="Stormspire" type="Node2D" parent="."]
+position = Vector2(950, 205)
+scale = Vector2(3, 3)
+script = ExtResource("1")
+tower_kind = "electric"
+collider = ExtResource("5")
+
+[node name="Ironspike" type="Node2D" parent="."]
+position = Vector2(140, 480)
+scale = Vector2(3, 3)
+script = ExtResource("1")
+tower_kind = "ironspike"
+collider = ExtResource("6")
+
+[node name="Moonwheel" type="Node2D" parent="."]
+position = Vector2(410, 480)
+scale = Vector2(3, 3)
+script = ExtResource("1")
+tower_kind = "moonwheel"
+collider = ExtResource("7")
+
+[node name="HexLantern" type="Node2D" parent="."]
+position = Vector2(680, 480)
+scale = Vector2(3, 3)
+script = ExtResource("1")
+tower_kind = "hex_lantern"
+collider = ExtResource("8")
+
+[node name="CaltropKeep" type="Node2D" parent="."]
+position = Vector2(950, 480)
+scale = Vector2(3, 3)
+script = ExtResource("1")
+tower_kind = "caltrop_keep"
+collider = ExtResource("9")

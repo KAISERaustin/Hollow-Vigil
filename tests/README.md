@@ -15,10 +15,12 @@ Every launcher mode is silent by default. Only use `-Sound` when the user asks f
 | --- | --- |
 | Campaign simulation, routes, progression | `campaign_runner.gd`, `campaign_unlocks_runner.gd`, `campaign_expansion_runner.gd`; `campaign_balance_runner.gd` for difficulty changes |
 | Content nodes and shared stats | `content_node_runner.gd`, `stats_system_runner.gd`, `tuning_schema_runner.gd`, `simplified_rules_runner.gd` |
+| Per-tower placement colliders | `placement_collider_runner.gd` (eight independent squares, mixed shapes, offsets, transactions and persistence), `rendered/placement_collider_preview_runner.gd` (authoring sheet) |
 | Hex support and portal gameplay | `hex_support_runner.gd`, `portal_attributes_runner.gd` |
 | Hex Lantern authored artwork | `rendered/hex_lantern_art_runner.gd` (five source mappings, fixed ground/muzzle, normal/high zoom, portraits, three phone sizes) |
 | Obelisk authored artwork | `rendered/obelisk_art_runner.gd` (five source mappings, fixed ground/sigil outlet, high zoom, compact portraits, isolated active/expired curse markers, three phone sizes) |
 | Moonwheel authored artwork | `rendered/moonwheel_art_runner.gd` (five source mappings, fixed ground/muzzle, outward/return hits, normal/high zoom, compact portraits, three phone sizes) |
+| Ironspike rotating artwork | `rendered/ironspike_art_runner.gd` (ten source mappings, fixed bases, rotating outlets, eight directions, led hits/volleys, normal/high zoom, compact portraits, three phone sizes) |
 | Caltrop Keep authored artwork | `rendered/caltrop_keep_art_runner.gd` (five source mappings, fixed ground/scale, normal/high zoom, portraits, three phone sizes) |
 | Waves and exports | `wave_editor_runner.gd`, `campaign_configuration_runner.gd`, `campaign_export_runner.gd` |
 | Saves, restart and camera | `campaign_ground_save_runner.gd`, `campaign_reset_runner.gd`, `campaign_camera_runner.gd` |

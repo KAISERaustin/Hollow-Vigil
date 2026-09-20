@@ -18,6 +18,7 @@ const ProjectileNode = preload("res://scripts/content/nodes/projectile_node.gd")
 const WaveNode = preload("res://scripts/content/nodes/wave_node.gd")
 const AbilityNode = preload("res://scripts/content/nodes/ability_node.gd")
 const Towers = preload("res://scripts/content/catalogs/towers.gd")
+const PlacementColliders = preload("res://scripts/content/catalogs/placement_colliders.gd")
 const Actors = preload("res://scripts/content/catalogs/actors.gd")
 const Gear = preload("res://scripts/content/catalogs/gear.gd")
 const Attributes = preload("res://scripts/content/catalogs/attributes.gd")
@@ -176,7 +177,7 @@ func _populate_towers() -> void:
 			for slot in Towers.ATTACHMENTS.get(branch, {}):
 				branch_attachments[branch][slot] = find("attributes", Towers.ATTACHMENTS[branch][slot])
 		var tower_type := TowerNode.new("tower/" + kind, get_node("tower"), Towers.TOWERS[kind],
-			{"kind": kind, "damage_type": Towers.DAMAGE_TYPES.get(kind, "physical"), "components": attachments, "branch_attachments": branch_attachments, "upgrade_sound": Towers.UPGRADE_SOUNDS.get(kind, ""), "upgrades": Towers.TOWER_UPGRADES[kind], "branches": Towers.BRANCHES[kind], "abilities": Towers.ABILITIES, "multipliers": Towers.BRANCH_STAT_MULTIPLIERS})
+			{"kind": kind, "placement_collider": PlacementColliders.COLLIDERS[kind], "damage_type": Towers.DAMAGE_TYPES.get(kind, "physical"), "components": attachments, "branch_attachments": branch_attachments, "upgrade_sound": Towers.UPGRADE_SOUNDS.get(kind, ""), "upgrades": Towers.TOWER_UPGRADES[kind], "branches": Towers.BRANCHES[kind], "abilities": Towers.ABILITIES, "multipliers": Towers.BRANCH_STAT_MULTIPLIERS})
 		_add(tower_type, "towers", kind)
 		_add(ProjectileNode.new("projectile/" + kind, get_node("projectile"), Towers.PROJECTILES[kind], {"kind": kind}), "projectiles", kind)
 		var previous: ContentNode = tower_type

@@ -142,12 +142,15 @@ source files unchanged; arrows launch through the original dark firing opening.
 `tests/rendered/gloamwatch_runner.gd` checks source identity, framing, projectile
 clearance and runtime/export routing, and captures all five at three phone sizes.
 
-Ironspike's mounted bow and loaded bolts rotate around the shared projectile
-muzzle to match the fired bolt's direction; its socket and pedestal stay fixed.
-The existing per-tower firing angle is supplied through the shared sentinel
-renderer, and the line-attack component records the actual muzzle-based bearing.
-All tiers and both branches reuse the same rotating bow assembly. Portraits and
-build previews retain the upright default.
+Ironspike uses the approved separate timber bases and crossbow tops from
+`docs/concepts/ironspike-siege-ballista-2026-09-20/`. Its fixed socket and rotating
+weapon share source pivot (1024, 1024); source ground anchor (1024, 1442) maps to
+world zero at 20 pixels per unit. The rotating muzzle follows the loaded bolt's
+tip, including moving-target lead and parallel volleys. Each instance supplies
+its own firing bearing through the shared sentinel renderer. All five stages,
+portraits, build previews and export rendering use the authored parts; previews
+retain the original front-facing resting pose. Native rebaking preserves both
+parts. Bolt Battery maps to Needle Battery; Breacher maps to Siegebreaker.
 
 The opening page composes the reusable stateless `scripts/ui/shared/welcome_art.gd`
 background and diamond ornament. `scripts/ui/unified_menu.gd` owns the viewport

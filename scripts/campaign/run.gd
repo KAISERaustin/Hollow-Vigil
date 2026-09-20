@@ -246,7 +246,7 @@ static func valid_checkpoint(value: Dictionary) -> bool:
 	snapshot.merge(value.state, true)
 	if not VigilSaveStore.new().valid_loadout(snapshot): return false
 	for tower in snapshot.towers.values():
-		var allowed := int(tower.pad) >= 4 and preload("res://scripts/content/nodes/ground_placement.gd").allowed(snapshot, VigilWorld.pad_position(tower.region, tower.pad), checkpoint_mission.routes, preload("res://scripts/content/nodes/ground_placement.gd").campaign_bounds(checkpoint_mission), tower.id)
+		var allowed := int(tower.pad) >= 4 and preload("res://scripts/content/nodes/ground_placement.gd").allowed(snapshot, VigilWorld.pad_position(tower.region, tower.pad), tower.kind, checkpoint_mission.routes, preload("res://scripts/content/nodes/ground_placement.gd").campaign_bounds(checkpoint_mission), tower.id)
 		for socket in checkpoint_mission.sockets:
 			if socket.region == tower.region and socket.pad == tower.pad: allowed = true
 		if not allowed: return false
