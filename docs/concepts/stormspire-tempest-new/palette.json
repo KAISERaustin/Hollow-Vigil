@@ -1,0 +1,66 @@
+[
+  [
+    "#000000",
+    "outer contours and deep joints"
+  ],
+  [
+    "#131C20",
+    "deep contact shadow"
+  ],
+  [
+    "#273239",
+    "stone shadow"
+  ],
+  [
+    "#414E53",
+    "stone side plane"
+  ],
+  [
+    "#5D6A6B",
+    "stone front plane"
+  ],
+  [
+    "#7B8785",
+    "stone worn top edge"
+  ],
+  [
+    "#252A30",
+    "iron shadow"
+  ],
+  [
+    "#454F59",
+    "iron face"
+  ],
+  [
+    "#697985",
+    "iron edge"
+  ],
+  [
+    "#3A3530",
+    "binding shadow"
+  ],
+  [
+    "#655847",
+    "aged binding face"
+  ],
+  [
+    "#88745B",
+    "binding edge"
+  ],
+  [
+    "#466779",
+    "storm blue inset shadow"
+  ],
+  [
+    "#8BAEBB",
+    "storm blue inset face"
+  ],
+  [
+    "#625C7D",
+    "violet branch inset shadow"
+  ],
+  [
+    "#A09DB9",
+    "violet branch inset face"
+  ]
+]

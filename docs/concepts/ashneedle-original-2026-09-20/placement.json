@@ -1,0 +1,20 @@
+{
+  "canvas": [
+    1254,
+    1254
+  ],
+  "core_center_x": 627,
+  "ground_y": 1128,
+  "base_translation": [
+    -4,
+    -14
+  ],
+  "base_visible_bbox": [
+    366,
+    445,
+    880,
+    1129
+  ],
+  "locked_base": "tier-1.png",
+  "method": "Same exact locked pixels in all five sprites; additions have explicit masks."
+}

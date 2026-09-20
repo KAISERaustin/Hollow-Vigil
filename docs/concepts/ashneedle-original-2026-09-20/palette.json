@@ -1,0 +1,76 @@
+{
+  "colors": [
+    {
+      "hex": "#080A09",
+      "role": "ink and deepest openings"
+    },
+    {
+      "hex": "#18201D",
+      "role": "deep stone shadow"
+    },
+    {
+      "hex": "#303A34",
+      "role": "stone side"
+    },
+    {
+      "hex": "#4C554B",
+      "role": "stone front"
+    },
+    {
+      "hex": "#6E7566",
+      "role": "stone lit edge"
+    },
+    {
+      "hex": "#201D18",
+      "role": "timber shadow"
+    },
+    {
+      "hex": "#3B3024",
+      "role": "timber front"
+    },
+    {
+      "hex": "#5B4832",
+      "role": "timber lit edge"
+    },
+    {
+      "hex": "#806447",
+      "role": "bows and arrow shafts"
+    },
+    {
+      "hex": "#282D2B",
+      "role": "iron shadow"
+    },
+    {
+      "hex": "#505954",
+      "role": "iron face"
+    },
+    {
+      "hex": "#889184",
+      "role": "iron edge"
+    },
+    {
+      "hex": "#B9B294",
+      "role": "fletching and Lastwatch accent"
+    },
+    {
+      "hex": "#3D2424",
+      "role": "cloth shadow"
+    },
+    {
+      "hex": "#70423B",
+      "role": "base muted red cloth"
+    },
+    {
+      "hex": "#986C40",
+      "role": "Arrowstorm accent"
+    }
+  ],
+  "canvas": [
+    1024,
+    1024
+  ],
+  "intended_anchor": [
+    512,
+    896
+  ]
+}

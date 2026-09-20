@@ -1,0 +1,77 @@
+{
+  "name": "Caltrop Keep — The Sapper's Hold",
+  "colors": [
+    {
+      "hex": "#000000",
+      "role": "outer ink"
+    },
+    {
+      "hex": "#141A18",
+      "role": "recesses"
+    },
+    {
+      "hex": "#29302B",
+      "role": "stone deep shadow"
+    },
+    {
+      "hex": "#43483D",
+      "role": "stone shaded plane"
+    },
+    {
+      "hex": "#666957",
+      "role": "stone front"
+    },
+    {
+      "hex": "#888974",
+      "role": "stone top edge"
+    },
+    {
+      "hex": "#262B2F",
+      "role": "iron shadow"
+    },
+    {
+      "hex": "#485457",
+      "role": "iron body"
+    },
+    {
+      "hex": "#7D8B89",
+      "role": "iron lit face"
+    },
+    {
+      "hex": "#A8AEA0",
+      "role": "iron point"
+    },
+    {
+      "hex": "#312922",
+      "role": "timber shadow"
+    },
+    {
+      "hex": "#584735",
+      "role": "timber face"
+    },
+    {
+      "hex": "#806544",
+      "role": "bronze shadow, tier 4A fittings"
+    },
+    {
+      "hex": "#AA8855",
+      "role": "bronze face, tier 4A fittings"
+    },
+    {
+      "hex": "#502C2B",
+      "role": "cloth shadow, tier 4B pennant"
+    },
+    {
+      "hex": "#81433A",
+      "role": "cloth face, tier 4B pennant"
+    }
+  ],
+  "canvas": [
+    1024,
+    1024
+  ],
+  "requested_anchor": [
+    512,
+    880
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "name": "Hex Lantern — The Witchlight Shrine",
+  "colors": [
+    {
+      "hex": "#000000",
+      "role": "outer contours and deep joints"
+    },
+    {
+      "hex": "#171B1A",
+      "role": "iron deepest shadow"
+    },
+    {
+      "hex": "#2A302D",
+      "role": "iron dark face"
+    },
+    {
+      "hex": "#49514A",
+      "role": "iron edge"
+    },
+    {
+      "hex": "#323A33",
+      "role": "stone deep shadow"
+    },
+    {
+      "hex": "#4D5749",
+      "role": "stone main face"
+    },
+    {
+      "hex": "#707864",
+      "role": "stone upper facets"
+    },
+    {
+      "hex": "#968F76",
+      "role": "stone sparse worn carving"
+    },
+    {
+      "hex": "#433749",
+      "role": "lantern violet shadow"
+    },
+    {
+      "hex": "#725C80",
+      "role": "lantern violet body"
+    },
+    {
+      "hex": "#A08BAD",
+      "role": "lantern violet light"
+    },
+    {
+      "hex": "#C6B8C3",
+      "role": "tiny lantern light core"
+    },
+    {
+      "hex": "#3F594B",
+      "role": "empowerment branch dark green"
+    },
+    {
+      "hex": "#809878",
+      "role": "empowerment branch light green"
+    },
+    {
+      "hex": "#6B456D",
+      "role": "curse branch dark mulberry"
+    },
+    {
+      "hex": "#AD7B9E",
+      "role": "curse branch light mulberry"
+    }
+  ]
+}

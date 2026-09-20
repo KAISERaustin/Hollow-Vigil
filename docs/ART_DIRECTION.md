@@ -77,7 +77,7 @@ subtitle. Health, root shield and ward indicators remain separate.
 - Portals: mint #93c9bc for the core; lavender for rifts; black centers.
 - Terrain: Campaign landscapes use the authored level geometry and shared biome art. Roads follow the authored paths continuously and remain legible beneath battlefield objects and controls.
 - Scenery: at most three tiny outlined symbols per tile. Reserve roads, sockets, and full tower silhouettes.
-- Towers: pointed tower, fire-crowned masonry watchtower, obelisk and lightning spire. Pyre uses a tall stone shaft, crenellated parapet, black arched furnace and layered flat flames, borrowing the portals' cut-stone construction. Its tiers and both final branches compose `scripts/rendering/actors/fire_tower_art.gd`; preserve the common socket anchor and attack outlet. Enemies: circle, small ghost, block shape; each has two eyes.
+- Towers: Gloamwatch, the Pyre Ember Shrine, obelisk and lightning spire. Pyre uses the authored soot-black altar and bound-flame basin from `docs/concepts/pyre-ember-shrine/`; uprights and an arch accumulate over its fixed base. Ember Censers supplies Cinderfield's art, and Flame Seal supplies Rupture Pyre's art, retaining both existing branch identities and mechanics. Enemies: circle, small ghost, block shape; each has two eyes.
 - UI: follow [UI_THEME.md](UI_THEME.md) and [UI_STYLE_GUIDE.md](UI_STYLE_GUIDE.md) Version 3. The Pickard main image defines the dark color/material direction. Keep 1-unit black button borders and 1-unit other enclosures/dividers, 0/4-unit corners, 11-unit card padding, 8-unit inset padding/cell gaps and 11-unit section/action gaps. Preserve bold values above labels, native portraits, right-side row actions, fixed navigation and scrolling. Grenze carries controls and body text; Cinzel carries large titles. Use light text on dark surfaces and explicit state/consequence wording. World artwork retains its own palette and outlines.
 - Campaign play: one compact control bar above edge-to-edge terrain. Level identity and live values sit in compact floating cards with the shared 1-unit black border and 4-unit corners. Fill one row below the toolbar with three cards: numbered level title (1. Briar Bend), gold and wave count; no shadows, glow, battlefield enclosure or bottom action panel. Reuse the shared toolbar and floating HUD; respect safe areas for text and controls. Their existing parchment fills are legacy presentation; future UI styling follows the dark theme.
 Collection feedback is an ochre outlined badge centered over the visible Unclaimed earnings caption, using its measured text width rather than its container width; it rises 36 pixels over 0.95 seconds and fades after a brief hold.
@@ -85,6 +85,18 @@ Collection feedback is an ochre outlined badge centered over the visible Unclaim
 The artwork implementation lives in scripts/rendering/terrain/terrain_art.gd, scripts/rendering/terrain/terrain_tile.gd, scripts/rendering/terrain/terrain_grid.gd and scripts/rendering/battlefield.gd. The shared UI theme is scripts/ui/shared/interface.gd; bundled fonts and licenses are in assets/fonts. The app icon uses a close-up of Pickard's angular iron helmet and muted red cloak against a parchment moon and charcoal-green ruins, as documented in docs/APP_ICON.md. Current UI captures are artifacts/style-*.png, regenerated with `./launch.ps1 -StyleTests`.
 
 ## Extension contract
+
+Pyre's five runtime PNGs are byte-identical copies of the approved Ember Shrine
+family. `assets/artwork/catalog.json` supplies one full-canvas transform at 16
+pixels per world unit: the source ground anchor `(627, 1130)` maps to `(0, 0)`
+for every stage. Per-stage portrait bounds frame each complete silhouette in
+shared menus without changing its battlefield scale. Authored entries remain
+active above zoom 2 and are protected from native rebaking. The existing
+projectile muzzle `(0, -29)` maps into the open central flame at source pixel
+`(627, 666)` in every tier; projectile behavior and balance are unchanged.
+`tests/rendered/pyre_runner.gd` verifies source identity, branch mapping, the
+common anchor, flame outlet, normal/high-zoom drawing and portrait framing, and
+captures all stages at 360x640, 390x844 and 540x960.
 
 Gloamwatch replaces Ashneedle through the shared authored artwork catalog, with
 three base tiers and the Frostneedle/Poison Arrow branches. The approved source

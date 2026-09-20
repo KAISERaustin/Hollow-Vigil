@@ -1,0 +1,66 @@
+[
+  {
+    "hex": "#000000",
+    "role": "ink contours"
+  },
+  {
+    "hex": "#141A19",
+    "role": "deep recesses"
+  },
+  {
+    "hex": "#29312E",
+    "role": "stone shadow"
+  },
+  {
+    "hex": "#414941",
+    "role": "stone face"
+  },
+  {
+    "hex": "#60675B",
+    "role": "stone top planes"
+  },
+  {
+    "hex": "#222B30",
+    "role": "iron shadow"
+  },
+  {
+    "hex": "#404E55",
+    "role": "iron face"
+  },
+  {
+    "hex": "#64757A",
+    "role": "iron edge"
+  },
+  {
+    "hex": "#879590",
+    "role": "blade shadow"
+  },
+  {
+    "hex": "#B8BEB0",
+    "role": "blade face"
+  },
+  {
+    "hex": "#DEDBC2",
+    "role": "blade cutting edge"
+  },
+  {
+    "hex": "#534D66",
+    "role": "lunar inlay shadow"
+  },
+  {
+    "hex": "#8D83A5",
+    "role": "lunar inlay light / recall branch accent"
+  },
+  {
+    "hex": "#5E4B34",
+    "role": "bronze shadow"
+  },
+  {
+    "hex": "#9C8156",
+    "role": "bronze face / outward-cut branch accent"
+  },
+  {
+    "hex": "#633D3B",
+    "role": "relic cloth"
+  }
+]

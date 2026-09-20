@@ -9,8 +9,10 @@ Original tower artwork created from the user's brief:
 Generated with the built-in ImageGen tool. No prior tower images or designs were
 used as references. The repository's image-generation instructions supplied the
 style, five-sprite progression, locked-layer, palette and alignment requirements.
-This delivery contains artwork only; it does not change gameplay or runtime art.
-Branch names describe these visual concepts, not new gameplay capabilities.
+The approved family now replaces Pyre's runtime artwork through the shared
+authored-image catalog. Branch names below describe the visual concepts:
+Ember Censers maps to Cinderfield and Flame Seal maps to Rupture Pyre. Existing
+gameplay, saved identities, branch names and balance remain unchanged.
 
 ## Complete family
 
@@ -100,3 +102,17 @@ python prepare.py finish
 `layers/` contains the locked base, transparent additions and their masks.
 `source/` contains unchanged ImageGen outputs. `.gdignore` keeps these concept
 and review files out of Godot's runtime import pipeline.
+
+## Runtime integration
+
+Byte-identical final sprites are installed in `assets/artwork/tower/splash/` as
+`1.png`, `2.png`, `3.png`, `4/cinderfield.png` and `4/rupture_pyre.png`.
+All five catalog entries use 16 pixels per world unit and full-canvas bounds
+`[-39.1875, -70.625, 78.375, 78.375]`, mapping the shared ground anchor to world
+`(0, 0)`. The original image pixels, palette and transparency stay unchanged.
+The existing muzzle `(0, -29)` aligns with flame pixel `(627, 666)`.
+Per-stage portrait bounds fit the full silhouette; authored entries prevent
+high-zoom fallback and accidental native rebaking.
+
+Run `./launch.ps1 -TestScript tests/rendered/pyre_runner.gd` for focused runtime
+verification and the three portrait-size captures in `artifacts/pyre-*.png`.

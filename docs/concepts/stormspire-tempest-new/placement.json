@@ -1,0 +1,19 @@
+{
+  "canvas": [
+    1254,
+    1254
+  ],
+  "core_axis_x": 627,
+  "ground_anchor": [
+    627,
+    1164
+  ],
+  "tier_1_bounds": [
+    407,
+    88,
+    847,
+    1165
+  ],
+  "cleanup": "Only alpha <= 8 residue removed before color-only palette enforcement.",
+  "source": "C:\\Users\\3ak33\\.codex\\generated_images\\01a0bf6a-5996-7c80-86e5-583562f16a29\\exec-4cf85ab7-1f2c-4f98-84dc-1812076998ab.png"
+}

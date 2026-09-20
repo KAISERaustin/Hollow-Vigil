@@ -1,0 +1,21 @@
+{
+  "name": "Ironspike siege ballista - original commission",
+  "colors": [
+    {"hex": "#000000", "role": "outline and deep joints"},
+    {"hex": "#171B19", "role": "recess and contact shadow"},
+    {"hex": "#292E2B", "role": "rubble shadow"},
+    {"hex": "#484E46", "role": "rubble face"},
+    {"hex": "#717466", "role": "rubble upper plane"},
+    {"hex": "#2C241F", "role": "timber shadow"},
+    {"hex": "#4B392B", "role": "timber face"},
+    {"hex": "#705339", "role": "timber upper plane"},
+    {"hex": "#353937", "role": "iron shadow"},
+    {"hex": "#555B55", "role": "iron face"},
+    {"hex": "#929687", "role": "iron worn edge and bolt head"},
+    {"hex": "#A59B7A", "role": "bow cord lit plane"},
+    {"hex": "#685E46", "role": "bow cord shadow"},
+    {"hex": "#442827", "role": "tier-4 breacher binding shadow only"},
+    {"hex": "#74453A", "role": "tier-4 breacher binding face only"},
+    {"hex": "#596C72", "role": "tier-4 bolt battery magazine fittings only"}
+  ]
+}

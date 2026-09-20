@@ -1,0 +1,77 @@
+{
+  "colors": [
+    {
+      "hex": "#000000",
+      "role": "Ink outline"
+    },
+    {
+      "hex": "#151B1A",
+      "role": "Deep recess"
+    },
+    {
+      "hex": "#272E2B",
+      "role": "Basalt shadow"
+    },
+    {
+      "hex": "#3E4540",
+      "role": "Basalt side"
+    },
+    {
+      "hex": "#596057",
+      "role": "Basalt front"
+    },
+    {
+      "hex": "#787C6D",
+      "role": "Worn stone edge"
+    },
+    {
+      "hex": "#9B9C85",
+      "role": "Sparse stone chip"
+    },
+    {
+      "hex": "#24252C",
+      "role": "Iron shadow"
+    },
+    {
+      "hex": "#454550",
+      "role": "Iron face"
+    },
+    {
+      "hex": "#676471",
+      "role": "Iron edge"
+    },
+    {
+      "hex": "#3C3047",
+      "role": "Binding rune shadow"
+    },
+    {
+      "hex": "#705C7D",
+      "role": "Binding rune face"
+    },
+    {
+      "hex": "#A091AC",
+      "role": "Binding rune highlight"
+    },
+    {
+      "hex": "#567364",
+      "role": "Ward branch mineral green"
+    },
+    {
+      "hex": "#92A58B",
+      "role": "Ward branch pale green"
+    },
+    {
+      "hex": "#A57871",
+      "role": "Strike branch muted garnet"
+    }
+  ],
+  "canvas": [
+    1024,
+    1024
+  ],
+  "planned_core_center_x": 512,
+  "planned_ground_anchor": [
+    512,
+    900
+  ]
+}

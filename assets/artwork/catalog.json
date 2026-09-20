@@ -674,57 +674,87 @@
 	},
 	"tower/splash/1/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-39.1875,
+			-70.625,
+			78.375,
+			78.375
 		],
 		"image": "res://assets/artwork/tower/splash/1.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 16.0,
+		"authored": true,
+		"portrait_bounds": [
+			-22,
+			-42,
+			44,
+			44
+		]
 	},
 	"tower/splash/2/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-39.1875,
+			-70.625,
+			78.375,
+			78.375
 		],
 		"image": "res://assets/artwork/tower/splash/2.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 16.0,
+		"authored": true,
+		"portrait_bounds": [
+			-22,
+			-51,
+			44,
+			53
+		]
 	},
 	"tower/splash/3/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-39.1875,
+			-70.625,
+			78.375,
+			78.375
 		],
 		"image": "res://assets/artwork/tower/splash/3.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 16.0,
+		"authored": true,
+		"portrait_bounds": [
+			-22,
+			-63,
+			44,
+			65
+		]
 	},
 	"tower/splash/4/cinderfield": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-39.1875,
+			-70.625,
+			78.375,
+			78.375
 		],
 		"image": "res://assets/artwork/tower/splash/4/cinderfield.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 16.0,
+		"authored": true,
+		"portrait_bounds": [
+			-27,
+			-63,
+			54,
+			65
+		]
 	},
 	"tower/splash/4/rupture_pyre": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-39.1875,
+			-70.625,
+			78.375,
+			78.375
 		],
 		"image": "res://assets/artwork/tower/splash/4/rupture_pyre.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 16.0,
+		"authored": true,
+		"portrait_bounds": [
+			-22,
+			-71,
+			44,
+			73
+		]
 	}
 }
