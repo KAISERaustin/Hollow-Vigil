@@ -1,0 +1,25 @@
+{
+  "source_dimensions": [
+    1254,
+    1254
+  ],
+  "source_offset": [
+    0,
+    -15
+  ],
+  "parent": "tier-3",
+  "regions": null,
+  "mask_polygons": "layers/doomseal-polygons.json",
+  "added_pixels": 12615,
+  "palette_colors_used": 14,
+  "canvas": [
+    1254,
+    1254
+  ],
+  "visible_bounds": [
+    261,
+    36,
+    993,
+    1156
+  ]
+}

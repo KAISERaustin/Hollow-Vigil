@@ -1,0 +1,25 @@
+{
+  "source_dimensions": [
+    1254,
+    1254
+  ],
+  "source_offset": [
+    0,
+    35
+  ],
+  "parent": "tier-3",
+  "regions": null,
+  "mask_polygons": "layers/oathbind-polygons.json",
+  "added_pixels": 129024,
+  "palette_colors_used": 12,
+  "canvas": [
+    1254,
+    1254
+  ],
+  "visible_bounds": [
+    194,
+    118,
+    1060,
+    1156
+  ]
+}

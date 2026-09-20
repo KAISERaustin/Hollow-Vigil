@@ -1,0 +1,31 @@
+{
+  "source_dimensions": [
+    1254,
+    1254
+  ],
+  "source_offset": [
+    0,
+    0
+  ],
+  "parent": "tier-1",
+  "regions": [
+    [
+      210,
+      625,
+      1040,
+      1156
+    ]
+  ],
+  "added_pixels": 93375,
+  "palette_colors_used": 10,
+  "canvas": [
+    1254,
+    1254
+  ],
+  "visible_bounds": [
+    261,
+    249,
+    993,
+    1156
+  ]
+}

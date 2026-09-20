@@ -1,0 +1,136 @@
+{
+  "result": "PASS",
+  "sprites": [
+    {
+      "file": "tier-1.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "used_colors": 15,
+      "palette_valid": true,
+      "core_anchor": [
+        627,
+        1128
+      ],
+      "measured_offset_from_base": [
+        0,
+        0
+      ],
+      "locked_base_pixels_unchanged": 262924,
+      "all_previous_layers_unchanged": true,
+      "alpha_preserved_by_final_sweep": true,
+      "visible_bbox": [
+        366,
+        445,
+        880,
+        1129
+      ]
+    },
+    {
+      "file": "tier-2.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "used_colors": 15,
+      "palette_valid": true,
+      "core_anchor": [
+        627,
+        1128
+      ],
+      "measured_offset_from_base": [
+        0,
+        0
+      ],
+      "locked_base_pixels_unchanged": 262924,
+      "all_previous_layers_unchanged": true,
+      "alpha_preserved_by_final_sweep": true,
+      "visible_bbox": [
+        200,
+        445,
+        1054,
+        1129
+      ]
+    },
+    {
+      "file": "tier-3.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "used_colors": 15,
+      "palette_valid": true,
+      "core_anchor": [
+        627,
+        1128
+      ],
+      "measured_offset_from_base": [
+        0,
+        0
+      ],
+      "locked_base_pixels_unchanged": 262924,
+      "all_previous_layers_unchanged": true,
+      "alpha_preserved_by_final_sweep": true,
+      "visible_bbox": [
+        200,
+        237,
+        1054,
+        1129
+      ]
+    },
+    {
+      "file": "tier-4-arrowstorm.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "used_colors": 16,
+      "palette_valid": true,
+      "core_anchor": [
+        627,
+        1128
+      ],
+      "measured_offset_from_base": [
+        0,
+        0
+      ],
+      "locked_base_pixels_unchanged": 262924,
+      "all_previous_layers_unchanged": true,
+      "alpha_preserved_by_final_sweep": true,
+      "visible_bbox": [
+        107,
+        237,
+        1148,
+        1129
+      ]
+    },
+    {
+      "file": "tier-4-lastwatch.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "used_colors": 15,
+      "palette_valid": true,
+      "core_anchor": [
+        627,
+        1128
+      ],
+      "measured_offset_from_base": [
+        0,
+        0
+      ],
+      "locked_base_pixels_unchanged": 262924,
+      "all_previous_layers_unchanged": true,
+      "alpha_preserved_by_final_sweep": true,
+      "visible_bbox": [
+        200,
+        80,
+        1054,
+        1129
+      ]
+    }
+  ],
+  "notes": "Art asset verification only; no runtime installation or gameplay tests."
+}

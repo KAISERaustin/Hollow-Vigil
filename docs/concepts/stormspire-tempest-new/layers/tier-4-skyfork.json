@@ -1,0 +1,40 @@
+{
+  "parent": "tier-3",
+  "addition_boxes": [
+    [
+      290,
+      110,
+      450,
+      390
+    ],
+    [
+      300,
+      390,
+      490,
+      480
+    ],
+    [
+      805,
+      110,
+      965,
+      390
+    ],
+    [
+      765,
+      390,
+      965,
+      480
+    ]
+  ],
+  "allowed_palette_indices": [
+    0,
+    1,
+    6,
+    7,
+    8,
+    12,
+    13
+  ],
+  "addition_pixels": 39699,
+  "source": "C:\\Users\\3ak33\\.codex\\generated_images\\01a0bf6a-5996-7c80-86e5-583562f16a29\\exec-5abf6f69-660c-4fbb-933f-e029d6de3cd5.png"
+}

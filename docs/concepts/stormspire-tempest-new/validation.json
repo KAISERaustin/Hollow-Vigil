@@ -1,0 +1,215 @@
+{
+  "canvas": [
+    1254,
+    1254
+  ],
+  "ground_anchor": [
+    627,
+    1164
+  ],
+  "palette": [
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      19,
+      28,
+      32
+    ],
+    [
+      39,
+      50,
+      57
+    ],
+    [
+      65,
+      78,
+      83
+    ],
+    [
+      93,
+      106,
+      107
+    ],
+    [
+      123,
+      135,
+      133
+    ],
+    [
+      37,
+      42,
+      48
+    ],
+    [
+      69,
+      79,
+      89
+    ],
+    [
+      105,
+      121,
+      133
+    ],
+    [
+      58,
+      53,
+      48
+    ],
+    [
+      101,
+      88,
+      71
+    ],
+    [
+      136,
+      116,
+      91
+    ],
+    [
+      70,
+      103,
+      121
+    ],
+    [
+      139,
+      174,
+      187
+    ],
+    [
+      98,
+      92,
+      125
+    ],
+    [
+      160,
+      157,
+      185
+    ]
+  ],
+  "files": {
+    "tier-1.png": {
+      "colors": 14,
+      "off_palette_pixels": 0,
+      "changed_base_pixels": 0,
+      "changed_parent_pixels": 0,
+      "core_offset": [
+        0,
+        0
+      ],
+      "measured_shaft_center_x": 627.0,
+      "ground_anchor": [
+        627,
+        1164
+      ],
+      "bounds": [
+        407,
+        88,
+        847,
+        1165
+      ],
+      "transparent_pixels": 1407791,
+      "alpha_preserved_during_final_sweep": true,
+      "sha256": "fea67b283b474b81856535138183a95a217106f014ed904ca948ec2031629eae"
+    },
+    "tier-2.png": {
+      "colors": 14,
+      "off_palette_pixels": 0,
+      "changed_base_pixels": 0,
+      "changed_parent_pixels": 0,
+      "core_offset": [
+        0,
+        0
+      ],
+      "measured_shaft_center_x": 627.0,
+      "ground_anchor": [
+        627,
+        1164
+      ],
+      "bounds": [
+        407,
+        88,
+        847,
+        1165
+      ],
+      "transparent_pixels": 1380689,
+      "alpha_preserved_during_final_sweep": true,
+      "sha256": "d50fa088e8ba6c5f9da5e3614d9658d6736620cf541435aec736cbeee1e034ff"
+    },
+    "tier-3.png": {
+      "colors": 14,
+      "off_palette_pixels": 0,
+      "changed_base_pixels": 0,
+      "changed_parent_pixels": 0,
+      "core_offset": [
+        0,
+        0
+      ],
+      "measured_shaft_center_x": 627.0,
+      "ground_anchor": [
+        627,
+        1164
+      ],
+      "bounds": [
+        407,
+        88,
+        847,
+        1165
+      ],
+      "transparent_pixels": 1368365,
+      "alpha_preserved_during_final_sweep": true,
+      "sha256": "41b3d579698349cc76a77b40195246c571322464cfe881eb4186c215032a7ce8"
+    },
+    "tier-4-skyfork.png": {
+      "colors": 14,
+      "off_palette_pixels": 0,
+      "changed_base_pixels": 0,
+      "changed_parent_pixels": 0,
+      "core_offset": [
+        0,
+        0
+      ],
+      "measured_shaft_center_x": 627.0,
+      "ground_anchor": [
+        627,
+        1164
+      ],
+      "bounds": [
+        321,
+        88,
+        934,
+        1165
+      ],
+      "transparent_pixels": 1328666,
+      "alpha_preserved_during_final_sweep": true,
+      "sha256": "6a432fcb1457d944852d1c59fbbf57bc522013c0fc4ea1890322342a9081d0dd"
+    },
+    "tier-4-thunderward.png": {
+      "colors": 16,
+      "off_palette_pixels": 0,
+      "changed_base_pixels": 0,
+      "changed_parent_pixels": 0,
+      "core_offset": [
+        0,
+        0
+      ],
+      "measured_shaft_center_x": 627.0,
+      "ground_anchor": [
+        627,
+        1164
+      ],
+      "bounds": [
+        323,
+        88,
+        931,
+        1165
+      ],
+      "transparent_pixels": 1305281,
+      "alpha_preserved_during_final_sweep": true,
+      "sha256": "5fa92f5eb85574182df62c08142a60228ccd669886d27635993a82073dcb9163"
+    }
+  },
+  "status": "PASS"
+}

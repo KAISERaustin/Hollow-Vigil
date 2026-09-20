@@ -7,14 +7,14 @@ from pathlib import Path
 import argparse
 import json
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent
 PALETTE = json.loads((ROOT / 'palette.json').read_text())
 RGB = np.array([tuple(bytes.fromhex(c['hex'][1:])) for c in PALETTE['colors']], dtype=np.int32)
 
 
-def quantize(arr, indices):
+def quantize(arr, indices, iron=False):
     result = arr.copy()
     occupied = arr[:, :, 3] > 0
     colors, inverse = np.unique(arr[occupied, :3], axis=0, return_inverse=True)
@@ -26,6 +26,8 @@ def quantize(arr, indices):
     # Material-aware mapping prevents neutral stone grain becoming purple iron.
     for material, selector in [('stone', np.ones(len(c), dtype=bool)), ('violet', violet), ('green', green), ('garnet', garnet)]:
         selected = {'stone': list(range(7)), 'violet': [0, 1, 10, 11, 12], 'green': [0, 1, 2, 13, 14], 'garnet': [0, 1, 10, 15]}[material]
+        if material == 'stone' and iron:
+            selected = [0, 1, 7, 8, 9]
         selected = [i for i in selected if i in indices]
         if material == 'green' and 13 not in indices or material == 'garnet' and 15 not in indices:
             continue
@@ -60,6 +62,7 @@ def main():
     parser.add_argument('--dx', type=int, default=0)
     parser.add_argument('--dy', type=int, default=0)
     parser.add_argument('--region', type=int, nargs=4, action='append')
+    parser.add_argument('--mask-polygons')
     parser.add_argument('--branch', choices=['ward', 'strike'])
     args = parser.parse_args()
     source = np.array(Image.open(ROOT / 'sources' / f'{args.name}.png').convert('RGBA'))
@@ -72,10 +75,17 @@ def main():
         metadata = {'source_dimensions': [source.shape[1], source.shape[0]], 'source_offset': [args.dx, args.dy], 'parent': None}
     else:
         parent = np.array(Image.open(ROOT / f'{args.parent}.png').convert('RGBA'))
-        candidate = shift_canvas(quantize(source, allowed), (parent.shape[1], parent.shape[0]), args.dx, args.dy)
+        candidate = shift_canvas(quantize(source, allowed, args.branch == 'strike'), (parent.shape[1], parent.shape[0]), args.dx, args.dy)
         keep = np.zeros(parent.shape[:2], dtype=bool)
-        for x0, y0, x1, y1 in args.region or [(0, 0, parent.shape[1], parent.shape[0])]:
-            keep[y0:y1, x0:x1] = True
+        if args.mask_polygons:
+            mask = Image.new('L', (parent.shape[1], parent.shape[0]))
+            draw = ImageDraw.Draw(mask)
+            for polygon in json.loads((ROOT / args.mask_polygons).read_text()):
+                draw.polygon([tuple(p) for p in polygon], fill=255)
+            keep = np.array(mask) > 0
+        else:
+            for x0, y0, x1, y1 in args.region or [(0, 0, parent.shape[1], parent.shape[0])]:
+                keep[y0:y1, x0:x1] = True
         keep &= parent[:, :, 3] == 0
         addition = candidate.copy()
         addition[~keep] = 0
@@ -84,7 +94,7 @@ def main():
         assert np.array_equal(final[parent[:, :, 3] > 0], parent[parent[:, :, 3] > 0])
         save_checked(addition, layer_dir / f'{args.name}-addition.png')
         Image.fromarray((keep & (addition[:, :, 3] > 0)).astype(np.uint8) * 255).save(layer_dir / f'{args.name}-mask.png')
-        metadata = {'source_dimensions': [source.shape[1], source.shape[0]], 'source_offset': [args.dx, args.dy], 'parent': args.parent, 'regions': args.region, 'added_pixels': int(np.count_nonzero(addition[:, :, 3]))}
+        metadata = {'source_dimensions': [source.shape[1], source.shape[0]], 'source_offset': [args.dx, args.dy], 'parent': args.parent, 'regions': args.region, 'mask_polygons': args.mask_polygons, 'added_pixels': int(np.count_nonzero(addition[:, :, 3]))}
     metadata['palette_colors_used'] = save_checked(final, ROOT / f'{args.name}.png')
     metadata['canvas'] = [final.shape[1], final.shape[0]]
     y, x = np.where(final[:, :, 3] > 127)

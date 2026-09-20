@@ -7,11 +7,19 @@ from pathlib import Path
 import argparse
 import json
 import shutil
+import hashlib
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent
 PALETTE = np.array([tuple(bytes.fromhex(row[0][1:])) for row in json.loads((ROOT / 'palette.json').read_text())], dtype=np.int32)
+FAMILY = [
+    ('tier-1', None, 'Tier 1', 'The Tempest Spire'),
+    ('tier-2', 'tier-1', 'Tier 2', 'Conductor arms'),
+    ('tier-3', 'tier-2', 'Tier 3', 'Three-fork crown'),
+    ('tier-4-skyfork', 'tier-3', 'Tier 4 / Skyfork', 'Branching storm crown'),
+    ('tier-4-thunderward', 'tier-3', 'Tier 4 / Thunderward', 'Enclosing ward ribs'),
+]
 
 
 def quantize(rgba, indices):
@@ -87,10 +95,104 @@ def upgrade(source, name, parent, boxes, indices):
     print(json.dumps(spec))
 
 
+def finish():
+    """Required final tier-one-authoritative color sweep and file readback."""
+    locked = np.array(Image.open(ROOT / 'layers/locked-tier-1.png').convert('RGBA'))
+    base_mask = locked[:, :, 3] > 0
+    placement = json.loads((ROOT / 'placement.json').read_text())
+    report = {'canvas': placement['canvas'], 'ground_anchor': placement['ground_anchor'],
+              'palette': [row.tolist() for row in PALETTE], 'files': {}}
+    allowed = set(map(tuple, PALETTE.tolist()))
+    for name, parent, _, _ in FAMILY:
+        original = np.array(Image.open(ROOT / (name+'.png')).convert('RGBA'))
+        result = quantize(original, list(range(16)))
+        if parent:
+            previous = np.array(Image.open(ROOT / (parent+'.png')).convert('RGBA'))
+            keep = previous[:, :, 3] > 0
+            result[keep] = previous[keep]
+        result[base_mask] = locked[base_mask]
+        assert np.array_equal(original[:, :, 3], result[:, :, 3]), name
+        save(result, ROOT / (name+'.png'))
+        reopened = np.array(Image.open(ROOT / (name+'.png')).convert('RGBA'))
+        mask = reopened[:, :, 3] > 0
+        unique = set(map(tuple, np.unique(reopened[:, :, :3][mask], axis=0).tolist()))
+        assert unique <= allowed, name
+        assert np.array_equal(reopened[base_mask], locked[base_mask]), name
+        assert np.array_equal(reopened[590:], locked[590:]), name
+        assert tuple(Image.open(ROOT / (name+'.png')).size) == tuple(placement['canvas'])
+        assert int(np.where(mask)[0].max()) == placement['ground_anchor'][1]
+        # Measure the unchanged central shaft and foundation; exact base equality
+        # checks their position against the whole locked source, not just a bbox.
+        xs = np.where(reopened[330, 600:655, 3] > 128)[0] + 600
+        measured_center = float((xs.min()+xs.max())/2)
+        base_xs = np.where(locked[330, 600:655, 3] > 128)[0] + 600
+        reference_center = float((base_xs.min()+base_xs.max())/2)
+        assert measured_center == reference_center
+        if parent:
+            assert np.array_equal(reopened[keep], previous[keep]), name
+            addition = np.array(Image.open(ROOT / ('layers/'+name+'-addition.png')).convert('RGBA'))
+            addition_mask = addition[:, :, 3] > 0
+            assert not np.any(addition_mask & keep), name
+            assert np.array_equal(reopened[addition_mask], addition[addition_mask]), name
+        report['files'][name+'.png'] = {
+            'colors': len(unique), 'off_palette_pixels': 0, 'changed_base_pixels': 0,
+            'changed_parent_pixels': 0, 'core_offset': [0, 0],
+            'measured_shaft_center_x': measured_center,
+            'ground_anchor': placement['ground_anchor'], 'bounds': list(Image.fromarray(reopened).getbbox()),
+            'transparent_pixels': int((reopened[:, :, 3] == 0).sum()),
+            'alpha_preserved_during_final_sweep': True,
+            'sha256': hashlib.sha256((ROOT / (name+'.png')).read_bytes()).hexdigest()}
+    report['status'] = 'PASS'
+    (ROOT / 'validation.json').write_text(json.dumps(report, indent=2)+'\n')
+    preview()
+    print(json.dumps(report, indent=2))
+
+
+def font(size):
+    return ImageFont.truetype('C:/Windows/Fonts/segoeui.ttf', size)
+
+
+def preview():
+    # Review-only canvases: delivered sprites/layers remain at original scale.
+    board = Image.new('RGB', (1900, 910), '#1B2428')
+    d = ImageDraw.Draw(board)
+    d.text((52, 28), 'STORMSPIRE', fill='#D8DDDA', font=font(44))
+    d.text((54, 88), 'The Tempest Spire  /  Complete tower family', fill='#96A7AD', font=font(22))
+    crop = (270, 50, 985, 1190)
+    for i, (name, _, title, subtitle) in enumerate(FAMILY):
+        x = 40 + i*370
+        d.text((x+175, 144), title, fill='#D8DDDA', font=font(23), anchor='mm')
+        im = Image.open(ROOT / (name+'.png')).convert('RGBA')
+        large = im.crop(crop).resize((310, 494), Image.Resampling.LANCZOS)
+        board.paste(large, (x+20, 183), large)
+        d.text((x+175, 704), subtitle, fill='#96A7AD', font=font(19), anchor='mm')
+        small = im.resize((96,96), Image.Resampling.LANCZOS)
+        board.paste(small, (x+127, 731), small)
+    d.text((54, 853), '16 shared colors', fill='#96A7AD', font=font(18))
+    for i, rgb in enumerate(PALETTE):
+        x = 225+i*32
+        d.rectangle((x, 850, x+24, 874), fill=tuple(rgb.tolist()))
+    d.text((1842, 864), '1254 x 1254  /  Anchor (627, 1164)  /  Same scale throughout',
+           fill='#96A7AD', font=font(18), anchor='rm')
+    board.save(ROOT / 'family-review.png')
+    frames = []
+    for name, _, title, _ in FAMILY:
+        frame = Image.new('RGB', (620, 720), '#1B2428')
+        im = Image.open(ROOT / (name+'.png')).convert('RGBA').resize((600,600), Image.Resampling.LANCZOS)
+        frame.paste(im, (10, 60), im)
+        draw = ImageDraw.Draw(frame)
+        draw.text((310, 28), title, fill='#D8DDDA', font=font(25), anchor='mm')
+        y = 60+round(1164*600/1254)
+        draw.line((130,y,490,y), fill='#63767D', width=1)
+        draw.text((310, 689), 'Fixed center and ground anchor', fill='#96A7AD', font=font(18), anchor='mm')
+        frames.append(frame)
+    frames[0].save(ROOT / 'alignment-preview.webp', save_all=True, append_images=frames[1:], duration=900, loop=0, lossless=True)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('operation', choices=['base', 'upgrade'])
-    parser.add_argument('source')
+    parser.add_argument('operation', choices=['base', 'upgrade', 'finish'])
+    parser.add_argument('source', nargs='?')
     parser.add_argument('--name')
     parser.add_argument('--parent')
     parser.add_argument('--boxes', type=json.loads)
@@ -98,5 +200,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.operation == 'base':
         base(args.source)
-    else:
+    elif args.operation == 'upgrade':
         upgrade(args.source, args.name, args.parent, args.boxes, args.indices)
+    else:
+        finish()

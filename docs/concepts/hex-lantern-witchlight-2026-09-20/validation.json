@@ -1,0 +1,209 @@
+{
+  "canvas": [
+    1254,
+    1254
+  ],
+  "core_axis_x": 627,
+  "ground_anchor": [
+    627,
+    1156
+  ],
+  "roof_peak": [
+    627,
+    459
+  ],
+  "palette_rgb": [
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      23,
+      27,
+      26
+    ],
+    [
+      42,
+      48,
+      45
+    ],
+    [
+      73,
+      81,
+      74
+    ],
+    [
+      50,
+      58,
+      51
+    ],
+    [
+      77,
+      87,
+      73
+    ],
+    [
+      112,
+      120,
+      100
+    ],
+    [
+      150,
+      143,
+      118
+    ],
+    [
+      67,
+      55,
+      73
+    ],
+    [
+      114,
+      92,
+      128
+    ],
+    [
+      160,
+      139,
+      173
+    ],
+    [
+      198,
+      184,
+      195
+    ],
+    [
+      63,
+      89,
+      75
+    ],
+    [
+      128,
+      152,
+      120
+    ],
+    [
+      107,
+      69,
+      109
+    ],
+    [
+      173,
+      123,
+      158
+    ]
+  ],
+  "images": [
+    {
+      "file": "tier-1.png",
+      "palette_colors_used": 12,
+      "sha256": "e9bbd8cacf6d701edd1fcdc740bfc4f9e900ea0691d32a910b2a83f604ea940a",
+      "locked_base_pixels_identical": true,
+      "prior_layers_identical": true,
+      "core_offset_xy": [
+        0,
+        0
+      ],
+      "ground_anchor_xy": [
+        627,
+        1156
+      ],
+      "visible_bounds": [
+        347,
+        459,
+        909,
+        1156
+      ],
+      "palette_sweep_preserved_alpha": true
+    },
+    {
+      "file": "tier-2.png",
+      "palette_colors_used": 12,
+      "sha256": "54db3df83e63391f32244d72a889a7b21c76e9f9365c90a19078a3c8b2489260",
+      "locked_base_pixels_identical": true,
+      "prior_layers_identical": true,
+      "core_offset_xy": [
+        0,
+        0
+      ],
+      "ground_anchor_xy": [
+        627,
+        1156
+      ],
+      "visible_bounds": [
+        162,
+        459,
+        1092,
+        1156
+      ],
+      "palette_sweep_preserved_alpha": true
+    },
+    {
+      "file": "tier-3.png",
+      "palette_colors_used": 12,
+      "sha256": "10b4635b44a7c5fa5c25629d128663106302678f8f8d632bb2e23e22dc2f0175",
+      "locked_base_pixels_identical": true,
+      "prior_layers_identical": true,
+      "core_offset_xy": [
+        0,
+        0
+      ],
+      "ground_anchor_xy": [
+        627,
+        1156
+      ],
+      "visible_bounds": [
+        162,
+        71,
+        1092,
+        1156
+      ],
+      "palette_sweep_preserved_alpha": true
+    },
+    {
+      "file": "tier-4-curse.png",
+      "palette_colors_used": 14,
+      "sha256": "961e9ba90588998b5ee10868c91883ad1154c4f302f03563a8a32f57b1543474",
+      "locked_base_pixels_identical": true,
+      "prior_layers_identical": true,
+      "core_offset_xy": [
+        0,
+        0
+      ],
+      "ground_anchor_xy": [
+        627,
+        1156
+      ],
+      "visible_bounds": [
+        162,
+        71,
+        1092,
+        1156
+      ],
+      "palette_sweep_preserved_alpha": true
+    },
+    {
+      "file": "tier-4-empowerment.png",
+      "palette_colors_used": 14,
+      "sha256": "ca2352da71d9b041cda4b612f2a73ec439ed0517059831826b69f83059703d0f",
+      "locked_base_pixels_identical": true,
+      "prior_layers_identical": true,
+      "core_offset_xy": [
+        0,
+        0
+      ],
+      "ground_anchor_xy": [
+        627,
+        1156
+      ],
+      "visible_bounds": [
+        162,
+        71,
+        1092,
+        1156
+      ],
+      "palette_sweep_preserved_alpha": true
+    }
+  ]
+}

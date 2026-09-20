@@ -1,0 +1,110 @@
+{
+  "canvas": [
+    1254,
+    1254
+  ],
+  "core_center_x": 627,
+  "ground_anchor": [
+    627,
+    1122
+  ],
+  "locked_base_bounds": [
+    217,
+    679,
+    1037,
+    1123
+  ],
+  "files": [
+    {
+      "file": "tier-1.png",
+      "palette_colors": 12,
+      "palette_pass": true,
+      "base_pixel_mismatches": 0,
+      "parent_pixels_preserved": true,
+      "core_offset": [
+        0,
+        0
+      ],
+      "ground_anchor": [
+        627,
+        1122
+      ],
+      "alpha_preserved_during_final_sweep": true,
+      "clean_canvas_edges": true,
+      "sha256": "abcc96cd774f007fd448d7f0aaf44506fa5089ff987675782376df0c3114d17e"
+    },
+    {
+      "file": "tier-2.png",
+      "palette_colors": 12,
+      "palette_pass": true,
+      "base_pixel_mismatches": 0,
+      "parent_pixels_preserved": true,
+      "core_offset": [
+        0,
+        0
+      ],
+      "ground_anchor": [
+        627,
+        1122
+      ],
+      "alpha_preserved_during_final_sweep": true,
+      "clean_canvas_edges": true,
+      "sha256": "b69c05e3cf2f4c50171f08c48188bfd0c501dfabe341893b4c9acb395e81ff54"
+    },
+    {
+      "file": "tier-3.png",
+      "palette_colors": 12,
+      "palette_pass": true,
+      "base_pixel_mismatches": 0,
+      "parent_pixels_preserved": true,
+      "core_offset": [
+        0,
+        0
+      ],
+      "ground_anchor": [
+        627,
+        1122
+      ],
+      "alpha_preserved_during_final_sweep": true,
+      "clean_canvas_edges": true,
+      "sha256": "632a0a213d7e472113c29119525938b381630ede5e88f5ca6109917b844025e3"
+    },
+    {
+      "file": "tier-4-broadscatter.png",
+      "palette_colors": 14,
+      "palette_pass": true,
+      "base_pixel_mismatches": 0,
+      "parent_pixels_preserved": true,
+      "core_offset": [
+        0,
+        0
+      ],
+      "ground_anchor": [
+        627,
+        1122
+      ],
+      "alpha_preserved_during_final_sweep": true,
+      "clean_canvas_edges": true,
+      "sha256": "b3c9c9d8ebdef665289562a884f7784b3b1b5b1e8c30455d3b10fb2c236fa3b6"
+    },
+    {
+      "file": "tier-4-ironthorn.png",
+      "palette_colors": 14,
+      "palette_pass": true,
+      "base_pixel_mismatches": 0,
+      "parent_pixels_preserved": true,
+      "core_offset": [
+        0,
+        0
+      ],
+      "ground_anchor": [
+        627,
+        1122
+      ],
+      "alpha_preserved_during_final_sweep": true,
+      "clean_canvas_edges": true,
+      "sha256": "e4eac654c59479fb6a551bc5ba35929e89cf42be57012bd013d9d359fb1d882d"
+    }
+  ],
+  "status": "pass"
+}

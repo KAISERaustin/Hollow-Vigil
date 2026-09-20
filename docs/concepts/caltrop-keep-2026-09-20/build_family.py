@@ -14,13 +14,16 @@ ROOT = Path(__file__).resolve().parent
 SPEC = json.loads((ROOT / 'palette.json').read_text(encoding='utf-8'))
 COLORS = np.array([tuple(bytes.fromhex(c['hex'][1:])) for c in SPEC['colors']], dtype=np.int32)
 
-def palette_sweep(pixels, count=16):
+def palette_sweep(pixels, count=16, exclude_bronze=False):
     result = pixels.copy()
+    selected = COLORS[:count]
+    if exclude_bronze:
+        selected = COLORS[[*range(12), 14, 15]]
     flat = result[:, :, :3].reshape(-1, 3)
     for start in range(0, len(flat), 65536):
         section = flat[start:start + 65536].astype(np.int32)
-        distance = ((section[:, None, :] - COLORS[None, :count, :]) ** 2).sum(axis=2)
-        flat[start:start + 65536] = COLORS[distance.argmin(axis=1)]
+        distance = ((section[:, None, :] - selected[None, :, :]) ** 2).sum(axis=2)
+        flat[start:start + 65536] = selected[distance.argmin(axis=1)]
     result[:, :, :3] = flat.reshape(result.shape[0], result.shape[1], 3)
     assert np.array_equal(result[:, :, 3], pixels[:, :, 3])
     return result
@@ -33,7 +36,11 @@ def prepare(args):
     # Generated cutouts contain isolated 1/255 background residue. This mask
     # removes only near-invisible background; the color sweep preserves alpha.
     pixels[pixels[:, :, 3] <= 4] = 0
-    pixels = palette_sweep(pixels, args.colors)
+    pixels = palette_sweep(pixels, args.colors, args.exclude_bronze)
+    if args.dx or args.dy:
+        translated = Image.new('RGBA', (pixels.shape[1], pixels.shape[0]))
+        translated.paste(Image.fromarray(pixels), (args.dx, args.dy))
+        pixels = np.array(translated)
     if args.parent:
         parent = np.array(Image.open(ROOT / (args.parent + '.png')).convert('RGBA'))
         assert pixels.shape == parent.shape, (pixels.shape, parent.shape)
@@ -65,4 +72,7 @@ if __name__ == '__main__':
     parser.add_argument('--parent')
     parser.add_argument('--box', action='append', default=[])
     parser.add_argument('--colors', type=int, default=16)
+    parser.add_argument('--exclude-bronze', action='store_true')
+    parser.add_argument('--dx', type=int, default=0)
+    parser.add_argument('--dy', type=int, default=0)
     prepare(parser.parse_args())
