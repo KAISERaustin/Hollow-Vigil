@@ -161,7 +161,7 @@ def export_parts():
                 "top_source_pivot": [627, 680], "base_translation": list(BASE_OFFSET),
                 "top_translation": list(TOP_OFFSET), "parts": entries,
                 "rotation": "Draw base fixed. Rotate top about pivot. For a target bearing measured from +X, use bearing - PI/2.",
-                "scope": "Artwork package and offline previews; not wired into the runtime catalog."}
+                "scope": "Source artwork and offline previews; runtime consumes unchanged copies through assets/artwork/catalog.json."}
     (ROOT / "placement.json").write_text(json.dumps(metadata, indent=2) + "\n")
 
 

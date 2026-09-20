@@ -69,5 +69,5 @@
     }
   },
   "rotation": "Draw base fixed. Rotate top about pivot. For a target bearing measured from +X, use bearing - PI/2.",
-  "scope": "Artwork package and offline previews; not wired into the runtime catalog."
+  "scope": "Source artwork and offline previews; runtime consumes unchanged copies through assets/artwork/catalog.json."
 }

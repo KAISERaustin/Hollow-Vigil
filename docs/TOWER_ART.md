@@ -70,6 +70,9 @@ The focused `rendered/ironspike_art_runner.gd` checks unchanged source hashes,
 eight firing directions, moving-target hits, independent instance aim, both
 branches, normal/high zoom, export composition, compact portraits and three
 portrait phone sizes. See [the source family](concepts/ironspike-siege-ballista-2026-09-20/README.md).
+All 730 focused Ironspike checks passed; the three portrait-size captures and
+eight-direction gallery were visually inspected. Moonwheel's 125 regression
+checks also passed. These are desktop render/simulation results.
 
 Legacy native silhouettes remain in the stateless
 `rendering/actors/expansion_tower_art.gd` family. Authored catalog entries take

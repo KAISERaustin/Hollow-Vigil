@@ -138,3 +138,12 @@ repository root for source identity, mounting, eight directions, actual shot
 origins, leading and piercing, independent instances, compact portraits, and
 360x640/390x844/540x960 captures. This is desktop rendering and combat simulation;
 physical iOS/Android acceptance remains separate.
+
+September 20 integration verification: **730 Ironspike checks passed**, with all
+five stages inspected at eight firing bearings and all three portrait sizes.
+The **125 Moonwheel checks passed** to verify the unassigned returning-projectile
+path. Structure validation also passed. The broader `launch.ps1 -Check` run
+passed source loading, rules, stats, Hex support, portal attributes and Campaign,
+then stopped on 48 unlock-test build assertions: three fixture locations were
+rejected by the concurrently added placement colliders for all eight tower
+families in both modes. That broader run is not a full-suite pass.
