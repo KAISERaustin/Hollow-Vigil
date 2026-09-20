@@ -335,7 +335,7 @@ func tick(delta: float) -> void:
 					for other in nearby_enemies(victim.pos, stats.arc_range):
 						if not other.dead and other.id not in used and victim.pos.distance_to(other.pos) <= stats.arc_range:
 							used.append(other.id)
-							var arc := ShotFactory.shot("electric", victim.pos + Vector2(0, 29), other.pos, stats, other.id)
+							var arc := ShotFactory.shot("electric", victim.pos - Balance.PROJECTILES.electric.muzzle, other.pos, stats, other.id)
 							arc.tower_id = t.id
 							add_effect(arc)
 							hit(other, stats.damage * stats.arc_multiplier, t.id, "tempest_web", false, false, "electric")

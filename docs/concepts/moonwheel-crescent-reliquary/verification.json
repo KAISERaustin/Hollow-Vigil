@@ -3,11 +3,16 @@
     1254,
     1254
   ],
-  "core_center_x": 628,
+  "core_center_x": 626.5,
   "ground_anchor": [
-    628,
+    626.5,
     1120
   ],
+  "core_measurement": {
+    "cap_scanline_y": 800,
+    "left_x": 438,
+    "right_x": 815
+  },
   "base_sha256": "ba406358966ea6e7ab095ee0684e30ab396bd62d71a1eaf9a555ba752e289d44",
   "sources": "Built-in ImageGen; only images newly generated for this commission",
   "sprites": {

@@ -16,6 +16,7 @@ Every launcher mode is silent by default. Only use `-Sound` when the user asks f
 | Campaign simulation, routes, progression | `campaign_runner.gd`, `campaign_unlocks_runner.gd`, `campaign_expansion_runner.gd`; `campaign_balance_runner.gd` for difficulty changes |
 | Content nodes and shared stats | `content_node_runner.gd`, `stats_system_runner.gd`, `tuning_schema_runner.gd`, `simplified_rules_runner.gd` |
 | Hex support and portal gameplay | `hex_support_runner.gd`, `portal_attributes_runner.gd` |
+| Hex Lantern authored artwork | `rendered/hex_lantern_art_runner.gd` (five source mappings, fixed ground/muzzle, normal/high zoom, portraits, three phone sizes) |
 | Waves and exports | `wave_editor_runner.gd`, `campaign_configuration_runner.gd`, `campaign_export_runner.gd` |
 | Saves, restart and camera | `campaign_ground_save_runner.gd`, `campaign_reset_runner.gd`, `campaign_camera_runner.gd` |
 | Account, backup and reports | `account_session_runner.gd`, `campaign_private_backup_runner.gd`, `bug_reports_runner.gd`; HTTP transport uses `tools/test_account_session_http.py` |

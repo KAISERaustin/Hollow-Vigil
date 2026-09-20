@@ -13,8 +13,16 @@ The repository image-generation instructions supplied the production requirement
 and general rendering style. No previous tower image, previous tower design,
 character artwork, or existing palette was supplied to the generator. Tier one
 was generated without an image reference. Later stages use only this new family.
-These files are artwork deliverables; this commission does not install them in
-the runtime catalog or change gameplay, balance, or branch behavior.
+Installed as the game's Hex Lantern artwork through `assets/artwork/catalog.json`.
+Runtime PNGs are exact copies of these finished files. The empowerment sprite maps
+to existing Oathbrand; the curse sprite maps to existing Witchlight. Stable content
+IDs, branch mechanics, balance, and saves are unchanged. The shared spell muzzle
+now sits at the central lantern light, source pixel (627, 896).
+
+The catalog uses 16 pixels per world unit and the same ground anchor for every
+tier. Each entry is authored, so runtime zoom, portraits, export previews, and
+native rebaking retain this family. Per-tier portrait bounds fit the complete
+silhouette in build icons, rules, tower details, and upgrade previews.
 
 ## Finished assets
 
@@ -83,5 +91,7 @@ The final command performs the required last color sweep, reopens all five
 sprites, checks the sixteen-color family limit and exact prior-layer retention,
 verifies common ground placement, and rebuilds the review artifacts. The review
 sheet uses the Windows Georgia font. Artwork was visually inspected as a complete
-family and at thumbnail scale. Runtime/device rendering is outside this
-artwork-only commission.
+family and at thumbnail scale. Runtime integration is covered by
+`tests/rendered/hex_lantern_art_runner.gd` at 360x640, 390x844, and 540x960,
+including normal/high zoom, shared portraits, source hashes, and muzzle placement.
+These desktop rendered checks do not establish physical-device acceptance.

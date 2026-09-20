@@ -72,6 +72,13 @@ def assemble(name):
     parent = Image.open(ROOT / f'{spec["parent"]}.png').convert("RGBA")
     source = Image.open(ROOT / f"sources/{name}-generated.png").convert("RGBA")
     assert parent.size == source.size, "Do not resize artwork to repair alignment."
+    if "canvas" in spec:
+        padded_parent = Image.new("RGBA", tuple(spec["canvas"]))
+        padded_parent.paste(parent, tuple(spec["parent_offset"]))
+        parent = padded_parent
+        padded_source = Image.new("RGBA", tuple(spec["canvas"]))
+        padded_source.paste(source, tuple(spec["source_offset"]))
+        source = padded_source
     if spec.get("offset", [0, 0]) != [0, 0]:
         translated = Image.new("RGBA", source.size)
         translated.paste(source, tuple(spec["offset"]))
@@ -98,14 +105,26 @@ def assemble(name):
     print(f"Assembled {name} over locked {spec['parent']}; {np.count_nonzero(layer_data[:,:,3])} addition pixels")
 
 
+def register_branches():
+    parent = np.array(Image.open(ROOT / "top-3.png"), dtype=np.int32)
+    yy, xx = np.mgrid[550:930:9, 70:1180:9]
+    for name in ["top-4-bolt-battery", "top-4-breacher"]:
+        child = np.array(enforce(Image.open(ROOT / f"sources/{name}-generated.png")), dtype=np.int32)
+        scores = [(float(np.mean((parent[yy, xx] - child[yy + dy, xx + dx]) ** 2)), dx, dy)
+                  for dy in range(130, 211) for dx in range(-4, 5)]
+        print(name, sorted(scores)[:3])
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=["base", "assemble", "review"])
+    parser.add_argument("action", choices=["base", "assemble", "review", "register"])
     parser.add_argument("value", nargs="?")
     args = parser.parse_args()
     if args.action == "base":
         base(args.value)
     elif args.action == "assemble":
         assemble(args.value)
+    elif args.action == "register":
+        register_branches()
     else:
         review(["tier-1", "tier-2", "tier-3", "tier-4-bolt-battery", "tier-4-breacher"])

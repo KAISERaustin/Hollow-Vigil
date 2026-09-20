@@ -27,7 +27,8 @@ shown docked; no flying projectile or temporary attack effect is baked into a sp
 
 - All five final sprites are **1254 x 1254 RGBA PNGs**, the generator's native output
   dimensions. Production sprites were not resized or recentered.
-- Shared registration origin: **(628, 1120)**. Every final sprite has the same
+- Shared registration origin: **(626.5, 1120)**, measured from the pedestal cap
+  at y=800 (x=438 through x=815) and the lowest visible base pixel. Every final sprite has the same
   pedestal and visible ground contact; upgrade layers preserve the original core.
 - `palette.json` records the exact **16 RGB colors** and their material roles,
   chosen before generation. Transparency is separate.

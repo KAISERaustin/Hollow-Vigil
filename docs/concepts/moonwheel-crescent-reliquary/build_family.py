@@ -7,6 +7,7 @@ from pathlib import Path
 import argparse
 import hashlib
 import json
+import zipfile
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
@@ -97,7 +98,10 @@ def assemble(name, parent_name, rectangles):
 def final_sweep():
     base = np.array(Image.open(ROOT / 'tier-1.png').convert('RGBA'))
     locked = base[:, :, 3] >= 16
-    report = {'canvas': [1254, 1254], 'core_center_x': 628, 'ground_anchor': [628, 1120],
+    cap_x = np.flatnonzero(base[800, :, 3] >= 128)
+    core_center = float((cap_x.min() + cap_x.max()) / 2)
+    report = {'canvas': [1254, 1254], 'core_center_x': core_center, 'ground_anchor': [core_center, 1120],
+              'core_measurement': {'cap_scanline_y': 800, 'left_x': int(cap_x.min()), 'right_x': int(cap_x.max())},
               'base_sha256': hashlib.sha256((ROOT / 'tier-1.png').read_bytes()).hexdigest(),
               'sources': 'Built-in ImageGen; only images newly generated for this commission', 'sprites': {}}
     for name in NAMES:
@@ -137,7 +141,7 @@ def reviews():
     sheet = Image.new('RGBA', (1700, 710), '#1c2421')
     draw = ImageDraw.Draw(sheet)
     draw.text((35, 22), 'MOONWHEEL  /  THE CRESCENT RELIQUARY', font=title_font, fill='#dedbc2')
-    draw.text((36, 70), 'Five tiers and branches  -  one locked base  -  sixteen shared colors', font=small_font, fill='#b8beb0')
+    draw.text((36, 70), 'Three tiers, two final branches  -  one locked base  -  sixteen shared colors', font=small_font, fill='#b8beb0')
     frames = []
     for i, (name, label) in enumerate(zip(NAMES, LABELS)):
         original = Image.open(ROOT / (name + '.png')).convert('RGBA')
@@ -155,6 +159,11 @@ def reviews():
     draw.text((35, 679), 'Thumbnail check: 160 px canvases. Artwork remains at its original 1254 x 1254 resolution.', font=small_font, fill='#b8beb0')
     sheet.convert('RGB').save(ROOT / 'family-review.png')
     frames[0].save(ROOT / 'alignment-preview.webp', save_all=True, append_images=frames[1:], duration=900, loop=0, lossless=True)
+    with zipfile.ZipFile(ROOT / 'moonwheel-all-tiers.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
+        for filename in [n + '.png' for n in NAMES] + ['palette.json', 'README.md', 'verification.json', 'family-review.png', 'alignment-preview.webp']:
+            archive.write(ROOT / filename, filename)
+        for path in sorted((ROOT / 'prompts').glob('*.txt')):
+            archive.write(path, path.relative_to(ROOT))
 
 
 if __name__ == '__main__':

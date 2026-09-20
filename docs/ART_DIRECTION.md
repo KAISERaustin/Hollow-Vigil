@@ -157,6 +157,18 @@ Completed levels use `scripts/campaign/cleared_level_art.gd`, a stateless shared
 
 Currency text uses a centered ochre coin with black rim, inset ring and diamond, matching the existing coin portrait. The reusable color glyph scales with surrounding text; see UI_STYLE_GUIDE.md.
 
+## Hex Lantern shrine artwork
+
+Hex Lantern uses the five authored sprites in
+`docs/concepts/hex-lantern-witchlight-2026-09-20/`. The carved shrine, suspended
+iron lantern, paired ward stones, and ritual ring accumulate over one locked
+base. The curse-lantern branch supplies Witchlight; the sword/staff shield branch
+supplies Oathbrand, preserving the existing branch IDs and gameplay. Runtime
+copies use 16 pixels per unit, source ground anchor (627, 1156), and a spell
+outlet at the unchanged central lantern light, source pixel (627, 896).
+Shared authored catalog routing owns battlefield art, high-zoom rendering,
+portraits, and export previews; native rebaking preserves these images.
+
 ## Hex recipient effects
 
 `rendering/effects/hex_art.gd` shares a violet inked rune vocabulary between enemy vulnerability and allied tower empowerment. Enemy hexes use a hovering eye, three rising side runes and a low seal, following the existing poison bubbles and ice crystals. Poison and ice remain visible when combined with hex; bosses receive a larger hex cue to match their silhouettes. Boosted towers use a quiet flattened broken ring and two small runes at their foundations, drawn with each tower so depth ordering remains intact.

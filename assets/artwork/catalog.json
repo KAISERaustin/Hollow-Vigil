@@ -309,58 +309,63 @@
 	},
 	"tower/electric/1/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-31.35,
+			-58.2,
+			62.7,
+			62.7
 		],
 		"image": "res://assets/artwork/tower/electric/1.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"portrait_bounds": [-17.0, -55.0, 34.0, 57.0]
 	},
 	"tower/electric/2/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-31.35,
+			-58.2,
+			62.7,
+			62.7
 		],
 		"image": "res://assets/artwork/tower/electric/2.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"portrait_bounds": [-17.0, -55.0, 34.0, 57.0]
 	},
 	"tower/electric/3/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-31.35,
+			-58.2,
+			62.7,
+			62.7
 		],
 		"image": "res://assets/artwork/tower/electric/3.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"portrait_bounds": [-17.0, -55.0, 34.0, 57.0]
 	},
 	"tower/electric/4/tempest_web": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-31.35,
+			-58.2,
+			62.7,
+			62.7
 		],
 		"image": "res://assets/artwork/tower/electric/4/tempest_web.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"portrait_bounds": [-17.0, -55.0, 34.0, 57.0]
 	},
 	"tower/electric/4/thunderseal": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-31.35,
+			-58.2,
+			62.7,
+			62.7
 		],
 		"image": "res://assets/artwork/tower/electric/4/thunderseal.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 20.0,
+		"authored": true,
+		"portrait_bounds": [-17.0, -55.0, 34.0, 57.0]
 	},
 	"tower/heavy/1/": {
 		"bounds": [
@@ -419,58 +424,88 @@
 	},
 	"tower/hex_lantern/1/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-39.1875,
+			-72.25,
+			78.375,
+			78.375
 		],
 		"image": "res://assets/artwork/tower/hex_lantern/1.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 16.0,
+		"authored": true,
+		"portrait_bounds": [
+			-19,
+			-45,
+			38,
+			47
+		]
 	},
 	"tower/hex_lantern/2/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-39.1875,
+			-72.25,
+			78.375,
+			78.375
 		],
 		"image": "res://assets/artwork/tower/hex_lantern/2.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 16.0,
+		"authored": true,
+		"portrait_bounds": [
+			-31,
+			-45,
+			62,
+			47
+		]
 	},
 	"tower/hex_lantern/3/": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-39.1875,
+			-72.25,
+			78.375,
+			78.375
 		],
 		"image": "res://assets/artwork/tower/hex_lantern/3.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 16.0,
+		"authored": true,
+		"portrait_bounds": [
+			-31,
+			-70,
+			62,
+			72
+		]
 	},
 	"tower/hex_lantern/4/oathbrand": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-39.1875,
+			-72.25,
+			78.375,
+			78.375
 		],
 		"image": "res://assets/artwork/tower/hex_lantern/4/oathbrand.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 16.0,
+		"authored": true,
+		"portrait_bounds": [
+			-31,
+			-70,
+			62,
+			72
+		]
 	},
 	"tower/hex_lantern/4/witchlight": {
 		"bounds": [
-			-48.0,
-			-76.0,
-			96.0,
-			96.0
+			-39.1875,
+			-72.25,
+			78.375,
+			78.375
 		],
 		"image": "res://assets/artwork/tower/hex_lantern/4/witchlight.png",
-		"native_fallback_above_zoom": 2.0,
-		"pixels_per_unit": 2.0
+		"pixels_per_unit": 16.0,
+		"authored": true,
+		"portrait_bounds": [
+			-31,
+			-70,
+			62,
+			72
+		]
 	},
 	"tower/ironspike/1/": {
 		"bounds": [
