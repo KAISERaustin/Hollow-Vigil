@@ -10,7 +10,8 @@ The request used the word "pyre" and then supplied this specific Stormspire
 brief; the supplied lightning-spire description governs this artwork. No earlier
 tower images or designs were supplied to ImageGen. Written image-generation
 instructions govern the style, five-sprite progression, palette and alignment.
-This is an artwork package, with no gameplay, balance or runtime catalog changes.
+All five sprites are installed through the runtime artwork catalog. Tower and
+branch identities, gameplay behavior and balance remain unchanged.
 
 ## Finished sprites
 
@@ -60,3 +61,27 @@ Run `python build_family.py finish` with Pillow and NumPy to repeat the final
 sweep, readback checks and review exports. Review images are resized for display;
 the five sprite files and their source layers keep their original dimensions.
 Godot is excluded from this concept directory by `.gdignore`.
+
+## Runtime installation
+
+`assets/artwork/tower/electric/` contains byte-identical copies of the five
+finished sprites. Tiers 1-3 map directly; Skyfork supplies `4/tempest_web.png`
+and Thunderward supplies `4/thunderseal.png`. Existing Tempest Web and Thunderseal
+names, abilities, stats and saved IDs are retained.
+
+All catalog entries are authored replacements at 20 pixels per world unit, with
+full-canvas bounds `(-31.35, -58.2, 62.7, 62.7)`. The source ground anchor maps to
+world `(0, 0)` for every stage. Shared portrait bounds `(-17, -55, 34, 57)` contain
+every branch without changing battlefield scale. Authored images remain active
+at high zoom and are protected from the native artwork baker.
+
+The electric projectile outlet is `(0, -48.2)`, corresponding to source pixel
+`(627, 200)` inside the original staff's blue inset. Chain arcs compensate using
+the shared outlet setting and still originate at the struck enemy. Lightning
+flight duration, damage, targeting and abilities are unchanged.
+
+`tests/rendered/stormspire_runner.gd` verifies source identity, branch mapping,
+alignment, the staff outlet, normal/high-zoom rendering, export rendering and
+48/80-pixel portraits. It captures all stages at 360x640, 390x844 and 540x960.
+`tests/portal_attributes_runner.gd` checks primary/chain origins, instantaneous
+flight and the existing damage/resistance behavior.

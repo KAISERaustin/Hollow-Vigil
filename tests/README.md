@@ -27,6 +27,7 @@ Every launcher mode is silent by default. Only use `-Sound` when the user asks f
 | Campaign maps | `rendered/campaign_map_runner.gd`, `rendered/campaign_map_menu_runner.gd`, `rendered/baked_map_runner.gd`, `rendered/campaign_landscape_runner.gd` |
 | Terrain and portals | `rendered/campaign_terrain_checks.gd`, `rendered/campaign_portal_runner.gd` |
 | Tower presentation | `rendered/tower_depth_runner.gd`, `rendered/tower_level_indicator_runner.gd`, `rendered/tower_upgrade_art_checks.gd`, `rendered/construction_effect_runner.gd`, `rendered/hex_effect_runner.gd` |
+| Stormspire authored sprites and lightning origin | `rendered/stormspire_runner.gd`, `portal_attributes_runner.gd` (all five stages, high zoom, portraits, three phone sizes, primary and chain origins) |
 | Complete dark theme and fixed action colors | `rendered/moonlit_theme_runner.gd` (all menus, content types, every level editor, fixed action roles, contrast and borders); `rendered/button_roles_runner.gd` (built-in colors, legacy preference removal, uniform borders, touch navigation and modal layering) |
 | Shared surfaces, currency and slots | `rendered/parchment_corner_runner.gd`, `rendered/currency_text_runner.gd`, `rendered/save_slot_picker_runner.gd`, `rendered/welcome_layout_runner.gd` |
 

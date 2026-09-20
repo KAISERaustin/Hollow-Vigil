@@ -86,6 +86,17 @@ The artwork implementation lives in scripts/rendering/terrain/terrain_art.gd, sc
 
 ## Extension contract
 
+Stormspire uses the five authored Tempest Spire sprites from
+`docs/concepts/stormspire-tempest-new/`, copied unchanged into the electric
+artwork family. Skyfork maps to Tempest Web and Thunderward to Thunderseal;
+existing branch names, abilities and saved IDs remain intact. One 20-pixels-per-
+unit transform anchors source `(627, 1164)` at world `(0, 0)` across all stages.
+Catalog portrait bounds include the complete silhouettes. Authored entries stay
+active at every zoom and survive native rebaking. The shared electric outlet
+`(0, -48.2)` aligns lightning with the staff inset; chained arcs still start at
+their struck enemy. `tests/rendered/stormspire_runner.gd` checks all five images,
+portraits and the three upright phone sizes.
+
 Pyre's five runtime PNGs are byte-identical copies of the approved Ember Shrine
 family. `assets/artwork/catalog.json` supplies one full-canvas transform at 16
 pixels per world unit: the source ground anchor `(627, 1130)` maps to `(0, 0)`
@@ -98,15 +109,19 @@ projectile muzzle `(0, -29)` maps into the open central flame at source pixel
 common anchor, flame outlet, normal/high-zoom drawing and portrait framing, and
 captures all stages at 360x640, 390x844 and 540x960.
 
-Gloamwatch replaces Ashneedle through the shared authored artwork catalog, with
-three base tiers and the Frostneedle/Poison Arrow branches. The approved source
-PNGs, dark palette and alignment live in `docs/concepts/gloam-renewed/`. This
-original redesign uses a shallow-roofed timber firing loft over a stone base;
-the earlier Gloam artwork was not used as a generation reference. Full-canvas
-runtime copies share one scale and ground anchor; authored catalog entries remain
-active at high zoom and survive native rebaking. Optional alpha cleanup is cached
-at runtime without modifying the source files. The watchman stays hidden behind
-black windows; separate wooden projectiles launch from the front gallery.
+Ashneedle's approved five-sprite family is installed on the existing `rapid`
+tower, currently displayed as Gloamwatch. Its original source images, palette,
+locked layers and alignment live in `docs/concepts/ashneedle-original-2026-09-20/`.
+The stone watchpost gains side firing galleries and a central iron canopy;
+Arrowstorm supplies Frostneedle's artwork and Lastwatch supplies Poison Arrow's.
+Both existing branch names, mechanics and save identities remain unchanged.
+Runtime PNGs are byte-identical copies of the five approved 1254x1254 sources,
+all using 18 pixels per world unit and ground anchor (627, 1128). Shared portrait
+bounds include both branches' full silhouettes. Authored catalog entries remain
+active at high zoom and survive native rebaking. Cached alpha cleanup leaves
+source files unchanged; arrows launch through the original dark firing opening.
+`tests/rendered/gloamwatch_runner.gd` checks source identity, framing, projectile
+clearance and runtime/export routing, and captures all five at three phone sizes.
 
 Ironspike's mounted bow and loaded bolts rotate around the shared projectile
 muzzle to match the fired bolt's direction; its socket and pedestal stay fixed.

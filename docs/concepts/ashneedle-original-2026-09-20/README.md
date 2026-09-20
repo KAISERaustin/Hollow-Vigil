@@ -6,9 +6,11 @@ archers' perch, tireless medieval watchmen, disciplined bowfire, lesser enemies
 and wounded foes. No earlier tower artwork or concept was supplied as a visual
 reference. Written image-generation and style instructions governed production.
 
-This is a complete art concept set. It is not installed in the runtime catalog
-and does not change tower names, attacks, statistics, save identities or balance.
-The two specialization names below are descriptive art concepts.
+This family is installed on the existing `rapid` tower (currently displayed as
+Gloamwatch) through `assets/artwork/catalog.json`. Runtime PNGs are byte-identical
+copies of these approved sprites. Tower names, attacks, statistics, save identities
+and balance are unchanged. The two specialization names below describe the artwork:
+Arrowstorm maps to Frostneedle, and Lastwatch maps to Poison Arrow.
 
 | Sprite | Visible progression |
 | --- | --- |
@@ -62,4 +64,8 @@ the allowed palette, saves and reopens them, and checks every nontransparent RGB
 value. It confirms zero horizontal/vertical core offset, a common ground anchor,
 exact prior-layer preservation, and unchanged alpha during the color sweep.
 The set was visually inspected at full size and at the review's small scale.
-These are artwork checks; no runtime or physical-device testing was performed.
+The focused runtime runner is `tests/rendered/gloamwatch_runner.gd`. It checks
+all five source hashes, common placement, projectile clearance, portrait bounds,
+normal/high-zoom rendering and export paths, and captures 360x640, 390x844 and
+540x960 phone layouts. Runtime scale is 18 source pixels per world unit, with
+portrait bounds (-30, -60, 60, 61). Physical-device acceptance remains separate.

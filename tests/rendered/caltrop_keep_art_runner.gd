@@ -1,10 +1,9 @@
 extends SceneTree
 
 const Images = preload("res://scripts/rendering/actors/actor_images.gd")
-const Effects = preload("res://scripts/rendering/effects/attack_effects.gd")
 const Portrait = preload("res://scripts/ui/shared/content_portrait.gd")
 const STAGES = [[1, "", "tier-1"], [2, "", "tier-2"], [3, "", "tier-3"],
-	[4, "frostneedle", "tier-4-arrowstorm"], [4, "thorn_volley", "tier-4-lastwatch"]]
+	[4, "scatterworks", "tier-4-broadscatter"], [4, "dreadjaw", "tier-4-ironthorn"]]
 var failures: Array[String] = []
 var checks := 0
 
@@ -16,14 +15,14 @@ class SpriteCheck extends Node2D:
 		var at := Vector2(128, 232)
 		if mode == "direct":
 			var images = Images.for_canvas(self)
-			var entry: Dictionary = images.entries["tower/rapid/%d/%s" % [stage[0], stage[1]]]
+			var entry: Dictionary = images.entries["tower/caltrop_keep/%d/%s" % [stage[0], stage[1]]]
 			var b: Array = entry.bounds
 			draw_texture_rect(Images.texture_for(entry), Rect2(at + Vector2(b[0], b[1]) * zoom,
 				Vector2(b[2], b[3]) * zoom), false)
 		elif mode == "export":
-			VigilTerrainArt.sentinel_vector(self, "rapid", at, zoom, stage[0], stage[1])
+			VigilTerrainArt.sentinel_vector(self, "caltrop_keep", at, zoom, stage[0], stage[1])
 		else:
-			VigilTerrainArt.sentinel(self, "rapid", at, zoom, stage[0], stage[1])
+			VigilTerrainArt.sentinel(self, "caltrop_keep", at, zoom, stage[0], stage[1])
 
 class Board extends Battlefield:
 	func _draw() -> void:
@@ -32,11 +31,6 @@ class Board extends Battlefield:
 			var at := screen(VigilWorld.pad_position(tower.region, tower.pad))
 			draw_line(at + Vector2(-32, 1), at + Vector2(32, 1), Color("758f9e"), 1)
 			draw_tower(tower)
-			var stats := Balance.stats("rapid", tower.level, {}, tower.branch)
-			var fx := {"tower_kind": "rapid", "branch": tower.branch, "color": stats.color,
-				"flight": 0.2, "life": 0.26, "max_life": 0.29, "radius": 0.0}
-			var origin: Vector2 = at + Balance.PROJECTILES.rapid.muzzle * zoom
-			Effects.draw(self, fx, origin, origin + Vector2(70, 15), zoom)
 
 func _initialize() -> void:
 	preload("res://tests/support/timeout.gd").arm(self)
@@ -55,8 +49,6 @@ func frame() -> void:
 
 func run() -> void:
 	var images := Images.new()
-	check(Balance.TOWERS.rapid.name == "Gloamwatch", "Existing display name retained")
-	check("watchman" in Balance.TOWERS.rapid.description, "Watchman lore retained")
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(256, 256)
 	viewport.transparent_bg = true
@@ -66,20 +58,18 @@ func run() -> void:
 	viewport.add_child(art)
 	var previous := PackedByteArray()
 	for stage in STAGES:
-		var key := "tower/rapid/%d/%s" % [stage[0], stage[1]]
+		var key := "tower/caltrop_keep/%d/%s" % [stage[0], stage[1]]
 		var entry: Dictionary = images.entries[key]
-		var source := "res://docs/concepts/ashneedle-original-2026-09-20/%s.png" % stage[2]
+		var source := "res://docs/concepts/caltrop-keep-2026-09-20/%s.png" % stage[2]
 		check(FileAccess.get_sha256(entry.image) == FileAccess.get_sha256(source), key + " approved source unchanged")
 		check(entry.authored and not entry.has("native_fallback_above_zoom"), key + " authored at every zoom and protected from rebaking")
 		var texture: Texture2D = Images.texture_for(entry)
 		check(texture.get_size() == Vector2(1254, 1254), key + " complete source canvas")
 		var b: Array = entry.bounds
 		var origin := Vector2(b[0], b[1])
-		check((origin + Vector2(627, 1128) / entry.pixels_per_unit).is_zero_approx(), key + " shared ground anchor")
+		check((origin + Vector2(627, 1122) / entry.pixels_per_unit).is_zero_approx(), key + " shared ground anchor")
 		var picture := texture.get_image()
-		var muzzle: Vector2 = (Balance.PROJECTILES.rapid.muzzle - origin) * entry.pixels_per_unit
-		var opening := picture.get_pixelv(Vector2i(muzzle))
-		check(opening.a > 0.9 and maxf(opening.r, maxf(opening.g, opening.b)) < 0.06, key + " muzzle inside dark firing opening")
+		check(is_equal_approx(float(entry.pixels_per_unit), 20.0), key + " shared battlefield scale")
 		var p: Array = entry.portrait_bounds
 		var visible := picture.get_used_rect()
 		var visible_world := Rect2(origin + Vector2(visible.position) / entry.pixels_per_unit,
@@ -106,7 +96,7 @@ func run() -> void:
 	for stage in STAGES:
 		for dimension in [48, 80]:
 			viewport.size = Vector2i(dimension, dimension)
-			var portrait := Portrait.preview("towers", "rapid", stage[0], stage[1])
+			var portrait := Portrait.preview("towers", "caltrop_keep", stage[0], stage[1])
 			# Compact tower dialogs use the same draw helper without row minimums.
 			portrait.custom_minimum_size = Vector2.ZERO
 			portrait.size = Vector2.ONE * dimension
@@ -133,20 +123,20 @@ func run() -> void:
 			var at := Vector2(dimensions.x * 0.27, 130 + index * 105)
 			var location := VigilWorld.ground_location(board.world(at))
 			var id := str(index)
-			board.state.data.towers[id] = {"id": id, "kind": "rapid", "level": stage[0],
+			board.state.data.towers[id] = {"id": id, "kind": "caltrop_keep", "level": stage[0],
 				"branch": stage[1], "region": location.region, "pad": location.pad, "angle": 0.0, "earnings": 0.0}
-			var portrait := Portrait.preview("towers", "rapid", stage[0], stage[1])
+			var portrait := Portrait.preview("towers", "caltrop_keep", stage[0], stage[1])
 			portrait.position = Vector2(dimensions.x * 0.65 - 40, 47 + index * 105)
 			portrait.size = Vector2(80, 80)
 			board.add_child(portrait)
 			var label := Label.new()
-			label.text = "%s %d" % [Balance.TOWERS.rapid.name, stage[0]] if stage[1] == "" else Balance.BRANCHES.rapid[stage[1]].name
+			label.text = "Caltrop Keep %d" % stage[0] if stage[1] == "" else Balance.BRANCHES.caltrop_keep[stage[1]].name
 			label.position = Vector2(dimensions.x * 0.52, 130 + index * 105)
 			label.add_theme_font_size_override("font_size", 13)
 			board.add_child(label)
 		board.queue_redraw()
 		await frame()
-		check(root.get_texture().get_image().save_png("res://artifacts/ashneedle-%dx%d.png" % [dimensions.x, dimensions.y]) == OK, "Saved battlefield and portrait capture")
+		check(root.get_texture().get_image().save_png("res://artifacts/caltrop-keep-%dx%d.png" % [dimensions.x, dimensions.y]) == OK, "Saved battlefield and portrait capture")
 		board.free()
-	print("ASHNEEDLE: %d checks, %d failures" % [checks, failures.size()])
+	print("CALTROP KEEP: %d checks, %d failures" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)

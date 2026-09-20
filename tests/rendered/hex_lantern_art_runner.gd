@@ -2,6 +2,7 @@ extends SceneTree
 
 const Images = preload("res://scripts/rendering/actors/actor_images.gd")
 const Portrait = preload("res://scripts/ui/shared/content_portrait.gd")
+const ShotFactory = preload("res://scripts/gameplay/combat/shot_factory.gd")
 const STAGES = [[1, "", "tier-1"], [2, "", "tier-2"], [3, "", "tier-3"],
 	[4, "witchlight", "tier-4-curse"], [4, "oathbrand", "tier-4-empowerment"]]
 var failures: Array[String] = []
@@ -72,6 +73,11 @@ func run() -> void:
 		var muzzle: Vector2 = (Balance.PROJECTILES.hex_lantern.muzzle - origin) * entry.pixels_per_unit
 		var flame := picture.get_pixelv(Vector2i(muzzle))
 		check(flame.a > 0.9 and flame.r > 0.5 and flame.b > 0.5 and minf(flame.r, flame.b) > flame.g, key + " muzzle inside the suspended violet lantern")
+		var shot_origin := Vector2(40, 70)
+		var stats := Balance.stats("hex_lantern", stage[0], {}, stage[1])
+		var shot := ShotFactory.shot("hex_lantern", shot_origin, Vector2(180, 90), stats)
+		check(shot.from == shot_origin + Balance.PROJECTILES.hex_lantern.muzzle,
+			key + " real spell starts at the shared lantern outlet")
 		var p: Array = entry.portrait_bounds
 		var visible := picture.get_used_rect()
 		var visible_world := Rect2(origin + Vector2(visible.position) / entry.pixels_per_unit,
@@ -96,7 +102,7 @@ func run() -> void:
 				previous = expected
 	art.free()
 	for stage in STAGES:
-		for dimension in [48, 80]:
+		for dimension in [32, 42, 48, 64, 80]:
 			viewport.size = Vector2i(dimension, dimension)
 			var portrait := Portrait.preview("towers", "hex_lantern", stage[0], stage[1])
 			# Compact tower dialogs use the same draw helper without row minimums.

@@ -11,7 +11,7 @@ base silhouettes, preserving the game's flat palette and black outlines.
 | Gloamwatch | Timber supports and top flag | Fortified buttresses and front banner |
 | Obelisk | Rune and stone collar | Satellite crystals and floating capstone |
 | Pyre | Stone buttresses, reinforced collar and hotter roof fire | Twin flame sconces around the battlements |
-| Stormspire | Conductive bands and charged tips | Outer lightning rods and arcing crown |
+| Stormspire | Paired iron conductor arms | Two smaller forked staffs on those arms |
 
 Pyre's base is a tall coral-stone watchtower with masonry seams, a crenellated
 parapet, a black arched furnace and an ochre/ember roof flame. Its reusable,
@@ -50,6 +50,18 @@ returning crescents, armed/unarmed road traps and orbiting blades from combat
 state. Exposed enemies display an eye mark through the shared affliction renderer.
 Game collision positions and visual positions share one owner; the cosmetic
 effect limit cannot suppress projectile damage or trap triggers.
+
+## Stormspire authored family
+
+All five approved Tempest Spire PNGs are installed in
+`assets/artwork/tower/electric/`. The catalog uses one 20-pixels-per-world-unit
+transform and ground anchor for all stages, plus complete portrait framing.
+Skyfork supplies Tempest Web's image; Thunderward supplies Thunderseal's image.
+These authored entries remain active at every zoom and survive native rebaking.
+Battlefields, build ghosts, portraits and upgrade previews use the same images.
+The lightning outlet matches the staff's blue inset while enemy-to-enemy chain
+arcs retain their proper origin. See [the source family](concepts/stormspire-tempest-new/README.md)
+for the exact palette, source pixels, alignment and runtime mapping.
 
 ## Gloamwatch authored family
 

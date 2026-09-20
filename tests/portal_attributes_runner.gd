@@ -140,3 +140,9 @@ func check_chain_lightning() -> void:
 	var losses := [first.max_hp - first.hp, second.max_hp - second.hp]
 	losses.sort()
 	check(is_equal_approx(losses[0], 1.75) and is_equal_approx(losses[1], 3.5), "Real Stormspire pulse and chain arc both resist electric damage")
+	var bolts: Array = game.combat.effects.filter(func(fx): return fx.kind == "shot" and fx.tower_kind == "electric")
+	var staff := VigilWorld.pad_position(tower.region, tower.pad) + Balance.PROJECTILES.electric.muzzle
+	check(bolts.size() == 2, "Pulse emits one primary connection and one chain connection")
+	check(bolts.any(func(fx): return fx.from.is_equal_approx(staff)), "Primary lightning starts at the staff outlet")
+	check(bolts.any(func(fx): return fx.from.is_equal_approx(first.pos)), "Chain lightning starts at the struck enemy after changing the staff height")
+	check(bolts.all(func(fx): return is_zero_approx(fx.flight)), "Both lightning connections remain instantaneous")
