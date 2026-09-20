@@ -173,7 +173,7 @@ def final_reviews():
     sheet = Image.new("RGB", (1700, 1080), "#1C2321")
     draw = ImageDraw.Draw(sheet)
     draw.text((32, 23), "IRONSPIKE - THE SIEGE BALLISTA", font=title, fill="#C2B99F")
-    draw.text((32, 78), "Five tiers / independent stationary base and rotating crossbow / original commission", font=label, fill="#929687")
+    draw.text((32, 78), "Five stages / independent stationary base and rotating crossbow / original commission", font=label, fill="#929687")
     loaded = []
     crop = (350, 180, 1700, 1540)
     for i, name in enumerate(NAMES):

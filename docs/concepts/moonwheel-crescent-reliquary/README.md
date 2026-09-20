@@ -65,3 +65,22 @@ unaltered tier-3 assembly, which avoids that shift.
 `moonwheel-all-tiers.zip` packages the five final PNGs, palette, prompt set, placement
 documentation, review and verification. This folder contains authoring artwork;
 it is excluded from Godot imports with `.gdignore`.
+
+## Runtime installation
+
+All five final PNGs are copied unchanged into `assets/artwork/tower/moonwheel/`.
+Tiers 1-3 keep their corresponding filenames. `tier-4-reaping-arc.png` supplies
+`4/reaper_wheel.png`; `tier-4-oathbound-return.png` supplies `4/orbit_crown.png`.
+Existing branch IDs, names, progression, saves and attack behavior are preserved.
+
+The shared artwork catalog marks all five entries authored and uses 20 pixels per
+world unit, canvas bounds `[-31.325, -56, 62.7, 62.7]`, and the measured ground
+anchor `(626.5, 1120)`. Per-stage portrait framing includes the full silhouettes.
+The existing cached texture cleanup removes alpha below 16 at runtime without
+modifying any PNG. Authored images stay active at high zoom and native rebaking
+preserves them. Returning blades launch from source pixel `(550, 500)`, mapped to
+world muzzle `(-3.825, -31)` through the shared projectile profile.
+
+Run `./launch.ps1 -TestScript tests/rendered/moonwheel_art_runner.gd` for source
+identity, ground/muzzle mapping, outward/return flight, all tiers at normal/high
+zoom and export rendering, compact portraits, and the three portrait phone sizes.

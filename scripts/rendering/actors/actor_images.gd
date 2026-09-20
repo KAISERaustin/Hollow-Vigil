@@ -54,6 +54,15 @@ func invalidate() -> void:
 	catalog_data = {}
 	_init()
 
+## Named presentation anchors belong to the artwork, not combat state or UI.
+func effect_anchors(key: String, effect: String, fallback: Array[Vector2]) -> Array[Vector2]:
+	var points: Array = entries.get(key, {}).get("effect_anchors", {}).get(effect, [])
+	if points.is_empty(): return fallback
+	var result: Array[Vector2] = []
+	for point in points:
+		result.append(Vector2(point[0], point[1]))
+	return result
+
 func draw(canvas: CanvasItem, key: String, at: Vector2, zoom: float) -> bool:
 	if not entries.has(key): return false
 	var entry: Dictionary = entries[key]

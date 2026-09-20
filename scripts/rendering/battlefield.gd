@@ -411,8 +411,11 @@ func draw_tower(t: Dictionary) -> void:
 
 	if t.get("branch", "") == "doomstone":
 		var stacks: int = state.combat.curses.get(t.id, {}).get("stacks", 0)
-		for y in [-38,-27,-16]:
-			VigilTerrainArt.shape(self,[Vector2(-5,0),Vector2(0,-4),Vector2(5,0),Vector2(0,4)],p+Vector2(0,y)*z,Vector2.ONE*z,Color("c282bb").lerp(VigilTerrainArt.PAPER,stacks/5.0),1.5*z)
+		if stacks > 0:
+			var key := "tower/%s/%d/%s" % [t.kind, int(t.level), t.branch]
+			var points := actor_images.effect_anchors(key, "curse", [Vector2(0, -38), Vector2(0, -27), Vector2(0, -16)])
+			for point in points:
+				VigilTerrainArt.shape(self,[Vector2(-5,0),Vector2(0,-4),Vector2(5,0),Vector2(0,4)],p+point*z,Vector2.ONE*z,Color("c282bb").lerp(VigilTerrainArt.PAPER,stacks/5.0),1.5*z)
 	if t.get("rebuild_remaining", 0.0) > 0.0:
 		# Scaffolding and a persistent timer distinguish an inactive tower.
 		draw_set_transform(p, 0, Vector2.ONE * zoom)
