@@ -37,13 +37,11 @@ effect. Replacing the economy disconnects the previous signal and clears poofs.
 
 ## Additional tower families
 
-Ironspike and Moonwheel compose the stateless native
-`rendering/actors/expansion_tower_art.gd` family. Each has level-one, reinforced,
-fortified and two final branch silhouettes. The same drawing owner supplies
-battlefields, build previews, menu portraits and upgrade previews in Campaign.
-The concept renderer now inherits this production owner rather than duplicating
-its drawing code. It generates twenty transparent exports and review boards in ignored
-`artifacts/tower-expansion/`.
+Legacy native silhouettes remain in the stateless
+`rendering/actors/expansion_tower_art.gd` family. Authored catalog entries take
+precedence in battlefields, build previews, menu portraits, upgrade previews,
+and export rendering. The historical concept renderer reuses the native owner
+for its transparent exports and review boards in `artifacts/tower-expansion/`.
 
 `rendering/effects/tower_component_art.gd` draws actual live bolts, outward and
 returning crescents, armed/unarmed road traps and orbiting blades from combat
@@ -67,6 +65,27 @@ fixed scale/ground, normal/high zoom, export drawing, and 48/80-pixel portraits.
 All five stages were visually checked at 360x640, 390x844 and 540x960. See
 [the source family](concepts/caltrop-keep-2026-09-20/README.md) for palette,
 placement and branch mapping. This is desktop render validation.
+
+## Moonwheel authored family
+
+All five Crescent Reliquary sprites are installed unchanged in
+`assets/artwork/tower/moonwheel/`. Tiers 1-3 keep their existing identities;
+Reaping Arc supplies Reaper Wheel and Oathbound Return supplies Orbit Crown.
+The existing names, saved branch IDs, stats and attack components remain intact.
+
+The catalog uses one 20-pixels-per-world-unit transform with source ground
+anchor `(626.5, 1120)`. Per-stage portrait bounds include the complete bronze
+vanes and high stone arch. Authored entries remain active at every zoom and are
+protected from native rebaking. The cached alpha cutoff removes faint background
+residue without changing source files. Returning blades launch from the crescent
+at source pixel `(550, 500)` through the shared projectile profile.
+
+`rendered/moonwheel_art_runner.gd` passed 125 checks: exact source copies,
+ground/muzzle alignment, outward and return hits, existing Orbit Crown behavior,
+normal/high zoom and export rendering, and 32/42/48/64/80-pixel portraits.
+Battlefield/portrait captures were visually inspected at 360x640, 390x844 and
+540x960. This is desktop rendering and simulation coverage. See
+[the source family](concepts/moonwheel-crescent-reliquary/README.md).
 
 ## Hex Lantern authored family
 

@@ -84,3 +84,6 @@ world muzzle `(-3.825, -31)` through the shared projectile profile.
 Run `./launch.ps1 -TestScript tests/rendered/moonwheel_art_runner.gd` for source
 identity, ground/muzzle mapping, outward/return flight, all tiers at normal/high
 zoom and export rendering, compact portraits, and the three portrait phone sizes.
+The installation passed all 125 checks; captures were visually inspected at
+360x640, 390x844 and 540x960. `tools/check_structure.py` also passed with Python's
+UTF-8 mode. Full-game and physical-device acceptance were not run for this change.

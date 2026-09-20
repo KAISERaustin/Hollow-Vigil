@@ -86,6 +86,15 @@ The artwork implementation lives in scripts/rendering/terrain/terrain_art.gd, sc
 
 ## Extension contract
 
+Moonwheel uses the five approved Crescent Reliquary sprites from
+`docs/concepts/moonwheel-crescent-reliquary/` through the authored artwork catalog.
+All stages retain one scale and ground anchor, with complete portrait bounds;
+the bronze Reaping Arc maps to Reaper Wheel and the violet Oathbound Return arch
+maps to Orbit Crown. The returning blade outlet follows the source crescent.
+Cached transparency cleanup leaves the original PNGs unchanged. Existing branch
+IDs, balance, saves and attack components remain compatible. See `TOWER_ART.md`
+for installation and validation details.
+
 Caltrop Keep uses the five approved Sapper's Hold sprites from
 `docs/concepts/caltrop-keep-2026-09-20/`. Broadscatter Arsenal maps to
 Scatterworks and Ironthorn Hold maps to Dreadjaw, retaining their gameplay and
