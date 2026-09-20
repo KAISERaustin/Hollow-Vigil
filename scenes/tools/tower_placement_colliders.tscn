@@ -1,67 +1,66 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene format=3 uid="uid://cv8v7xgq8wmmm"]
 
-[ext_resource type="Script" path="res://tools/placement_collider_preview.gd" id="1"]
-[ext_resource type="Resource" path="res://assets/placement_colliders/gloamwatch.tres" id="2"]
-[ext_resource type="Resource" path="res://assets/placement_colliders/pyre.tres" id="3"]
-[ext_resource type="Resource" path="res://assets/placement_colliders/obelisk.tres" id="4"]
-[ext_resource type="Resource" path="res://assets/placement_colliders/stormspire.tres" id="5"]
-[ext_resource type="Resource" path="res://assets/placement_colliders/ironspike.tres" id="6"]
-[ext_resource type="Resource" path="res://assets/placement_colliders/moonwheel.tres" id="7"]
-[ext_resource type="Resource" path="res://assets/placement_colliders/hex_lantern.tres" id="8"]
-[ext_resource type="Resource" path="res://assets/placement_colliders/caltrop_keep.tres" id="9"]
+[ext_resource type="Script" uid="uid://txpp1jsde200" path="res://tools/placement_collider_preview.gd" id="1"]
+[ext_resource type="Resource" uid="uid://u2oqpcddlakd" path="res://assets/placement_colliders/gloamwatch.tres" id="2"]
+[ext_resource type="Resource" uid="uid://4hjbrlxewsv" path="res://assets/placement_colliders/pyre.tres" id="3"]
+[ext_resource type="Resource" uid="uid://c8dnwp178b5p6" path="res://assets/placement_colliders/obelisk.tres" id="4"]
+[ext_resource type="Resource" uid="uid://bnq3pqshq0qie" path="res://assets/placement_colliders/stormspire.tres" id="5"]
+[ext_resource type="Resource" uid="uid://ba2374k3sb4hr" path="res://assets/placement_colliders/ironspike.tres" id="6"]
+[ext_resource type="Resource" uid="uid://c7dya6r26kbip" path="res://assets/placement_colliders/moonwheel.tres" id="7"]
+[ext_resource type="Resource" uid="uid://ch7wqsd0t8tsw" path="res://assets/placement_colliders/hex_lantern.tres" id="8"]
+[ext_resource type="Resource" uid="uid://idcktvukthsl" path="res://assets/placement_colliders/caltrop_keep.tres" id="9"]
 
-[node name="TowerPlacementColliders" type="Node2D"]
+[node name="TowerPlacementColliders" type="Node2D" unique_id=1202549668]
 
-[node name="Gloamwatch" type="Node2D" parent="."]
+[node name="Gloamwatch" type="Node2D" parent="." unique_id=100328710]
 position = Vector2(140, 205)
 scale = Vector2(3, 3)
 script = ExtResource("1")
-tower_kind = "rapid"
 collider = ExtResource("2")
 
-[node name="Pyre" type="Node2D" parent="."]
+[node name="Pyre" type="Node2D" parent="." unique_id=345402805]
 position = Vector2(410, 205)
 scale = Vector2(3, 3)
 script = ExtResource("1")
 tower_kind = "splash"
 collider = ExtResource("3")
 
-[node name="Obelisk" type="Node2D" parent="."]
+[node name="Obelisk" type="Node2D" parent="." unique_id=1423316845]
 position = Vector2(680, 205)
 scale = Vector2(3, 3)
 script = ExtResource("1")
 tower_kind = "heavy"
 collider = ExtResource("4")
 
-[node name="Stormspire" type="Node2D" parent="."]
+[node name="Stormspire" type="Node2D" parent="." unique_id=992198312]
 position = Vector2(950, 205)
 scale = Vector2(3, 3)
 script = ExtResource("1")
 tower_kind = "electric"
 collider = ExtResource("5")
 
-[node name="Ironspike" type="Node2D" parent="."]
+[node name="Ironspike" type="Node2D" parent="." unique_id=2037564126]
 position = Vector2(140, 480)
 scale = Vector2(3, 3)
 script = ExtResource("1")
 tower_kind = "ironspike"
 collider = ExtResource("6")
 
-[node name="Moonwheel" type="Node2D" parent="."]
+[node name="Moonwheel" type="Node2D" parent="." unique_id=384727521]
 position = Vector2(410, 480)
 scale = Vector2(3, 3)
 script = ExtResource("1")
 tower_kind = "moonwheel"
 collider = ExtResource("7")
 
-[node name="HexLantern" type="Node2D" parent="."]
+[node name="HexLantern" type="Node2D" parent="." unique_id=1465067598]
 position = Vector2(680, 480)
 scale = Vector2(3, 3)
 script = ExtResource("1")
 tower_kind = "hex_lantern"
 collider = ExtResource("8")
 
-[node name="CaltropKeep" type="Node2D" parent="."]
+[node name="CaltropKeep" type="Node2D" parent="." unique_id=297477540]
 position = Vector2(950, 480)
 scale = Vector2(3, 3)
 script = ExtResource("1")
