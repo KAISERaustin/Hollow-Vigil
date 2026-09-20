@@ -37,7 +37,7 @@ effect. Replacing the economy disconnects the previous signal and clears poofs.
 
 ## Additional tower families
 
-Ironspike, Moonwheel and Caltrop Keep compose the stateless native
+Ironspike and Moonwheel compose the stateless native
 `rendering/actors/expansion_tower_art.gd` family. Each has level-one, reinforced,
 fortified and two final branch silhouettes. The same drawing owner supplies
 battlefields, build previews, menu portraits and upgrade previews in Campaign.
@@ -50,6 +50,25 @@ returning crescents, armed/unarmed road traps and orbiting blades from combat
 state. Exposed enemies display an eye mark through the shared affliction renderer.
 Game collision positions and visual positions share one owner; the cosmetic
 effect limit cannot suppress projectile damage or trap triggers.
+
+## Hex Lantern authored family
+
+## Caltrop Keep authored family
+
+The five approved Sapper's Hold sprites are installed unchanged in
+`assets/artwork/tower/caltrop_keep/`. Broadscatter Arsenal supplies Scatterworks;
+Ironthorn Hold supplies Dreadjaw. Existing trap behavior, stats, branch names and
+save identities remain intact. All stages share source anchor `(627, 1122)` at
+world `(0, 0)` and 20 pixels per world unit, preserving the hold's core width
+through upgrades. Per-stage catalog bounds frame each full portrait.
+
+The shared battlefield, build ghosts, menu portraits, upgrades and export path
+use these authored entries at every zoom; native rebaking skips them. The
+focused `rendered/caltrop_keep_art_runner.gd` passed 88 checks for source hashes,
+fixed scale/ground, normal/high zoom, export drawing, and 48/80-pixel portraits.
+All five stages were visually checked at 360x640, 390x844 and 540x960. See
+[the source family](concepts/caltrop-keep-2026-09-20/README.md) for palette,
+placement and branch mapping. This is desktop render validation.
 
 ## Hex Lantern authored family
 

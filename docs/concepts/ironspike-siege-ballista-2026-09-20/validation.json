@@ -1,0 +1,216 @@
+{
+  "passed": true,
+  "parts": [
+    {
+      "file": "sprites/tier-1/base.png",
+      "color_count": 13,
+      "unexpected_colors": 0,
+      "canvas": [
+        2048,
+        2048
+      ],
+      "pivot": [
+        1024,
+        1024
+      ],
+      "ground_anchor": [
+        1024,
+        1442
+      ],
+      "inherited_pixels": "entire base is pixel-identical to tier 1",
+      "max_rotation_radius": null,
+      "sha256": "389b53dcd402182fe38327d41584b7f984ab23bb90fe44d9a96926bdd5da9881"
+    },
+    {
+      "file": "sprites/tier-1/top.png",
+      "color_count": 13,
+      "unexpected_colors": 0,
+      "canvas": [
+        2048,
+        2048
+      ],
+      "pivot": [
+        1024,
+        1024
+      ],
+      "ground_anchor": [
+        1024,
+        1442
+      ],
+      "inherited_pixels": "original lower bow, stock and loaded bolt are pixel-identical",
+      "max_rotation_radius": 792.1123657663728,
+      "sha256": "c669461af73887e2058f503b9a1fa1b4eb4f73c6c23fb8d1011d7662b4e22b81"
+    },
+    {
+      "file": "sprites/tier-2/base.png",
+      "color_count": 13,
+      "unexpected_colors": 0,
+      "canvas": [
+        2048,
+        2048
+      ],
+      "pivot": [
+        1024,
+        1024
+      ],
+      "ground_anchor": [
+        1024,
+        1442
+      ],
+      "inherited_pixels": "entire base is pixel-identical to tier 1",
+      "max_rotation_radius": null,
+      "sha256": "389b53dcd402182fe38327d41584b7f984ab23bb90fe44d9a96926bdd5da9881"
+    },
+    {
+      "file": "sprites/tier-2/top.png",
+      "color_count": 13,
+      "unexpected_colors": 0,
+      "canvas": [
+        2048,
+        2048
+      ],
+      "pivot": [
+        1024,
+        1024
+      ],
+      "ground_anchor": [
+        1024,
+        1442
+      ],
+      "inherited_pixels": "original lower bow, stock and loaded bolt are pixel-identical",
+      "max_rotation_radius": 792.1123657663728,
+      "sha256": "65d1057d523169b1c173dbfc579a86ab5cafed1ca44a733e497313f9cde132ba"
+    },
+    {
+      "file": "sprites/tier-3/base.png",
+      "color_count": 13,
+      "unexpected_colors": 0,
+      "canvas": [
+        2048,
+        2048
+      ],
+      "pivot": [
+        1024,
+        1024
+      ],
+      "ground_anchor": [
+        1024,
+        1442
+      ],
+      "inherited_pixels": "entire base is pixel-identical to tier 1",
+      "max_rotation_radius": null,
+      "sha256": "389b53dcd402182fe38327d41584b7f984ab23bb90fe44d9a96926bdd5da9881"
+    },
+    {
+      "file": "sprites/tier-3/top.png",
+      "color_count": 13,
+      "unexpected_colors": 0,
+      "canvas": [
+        2048,
+        2048
+      ],
+      "pivot": [
+        1024,
+        1024
+      ],
+      "ground_anchor": [
+        1024,
+        1442
+      ],
+      "inherited_pixels": "original lower bow, stock and loaded bolt are pixel-identical",
+      "max_rotation_radius": 792.1123657663728,
+      "sha256": "6253d67745dd4c3291c967e75b8b6d3cb186fac56752b7247513c94b02aaa475"
+    },
+    {
+      "file": "sprites/tier-4-bolt-battery/base.png",
+      "color_count": 13,
+      "unexpected_colors": 0,
+      "canvas": [
+        2048,
+        2048
+      ],
+      "pivot": [
+        1024,
+        1024
+      ],
+      "ground_anchor": [
+        1024,
+        1442
+      ],
+      "inherited_pixels": "entire base is pixel-identical to tier 1",
+      "max_rotation_radius": null,
+      "sha256": "389b53dcd402182fe38327d41584b7f984ab23bb90fe44d9a96926bdd5da9881"
+    },
+    {
+      "file": "sprites/tier-4-bolt-battery/top.png",
+      "color_count": 14,
+      "unexpected_colors": 0,
+      "canvas": [
+        2048,
+        2048
+      ],
+      "pivot": [
+        1024,
+        1024
+      ],
+      "ground_anchor": [
+        1024,
+        1442
+      ],
+      "inherited_pixels": "original lower bow, stock and loaded bolt are pixel-identical",
+      "max_rotation_radius": 799.0719617155892,
+      "sha256": "e1d76c0440c93c9d6174a30d669cb0d8e236a402d21eeb94a193fbbccc9857fb"
+    },
+    {
+      "file": "sprites/tier-4-breacher/base.png",
+      "color_count": 13,
+      "unexpected_colors": 0,
+      "canvas": [
+        2048,
+        2048
+      ],
+      "pivot": [
+        1024,
+        1024
+      ],
+      "ground_anchor": [
+        1024,
+        1442
+      ],
+      "inherited_pixels": "entire base is pixel-identical to tier 1",
+      "max_rotation_radius": null,
+      "sha256": "389b53dcd402182fe38327d41584b7f984ab23bb90fe44d9a96926bdd5da9881"
+    },
+    {
+      "file": "sprites/tier-4-breacher/top.png",
+      "color_count": 15,
+      "unexpected_colors": 0,
+      "canvas": [
+        2048,
+        2048
+      ],
+      "pivot": [
+        1024,
+        1024
+      ],
+      "ground_anchor": [
+        1024,
+        1442
+      ],
+      "inherited_pixels": "original lower bow, stock and loaded bolt are pixel-identical",
+      "max_rotation_radius": 816.4177852055894,
+      "sha256": "5ae8cd038ba1ee33ab7425affab07b9cb0cbd1dabcd8c391055ed1b467187d1c"
+    }
+  ],
+  "rotation_angles_degrees": [
+    0,
+    45,
+    90,
+    135,
+    180,
+    225,
+    270,
+    315
+  ],
+  "layer_reconstruction": "all four cumulative addition stacks match exactly"
+}
