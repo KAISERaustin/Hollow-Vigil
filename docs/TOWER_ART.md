@@ -51,8 +51,6 @@ state. Exposed enemies display an eye mark through the shared affliction rendere
 Game collision positions and visual positions share one owner; the cosmetic
 effect limit cannot suppress projectile damage or trap triggers.
 
-## Hex Lantern authored family
-
 ## Caltrop Keep authored family
 
 The five approved Sapper's Hold sprites are installed unchanged in
