@@ -31,7 +31,9 @@ def palette_sweep(pixels, count=16, exclude_bronze=False):
 def prepare(args):
     source = Path(args.source)
     (ROOT / 'sources').mkdir(exist_ok=True)
-    shutil.copy2(source, ROOT / 'sources' / (args.name + '.png'))
+    destination = ROOT / 'sources' / (args.name + '.png')
+    if source.resolve() != destination.resolve():
+        shutil.copy2(source, destination)
     pixels = np.array(Image.open(source).convert('RGBA'))
     # Generated cutouts contain isolated 1/255 background residue. This mask
     # removes only near-invisible background; the color sweep preserves alpha.
