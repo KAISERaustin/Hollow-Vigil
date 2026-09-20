@@ -1,4 +1,22 @@
 {
+  "top-4-bolt-battery": {
+    "parent": "top-3",
+    "canvas": [2048, 2048],
+    "parent_offset": [397, 344],
+    "source_offset": [397, 163],
+    "accents": [15],
+    "protect_parent": true,
+    "polygons": [[[831,218],[1216,218],[1216,512],[1140,512],[1140,590],[907,590],[907,512],[831,512]]]
+  },
+  "top-4-breacher": {
+    "parent": "top-3",
+    "canvas": [2048, 2048],
+    "parent_offset": [397, 344],
+    "source_offset": [397, 173],
+    "accents": [13, 14],
+    "protect_parent": true,
+    "polygons": [[[754,213],[1288,213],[1288,566],[1157,566],[1157,611],[893,611],[893,566],[754,566]]]
+  },
   "top-3": {
     "parent": "top-2",
     "offset": [0, 0],
