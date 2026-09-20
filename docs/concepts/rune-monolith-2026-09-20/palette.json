@@ -66,12 +66,12 @@
     }
   ],
   "canvas": [
-    1024,
-    1024
+    1254,
+    1254
   ],
-  "planned_core_center_x": 512,
-  "planned_ground_anchor": [
-    512,
-    900
+  "core_center_x": 627,
+  "ground_anchor": [
+    627,
+    1156
   ]
 }
