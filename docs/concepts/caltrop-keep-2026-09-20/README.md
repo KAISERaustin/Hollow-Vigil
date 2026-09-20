@@ -12,7 +12,13 @@ Original five-sprite family, created September 20, 2026 with the built-in image_
 | `tier-4-broadscatter.png` | Tier 4A — Broadscatter Arsenal | Supported broad distribution trays with bronze fittings |
 | `tier-4-ironthorn.png` | Tier 4B — Ironthorn Hold | Heavy caltrop storage rack and muted red identification pennants |
 
-The two tier-4 branches independently retain tier 3. These are art concepts; branch names and visual specializations do not introduce gameplay rules or balance changes. This task does not install the family in runtime.
+The two tier-4 branches independently retain tier 3. All five sprites are now installed in the game. Broadscatter Arsenal supplies the existing Scatterworks branch, and Ironthorn Hold supplies Dreadjaw. Existing branch names, save identities, trap mechanics and balance are preserved.
+
+## Runtime integration
+
+`assets/artwork/tower/caltrop_keep/` contains byte-identical copies of the five approved PNGs. The shared artwork catalog maps their full canvases at 20 pixels per world unit, with bounds `[-31.35, -56.1, 62.7, 62.7]`. Source anchor `(627, 1122)` maps to world `(0, 0)` at every tier. Per-stage portrait bounds include each complete silhouette. Authored entries use these images at every zoom and are protected from native rebaking.
+
+The shared battlefield, build-preview, portrait and export paths consume these entries. `./launch.ps1 -TestScript tests/rendered/caltrop_keep_art_runner.gd` passed 88 checks with zero failures: source mappings, scale, anchoring, normal/high-zoom rendering and 48/80-pixel portraits. All five stages were visually inspected at 360x640, 390x844 and 540x960.
 
 ## Shared placement
 

@@ -86,6 +86,16 @@ The artwork implementation lives in scripts/rendering/terrain/terrain_art.gd, sc
 
 ## Extension contract
 
+Caltrop Keep uses the five approved Sapper's Hold sprites from
+`docs/concepts/caltrop-keep-2026-09-20/`. Broadscatter Arsenal maps to
+Scatterworks and Ironthorn Hold maps to Dreadjaw, retaining their gameplay and
+save identities. Runtime PNGs are exact copies at 20 pixels per world unit;
+the shared source anchor `(627, 1122)` maps to world `(0, 0)` for every tier.
+Authored catalog entries supply per-stage portrait bounds, stay active at high
+zoom and are protected from native rebaking. The shared battlefield, previews,
+portraits and export path all use these entries. The focused rendered check is
+`tests/rendered/caltrop_keep_art_runner.gd`.
+
 Stormspire uses the five authored Tempest Spire sprites from
 `docs/concepts/stormspire-tempest-new/`, copied unchanged into the electric
 artwork family. Skyfork maps to Tempest Web and Thunderward to Thunderseal;
