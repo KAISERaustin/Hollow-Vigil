@@ -1,0 +1,73 @@
+{
+  "canvas": [
+    2048,
+    2048
+  ],
+  "pivot": [
+    1024,
+    1024
+  ],
+  "core_center_x": 1024,
+  "ground_anchor": [
+    1024,
+    1440
+  ],
+  "default_aim": [
+    0,
+    1
+  ],
+  "muzzle": [
+    1024,
+    1183
+  ],
+  "base_source_socket": [
+    630,
+    708
+  ],
+  "top_source_pivot": [
+    627,
+    680
+  ],
+  "base_translation": [
+    394,
+    316
+  ],
+  "top_translation": [
+    397,
+    344
+  ],
+  "parts": {
+    "tier-1": {
+      "base": "sprites/tier-1/base.png",
+      "top": "sprites/tier-1/top.png",
+      "accent_palette_indices": []
+    },
+    "tier-2": {
+      "base": "sprites/tier-2/base.png",
+      "top": "sprites/tier-2/top.png",
+      "accent_palette_indices": []
+    },
+    "tier-3": {
+      "base": "sprites/tier-3/base.png",
+      "top": "sprites/tier-3/top.png",
+      "accent_palette_indices": []
+    },
+    "tier-4-bolt-battery": {
+      "base": "sprites/tier-4-bolt-battery/base.png",
+      "top": "sprites/tier-4-bolt-battery/top.png",
+      "accent_palette_indices": [
+        15
+      ]
+    },
+    "tier-4-breacher": {
+      "base": "sprites/tier-4-breacher/base.png",
+      "top": "sprites/tier-4-breacher/top.png",
+      "accent_palette_indices": [
+        13,
+        14
+      ]
+    }
+  },
+  "rotation": "Draw base fixed. Rotate top about pivot. For a target bearing measured from +X, use bearing - PI/2.",
+  "scope": "Artwork package and offline previews; not wired into the runtime catalog."
+}

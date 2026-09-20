@@ -8,7 +8,7 @@ base silhouettes, preserving the game's flat palette and black outlines.
 
 | Tower | Level 2 | Level 3 |
 | --- | --- | --- |
-| Gloamwatch | Timber supports and top flag | Fortified buttresses and front banner |
+| Gloamwatch (Ashneedle artwork) | Braced side firing galleries | Iron-clad central shelter |
 | Obelisk | Rune and stone collar | Satellite crystals and floating capstone |
 | Pyre | Stone buttresses, reinforced collar and hotter roof fire | Twin flame sconces around the battlements |
 | Stormspire | Paired iron conductor arms | Two smaller forked staffs on those arms |
@@ -37,7 +37,7 @@ effect. Replacing the economy disconnects the previous signal and clears poofs.
 
 ## Additional tower families
 
-Ironspike, Moonwheel, Hex Lantern and Caltrop Keep compose the stateless native
+Ironspike, Moonwheel and Caltrop Keep compose the stateless native
 `rendering/actors/expansion_tower_art.gd` family. Each has level-one, reinforced,
 fortified and two final branch silhouettes. The same drawing owner supplies
 battlefields, build previews, menu portraits and upgrade previews in Campaign.
@@ -51,6 +51,28 @@ state. Exposed enemies display an eye mark through the shared affliction rendere
 Game collision positions and visual positions share one owner; the cosmetic
 effect limit cannot suppress projectile damage or trap triggers.
 
+## Hex Lantern authored family
+
+The five Witchlight Shrine sprites are installed in
+`assets/artwork/tower/hex_lantern/` through the shared authored artwork catalog.
+The curse-lantern sprite supplies Witchlight; the green sword/staff shield sprite
+supplies Oathbrand. The existing tower and branch IDs, stats, saves, hexes, and
+auras remain intact. Every image is an unchanged copy of the approved source.
+
+All stages share 16 pixels per world unit and source ground anchor (627, 1156).
+The spell outlet is the central violet light at source pixel (627, 896).
+Battlefield towers, placement ghosts, build choices, rules portraits, tower
+dialogs, and upgrade previews use these images, including at high zoom. The
+catalog supplies each stage's complete portrait bounds; native rebaking skips
+the authored entries. See [the source family](concepts/hex-lantern-witchlight-2026-09-20/README.md).
+
+`rendered/hex_lantern_art_runner.gd` passed 108 checks for source hashes,
+anchor/outlet placement, actual spell creation, all five stages at normal/high
+zoom, export rendering, and 32/42/48/64/80-pixel portraits. Battlefield/portrait
+captures were visually checked at 360x640, 390x844, and 540x960. The 66 Hex support
+checks and combined-affliction/aura renders also passed. This is desktop
+validation; physical iOS/Android testing was not performed.
+
 ## Stormspire authored family
 
 All five approved Tempest Spire PNGs are installed in
@@ -63,13 +85,21 @@ The lightning outlet matches the staff's blue inset while enemy-to-enemy chain
 arcs retain their proper origin. See [the source family](concepts/stormspire-tempest-new/README.md)
 for the exact palette, source pixels, alignment and runtime mapping.
 
-## Gloamwatch authored family
+## Ashneedle / Gloamwatch authored family
 
-The five approved, aligned PNGs in `assets/artwork/tower/rapid/` replace the
-legacy Ashneedle drawings at every zoom through `assets/artwork/catalog.json`.
-Battlefields, build ghosts, build cards, tower dialogs and branch previews use
-the same catalog. All stages share a ground anchor and 20 pixels per world unit;
-none are individually cropped or fitted in play. Catalog portrait bounds keep
-flags inside menu portraits. The baker preserves authored entries, including
-when `--overwrite-native` is requested. See [the source family](concepts/gloamwatch/README.md)
-for lore, the 16-color palette, exact alignment and generation history.
+The five approved Arrow Watchtower sprites in `assets/artwork/tower/rapid/`
+are byte-identical copies of [the Ashneedle source family](concepts/ashneedle-original-2026-09-20/README.md).
+The existing tower still displays as Gloamwatch; names, mechanics and save IDs
+are preserved. Arrowstorm supplies Frostneedle's image and Lastwatch supplies
+Poison Arrow's image. Battlefields, build ghosts, build cards, tower dialogs and
+branch previews share `assets/artwork/catalog.json` at every zoom.
+
+All stages use 18 pixels per world unit and source ground anchor (627, 1128).
+The existing arrow outlet falls inside the common dark firing opening. Catalog
+portrait bounds include the complete bows, pennants and elevated lookout.
+No source is cropped or resized. The baker preserves these authored entries,
+including when `--overwrite-native` is requested.
+
+`rendered/gloamwatch_runner.gd` covers all five source hashes, anchors, outlets,
+portrait framing and runtime/export rendering at normal and high zoom. It
+captures battlefield sprites and portraits at 360x640, 390x844 and 540x960.
