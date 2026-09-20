@@ -191,6 +191,20 @@ Completed levels use `scripts/campaign/cleared_level_art.gd`, a stateless shared
 
 Currency text uses a centered ochre coin with black rim, inset ring and diamond, matching the existing coin portrait. The reusable color glyph scales with surrounding text; see UI_STYLE_GUIDE.md.
 
+## Obelisk Rune Monolith artwork
+
+Obelisk uses the five authored Rune Monolith sprites from
+`docs/concepts/rune-monolith-2026-09-20/`. The original stone, three binding
+sigils, and low rubble stay fixed as buttresses and a binding arch accumulate.
+Oathbind supplies Grave Echo's ward tablets; Doomseal supplies Doomstone's
+focusing crown. Their existing IDs and mechanics remain intact. Runtime copies
+share 20 pixels per unit, source ground anchor (627, 1156), and a spell outlet
+on the upper sigil at (627, 500). The shared authored catalog also supplies
+portrait framing and named curse-effect anchors. Active curse markers align
+with the carved runes and clear with the existing combat state. Battlefield,
+placement, portraits, upgrades, high zoom, and export rendering use these same
+images; native rebaking preserves them.
+
 ## Hex Lantern shrine artwork
 
 Hex Lantern uses the five authored sprites in

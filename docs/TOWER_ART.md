@@ -9,7 +9,7 @@ base silhouettes, preserving the game's flat palette and black outlines.
 | Tower | Level 2 | Level 3 |
 | --- | --- | --- |
 | Gloamwatch (Ashneedle artwork) | Braced side firing galleries | Iron-clad central shelter |
-| Obelisk | Rune and stone collar | Satellite crystals and floating capstone |
+| Obelisk | Two carved binding buttresses | Supported angular binding arch |
 | Pyre | Stone buttresses, reinforced collar and hotter roof fire | Twin flame sconces around the battlements |
 | Stormspire | Paired iron conductor arms | Two smaller forked staffs on those arms |
 
@@ -34,6 +34,24 @@ a 0.65-second expanding dust cloud and tower-colored motes at that socket.
 Effects use frame time and map coordinates, follow camera zoom and pan, and
 never enter saved progress. Failed, stale, and maximum-level upgrades emit no
 effect. Replacing the economy disconnects the previous signal and clears poofs.
+
+## Obelisk authored family
+
+The Rune Monolith sprites in `assets/artwork/tower/heavy/` are unchanged copies
+of the approved five-sprite family. Oathbind supplies Grave Echo; Doomseal
+supplies Doomstone. The shared authored catalog serves battlefield towers,
+placement ghosts, build choices, portraits, upgrade previews, and high zoom.
+Native rebaking preserves these entries. Each sprite uses 20 pixels per world
+unit and source ground anchor (627, 1156), with a spell outlet at (627, 500).
+Catalog portrait bounds include both complete branch silhouettes.
+
+Active Doomstone curse markers use named presentation anchors at the carved
+runes. They follow the existing curse state and clear when that state expires.
+All combat values, branch identities, save data, and placement rules are retained.
+The focused `rendered/obelisk_art_runner.gd` passed 123 checks, with battlefield
+and portrait inspection at 360x640, 390x844, and 540x960. See
+[the source family](concepts/rune-monolith-2026-09-20/README.md) for palette,
+layer preservation, alignment, and runtime mapping.
 
 ## Additional tower families
 

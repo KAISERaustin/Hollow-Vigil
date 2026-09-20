@@ -21,9 +21,10 @@ rendering, progression, palette, and alignment.
 | `tier-4-oathbind.png` | Tier 4, branch A | Two mineral-green ward tablets |
 | `tier-4-doomseal.png` | Tier 4, branch B | Iron focusing crown and muted garnet shard |
 
-Branch names describe the visual concepts, not implemented gameplay mechanics.
-This folder delivers artwork; it does not replace runtime assets, rename content
-IDs, introduce abilities, or alter balance.
+Branch names describe the visual concepts. Runtime copies are now installed for
+the existing Obelisk (`heavy`) tower through the shared authored artwork catalog.
+Oathbind supplies Grave Echo, and Doomseal supplies Doomstone. Existing content
+IDs, names, abilities, stats, placement rules, and saves remain unchanged.
 
 All five PNGs are **1254 x 1254 RGBA**, front-facing, using the same unscaled core
 and camera. Shared placement is **core x = 627, ground anchor = (627, 1156)**,
@@ -47,8 +48,35 @@ is byte-identical throughout the family. Each inherited stage is also preserved
 exactly, including its alpha. Both final branches descend independently from
 tier 3. Core and ground landmark offsets are zero; all visible ground anchors
 match, and no sprite touches a canvas edge. All five were inspected together
-at review scale and at small display size. No gameplay or device tests apply to
-this artwork-only delivery.
+at review scale and at small display size. Runtime rendering and projectile
+placement are also verified as described below; no physical device testing was
+performed.
+
+## In-game integration
+
+The runtime files in `assets/artwork/tower/heavy/` are byte-identical copies of
+the five final PNGs. `1.png`, `2.png`, and `3.png` map directly to the three base
+tiers; `4/grave_echo.png` uses Oathbind and `4/doomstone.png` uses Doomseal.
+The shared catalog uses 20 pixels per world unit with bounds
+`[-31.35, -57.8, 62.7, 62.7]`, preserving source ground anchor `(627, 1156)`.
+The upper carved sigil at source pixel `(627, 500)` is the spell outlet,
+corresponding to world offset `(0, -32.8)`.
+
+Battlefield drawing, placement previews, tower choices, portraits, upgrade
+previews, high zoom, and the export route all use the same authored catalog.
+Native rebaking skips these entries. Shared portrait bounds include both final
+branches. Cached runtime alpha cleanup removes only faint residue below 0.07;
+the source and runtime PNG files remain unchanged.
+
+Doomstone's active curse markers use the catalog's reusable named presentation
+anchors at the three carved runes. They appear only while stacks are active,
+leave other towers unchanged, and disappear when the curse clears. The shared
+artwork owner returns independent anchor arrays; it holds no combat state.
+
+`tests/rendered/obelisk_art_runner.gd` passed 123 checks covering all five source
+mappings, ground/outlet alignment, actual spell creation, normal/high zoom,
+export rendering, compact portraits, and isolated curse appearance/removal.
+Battlefield and portrait captures were inspected at 360x640, 390x844, and 540x960.
 
 ## Source and layered assembly
 
