@@ -1,0 +1,128 @@
+{
+  "canvas": [
+    1254,
+    1254
+  ],
+  "core_center_x": 628,
+  "ground_anchor": [
+    628,
+    1120
+  ],
+  "base_sha256": "ba406358966ea6e7ab095ee0684e30ab396bd62d71a1eaf9a555ba752e289d44",
+  "sources": "Built-in ImageGen; only images newly generated for this commission",
+  "sprites": {
+    "tier-1": {
+      "size": [
+        1254,
+        1254
+      ],
+      "colors": 16,
+      "visible_bounds_alpha_128": [
+        367,
+        302,
+        873,
+        1121
+      ],
+      "base_visible_pixels_changed": 0,
+      "offset_xy": [
+        0,
+        0
+      ],
+      "ground_y": 1120,
+      "alpha_preserved_by_final_sweep": true,
+      "rgba_sha256": "9d1d099dce68103623df886b0113dd8f57e34329b6ae4f8432c98c73bd622c74"
+    },
+    "tier-2": {
+      "size": [
+        1254,
+        1254
+      ],
+      "colors": 16,
+      "visible_bounds_alpha_128": [
+        294,
+        302,
+        961,
+        1121
+      ],
+      "base_visible_pixels_changed": 0,
+      "offset_xy": [
+        0,
+        0
+      ],
+      "ground_y": 1120,
+      "alpha_preserved_by_final_sweep": true,
+      "rgba_sha256": "a27886da9e57d5a843501921503550c1904f7df5ba4bd10dc7672a1a046c0ca7",
+      "parent": "tier-1",
+      "parent_visible_pixels_changed": 0
+    },
+    "tier-3": {
+      "size": [
+        1254,
+        1254
+      ],
+      "colors": 16,
+      "visible_bounds_alpha_128": [
+        294,
+        302,
+        961,
+        1121
+      ],
+      "base_visible_pixels_changed": 0,
+      "offset_xy": [
+        0,
+        0
+      ],
+      "ground_y": 1120,
+      "alpha_preserved_by_final_sweep": true,
+      "rgba_sha256": "e2e7d7e1368f87388f0c64c1a69730013c32a82d030d19e45926267b23ea1e96",
+      "parent": "tier-2",
+      "parent_visible_pixels_changed": 0
+    },
+    "tier-4-reaping-arc": {
+      "size": [
+        1254,
+        1254
+      ],
+      "colors": 16,
+      "visible_bounds_alpha_128": [
+        122,
+        223,
+        1133,
+        1121
+      ],
+      "base_visible_pixels_changed": 0,
+      "offset_xy": [
+        0,
+        0
+      ],
+      "ground_y": 1120,
+      "alpha_preserved_by_final_sweep": true,
+      "rgba_sha256": "3e058e2cb091d55e3b7f1e2a64e4420a139a2d66c0b39b1938f8788c08251058",
+      "parent": "tier-3",
+      "parent_visible_pixels_changed": 0
+    },
+    "tier-4-oathbound-return": {
+      "size": [
+        1254,
+        1254
+      ],
+      "colors": 16,
+      "visible_bounds_alpha_128": [
+        294,
+        83,
+        961,
+        1121
+      ],
+      "base_visible_pixels_changed": 0,
+      "offset_xy": [
+        0,
+        0
+      ],
+      "ground_y": 1120,
+      "alpha_preserved_by_final_sweep": true,
+      "rgba_sha256": "54aa739a17a5cd7727527cea6782adb6576b836cdeb8ad7887f3391328231312",
+      "parent": "tier-3",
+      "parent_visible_pixels_changed": 0
+    }
+  }
+}

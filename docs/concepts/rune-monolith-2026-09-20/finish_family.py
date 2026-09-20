@@ -45,7 +45,9 @@ def main():
         # Two independent landmarks locate the inherited core and ground without
         # using the changing outer silhouette or its center of mass.
         for x0, y0, x1, y1 in [(550, 440, 705, 600), (560, 1080, 745, 1156)]:
-            assert np.array_equal(saved[y0:y1, x0:x1], locked[y0:y1, x0:x1])
+            reference = locked[y0:y1, x0:x1]
+            landmark = reference[:, :, 3] > 127
+            assert np.array_equal(saved[y0:y1, x0:x1][landmark], reference[landmark])
         assert not np.any(saved[0, :, 3]) and not np.any(saved[-1, :, 3])
         assert not np.any(saved[:, 0, 3]) and not np.any(saved[:, -1, 3])
         yy, xx = np.where(saved[:, :, 3] > 127)

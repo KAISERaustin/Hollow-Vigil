@@ -1,0 +1,131 @@
+{
+  "passed": true,
+  "canvas": [
+    1254,
+    1254
+  ],
+  "core_center_x": 627,
+  "ground_anchor": [
+    627,
+    1156
+  ],
+  "max_family_colors": 16,
+  "sprites": [
+    {
+      "file": "tier-1.png",
+      "parent": null,
+      "color_count": 10,
+      "base_changed_pixels": 0,
+      "inherited_landmark_offset": [
+        0,
+        0
+      ],
+      "ground_anchor": [
+        627,
+        1156
+      ],
+      "visible_bounds": [
+        360,
+        249,
+        879,
+        1156
+      ],
+      "transparent_border": true,
+      "palette_sweep_changed_pixels": 0,
+      "sha256": "f81c2e724e87494ec8ace9bcd9707517c81e64df1e6812fd2ddab049b453b0cc"
+    },
+    {
+      "file": "tier-2.png",
+      "parent": "tier-1",
+      "color_count": 10,
+      "base_changed_pixels": 0,
+      "inherited_landmark_offset": [
+        0,
+        0
+      ],
+      "ground_anchor": [
+        627,
+        1156
+      ],
+      "visible_bounds": [
+        261,
+        249,
+        993,
+        1156
+      ],
+      "transparent_border": true,
+      "palette_sweep_changed_pixels": 0,
+      "sha256": "c26e5511da4af2619a72e6dd05222390de45ba07e9575d8e8897b8a8d852c89a"
+    },
+    {
+      "file": "tier-3.png",
+      "parent": "tier-2",
+      "color_count": 10,
+      "base_changed_pixels": 0,
+      "inherited_landmark_offset": [
+        0,
+        0
+      ],
+      "ground_anchor": [
+        627,
+        1156
+      ],
+      "visible_bounds": [
+        261,
+        118,
+        993,
+        1156
+      ],
+      "transparent_border": true,
+      "palette_sweep_changed_pixels": 0,
+      "sha256": "e9e1abc8d03de2f6761715c188e0cdd0a569c1392fae1e2c0ef53b864ff7c101"
+    },
+    {
+      "file": "tier-4-oathbind.png",
+      "parent": "tier-3",
+      "color_count": 12,
+      "base_changed_pixels": 0,
+      "inherited_landmark_offset": [
+        0,
+        0
+      ],
+      "ground_anchor": [
+        627,
+        1156
+      ],
+      "visible_bounds": [
+        194,
+        118,
+        1060,
+        1156
+      ],
+      "transparent_border": true,
+      "palette_sweep_changed_pixels": 0,
+      "sha256": "16634ab3ffb4cd35b80e54be3e1135968a896c06dc62b681cea59b5cd09a8b99"
+    },
+    {
+      "file": "tier-4-doomseal.png",
+      "parent": "tier-3",
+      "color_count": 14,
+      "base_changed_pixels": 0,
+      "inherited_landmark_offset": [
+        0,
+        0
+      ],
+      "ground_anchor": [
+        627,
+        1156
+      ],
+      "visible_bounds": [
+        261,
+        36,
+        993,
+        1156
+      ],
+      "transparent_border": true,
+      "palette_sweep_changed_pixels": 0,
+      "sha256": "dc85a415350d023ad083e8ba1e32dbe079798d3d88afea7d8878fa81bf3f36c8"
+    }
+  ],
+  "family_color_count": 16
+}
